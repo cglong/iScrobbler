@@ -282,12 +282,17 @@
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
     SongData *song;
+    int addedSongs = 0;
     // ScrobTrace(@"updating menu");
 	
     // remove songs from menu
     while(item=[enumerator nextObject])
         if([item action]==@selector(playSong:))
             [theMenu removeItem:item];
+    
+    // Remove separator
+    if ([theMenu numberOfItems] && [[theMenu itemAtIndex:0] isSeparatorItem])
+        [theMenu removeItemAtIndex:0];
     
     // add songs from songList array to menu
     enumerator=[songList reverseObjectEnumerator];
@@ -300,8 +305,13 @@
         
         [item setTarget:self];
         [theMenu insertItem:item atIndex:0];
+        ++addedSongs;
 		//    ScrobTrace(@"added item to menu");
     }
+    
+    if (addedSongs)
+        [theMenu insertItem:[NSMenuItem separatorItem] atIndex:addedSongs];
+    
 }
 
 // Caller must release
@@ -534,6 +544,10 @@ mainTimerReleaseResult:
         if([item action]==@selector(playSong:))
             [theMenu removeItem:item];
 	
+    // remove the first separator
+    if ([theMenu numberOfItems] && [[theMenu itemAtIndex:0] isSeparatorItem])
+        [theMenu removeItemAtIndex:0];
+    
 	[self mainTimer:nil];
 }
 
