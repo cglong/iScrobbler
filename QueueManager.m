@@ -34,11 +34,16 @@ static QueueManager *g_QManager = nil;
     SongData *found;
     NSEnumerator *en = [songQueue objectEnumerator];
     
-    if (![song canSubmit])
+    if (![song canSubmit]) {
+        ScrobLog(SCROB_LOG_TRACE, @"Song '%@ [%@]' failed submission rules. Not queuing.\n",
+            [song brief], [song duration]);
         return;
+    }
     
-    if([song hasQueued])
+    if([song hasQueued]) {
+        ScrobLog(SCROB_LOG_TRACE, @"Song '%@' is already queued for submission. Ignoring.\n", song);
         return;
+    }
     
     while ((found = [en nextObject])) {
         if ([found isEqualToSong:song])
@@ -48,11 +53,15 @@ static QueueManager *g_QManager = nil;
     if (found) {
         // Found in queue
         // Check to see if the song has been played again
-        if (![found hasPlayedAgain:song])
+        if (![found hasPlayedAgain:song]) {
+            ScrobLog(SCROB_LOG_TRACE, @"Song '%@' found in queue as '%@'. Ignoring.\n", song, found);
             return;
+        }
         // Otherwise, the song will be in the queue twice,
         // on the assumption that it has been played again
     }
+    
+    ScrobLog(SCROB_LOG_VERBOSE, @"Queuing song '%@' for submission\n", [song brief]);
     
     // Add to top of list
     [song setHasQueued:YES];
@@ -64,8 +73,6 @@ static QueueManager *g_QManager = nil;
         postNotificationName:QM_NOTIFICATION_SONG_QUEUED
         object:self
         userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_USERINFO_KEY_SONG]]; 
-
-#define QM_NOTIFICATION_USERINFO_KEY_SONG @"Song"
     
     if (submit) {
         [song setPostDate:[song startTime]];
