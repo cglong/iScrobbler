@@ -66,8 +66,8 @@ static enum {title, album, artist} g_cycleState = title;
     unsigned int hours = (time % 86400U) / 3600U;
     unsigned int minutes = ((time % 86400U) % 3600U) / 60U;
     unsigned int seconds = ((time % 86400U) % 3600U) % 60U;
-    NSString *timeString = [NSString stringWithFormat:@"%u days, %u:%02u:%02u",
-        days, hours, minutes, seconds];
+    NSString *timeString = [NSString stringWithFormat:@"%u %s, %u:%02u:%02u",
+        (1 == days ? "day" : "days"), days, hours, minutes, seconds];
     [selection setValue:timeString forKey:@"Tracks Submitted Play Time"];
     [selection setValue:[pm lastSubmissionMessage] forKey:@"Server Response"];
     [selection setValue:[[pm lastSongSubmitted] brief] forKey:@"Last Track Submission"];
