@@ -176,7 +176,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
-        [[StatisticsController sharedInstance] showWindow:nil];
+        [self openStatistics:nil];
     }
 }
 
@@ -444,6 +444,7 @@ mainTimerReleaseResult:
 -(IBAction)openStatistics:(id)sender
 {
     [[StatisticsController sharedInstance] showWindow:sender];
+    [NSApp activateIgnoringOtherApps:YES];
 }
 
 -(void) handleChangedNumRecentTunes:(NSNotification *)aNotification
