@@ -12,7 +12,9 @@ v1.0.1 (BDB)
 - The Top Artists list now includes the total time played for each artist.
 - Copy/Drag and Drop now work for the Top Lists tables. The data is formatted as TSV and can easily be pasted into a spreadsheet.
 - The Tracks Submitted stat is now only updated after a submission attempt completes.
+- Keychain error feedback.
 - Fixed bug that caused a song already in the submission queue and then played again to only be submitted once.
+- Fixed bug that caused the Top Lists window to always open at startup.
 - Workaround for iTunes cross-fading and/or network stream buffer issues that caused some songs to not be submitted.
 
 v1.0.0 (BDB and ECS)
