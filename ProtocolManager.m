@@ -627,6 +627,19 @@ didFinishLoadingExit:
     return (NO);
 }
 
+- (NSTimeInterval)submitIntervalFromNow
+{
+    double trackTime = [[self duration] doubleValue];
+    double minTime = [[ProtocolManager sharedInstance] minTimePlayed];
+    
+    trackTime = ceil(trackTime / (100.0 / [[ProtocolManager sharedInstance] minPercentagePlayed]));
+    if (trackTime > minTime)
+        trackTime = minTime;
+    trackTime -= [[self position] doubleValue]; // Adjust for elapsed time.
+    trackTime += 4.0; // Add some fudge to make sure the track gets submitted when the timer fires.
+    return (trackTime);
+}
+
 @end
 
 @implementation NSDictionary (ProtocolManagerAdditions)

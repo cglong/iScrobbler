@@ -85,6 +85,7 @@
 
 // Tests to see if the song is ready to submit
 - (BOOL)canSubmit;
+- (NSTimeInterval)submitIntervalFromNow;
 
 @end
 
