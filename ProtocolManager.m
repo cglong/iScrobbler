@@ -417,7 +417,10 @@ didFinishLoadingExit:
     myData = nil;
     
     if (hs_inprogress == hsState) {
-        [self completeHandshake:[NSData data]];
+        // Emulate a server error
+        NSData *response = [[@"FAILED\nConnection failed - " stringByAppendingString:[reason localizedDescription]]
+            dataUsingEncoding:NSUTF8StringEncoding];
+        [self completeHandshake:response];
         return;
     }
     
