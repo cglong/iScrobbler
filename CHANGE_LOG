@@ -10,6 +10,7 @@ v1.0.0 (BDB and ECS)
 - Redesigned preferences dialog.
 - Redesigned error and update notification dialogs.
 - Network status is now monitored, and we will only send when the network is available. Submissions will be queued until that time. 
+- If iTunes 4.7 or greater is being used, we no longer have to constantly poll iTunes. Instead, iTunes will notify us when a new track is played. This reduces our lifetime CPU usage quite a bit.
 - Tracks from iTunes Shared Music are now submitted by default.
 - Redesigned and expanded client statistics.
 - Any suitable iTunes playlist can be used for iPod Submissions ("Recently Played" is no longer hard-coded).
