@@ -38,7 +38,6 @@ static TopListsController *g_topLists = nil;
             count = [NSNumber numberWithUnsignedInt:
                 [count unsignedIntValue] + 1];
             [entry setValue:count forKeyPath:@"Play Count"];
-            [topArtistsController rearrangeObjects];
             break;
         }
     }
@@ -49,6 +48,11 @@ static TopListsController *g_topLists = nil;
                 [song artist], @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count", nil]];
     }
     
+    // This is necessary even when adding a new object. According to the doc, addObject adds both to
+    // the content array and the arrangedObjects array, which I would think it would also cause a re-sort,
+    // but it doesn't.
+    [topArtistsController rearrangeObjects];
+    
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
         if ([artist isEqualToString:[entry objectForKey:@"Artist"]] &&
@@ -57,7 +61,6 @@ static TopListsController *g_topLists = nil;
             count = [NSNumber numberWithUnsignedInt:
                 [count unsignedIntValue] + 1];
             [entry setValue:count forKeyPath:@"Play Count"];
-            [topTracksController rearrangeObjects];
             break;
         }
     }
@@ -68,6 +71,8 @@ static TopListsController *g_topLists = nil;
                 artist, @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
                 track, @"Track", nil]];
     }
+    
+    [topTracksController rearrangeObjects]; // Same requirement as topArtistsController
 }
 
 - (id)initWithWindowNibName:(NSString *)windowNibName
