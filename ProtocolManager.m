@@ -142,6 +142,7 @@ NS_ENDHANDLER
 {
     if (!isNetworkAvailable) {
         ScrobLog(SCROB_LOG_VERBOSE, NETWORK_UNAVAILABLE_MSG);
+        return;
     }
     
     if (hs_inprogress == hsState) {
