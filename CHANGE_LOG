@@ -1,7 +1,18 @@
-Change Log for iScrobbler:
+KNOWN PROBLEMS:
+
+- If you are burning a CD in iTunes, or editing a song's information, then iTunes cannot process Apple Events. Since iScrobbler communicates with iTunes with Apple Events, this can cause iScrobbler to miss songs that should be submitted.
+
+CHANGE HISTORY:
 
 (Releases/comments tagged as RAB are by Rod Begbie)
 (BDB is Brian Bergstrand)
+(ECS is Eric Seidel)
+
+v1.0.1 (BDB)
+- The Top Artists list now includes the total time played for each artist.
+- Copy/Drag and Drop now work for the Top Lists tables. The data is formatted as TSV and can easily be pasted into a spreadsheet.
+- The Tracks Submitted stat is now only updated after a submission attempt completes.
+- Fixed bug that caused a song already in the submission queue and then played again to only be submitted once.
 
 v1.0.0 (BDB and ECS)
 - This version (and all future versions) requires 10.3.0 or higher.
