@@ -102,8 +102,11 @@
        Note 2: It would be possible for our conditions to occur while not on a track switch if for
        instance the user changed some song meta-data. However this should be a very rare occurence.
        */
-    if (![prevSong isEqualToSong:curSong] && [[prevSong duration] isEqualToNumber:[curSong position]])
+    if (![prevSong isEqualToSong:curSong] && [[prevSong duration] isEqualToNumber:[curSong position]]) {
         [curSong setPosition:[NSNumber numberWithUnsignedInt:0]];
+        // Reset the start time too, since it will be off
+        [curSong setStartTime:[NSDate date]];
+    }
     
     BOOL wasiTunesPlaying = isiTunesPlaying;
     
@@ -890,26 +893,25 @@ sync_ipod_script_release:
         return (nil);
     }
     
-    SongData * song = [[SongData alloc] init];
-    [song setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
+    [self setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
         floatValue]]];
-    [song setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
+    [self setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
         floatValue]]];
-    [song setTitle:[data objectAtIndex:2]];
-    [song setDuration:[NSNumber numberWithFloat:[[data objectAtIndex:3] floatValue]]];
-    [song setPosition:[NSNumber numberWithFloat:[[data objectAtIndex:4] floatValue]]];
-    [song setArtist:[data objectAtIndex:5]];
-    [song setAlbum:[data objectAtIndex:6]];
-    [song setPath:[data objectAtIndex:7]];
-    [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
+    [self setTitle:[data objectAtIndex:2]];
+    [self setDuration:[NSNumber numberWithFloat:[[data objectAtIndex:3] floatValue]]];
+    [self setPosition:[NSNumber numberWithFloat:[[data objectAtIndex:4] floatValue]]];
+    [self setArtist:[data objectAtIndex:5]];
+    [self setAlbum:[data objectAtIndex:6]];
+    [self setPath:[data objectAtIndex:7]];
+    [self setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
         locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
-    [song setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
+    [self setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
     
-    [song setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[song position] doubleValue]]];
+    [self setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[self position] doubleValue]]];
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     //ScrobTrace(@"SongData allocated and filled");
-    return (song);
+    return (self);
 }
 
 @end
