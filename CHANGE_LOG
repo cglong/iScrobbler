@@ -1,6 +1,8 @@
 Change Log for iScrobbler:
 
 (Releases/comments tagged as RAB are by Rod Begbie)
+v0.6.3 (RAB):
+- Fixed bug that caused crash on startup for some users (Mad props to Micah Gideon Modell for finding and fixing this)
 
 v0.6.2 (RAB):
 - Bug fixes to handle audioscrobbler.com being down (if you can imagine such a thing) more gracefully
