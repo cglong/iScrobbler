@@ -21,19 +21,19 @@ if itunes_active is true then
 			if trackClass is file track then
 				set trackIndex to index of theTrack
 				set playlistIndex to index of the container of theTrack
-				set songTitle to name of theTrack as string
-				set songLength to duration of theTrack as string
-				set songPosition to "0" (* player position as string // the song has already played, so player pos will not be returned *)
-				set songArtist to artist of theTrack as string
+				set songTitle to name of theTrack as Unicode text
+				set songLength to duration of theTrack as Unicode text
+				set songPosition to "0" (* player position as Unicode text // the song has already played, so player pos will not be returned *)
+				set songArtist to artist of theTrack as Unicode text
 				-- We don't currently do anything with the path, and this is causing execution errors for some people.
 				-- E.G: "Can't make alias "System:Users:murraysteele:Music:iTunes:iTunes Music:The Go! Team:Thunder, Lightning, Strike:11 Everyone?s A V.I.P To Someone.m4a" into a string.";
 				-- There's also been an error reported because of a bad link in the iTunes DB that causes alias creation to fail
-				--set songLocation to location of theTrack as string
+				--set songLocation to location of theTrack as Unicode text
 				set songLocation to "File Track" -- Don't rely on "File Track" in iScrobbler proper
-				set songAlbum to album of theTrack as string
-				set songLastPlayed to played date of theTrack as string
-				set songRating to rating of theTrack as string
-				set out to (out & ((trackIndex as string) & "***" & (playlistIndex as string) & "***" & songTitle & "***" & songLength & "***" & songPosition & "***" & songArtist & "***" & songAlbum & "***" & songLocation & "***" & songLastPlayed & "***" & songRating) as string) & "$$$"
+				set songAlbum to album of theTrack as Unicode text
+				set songLastPlayed to played date of theTrack as Unicode text
+				set songRating to rating of theTrack as Unicode text
+				set out to (out & ((trackIndex as Unicode text) & "***" & (playlistIndex as Unicode text) & "***" & songTitle & "***" & songLength & "***" & songPosition & "***" & songArtist & "***" & songAlbum & "***" & songLocation & "***" & songLastPlayed & "***" & songRating) as Unicode text) & "$$$"
 			end if
 		end repeat
 		return out
