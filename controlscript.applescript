@@ -19,7 +19,8 @@ if itunes_active is true then
 			set songPosition to player position as string
 			set songArtist to artist of theTrack as string
 			set songLocation to location of theTrack as string
-			return ((trackIndex as string) & "***" & (playlistIndex as string) & "***" & songTitle & "***" & songLength & "***" & songPosition & "***" & songArtist & "***" & songLocation) as string
+			set songAlbum to album of theTrack as string
+			return ((trackIndex as string) & "***" & (playlistIndex as string) & "***" & songTitle & "***" & songLength & "***" & songPosition & "***" & songArtist & "***" & songAlbum & "***" & songLocation) as string
 		end if
 		return "NOT PLAYING"
 	end tell
