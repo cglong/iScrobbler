@@ -1,0 +1,43 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MyVersionChecker; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {updateWarning = NSTextField; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {
+                OK = id; 
+                apply = id; 
+                cancel = id; 
+                downloadUpdate = id; 
+                forgetPassword = id; 
+                queryAudion = id; 
+                queryiTunes = id; 
+                submitEmailBugReport = id; 
+                submitWebBugReport = id; 
+            }; 
+            CLASS = PreferenceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                lastResultDataField = NSTextView; 
+                lastResultLongField = NSTextView; 
+                lastResultShortField = NSTextField; 
+                lastSongSubmitted = NSTextField; 
+                numRecentSongsField = NSTextField; 
+                password = NSSecureTextField; 
+                passwordStored = NSTextField; 
+                songDataTable = NSTableView; 
+                updateButton = NSButton; 
+                username = NSTextField; 
+                versionNumber = NSTextField; 
+                versionWarning = NSTextField; 
+                window = NSWindow; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

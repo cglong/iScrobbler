@@ -1,0 +1,19 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                clearMenu = id; 
+                openPrefs = id; 
+                openScrobblerHomepage = id; 
+                openUserHomepage = id; 
+                playSong = id; 
+            }; 
+            CLASS = iScrobblerController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {theMenu = NSMenu; }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
