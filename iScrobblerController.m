@@ -539,7 +539,7 @@ validate:
 
 - (void)syncIPod:(id)sender
 {
-    NSLog (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
+    //NSLog (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
     if (iPodUpdateScript && [prefs boolForKey:@"Sync iPod"]) {
         // Copy the script
@@ -623,6 +623,13 @@ validate:
                 
                 en = [iqueue objectEnumerator];
                 while ((song = [en nextObject])) {
+                    if (![[song postDate] isGreaterThan:iTunesLastPlayedTime]) {
+                        NSLog(@"Anachronistic post date for song '%@'. Discarding -- possible date parse error.\n\t"
+                            "Post Date: %@, Last Played: %@, Duration: %.0lf, iTunesLastPlayed: %@.\n",
+                            [song breif], [song postDate], [song lastPlayed], [[song duration] doubleValue],
+                            iTunesLastPlayedTime);
+                        continue;
+                    }
                     NSLog(@"syncIPod: Queuing '%@' with postDate '%@'\n", [song breif], [song postDate]);
                     [[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
@@ -654,7 +661,7 @@ sync_ipod_script_release:
         [[media mountPoint] stringByAppendingPathComponent:@"iPod_Control"];
     BOOL isDir;
     
-    NSLog(@"Volume '%@' (%@) mounted on '%@'.\n", [media volName], [media bsdName], [media mountPoint]);
+    //NSLog(@"Volume '%@' (%@) mounted on '%@'.\n", [media volName], [media bsdName], [media mountPoint]);
     
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodCtl isDirectory:&isDir]
          && isDir) {
@@ -664,7 +671,7 @@ sync_ipod_script_release:
 
 - (void)volUnmount:(NSNotification*)notification
 {
-    NSLog(@"Volume '%@' unmounted.\n", [[notification object] bsdName]);
+    //NSLog(@"Volume '%@' unmounted.\n", [[notification object] bsdName]);
     
     if (iPodDisk != [notification object])
         return;
