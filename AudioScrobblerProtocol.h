@@ -3,7 +3,6 @@
 //  iScrobbler
 //
 //  Created by Eric Seidel on Sat Oct 30 2004.
-//  Copyright (c) 2004 Apple Computer. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
