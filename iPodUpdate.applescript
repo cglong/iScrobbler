@@ -7,7 +7,7 @@ end tell
 
 if itunes_active is true then
 	tell application "iTunes"
-		set myPlaylist to "Recently Played" -- Non-English users will likely have to change this.
+		set myPlaylist to "Recently Played" -- Do not change. This will be replaced with the user chose playlist while iScrobbler is running.
 		try
 			-- Do NOT change the date on the next line. It is used as a placeholder that will be changed while iScrobbler is running.
 			set mytracks to get tracks of user playlist myPlaylist whose played date is greater than date "Thursday, January 1, 1970 12:00:00 AM"
