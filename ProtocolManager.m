@@ -29,6 +29,7 @@
 - (void)setLastSongSubmitted:(SongData*)song;
 - (NSString*)md5Challenge;
 - (NSString*)submitURL;
+- (void)setIsNetworkAvailble:(BOOL)available;
 
 @end
 
@@ -39,7 +40,12 @@
 @end
 
 static ProtocolManager *g_PM = nil;
-static SCDynamicStoreRef g_scStore = nil;
+static SCNetworkReachabilityRef g_networkReachRef = nil;
+
+static void NetworkReachabilityCallback (SCNetworkReachabilityRef target, 
+    SCNetworkConnectionFlags flags, void *info);
+
+#define NETWORK_UNAVAILABLE_MSG @"Network is not available, submissions are being queued.\n"
 
 @implementation ProtocolManager
 
@@ -134,6 +140,10 @@ NS_ENDHANDLER
 
 - (void)handshake
 {
+    if (!isNetworkAvailable) {
+        ScrobLog(SCROB_LOG_VERBOSE, NETWORK_UNAVAILABLE_MSG);
+    }
+    
     if (hs_inprogress == hsState) {
         ScrobLog(SCROB_LOG_INFO, @"Handshake already in progress...\n");
         return;
@@ -159,9 +169,10 @@ NS_ENDHANDLER
 	//ScrobTrace(@"host: %@",[nsurl host]);
 	//ScrobTrace(@"query: %@", [nsurl query]);
 	
-    NSURLRequest *request = [NSURLRequest requestWithURL:nsurl cachePolicy:
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:nsurl cachePolicy:
         NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
-	
+	[request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+    
     NSURLConnection *connection = [NSURLConnection connectionWithRequest:request delegate:self];
     
     // Setup timer to kill the current handhskake and reset state
@@ -422,7 +433,6 @@ didFinishLoadingExit:
     resubmitTimer = nil;
     ScrobLog(SCROB_LOG_VERBOSE, @"Trying resubmission after delay...\n");
     [self submit:nil];
-    
 }
 
 - (void)submit:(id)sender
@@ -436,6 +446,11 @@ didFinishLoadingExit:
     
     if (myConnection) {
         ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission...\n");
+        return;
+    }
+    
+    if (!isNetworkAvailable) {
+        ScrobLog(SCROB_LOG_VERBOSE, NETWORK_UNAVAILABLE_MSG);
         return;
     }
     
@@ -503,7 +518,7 @@ didFinishLoadingExit:
 	[request setHTTPMethod:@"POST"];
 	[request setHTTPBody:[[dict httpPostString] dataUsingEncoding:NSUTF8StringEncoding]];
     // Set the user-agent to something Mozilla-compatible
-    [request setValue:[prefs stringForKey:@"useragent"] forHTTPHeaderField:@"User-Agent"];
+    [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
     [dict release];
     
@@ -512,12 +527,31 @@ didFinishLoadingExit:
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
 }
 
+- (void)setIsNetworkAvailble:(BOOL)available
+{
+    isNetworkAvailable = available;
+    ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is availbable? \"%@\".\n",
+        isNetworkAvailable ? @"Yes" : @"No");
+}
+
 - (id)init
 {
     self = [super init];
     
-    // Init System Config Store
-    g_scStore = SCDynamicStoreCreate(NULL, CFSTR("net.sourceforge.iscrobbler"), NULL, NULL);
+    g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
+        [[[NSURL URLWithString:[self handshakeURL]] host] cString]);
+    // Get the current state
+    SCNetworkConnectionFlags connectionFlags;
+    if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
+         (connectionFlags & kSCNetworkFlagsReachable))
+        isNetworkAvailable = YES;
+    // Install a callback to get notified of iface up/down events
+    SCNetworkReachabilityContext reachContext = {0};
+    reachContext.info = self;
+    if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext)) {
+        ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor, assuming network is always available.\n");
+        isNetworkAvailable = YES;
+    }
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     // Indicate that we have not yet handshaked
@@ -597,3 +631,13 @@ didFinishLoadingExit:
 }
 
 @end
+
+static void NetworkReachabilityCallback (SCNetworkReachabilityRef target, 
+    SCNetworkConnectionFlags flags, void *info)
+{
+    ProtocolManager *pm = (ProtocolManager*)info;
+    
+    [pm setIsNetworkAvailble:(flags & kSCNetworkFlagsReachable) ? YES : NO];
+    if ((flags & kSCNetworkFlagsReachable))
+        [pm submit:nil];
+}

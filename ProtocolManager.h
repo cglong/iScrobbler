@@ -45,6 +45,8 @@
     float nextResubmission;
     // Was the last result bad auth?
     BOOL lastAttemptBadAuth;
+    // Is the network available?
+    BOOL isNetworkAvailable;
 }
 
 + (ProtocolManager*)sharedInstance;
