@@ -28,8 +28,8 @@
         [scanner scanUpToCharactersFromSet:charSet intoString:(NSString **) nil];
         result = [result stringByAppendingString:keepers];
     }
-    return [result length] ? result : nil;
     [keepers release];
+    return [result length] ? result : nil;
 }
     
 

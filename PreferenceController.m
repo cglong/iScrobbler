@@ -24,7 +24,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         [self setWindowFrameAutosaveName:@"PrefWindow"];
     }
     if(!myKeyChain)
-        myKeyChain=[[KeyChain alloc] init];
+        myKeyChain=[[KeyChain defaultKeyChain] retain];
 
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     nc=[NSNotificationCenter defaultCenter];
@@ -345,7 +345,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     NSMutableDictionary * attribs = [NSMutableDictionary dictionary];
     [attribs setObject:[NSFont fontWithName:@"Helvetica" size:12]
                 forKey:NSFontAttributeName];
-    NSAttributedString * attribString = [NSAttributedString alloc];
+    NSAttributedString * attribString;
     
     [propertyArray insertObject:@"Path"
                 atIndex:0];
@@ -370,7 +370,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     NSString * identifier = [[[NSString alloc] initWithString:[tableColumn identifier]] 	autorelease];
 
     if([identifier isEqualToString:@"property"]) {
-        attribString = [attribString initWithString:[propertyArray objectAtIndex:row] attributes:attribs];
+        attribString = [[NSAttributedString alloc] initWithString:[propertyArray objectAtIndex:row] attributes:attribs];
         [tableColumn setWidth:([[propertyArray objectAtIndex:2] sizeWithAttributes:attribs].width
                                +5)];
         return [attribString autorelease];
@@ -378,7 +378,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         if(song != nil) {
             [tableColumn setWidth:([[song path] sizeWithAttributes:attribs].width + 5)];
 
-            attribString = [attribString 		initWithString:[(NSString*)CFURLCreateStringByReplacingPercentEscapes(NULL, 	(CFStringRef)[valueArray objectAtIndex:row],
+            attribString = [[NSAttributedString alloc] initWithString:[(NSString*)CFURLCreateStringByReplacingPercentEscapes(NULL, 	(CFStringRef)[valueArray objectAtIndex:row],
             (CFStringRef)@"") autorelease] attributes:attribs];
         //[tableColumn setWidth:NSMakeSize([attribString size].width];
         return [attribString autorelease];
