@@ -16,6 +16,7 @@
     IBOutlet id detailsText;
     IBOutlet id detailsView;
     IBOutlet id detailsDisclosure;
+    IBOutlet id submissionProgress;
 }
 
 + (StatisticsController*) sharedInstance;

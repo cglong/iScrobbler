@@ -42,6 +42,8 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)submitCompleteHandler:(NSNotification*)note
 {
+    [submissionProgress stopAnimation:nil];
+    
     ProtocolManager *pm = [ProtocolManager sharedInstance];
     QueueManager *qm = [QueueManager sharedInstance];
     id selection = [values selection];
@@ -70,6 +72,11 @@ static enum {title, album, artist} g_cycleState = title;
     [selection setValue:[pm lastSubmissionMessage] forKey:@"Server Response"];
     [selection setValue:[[pm lastSongSubmitted] brief] forKey:@"Last Track Submission"];
     
+}
+
+- (void)submitStartHandler:(NSNotification*)note
+{
+    [submissionProgress startAnimation:nil];
 }
 
 - (void)songQueuedHandler:(NSNotification*)note
@@ -145,6 +152,10 @@ static enum {title, album, artist} g_cycleState = title;
             selector:@selector(submitCompleteHandler:)
             name:PM_NOTIFICATION_SUBMIT_COMPLETE
             object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(submitStartHandler:)
+            name:PM_NOTIFICATION_SUBMIT_START
+            object:nil];
     // And QM notes
     [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(songQueuedHandler:)
@@ -185,6 +196,9 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)windowDidLoad
 {
+    [submissionProgress setDisplayedWhenStopped:NO];
+    [submissionProgress setUsesThreadedAnimation:YES];
+    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
         [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
         [detailsDisclosure setState:NSOnState];
