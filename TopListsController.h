@@ -14,7 +14,6 @@
     IBOutlet id topArtistsController;
     IBOutlet id topTracksController;
     NSDate *startDate;
-    NSMutableArray *topArtistsQueue, *topTracksQueue;
 }
 
 + (TopListsController*) sharedInstance;
