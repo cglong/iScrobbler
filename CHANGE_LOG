@@ -12,6 +12,7 @@ v0.8.0 (BDB and ECS)
 - Tracks from iTunes Shared Music are now submitted by default.
 - Redesigned and expanded client statistics.
 - Any suitable iTunes playlist can be used for iPod Submissions ("Recently Played" is no longer hard-coded).
+- The client log level can now be set from the Preferences window. (Note: If you hover over each menu item long enough, a tool tip will appear explaining the meaning of each level.)
 
 v0.7.5 (BDB)
 - Fixed a bug that caused us to URL encode HTTP post data twice. This bug has been around since the first iScrobbler release, but the old submission server had its own bug that canceled out our double encoding. However, the new Java submission server "fixed" this bug and so our double encoded strings started causing URL escape sequences to become part of the track data.
