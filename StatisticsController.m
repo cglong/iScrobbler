@@ -89,8 +89,6 @@ static enum {title, album, artist} g_cycleState = title;
     QueueManager *qm = [QueueManager sharedInstance];
     id selection = [values selection];
     
-    [selection setValue:[NSNumber numberWithUnsignedInt:[qm totalSubmissionsCount]]
-        forKey:@"Tracks Submitted"];
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm count]]
         forKey:@"Tracks Queued"];
 }
