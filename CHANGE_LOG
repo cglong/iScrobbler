@@ -4,11 +4,13 @@ Change Log for iScrobbler:
 (BDB is Brian Bergstrand)
 
 v0.7.3 (BDB)
+- Added even more date verication for iPod songs to lessen the chance of server SPAM warnings.
 - Implemented error detection in the iPod AppleScript.
-- iScrobbler now has it's own private log file (~/Library/Logs/iScrobbler.log) so as not to pollute the Console. You can view this log by double clicking on it. It can also get rather large, so every week or so you should choose "Clean Log" from the control menu.
-- Removed mHash framework dependency. We now use the system provided functions (from libcrypt).
+- iScrobbler now has it's own private log file (~/Library/Logs/iScrobbler.log) so as not to pollute the Console. You can view this log by double clicking on it. It can get rather large, so every week or so you should choose "Clean Log" from the control menu.
+- Removed mHash framework dependency. We now use the system provided functions (from libcrypto).
+- Renamed "Sync iPod" to "Update iPod".
 - Fixed a crash that occurred if we failed to verify the persistent cache file after it was written.
-- Fixed a bug in the iPod AppleScript date formatting, that caused iPod submissions to fail for non U.S. English users.
+- Fixed several bugs in the iPod AppleScript date formatting, that caused iPod submissions to fail for non U.S. English users.
 - Fixed a date storage bug that caused us to save a last played time that could be up to 30 seconds in the past, which in turn could cause us to submit a song already played in iTunes when an iPod was sync'd.
 - Fixed another bug concerning the way we handle BADAUTH from the server on a submission. (Intro'd in 0.7.1).
 - Fixed a bug that was causing the Preference window's "Last Song Submitted" field to show the previous submitted song, not the current one.
