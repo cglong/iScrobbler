@@ -336,9 +336,10 @@
 
 -(void)mainTimer:(NSTimer *)timer
 {
+    NSDictionary *errInfo = nil;
     // micah_modell@users.sourceforge.net
     // Check for null and branch to avoid having the application hang.
-    NSAppleEventDescriptor * executionResult = [ script executeAndReturnError: nil ] ;
+    NSAppleEventDescriptor * executionResult = [script executeAndReturnError:&errInfo] ;
     if( nil != executionResult )
     {
         NSString *result=[[NSString alloc] initWithString:[ executionResult stringValue]];
@@ -492,6 +493,10 @@ mainTimerReleaseResult:
 
     [result release];
     //ScrobTrace(@"result released");
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"controlscript execution error: %@\n\tTrying again in %0.1lf seconds.",
+            errInfo, 2.5);
+        [self performSelector:@selector(mainTimer:) withObject:nil afterDelay:2.5];
     }
 }
 
