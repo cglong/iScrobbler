@@ -36,14 +36,17 @@
 
 @end
 
+#define CLEAR_MENUITEM_TAG          1
+#define SUBMIT_IPOD_MENUITEM_TAG    4
+
 @implementation iScrobblerController
 
 - (BOOL)validateMenuItem:(NSMenuItem *)anItem
 {
     ScrobTrace(@"%@", [anItem title]);
-    if([[anItem title] isEqualToString:@"Clear Menu"])
+    if(CLEAR_MENUITEM_TAG == [anItem tag])
         [mainTimer fire];
-    else if([[anItem title] isEqualToString:@"Sync iPod"] &&
+    else if(SUBMIT_IPOD_MENUITEM_TAG == [anItem tag] &&
          (!iPodDisk || ![prefs boolForKey:@"Sync iPod"]))
         return NO;
     return YES;
