@@ -77,8 +77,6 @@
 -(IBAction)syncIPod:(id)sender;
 -(IBAction)cleanLog:(id)sender;
 
--(void)handleChangedNumRecentTunes:(NSNotification *)aNotification;
-
 -(NSString *)md5hash:(NSString *)input;
 
 - (void)showApplicationIsDamagedDialog;
