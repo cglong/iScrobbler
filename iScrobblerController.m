@@ -21,8 +21,6 @@
 
 @interface iScrobblerController ( private )
 
--(void)changeLastResult:(NSString *)newResult;
--(void)changeLastHandshakeResult:(NSString *)result;
 - (void) restoreITunesLastPlayedTime;
 - (void) setITunesLastPlayedTime:(NSDate*)date;
 
@@ -55,8 +53,6 @@
 {
     ProtocolManager *pm = [note object];
     
-    [self changeLastHandshakeResult:[pm lastHandshakeResult]];
-    
     if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]))
         [self showNewVersionExistsDialog];
     else if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
@@ -66,13 +62,6 @@
 - (void)badAuthHandler:(NSNotification*)note
 {
     [self showBadCredentialsDialog];
-}
-
-- (void)submitCompleteHandler:(NSNotification*)note
-{
-    ProtocolManager *pm = [note object];
-    
-    [self changeLastResult:[pm lastSubmissionResult]];
 }
 
 -(id)init
@@ -139,11 +128,12 @@
                 selector:@selector(badAuthHandler:)
                 name:PM_NOTIFICATION_BADAUTH
                 object:nil];
+    #if 0
         [nc addObserver:self
                 selector:@selector(submitCompleteHandler:)
                 name:PM_NOTIFICATION_SUBMIT_COMPLETE
                 object:nil];
-        
+    #endif
         // Create queue mgr
         (void)[QueueManager sharedInstance];
         if ([[QueueManager sharedInstance] count])
@@ -414,22 +404,6 @@
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
-}
-
-- (void)changeLastResult:(NSString *)newResult
-{
-    //ScrobTrace(@"song data before sending: %@",[songQueue objectAtIndex:0]);
-    [preferenceController takeValue:newResult forKey:@"lastResult"];
-    [nc postNotificationName:@"lastResultChanged" object:self];
-	
-    ScrobLog(SCROB_LOG_VERBOSE, @"result changed");
-}
-
-- (void)changeLastHandshakeResult:(NSString*)result
-{
-    [nc postNotificationName:@"lastHandshakeResultChanged" object:self];
-	
-    ScrobLog(SCROB_LOG_VERBOSE, @"Handshakeresult changed: %@", result);
 }
 
 - (NSString *)md5hash:(NSString *)input
