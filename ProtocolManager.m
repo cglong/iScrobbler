@@ -118,6 +118,7 @@ NS_ENDHANDLER
 	if ([self validHandshake]) {
         hsState = hs_valid;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
+        lastAttemptBadAuth = NO; // Reset now that we have a new session.
         
         if ([[QueueManager sharedInstance] count])
             [self submit:nil];
