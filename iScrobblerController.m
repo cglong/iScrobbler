@@ -883,7 +883,7 @@ sync_ipod_script_release:
 {
     NSArray *data;
     
-    self = [super init];
+    self = [self init];
     
     @try {
         data = [[NSArray alloc] initWithArray:[string componentsSeparatedByString:@"***"]];
