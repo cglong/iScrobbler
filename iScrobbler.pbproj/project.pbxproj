@@ -18,6 +18,7 @@
 				D312EB560735548F00A2CFD5,
 				D312EDA007359DE000A2CFD5,
 				D312EE000735A78D00A2CFD5,
+				D3B61DF30744151D00AF5A33,
 			);
 			isa = PBXGroup;
 			name = Classes;
@@ -54,6 +55,7 @@
 //104
 		1058C7A0FEA54F0111CA2CBB = {
 			children = (
+				D3B61FE60744343500AF5A33,
 				EB5069B303FBC574005DC01B,
 				EB5069B403FBC574005DC01B,
 				EB5069A903FBC43A005DC01B,
@@ -76,7 +78,6 @@
 			children = (
 				D3EC06B707299A8200C13782,
 				DCFFB94D05B0F84A007D210F,
-				DCFFB95405B0F869007D210F,
 				29B97325FDCFA39411CA2CEA,
 				29B97324FDCFA39411CA2CEA,
 			);
@@ -369,6 +370,48 @@
 			settings = {
 			};
 		};
+		D3B61DF20744151D00AF5A33 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = ScrobLog.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3B61DF30744151D00AF5A33 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = ScrobLog.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3B61DF40744151D00AF5A33 = {
+			fileRef = D3B61DF20744151D00AF5A33;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3B61DF50744151D00AF5A33 = {
+			fileRef = D3B61DF30744151D00AF5A33;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3B61FE60744343500AF5A33 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = libcrypto.0.9.dylib;
+			path = /usr/lib/libcrypto.0.9.dylib;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		D3B61FE70744343500AF5A33 = {
+			fileRef = D3B61FE60744343500AF5A33;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		D3EC06B707299A8200C13782 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -439,12 +482,6 @@
 			settings = {
 			};
 		};
-		DC5C93B505B3389C004FAABB = {
-			fileRef = DCFFB95405B0F869007D210F;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		DC5C93B705B338AC004FAABB = {
 			fileRef = DCFFB94D05B0F84A007D210F;
 			isa = PBXBuildFile;
@@ -461,20 +498,6 @@
 		};
 		DCFFB94E05B0F84A007D210F = {
 			fileRef = DCFFB94D05B0F84A007D210F;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		DCFFB95405B0F869007D210F = {
-			isa = PBXFileReference;
-			lastKnownFileType = wrapper.framework;
-			name = mHashMacOSX.framework;
-			path = /Library/Frameworks/mHashMacOSX.framework;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		DCFFB95505B0F869007D210F = {
-			fileRef = DCFFB95405B0F869007D210F;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -514,7 +537,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				DC5C93B705B338AC004FAABB,
-				DC5C93B505B3389C004FAABB,
 				D3EC06C507299A9100C13782,
 			);
 			isa = PBXCopyFilesBuildPhase;
@@ -596,6 +618,7 @@
 				D312EDA107359DE000A2CFD5,
 				D312EDA407359E0A00A2CFD5,
 				D312EE010735A78D00A2CFD5,
+				D3B61DF40744151D00AF5A33,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -629,6 +652,7 @@
 				D312EB580735548F00A2CFD5,
 				D312EDA207359DE000A2CFD5,
 				D312EE020735A78D00A2CFD5,
+				D3B61DF50744151D00AF5A33,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -641,8 +665,8 @@
 				EB5069B503FBC574005DC01B,
 				EB5069B603FBC574005DC01B,
 				DCFFB94E05B0F84A007D210F,
-				DCFFB95505B0F869007D210F,
 				D3EC06B807299A8200C13782,
+				D3B61FE70744343500AF5A33,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -836,6 +860,7 @@
 				D312ED9F07359DE000A2CFD5,
 				D312EDA307359E0A00A2CFD5,
 				D312EDFF0735A78D00A2CFD5,
+				D3B61DF20744151D00AF5A33,
 			);
 			isa = PBXGroup;
 			name = Headers;
