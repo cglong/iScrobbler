@@ -11,6 +11,7 @@
 // PreferenceControllerStrings.h contains definitions of program strings.
 #import "PreferenceControllerStrings.h"
 #import "keychain.h"
+#import "ProtocolManager.h"
 
 NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
@@ -24,8 +25,6 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     }
     if(!myKeyChain)
         myKeyChain=[[KeyChain alloc] init];
-
-    songData = nil;
 
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     nc=[NSNotificationCenter defaultCenter];
@@ -89,9 +88,9 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         [self setLastResult:@"No connection yet."];
         [self setLastResultLong:NO_CONNECTION_LONG];
         [self setLastResultShort:NO_CONNECTION_SHORT];
-    }  else if([[self lastHandshakeResult] hasPrefix:@"UPTODATE"]) {
+    }  else if([[ProtocolManager sharedInstance] validHandshake]) {
 		//NSLog(@"iScrobbler is Up To Date");
-    }  else if([[self lastHandshakeResult] hasPrefix:@"UPDATE"]) {
+        if([[ProtocolManager sharedInstance] updateAvailable]) {
 		//NSLog(@"iScrobbler version is out of date");
         NSMutableDictionary * attribs = [NSMutableDictionary dictionary];
         NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
@@ -107,12 +106,13 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         [self setLastResultLong:SUBMISSION_SUCCESS_OUTOFDATE_LONG];
         [versionWarning setStringValue:[attribString autorelease]];
         [updateButton setEnabled:YES];
-        [self setDownloadURL:[[lastHandshakeResult componentsSeparatedByString:@" "] objectAtIndex:1]];
-    } else if([[self lastHandshakeResult] hasPrefix:@"FAILED"]) {
+        [self setDownloadURL:[[ProtocolManager sharedInstance] updateURL]];
+        }
+    } else if([[self lastHandshakeResult] isEqualToString:HS_RESULT_FAILED]) {
 		//NSLog(@"Handshaking Failed");
         [self setLastResultShort:FAILURE_SHORT];
-        [self setLastResultLong:FAILURE_LONG];
-    } else if([[self lastHandshakeResult] hasPrefix:@"BADUSER"]) {
+        [self setLastResultLong:[[ProtocolManager sharedInstance] lastHandshakeMessage]];
+    } else if([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
 		//NSLog(@"Bad User!  Bad!");
         [self setLastResultShort:AUTH_SHORT];
         [self setLastResultLong:AUTH_LONG];
@@ -120,25 +120,30 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 	
     //NSLog(@"lastResult: %@", [self lastResult]);
 	//Check to see if the script returns OK
-    if([[self lastResult] hasPrefix:@"OK"]) {
-        [self setLastResultShort:SUBMISSION_SUCCESS_SHORT];
-        [self setLastResultLong:SUBMISSION_SUCCESS_LONG];
-    } else if([[self lastResult] hasPrefix:@"FAILED"]) {
-        [self setLastResultShort:FAILURE_SHORT];
-        [self setLastResultLong:FAILURE_LONG];
-    } else if([[self lastResult] hasPrefix:@"BADAUTH"]) {
-        [self setLastResultShort:AUTH_SHORT];
-        [self setLastResultLong:AUTH_LONG];
-    } else if([[self lastResult] hasPrefix:@"Couldn't resolve"]) {
-        [self setLastResultShort:COULDNT_RESOLVE_SHORT];
-        [self setLastResultLong:COULDNT_RESOLVE_LONG];
-    } else if([[self lastResult] hasPrefix:@"The requested file was not found"]) {
-        [self setLastResultShort:NOT_FOUND_SHORT];
-        [self setLastResultLong:NOT_FOUND_LONG];
-    } else {
-        // BDB: -Bug Fix- Handle non-specific errors
-        [self setLastResultShort:FAILURE_SHORT];
-        [self setLastResultLong:FAILURE_LONG];
+    if([[ProtocolManager sharedInstance] validHandshake]) {
+        if([[self lastResult] isEqualToString:HS_RESULT_OK]) {
+            [self setLastResultShort:SUBMISSION_SUCCESS_SHORT];
+            [self setLastResultLong:SUBMISSION_SUCCESS_LONG];
+        } else if([[self lastResult] isEqualToString:HS_RESULT_FAILED]) {
+            NSString *msg = [[ProtocolManager sharedInstance] lastSubmissionMessage];
+            
+            if([msg hasPrefix:@"Couldn't resolve"]) {
+                [self setLastResultShort:COULDNT_RESOLVE_SHORT];
+                [self setLastResultLong:COULDNT_RESOLVE_LONG];
+            } else if([msg hasPrefix:@"The requested file was not found"]) {
+                [self setLastResultShort:NOT_FOUND_SHORT];
+                [self setLastResultLong:NOT_FOUND_LONG];
+            } else {
+                [self setLastResultShort:FAILURE_SHORT];
+                [self setLastResultLong:msg];
+            }
+        } else if([[self lastResult] isEqualToString:HS_RESULT_BADAUTH]) {
+            [self setLastResultShort:AUTH_SHORT];
+            [self setLastResultLong:AUTH_LONG];
+        } else {
+            [self setLastResultShort:UNKNOWN_SHORT];
+            [self setLastResultLong:UNKNOWN_LONG];
+        }
     }
 }    
 
@@ -160,16 +165,18 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [lastResultShortField setStringValue:tmp];
 
     //NSLog(@"preparing lastSongSubmitted");
-    //NSLog(@"songData: %@",songData);
-    if([self songData] != nil)
+    SongData *song = [[ProtocolManager sharedInstance] lastSongSubmitted];
+    //NSLog(@"songData: %@",song);
+    if(song != nil)
     {
         NSMutableString* unEscapedTitle = [NSMutableString stringWithString:[(NSString*)
-        CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[[self songData] 		title], (CFStringRef)@"") autorelease]];
+        CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[song title], (CFStringRef)@"") autorelease]];
         
-        if(![[[self songData] artist] isEqualToString:@""])
+        if(![[song artist] isEqualToString:@""])
         {
             [unEscapedTitle insertString:@" - " atIndex:0];
-            NSString* unEscapedArtist = [(NSString*) 		CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[[self songData] 			artist], (CFStringRef)@"") autorelease];
+            NSString* unEscapedArtist = [(NSString*)
+                CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[song	artist], (CFStringRef)@"") autorelease];
 
             [unEscapedTitle insertString:unEscapedArtist atIndex:0];
         }
@@ -218,20 +225,21 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
 -(IBAction)submitWebBugReport:(id)sender
 {
-    NSURL *url = [NSURL URLWithString:@"http://sourceforge.net/tracker/?group_id=76514&atid=547327"];
+    NSURL *url = [NSURL URLWithString:@"http://www.audioscrobbler.com/forum/"];//@"http://sourceforge.net/tracker/?group_id=76514&atid=547327"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
 -(IBAction)submitEmailBugReport:(id)sender
 {
 
+#if 0
     NSString* mailtoLink = [NSString stringWithFormat:@"mailto:audioscrobbler-development@lists.sourceforge.net?subject=iScrobbler Bug Report&body=Please fill in the problem you're seeing below.  Before submitting, you might like to check http://www.audioscrobbler.com/ to see the status of the Audioscrobbler service.  Thanks for contributing!\n\n--Please explain the circumstances of the bug here--\n\n\n\nLast Server Result: %@\n",lastResult];
     
     NSURL *url = [NSURL URLWithString:[(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)mailtoLink, NULL, NULL, 	kCFStringEncodingUTF8) autorelease]];
 
     [[NSWorkspace sharedWorkspace] openURL:url];
-
+#endif
 }
 
 
@@ -292,18 +300,6 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 -(IBAction)queryiTunes:(id)sender {}
 -(IBAction)queryAudion:(id)sender {}
 
--(void)setSongData: (SongData *)newSongData
-{
-    [newSongData retain];
-    [songData release];
-    songData = newSongData;
-}
-
--(SongData *)songData
-{
-    return songData;
-}
-
 -(IBAction)downloadUpdate:(id)sender
 {
     NSURL *url = [NSURL URLWithString:[self downloadURL]];
@@ -362,12 +358,13 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [propertyArray insertObject:@"Album"
                 atIndex:0];
 
-    if(songData != nil) {
-        [valueArray insertObject:[[self songData] path] atIndex:0];
-        [valueArray insertObject:[[[self songData] duration] stringValue] atIndex:0];
-        [valueArray insertObject:[[self songData] title] atIndex:0];
-        [valueArray insertObject:[[self songData] artist] atIndex:0];
-        [valueArray insertObject:[[self songData] album] atIndex:0];
+    SongData *song = [[ProtocolManager sharedInstance] lastSongSubmitted];
+    if(song != nil) {
+        [valueArray insertObject:[song path] atIndex:0];
+        [valueArray insertObject:[[song duration] stringValue] atIndex:0];
+        [valueArray insertObject:[song title] atIndex:0];
+        [valueArray insertObject:[song artist] atIndex:0];
+        [valueArray insertObject:[song album] atIndex:0];
     }
 
     NSString * identifier = [[[NSString alloc] initWithString:[tableColumn identifier]] 	autorelease];
@@ -378,8 +375,8 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
                                +5)];
         return [attribString autorelease];
     } else {
-        if(songData != nil) {
-            [tableColumn setWidth:([[[self songData] path] sizeWithAttributes:attribs].width + 5)];
+        if(song != nil) {
+            [tableColumn setWidth:([[song path] sizeWithAttributes:attribs].width + 5)];
 
             attribString = [attribString 		initWithString:[(NSString*)CFURLCreateStringByReplacingPercentEscapes(NULL, 	(CFStringRef)[valueArray objectAtIndex:row],
             (CFStringRef)@"") autorelease] attributes:attribs];
@@ -398,7 +395,6 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [downloadURL release];
     [prefs release];
     [lastResult release];
-    [songData release];
     [myKeyChain release];
     [lastResultLong release];
     [lastResultShort release];

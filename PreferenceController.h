@@ -40,7 +40,6 @@ extern NSString *CDCNumSongsKey;
 	NSString *lastHandshakeResult;
     NSNotificationCenter *nc;
     KeyChain * myKeyChain;
-    SongData *songData;
     NSString * downloadURL;
    }
 // -(IBAction)changeNumRecentSongs:(id)sender;
@@ -59,8 +58,6 @@ extern NSString *CDCNumSongsKey;
 -(NSString *)lastResultShort;
 -(void)setLastResultLong: (NSString *)newLastResultLong;
 -(NSString *)lastResultLong;
--(void)setSongData: (SongData *)newSongData;
--(SongData *)songData;
 -(void)handleLastResultChanged:(NSNotification *)aNotification;
 -(void)handleLastHandshakeResultChanged:(NSNotification *)aNotification;
 -(void)updateFields;
