@@ -4,7 +4,10 @@ Change Log for iScrobbler:
 (BDB is Brian Bergstrand)
 
 v0.7.3 (BDB)
-- Fixed a crash that occurred if  we failed to verify the persistent cache file after it was written.
+- Implemented error detection in the iPod AppleScript.
+- Fixed a crash that occurred if we failed to verify the persistent cache file after it was written.
+- Fixed a bug in the iPod AppleScript date formatting, that caused iPod submissions to fail for non U.S. English users.
+- Fixed a date storage bug that caused us to save a last played time that could be up to 30 seconds in the past, which in turn could cause us to submit a song already played in iTunes when an iPod was sync'd.
 
 v0.7.2 (BDB)
 - Fixed a possible handshake bug that could cause handshaking to never complete when we recieved an unexpected server response.
