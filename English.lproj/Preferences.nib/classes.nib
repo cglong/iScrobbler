@@ -17,7 +17,7 @@
             }; 
             CLASS = PreferenceController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {"_passwordField" = NSSecureTextField; "_preferencesWindow" = NSWindow; }; 
+            OUTLETS = {passwordField = NSSecureTextField; preferencesWindow = NSWindow; }; 
             SUPERCLASS = NSObject; 
         }
     ); 
