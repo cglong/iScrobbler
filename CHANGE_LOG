@@ -3,8 +3,25 @@ Change Log for iScrobbler:
 (Releases/comments tagged as RAB are by Rod Begbie)
 (BDB is Brian Bergstrand)
 
+v0.7.2 (BDB)
+- Fixed a possible handshake bug that could cause handshaking to never complete when we recieved an unexpected server response.
+- We now auto-resubmit when the server gives us a protocol error response (instead of doing it only for connection/HTTP errors).
+- The minimum submit time (if we haven't reached half the track) is now four minutes.
+- Fixed a bug concerning the way we handle BADAUTH from the server on a submission. (Intro'd in 0.7.1).
+
+v0.7.1 (BDB)
+- Added persistent cache (located at ~/Library/Application Support/net_sourceforge_iscrobbler_cache.plist).
+- Songs less than 30 seconds are no longer submitted (as they are ignored by the server).
+- If handshaking fails, the next attempt will be delayed by 1 minute. Each successive failure, will double the delay time up to a max of 2 hours. Auth failures are not limited.
+- Handshaking is now done in the background, so there is no longer a possiblity of iScrobbler hanging. We also attempt to detect and cancel possible "stuck" handshakes.
+- If an error occurs during handshaking or song submission, a re-attempt will automatically be made after a certain delay instead of waiting for the next song to play.
+- Code re-design to make Protocol v1.2 support easier to add.
+- Added date verification to iPod sync to detect any bad play times in iTunes (and prevent spam warnings).
+- Removed bug reporting, if you are having a problem, visit the forums, read the New and iTunes forums, and if you can't find a description of your problem, then (and only then) post a new entry to the iTunes forum (not the general forums!).
+- De-metalized the prefs window.
+
 v0.7.0 (BDB)
-- Added initial support for iPod syncing.
+- Added support for iPod syncing.
 Limitations:
  - If you start playing iTunes before syncing your iPod, then all songs on the iPod will be discarded.
  *Special note for users who have iPod Disk Mode enabled: Since iScrobbler delays syncing until the iPod is ejected, you must manually sync using the "Sync iPod" item in the control menu, or eject your iPod before you start playing music in iTunes. Either way, make sure to wait until iTunes says your iPod is "up to date".
