@@ -3,7 +3,7 @@ Change Log for iScrobbler:
 (Releases/comments tagged as RAB are by Rod Begbie)
 (BDB is Brian Bergstrand)
 
-v0.8.0 (BDB and ECS)
+v1.0.0 (BDB and ECS)
 - Removed all third-party framework dependencies.
 - The system proxy authentication settings are now supported.
 - Redesigned preferences dialog.
