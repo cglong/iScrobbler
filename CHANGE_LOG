@@ -9,6 +9,10 @@ CHANGE HISTORY:
 (BDB is Brian Bergstrand)
 (ECS is Eric Seidel)
 
+v1.0.2 (BDB)
+- Fixed a mem. leak that could occur if a track failed to queue.
+- The total time played text in the stats window can now be copied.
+
 v1.0.1 (BDB)
 - The Top Artists list now includes the total time played for each artist.
 - The Top Tracks list now contains the last played time for each track.
