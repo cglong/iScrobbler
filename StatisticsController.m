@@ -77,7 +77,7 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
-    NSString *msg, *rating;
+    NSString *msg = nil, *rating;
     switch (g_cycleState) {
         case title:
             rating = [g_nowPlaying starRating];
@@ -150,7 +150,7 @@ static enum {title, album, artist} g_cycleState = title;
     
     [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
     
-    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"iScrobbler Statistics Window Open"];
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
     [super showWindow:sender];
     
@@ -167,12 +167,46 @@ static enum {title, album, artist} g_cycleState = title;
 - (void)windowWillClose:(NSNotification *)aNotification
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"iScrobbler Statistics Window Open"];
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
     [g_cycleTimer invalidate];
     g_cycleTimer = nil;
     [g_nowPlaying release];
     g_nowPlaying = nil;
+}
+
+- (void)windowDidLoad
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
+        [detailsText setStringValue:NSLocalizedString(@"Hide Submission Details", "")];
+        [detailsDisclosure setState:NSOnState];
+    } else
+        [self showDetails:nil];
+}
+
+#define AQUA_SPACING 8.0
+
+- (IBAction)showDetails:(id)sender
+{
+    NSWindow *win = [self window];
+    NSRect wframe = [win frame], dvframe = [detailsView frame];
+    if (sender && NSOnState == [sender state]) {
+        wframe.size.height += dvframe.size.height + AQUA_SPACING;
+        wframe.origin.y -= dvframe.size.height + AQUA_SPACING;
+        [win setFrame:wframe display:YES animate:YES];
+        [detailsView setHidden:NO];
+        [detailsText setStringValue:NSLocalizedString(@"Hide Submission Details", "")];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"iScrobbler Statistics Details Open"];
+    } else {
+        // Remove details view
+        [detailsView setHidden:YES];
+        // Re-size window
+        wframe.size.height -= dvframe.size.height + AQUA_SPACING;
+        wframe.origin.y += dvframe.size.height + AQUA_SPACING;
+        [win setFrame:wframe display:YES animate:YES];
+        [detailsText setStringValue:NSLocalizedString(@"Show Submission Details", "")];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"iScrobbler Statistics Details Open"];
+    }
 }
 
 @end

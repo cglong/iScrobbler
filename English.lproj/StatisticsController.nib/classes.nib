@@ -2,9 +2,16 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
+            ACTIONS = {showDetails = id; }; 
             CLASS = StatisticsController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {nowPlayingText = id; values = id; }; 
+            OUTLETS = {
+                detailsDisclosure = id; 
+                detailsText = id; 
+                detailsView = id; 
+                nowPlayingText = id; 
+                values = id; 
+            }; 
             SUPERCLASS = NSWindowController; 
         }
     ); 

@@ -13,9 +13,14 @@
 {
     IBOutlet id values;
     IBOutlet id nowPlayingText;
+    IBOutlet id detailsText;
+    IBOutlet id detailsView;
+    IBOutlet id detailsDisclosure;
 }
 
 + (StatisticsController*) sharedInstance;
+
+- (IBAction)showDetails:(id)sender;
 
 @end
 
