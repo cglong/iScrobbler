@@ -119,8 +119,10 @@ static TopListsController *g_topLists = nil;
     if ((self = [super initWithWindowNibName:windowNibName])) {
         startDate = [[NSDate date] retain];
         
-        //So stats are tracked while the window is closed, load the nib to create our Array Controllers
-        (void)[super window];
+        // So stats are tracked while the window is closed, load the nib to create our Array Controllers
+        // [super window] should be calling setDelegate itself, but it's not doing it for some reason.
+        // It works correctly in [StatisticsController showWindow:].
+        [[super window] setDelegate:self];
         
         // Register for QM notes
         [[NSNotificationCenter defaultCenter] addObserver:self
