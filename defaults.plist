@@ -2,13 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Audion</key>
-	<false/>
-        
-        <key>iTunes</key>
+    <key>iTunes</key>
 	<true/>
         
-        <key>debug</key>
+    <key>debug</key>
 	<true/>
         
 	<key>Number of Songs to Save</key>
@@ -35,6 +32,9 @@
     <key>Display Control Menu</key>
     <true/>
     
+    <key>IgnoreNetworkMonitor</key>
+    <false />
+    
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
         
@@ -45,13 +45,13 @@
 	<string>1.1</string>
         
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; PPC Mac OS X; compatible) iScrobbler/1.0.0</string>
+	<string>Mozilla/5.0 (Macintosh; U; PPC Mac OS X; compatible) iScrobbler/1.0.1</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
         
 </dict>
 </plist>
