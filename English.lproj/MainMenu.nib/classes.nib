@@ -3,6 +3,7 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                cleanLog = id; 
                 clearMenu = id; 
                 openPrefs = id; 
                 openScrobblerHomepage = id; 
