@@ -1,6 +1,13 @@
 Change Log for iScrobbler:
 
-v0.6.1:
+(Releases/comments tagged as RAB are by Rod Begbie)
+
+v0.6.2 (RAB):
+- Bug fixes to handle audioscrobbler.com being down (if you can imagine such a thing) more gracefully
+- Fixed a bug that caused repeated submissions of same song after a FAILURE response
+- Client can now correctly re-handshake with audioscrobbler.com if necessary
+
+v0.6.1 (RAB):
 - Update notifications correctly caught.
 - Authentication errors cause the preferences window to appear and notify the user.
 - Bug reports go to the SourceForge bugtracker/mailing list, rather than Sam.
