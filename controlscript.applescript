@@ -1,7 +1,7 @@
 global itunes_active
 set itunes_active to false
 
-tell application "Finder"
+tell application "System Events"
 	if (get name of every process) contains "iTunes" then set itunes_active to true
 end tell
 
