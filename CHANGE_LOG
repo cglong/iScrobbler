@@ -1,5 +1,11 @@
 Change Log for iScrobbler:
 
+v0.6.1:
+- Update notifications correctly caught.
+- Authentication errors cause the preferences window to appear and notify the user.
+- Bug reports go to the SourceForge bugtracker/mailing list, rather than Sam.
+- Actually does wait for 50% of song, as promised previously!
+
 v0.6.0:
 - RAB: Fixed for AudioScrobbler protocol v1.1
 - RAB: Now submits Album Names to AudioScrobbler
