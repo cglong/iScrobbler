@@ -25,7 +25,11 @@ if itunes_active is true then
 				set songLength to duration of theTrack as string
 				set songPosition to "0" (* player position as string // the song has already played, so player pos will not be returned *)
 				set songArtist to artist of theTrack as string
-				set songLocation to location of theTrack as string
+				-- We don't currently do anything with the path, and this is causing execution errors for some people.
+				-- E.G: "Can't make alias "System:Users:murraysteele:Music:iTunes:iTunes Music:The Go! Team:Thunder, Lightning, Strike:11 Everyone?s A V.I.P To Someone.m4a" into a string.";
+				-- There's also been an error reported because of a bad link in the iTunes DB that causes alias creation to fail
+				--set songLocation to location of theTrack as string
+				set songLocation to "File Track" -- Don't rely on "File Track" in iScrobbler proper
 				set songAlbum to album of theTrack as string
 				set songLastPlayed to played date of theTrack as string
 				set songRating to rating of theTrack as string
