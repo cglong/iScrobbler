@@ -399,7 +399,7 @@
                     [firstSongInList setPosition:[song position]];
                     [firstSongInList setLastPlayed:[song lastPlayed]];
                     [firstSongInList setRating:[song rating]];
-                    ScrobLog(SCROB_LOG_VERBOSE, @"Queing song '%@' for submission\n", [firstSongInList brief]);
+                    ScrobLog(SCROB_LOG_VERBOSE, @"Queuing song '%@' for submission\n", [firstSongInList brief]);
                     [[QueueManager sharedInstance] queueSong:firstSongInList];
                 }
             } else {
