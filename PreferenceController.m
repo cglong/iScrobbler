@@ -12,6 +12,7 @@
 #import "PreferenceControllerStrings.h"
 #import "keychain.h"
 #import "ProtocolManager.h"
+#import "QueueManager.h"
 #import "ScrobLog.h"
 
 NSString *CDCNumSongsKey=@"Number of Songs to Save";
@@ -44,6 +45,8 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
 -(void)windowDidLoad
 {
+    if (!songsQueuedTemplate)
+        songsQueuedTemplate = [[songsQueuedText stringValue] retain];
     [versionNumber setStringValue:[[prefs stringForKey:@"version"] substringToIndex:5]];
     [iPodSyncSwitch setState:([prefs boolForKey:@"Sync iPod"] ? NSOnState : NSOffState)];
     [self updateFields];
@@ -200,6 +203,9 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         ([prefs boolForKey:@"Disable Update Notification"] ? NSOnState : NSOffState)];
     
     [password setStringValue:@""];
+    
+    [songsQueuedText setStringValue:
+        [NSString stringWithFormat:songsQueuedTemplate, [[QueueManager sharedInstance] count]]];
     //ScrobTrace(@"Fields updated");
 }
 
@@ -396,6 +402,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
 - (void)dealloc
 {
+    [songsQueuedTemplate release];
     [nc removeObserver:self];
     [nc release];
     [downloadURL release];

@@ -33,6 +33,7 @@
                 password = NSSecureTextField; 
                 passwordStored = NSTextField; 
                 songDataTable = NSTableView; 
+                songsQueuedText = NSTextField; 
                 updateButton = NSButton; 
                 username = NSTextField; 
                 versionNumber = NSTextField; 
