@@ -173,6 +173,13 @@
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
+        [[StatisticsController sharedInstance] showWindow:nil];
+    }
+}
+
 - (void)updateMenu
 {
     NSMenuItem *item;
