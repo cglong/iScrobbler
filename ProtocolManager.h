@@ -92,6 +92,7 @@
 #define PM_NOTIFICATION_HANDSHAKE_COMPLETE @"PMHandshakeComplete"
 #define PM_NOTIFICATION_BADAUTH @"PMBadAuth"
 #define PM_NOTIFICATION_SUBMIT_COMPLETE @"PMSubmitComplete"
+#define PM_NOTIFICATION_SUBMIT_START @"PMSubmitStart"
 
 // Handshake and Submission result values
 #define HS_RESULT_OK @"OK"

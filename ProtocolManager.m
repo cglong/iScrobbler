@@ -495,6 +495,8 @@ didFinishLoadingExit:
     [resubmitTimer invalidate];
     resubmitTimer = nil;
     
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_START object:self];
+    
     (void)[inFlight retain];
     dict = [[NSMutableDictionary alloc] init];
 
