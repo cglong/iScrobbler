@@ -102,6 +102,8 @@
     file = [[[NSBundle mainBundle] resourcePath]
                 stringByAppendingPathComponent:@"iPodUpdate.applescript"];
     iPodUpdateScript = [[NSString alloc] initWithContentsOfFile:file];
+    if (!iPodUpdateScript)
+        NSLog(@"Failed to load iPodUpdateScript!\n");
     
     [self restoreITunesLastPlayedTime];
     
@@ -537,6 +539,8 @@ validate:
 
 - (void)syncIPod:(id)sender
 {
+    NSLog (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
+    
     if (iPodUpdateScript && [prefs boolForKey:@"Sync iPod"]) {
         // Copy the script
         NSMutableString *text = [iPodUpdateScript mutableCopy];
@@ -649,6 +653,8 @@ sync_ipod_script_release:
         [[media mountPoint] stringByAppendingPathComponent:@"iPod_Control"];
     BOOL isDir;
     
+    NSLog(@"Volume '%@' mounted.\n", [media volName]);
+    
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodCtl isDirectory:&isDir]
          && isDir) {
         iPodDisk = [media retain];
@@ -657,6 +663,8 @@ sync_ipod_script_release:
 
 - (void)volUnmount:(NSNotification*)notification
 {
+    NSLog(@"Volume '%@' unmounted.\n", [[notification object] volName]);
+    
     if (iPodDisk != [notification object])
         return;
     
