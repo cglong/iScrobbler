@@ -110,10 +110,8 @@
     
     BOOL wasiTunesPlaying = isiTunesPlaying;
     
-    BOOL isPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
-    if (isPlaying && ![curSong hasQueued]) {
-        isiTunesPlaying = YES;
-        
+    isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
+    if (isiTunesPlaying && ![curSong hasQueued]) {
         // Fire the main timer at the appropos time to get it queued.
         double fireInterval = [curSong submitIntervalFromNow];
         if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
@@ -129,8 +127,6 @@
                 @"Invalid submit interval '%0.2lf' for track '%@'. Track will not be submitted. Duration: %@, Position: %@.\n",
                 fireInterval, [curSong brief], [curSong duration], [curSong position]);
         }
-    } else {
-        isiTunesPlaying = NO;
     }
     
     [prevSong release];
@@ -795,7 +791,7 @@ validate:
                 }
                 
                 added = 0;
-                while ((data = [en nextObject])) {
+                while ((data = [en nextObject]) && [data length] > 0) {
                     NSTimeInterval postDate;
                     song = [[SongData alloc] initWithiTunesResultString:data];
                     if (song) {
@@ -883,18 +879,26 @@ sync_ipod_script_release:
 
 - (SongData*)initWithiTunesResultString:(NSString*)string
 {
+    NSArray *data;
+    
     self = [super init];
     
-    NSArray *data = [[NSArray alloc] initWithArray:[string componentsSeparatedByString:@"***"]];
-    ScrobLog(SCROB_LOG_TRACE, @"Song components from iTunes result: %@\n", data);
+    @try {
+        data = [[NSArray alloc] initWithArray:[string componentsSeparatedByString:@"***"]];
+    } @catch (NSException *exception) {
+        data = nil;
+    }
+    ScrobLog(SCROB_LOG_TRACE, @"Song components from iTunes result: %@\n", (id)data ? (id)data : (id)string);
     
     if (10 != [data count]) {
+bad_song_data:
         ScrobLog(SCROB_LOG_WARN, @"Bad song data received.\n");
         [data release];
-        [super dealloc];
+        [self dealloc];
         return (nil);
     }
     
+    @try {
     [self setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
         floatValue]]];
     [self setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
@@ -905,9 +909,14 @@ sync_ipod_script_release:
     [self setArtist:[data objectAtIndex:5]];
     [self setAlbum:[data objectAtIndex:6]];
     [self setPath:[data objectAtIndex:7]];
-    [self setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
-        locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
+    NSDate *lastPlayedTime = [NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
+        locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]];
+    [self setLastPlayed:lastPlayedTime ? lastPlayedTime : [NSDate date]];
     [self setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing song data.\n");
+        goto bad_song_data;
+    }
     
     [data release];
     
