@@ -70,6 +70,8 @@
 -(IBAction)openScrobblerHomepage:(id)sender;
 -(IBAction)openUserHomepage:(id)sender;
 
+-(IBAction)openStatistics:(id)sender;
+
 -(IBAction)syncIPod:(id)sender;
 -(IBAction)cleanLog:(id)sender;
 

@@ -15,6 +15,7 @@
 @private
 	NSString *queuePath;
     id songQueue;
+    unsigned totalSubmissions;
 }
 
 + (QueueManager*)sharedInstance;
@@ -40,6 +41,12 @@
 - (NSArray*)songs;
 
 - (unsigned)count;
+
+- (unsigned)totalSubmissionsCount;
+
+// Aliases for Protocol Manager methods
+- (unsigned)submissionAttemptsCount;
+- (unsigned)successfulSubmissionsCount;
 
 - (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomic;
 - (void)syncQueue:(id)sender;

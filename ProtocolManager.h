@@ -47,6 +47,8 @@
     BOOL lastAttemptBadAuth;
     // Is the network available?
     BOOL isNetworkAvailable;
+    // Counters
+    unsigned submissionAttempts, successfulSubmissions;
 }
 
 + (ProtocolManager*)sharedInstance;
@@ -72,6 +74,10 @@
 - (BOOL)validHandshake;
 
 - (BOOL)updateAvailable;
+
+- (unsigned)submissionAttemptsCount;
+
+- (unsigned)successfulSubmissionsCount;
 
 @end
 

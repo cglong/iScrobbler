@@ -17,6 +17,7 @@
 				D312EDA007359DE000A2CFD5,
 				D312EE000735A78D00A2CFD5,
 				D3B61DF30744151D00AF5A33,
+				D3CB1314077509D3009236FF,
 			);
 			isa = PBXGroup;
 			name = Classes;
@@ -170,7 +171,8 @@
 				EBDF4CE804009EA7005DC01B,
 				EBBB2F1E03F7C3F2005DC01B,
 				29B97318FDCFA39411CA2CEA,
-				F575CEAE02FF7FB901A80164,
+				D3CB13A1077514A7009236FF,
+				D3CB130E07750960009236FF,
 				F5D8D308030C568001A80164,
 				D3EC0A740729CFA600C13782,
 				089C165CFE840E0CC02AAC07,
@@ -395,6 +397,79 @@
 			settings = {
 			};
 		};
+		D3CB130E07750960009236FF = {
+			children = (
+				D3CB130F07750960009236FF,
+			);
+			isa = PBXVariantGroup;
+			name = StatisticsController.nib;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB130F07750960009236FF = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.nib;
+			name = English;
+			path = English.lproj/StatisticsController.nib;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB131007750960009236FF = {
+			fileRef = D3CB130E07750960009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3CB1313077509D3009236FF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = StatisticsController.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB1314077509D3009236FF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = StatisticsController.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB1315077509D3009236FF = {
+			fileRef = D3CB1313077509D3009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3CB1316077509D3009236FF = {
+			fileRef = D3CB1314077509D3009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3CB13A1077514A7009236FF = {
+			children = (
+				F575CEAE02FF7FB901A80164,
+			);
+			isa = PBXVariantGroup;
+			name = Preferences.nib;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB13A2077514A7009236FF = {
+			fileRef = D3CB13A1077514A7009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3CB13B3077514CC009236FF = {
+			fileRef = D3CB130E07750960009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		D3D4741F077407F50076AA7D = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -507,6 +582,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				D3CB131007750960009236FF,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -588,6 +664,7 @@
 				D312EDA407359E0A00A2CFD5,
 				D312EE010735A78D00A2CFD5,
 				D3B61DF40744151D00AF5A33,
+				D3CB1315077509D3009236FF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -597,8 +674,9 @@
 			files = (
 				EB5065FE03FB7FD7005DC01B,
 				EB5065FF03FB7FD8005DC01B,
+				D3CB13B3077514CC009236FF,
 				DC00A47B05B21BD100674DB4,
-				EB50660003FB7FDA005DC01B,
+				D3CB13A2077514A7009236FF,
 				EB50660303FB7FDF005DC01B,
 				EBDF4CE904009EA7005DC01B,
 				D3EC0A760729CFB600C13782,
@@ -620,6 +698,7 @@
 				D312EDA207359DE000A2CFD5,
 				D312EE020735A78D00A2CFD5,
 				D3B61DF50744151D00AF5A33,
+				D3CB1316077509D3009236FF,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -764,12 +843,6 @@
 			settings = {
 			};
 		};
-		EB50660003FB7FDA005DC01B = {
-			fileRef = F575CEAE02FF7FB901A80164;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		EB50660303FB7FDF005DC01B = {
 			fileRef = 089C165CFE840E0CC02AAC07;
 			isa = PBXBuildFile;
@@ -827,6 +900,7 @@
 				D312EDA307359E0A00A2CFD5,
 				D312EDFF0735A78D00A2CFD5,
 				D3B61DF20744151D00AF5A33,
+				D3CB1313077509D3009236FF,
 			);
 			isa = PBXGroup;
 			name = Headers;
@@ -1047,7 +1121,7 @@
 		F575CEAE02FF7FB901A80164 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.nib;
-			name = Preferences.nib;
+			name = English;
 			path = English.lproj/Preferences.nib;
 			refType = 4;
 			sourceTree = "<group>";

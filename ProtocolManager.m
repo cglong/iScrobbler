@@ -236,6 +236,16 @@ NS_ENDHANDLER
     return ([[self lastHandshakeResult] isEqualToString:HS_RESULT_UPDATE_AVAIL]);
 }
 
+- (unsigned)submissionAttemptsCount
+{
+    return (submissionAttempts);
+}
+
+- (unsigned)successfulSubmissionsCount
+{
+    return (successfulSubmissions);
+}
+
 - (void)setHandshakeResult:(NSDictionary*)result
 {
     (void)[result retain];
@@ -360,6 +370,8 @@ NS_ENDHANDLER
         [[QueueManager sharedInstance] syncQueue:nil];
         ScrobLog(SCROB_LOG_VERBOSE, @"Song Queue cleaned, count = %i", [[QueueManager sharedInstance] count]);
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
+        
+        ++successfulSubmissions;
         
         // See if there are any more entries in the queue
         if (![self useBatchSubmission] && [[QueueManager sharedInstance] count]) {
@@ -522,6 +534,7 @@ didFinishLoadingExit:
     
     [dict release];
     
+    ++submissionAttempts;
     myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);

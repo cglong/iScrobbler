@@ -57,6 +57,7 @@ static QueueManager *g_QManager = nil;
     // Add to top of list
     [song setHasQueued:YES];
     [songQueue addObject:song];
+    ++totalSubmissions;
     
     if (submit) {
         [song setPostDate:[song startTime]];
@@ -122,6 +123,22 @@ static QueueManager *g_QManager = nil;
 - (unsigned)count
 {
     return ([songQueue count]);
+}
+
+- (unsigned)totalSubmissionsCount
+{
+    return (totalSubmissions);
+}
+
+// Aliases for Protocol Manager methods
+- (unsigned)submissionAttemptsCount
+{
+    return ([[ProtocolManager sharedInstance] submissionAttemptsCount]);
+}
+
+- (unsigned)successfulSubmissionsCount
+{
+    return ([[ProtocolManager sharedInstance] successfulSubmissionsCount]);
 }
 
 - (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomic
