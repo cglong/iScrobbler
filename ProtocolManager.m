@@ -228,13 +228,6 @@ NS_ENDHANDLER
     return ([[self lastHandshakeResult] isEqualToString:HS_RESULT_UPDATE_AVAIL]);
 }
 
-- (BOOL)canSubmitSong:(SongData*)song
-{
-    return ( [[song duration] floatValue] >= 30.0 &&
-        ([[song percentPlayed] floatValue] > [self minPercentagePlayed] ||
-        [[song position] floatValue] > [self minTimePlayed]) );
-}
-
 - (void)setHandshakeResult:(NSDictionary*)result
 {
     (void)[result retain];
@@ -547,7 +540,7 @@ NS_ENDHANDLER
     [self setURLHandle:(CURLHandle *)
         [[NSURL URLWithString:@"http://127.0.0.1/"] URLHandleUsingCache:NO]];
     #warning Set Handshake NO
-    //hsState = hs_valid;
+    hsState = hs_valid;
     [myURLHandle setURL:[NSURL URLWithString:@"http://127.0.0.1/v1.1.php"]];
 #endif
 
@@ -565,6 +558,20 @@ NS_ENDHANDLER
     [submitResult release];
     [myKeyChain release];
     [myURLHandle release];
+}
+
+@end
+
+@implementation SongData (ProtocolManagerAdditions)
+
+- (BOOL)canSubmit
+{
+    ProtocolManager *pm = [ProtocolManager sharedInstance];
+    BOOL good = ( [[self duration] floatValue] >= 30.0 &&
+        ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
+        [[self position] floatValue] > [pm minTimePlayed]) );
+
+    return (good);
 }
 
 @end

@@ -9,7 +9,8 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class SongData;
+#import "SongData.h"
+
 @class CURLHandle;
 @class KeyChain;
 
@@ -68,8 +69,12 @@
 
 - (BOOL)updateAvailable;
 
+@end
+
+@interface SongData (ProtocolManagerAdditions)
+
 // Tests to see if the song is ready to submit
-- (BOOL)canSubmitSong:(SongData*)song;
+- (BOOL)canSubmit;
 
 @end
 
