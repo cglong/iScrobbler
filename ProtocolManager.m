@@ -165,6 +165,8 @@ NS_ENDHANDLER
         hsState = hs_needed;
         return;
     }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_START object:self];
 
 	NSURL *nsurl = [NSURL URLWithString:url];
 	//SCrobTrace(@"nsurl: %@",nsurl);

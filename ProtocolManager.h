@@ -89,6 +89,7 @@
 
 @end
 
+#define PM_NOTIFICATION_HANDSHAKE_START @"PMHandshakeStart"
 #define PM_NOTIFICATION_HANDSHAKE_COMPLETE @"PMHandshakeComplete"
 #define PM_NOTIFICATION_BADAUTH @"PMBadAuth"
 #define PM_NOTIFICATION_SUBMIT_COMPLETE @"PMSubmitComplete"
