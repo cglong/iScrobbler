@@ -3,6 +3,9 @@ Change Log for iScrobbler:
 (Releases/comments tagged as RAB are by Rod Begbie)
 (BDB is Brian Bergstrand)
 
+v0.7.5 (BDB)
+- Fixed a bug that caused us to URL encode HTTP post data twice. This bug has been around since the first iScrobbler release, but the old submission server had its own bug that canceled out our double encoding. However, the new Java submission server "fixed" this bug and so our double encoded strings started causing URL escape sequences to become part of the track data.
+
 v0.7.4 (BDB)
 - The Control window will now display the number of songs currently in the queue.
 - New pref to disable version check. If enabled, iScrobbler will no longer open the Preferences window to notify you of a new version.
