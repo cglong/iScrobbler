@@ -170,6 +170,8 @@ static QueueManager *g_QManager = nil;
     while ((song = [en nextObject])) {
         if ((songData = [song songData]))
             [data addObject:songData];
+        else
+            ScrobLog(SCROB_LOG_ERR, @"Failed to add '%@' to persitent store.\n", [song brief]);
     }
     
     return ([data writeToFile:path atomically:atomic]);
@@ -231,11 +233,13 @@ static QueueManager *g_QManager = nil;
                     while ((data = [en nextObject])) {
                         song = [[SongData alloc] init];
                         if ([song setSongData:data]) {
-                            ScrobLog(SCROB_LOG_VERBOSE, @"Restoring song '%@' from persistent store.", [song brief]);
+                            ScrobLog(SCROB_LOG_VERBOSE, @"Restoring '%@' from persistent store.\n", [song brief]);
                             // Make sure the song passes submission rules
                             [song setStartTime:[song postDate]];
                             [song setPosition:[song duration]];
                             [self queueSong:song submit:NO]; 
+                        } else {
+                            ScrobLog(SCROB_LOG_ERR, @"Failed to restore song from persistent store: %@\n", data); 
                         }
                         [song release];
                     }
