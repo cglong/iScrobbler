@@ -132,6 +132,8 @@
 	} else {
 		[[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:username];
 	}
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CDCNumRecentSongsChanged" object:self];
 }
 
 - (IBAction)cancel:(id)sender
@@ -172,54 +174,5 @@
 //  [pb declareTypes:pb_types owner:NULL];
 //  [pb setData:[self selectedItemsAsData] forType:NSStringPboardType];
 //}
-	
-#pragma mark -
-
-- (int)numberOfRowsInTableView:(NSTableView *)tableView
-{
-	return 4;
-}
-	
-	
-	// FIXME: This is a pretty ugly method -- ECS
-//	- (id)tableView:(NSTableView *)tableView
-//objectValueForTableColumn:(NSTableColumn *)tableColumn
-//row:(int)row
-//	{
-//		NSArray *propertyArray = [NSArray arrayWithObjects:@"Album", @"Artist", @"Title", @"Duration", @"Path", nil];
-//		NSArray *valueArray = nil;
-//		NSMutableDictionary *attribs = [NSDictionary dictionaryWithObject:[NSFont fontWithName:@"Helvetica" size:12] forKey:NSFontAttributeName];
-//		
-//		if(songData != nil) {
-//			valueArray = [NSArray arrayWithObjects:
-//				[[self songData] album],
-//				[[self songData] artist],
-//				[[self songData] title],
-//				[[[self songData] duration] stringValue],
-//				[[self songData] path], nil];
-//		}
-//		
-//		NSString *identifier = [tableColumn identifier];
-//		
-//		NSAttributedString *attribString = nil;
-//		if([identifier isEqualToString:@"property"]) {
-//			attribString = [[[NSAttributedString alloc] initWithString:[propertyArray objectAtIndex:row] attributes:attribs] autorelease];
-//			[tableColumn setWidth:([[propertyArray objectAtIndex:2] sizeWithAttributes:attribs].width
-//								   +5)];
-//			return attribString;
-//		} else {
-//			if(songData != nil) {
-//				[tableColumn setWidth:([[[self songData] path] sizeWithAttributes:attribs].width + 5)];
-//				
-//				attribString = [[[NSAttributedString alloc] initWithString:
-//					[[valueArray objectAtIndex:row] stringByAddingPercentEscapes]
-//																attributes:attribs] autorelease];
-//				//[tableColumn setWidth:NSMakeSize([attribString size].width];
-//				return attribString;
-//		} else {
-//			return nil;
-//		}
-//	}
-//	}
 	
 @end
