@@ -161,8 +161,13 @@
 
 -(void)mainTimer:(NSTimer *)timer
 {
-    //NSLog(@"timer ready");
-    NSString *result=[[NSString alloc] initWithString:[[script executeAndReturnError:nil]  	stringValue]];
+    // micah_modell@users.sourceforge.net
+    // Check for null and branch to avoid having the application hang.
+    NSAppleEventDescriptor * executionResult = [ script executeAndReturnError: nil ] ;
+    
+    if( nil != executionResult )
+    {
+        NSString *result=[[NSString alloc] initWithString:[ executionResult stringValue]];
 	
     //NSLog(@"timer fired");
     //NSLog(@"%@",result);
@@ -208,10 +213,6 @@
             // of the song has been played, and queue a submission if necessary.
             if([[song title] isEqualToString:[[songList objectAtIndex:0] title]])
             {
-                printf("percentPlayed: %.1f\n",[[[songList objectAtIndex:0] percentPlayed]
-                    floatValue]);
-                printf("timePlayed: %.1f\n",[[[songList objectAtIndex:0] timePlayed]
-                    floatValue]);
                 // If the song hasn't been queued yet, see if its ready.
                 if(![[songList objectAtIndex:0] hasQueued])
                 {
@@ -275,6 +276,7 @@
     
     [result release];
     //NSLog(@"result released");
+    }
 }
 
 -(IBAction)playSong:(id)sender{
