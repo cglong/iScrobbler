@@ -18,19 +18,22 @@
 	<string>VERB</string>
     
     <key>Sync iPod</key>
-    <integer>1</integer>
+    <true/>
     
     <key>iPod Submission Playlist</key>
     <string>Recently Played</string>
     
     <key>Disable Update Notification</key>
-    <integer>0</integer>
+    <false/>
     
     <key>Use Batch Submission</key>
-    <integer>1</integer>
+    <true/>
     
     <key>Shared Music Submission</key>
-    <integer>1</integer>
+    <true/>
+    
+    <key>Display Control Menu</key>
+    <true/>
     
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>

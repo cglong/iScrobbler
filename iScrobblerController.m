@@ -67,6 +67,26 @@
     [self showBadCredentialsDialog];
 }
 
+- (void)enableStatusItemMenu:(BOOL)enable
+{
+    if (enable) {
+        if (!statusItem) {
+            statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
+            
+            // 0x266B == UTF8 barred eigth notes
+            [statusItem setTitle:[NSString stringWithFormat:@"%C",0x266B]];
+            [statusItem setHighlightMode:YES];
+            [statusItem setMenu:theMenu];
+            [statusItem setEnabled:YES];
+        }
+    } else if (statusItem) {
+        [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
+        [statusItem setMenu:nil];
+        [statusItem release];
+        statusItem = nil;
+    }
+}
+
 -(id)init
 {
     // Read in a defaults.plist preferences file
@@ -114,8 +134,8 @@
         
         script=[[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
         nc=[NSNotificationCenter defaultCenter];
-        [nc addObserver:self selector:@selector(handleChangedNumRecentTunes:)
-                   name:@"CDCNumRecentSongsChanged"
+        [nc addObserver:self selector:@selector(handlePrefsChanged:)
+                   name:SCROB_PREFS_CHANGED
                  object:nil];
         
         // Register for mounts and unmounts (iPod support)
@@ -162,12 +182,8 @@
         userInfo:nil
         repeats:YES] fire];
     
-    statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
-	
-    [statusItem setTitle:[NSString stringWithFormat:@"%C",0x266B]];
-    [statusItem setHighlightMode:YES];
-    [statusItem setMenu:theMenu];
-    [statusItem setEnabled:YES];
+    [self enableStatusItemMenu:
+        [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"]];
 	
     [mainTimer fire];
 }
@@ -470,11 +486,21 @@ mainTimerReleaseResult:
     [NSApp activateIgnoringOtherApps:YES];
 }
 
--(void) handleChangedNumRecentTunes:(NSNotification *)aNotification
+-(void) handlePrefsChanged:(NSNotification *)aNotification
 {
+    // Song Count
     while([songList count]>[prefs integerForKey:@"Number of Songs to Save"])
         [songList removeObject:[songList lastObject]];
     [self updateMenu];
+
+// We don't have a UI to control this pref because it would cause support nightmares
+// with noobs enabling it w/o actually knowing what it does. If a UI is ever added,
+// enable the following code block.
+#ifdef notyet
+    // Status menu
+    [self enableStatusItemMenu:
+        [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"]];
+#endif
 }
 
 -(void)dealloc{
