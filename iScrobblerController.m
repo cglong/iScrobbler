@@ -58,7 +58,7 @@
     
     [self changeLastHandshakeResult:[pm lastHandshakeResult]];
     
-    if ([pm updateAvailable] ||
+    if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]) ||
          [[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
         [self openPrefs:self];
     }

@@ -33,6 +33,7 @@ extern NSString *CDCNumSongsKey;
     IBOutlet NSWindow *window;
 //    IBOutlet NSButton *copyButton;
     IBOutlet NSButton *iPodSyncSwitch;
+    IBOutlet NSButton *disableVersionCheckSwitch;
     NSUserDefaults *prefs;
     NSString *lastResult;
     NSString *lastResultLong;

@@ -55,7 +55,9 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 {
     [prefs setObject:[username stringValue] forKey:@"username"];
     [prefs setInteger:[numRecentSongsField intValue] forKey:CDCNumSongsKey];
-        
+    [prefs setBool:(NSOnState == [disableVersionCheckSwitch state] ? YES : NO)
+        forKey:@"Disable Update Notification"];
+    
     [prefs synchronize];
     ScrobTrace(@"prefs saved");
 
@@ -193,6 +195,9 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     } else {
         [passwordStored setStringValue:PASS_NOT_STORED];
     }
+    
+    [disableVersionCheckSwitch setState:
+        ([prefs boolForKey:@"Disable Update Notification"] ? NSOnState : NSOffState)];
     
     [password setStringValue:@""];
     //ScrobTrace(@"Fields updated");
