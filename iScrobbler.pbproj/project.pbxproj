@@ -530,19 +530,6 @@
 			settings = {
 			};
 		};
-		D3EC0FA5072AF41E00C13782 = {
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			isa = PBXShellScriptBuildPhase;
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "install_name_tool -change /Library/Frameworks/ExtFSDiskManager.framework/Versions/B/ExtFSDiskManager @executable_path/../Frameworks/ExtFSDiskManager.framework/Versions/B/ExtFSDiskManager \"${SYMROOT}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOS/${PRODUCT_NAME}\"\n";
-		};
 //D30
 //D31
 //D32
@@ -751,7 +738,6 @@
 				EB5065F303FB7A51005DC01B,
 				EB5065F403FB7A51005DC01B,
 				EB5065F503FB7A51005DC01B,
-				D3EC0FA5072AF41E00C13782,
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "";
