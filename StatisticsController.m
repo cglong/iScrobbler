@@ -72,6 +72,12 @@ static StatisticsController *g_sub;
             name:PM_NOTIFICATION_SUBMIT_COMPLETE
             object:nil];
     
+    // Raise level so the window is pretty much in front of everything.
+    [[self window] setLevel:NSModalPanelWindowLevel];
+    [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
+    
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"iScrobbler Statistics Window Open"];
+    
     [super showWindow:sender];
     
     // Set current values
@@ -84,6 +90,7 @@ static StatisticsController *g_sub;
 - (void)windowWillClose:(NSNotification *)aNotification
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"iScrobbler Statistics Window Open"];
 }
 
 @end
