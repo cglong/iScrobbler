@@ -3,6 +3,9 @@ Change Log for iScrobbler:
 (Releases/comments tagged as RAB are by Rod Begbie)
 (BDB is Brian Bergstrand)
 
+v0.7.3 (BDB)
+- Fixed a crash that occurred if  we failed to verify the persistent cache file after it was written.
+
 v0.7.2 (BDB)
 - Fixed a possible handshake bug that could cause handshaking to never complete when we recieved an unexpected server response.
 - We now auto-resubmit when the server gives us a protocol error response (instead of doing it only for connection/HTTP errors).
