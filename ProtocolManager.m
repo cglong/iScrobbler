@@ -538,6 +538,8 @@ didFinishLoadingExit:
 {
     self = [super init];
     
+    prefs = [[NSUserDefaults standardUserDefaults] retain];
+    
     g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
         [[[NSURL URLWithString:[self handshakeURL]] host] cString]);
     // Get the current state
@@ -553,7 +555,6 @@ didFinishLoadingExit:
         isNetworkAvailable = YES;
     }
     
-    prefs = [[NSUserDefaults standardUserDefaults] retain];
     // Indicate that we have not yet handshaked
     hsState = hs_needed;
     handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
