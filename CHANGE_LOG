@@ -1,5 +1,10 @@
 Change Log for iScrobbler:
 
+v0.6.0:
+- Rewrote submission logic. Now submissions wait until 50% of the song has completed, or two minutes has passed, whichever comes first.
+- Queuing is now functional. If you are offline, or a connection cannot be established, a queue will be generated, to be submitted when the client can next open a connection with the server.
+- A new client/server protocol is in place, with more advanced timing and communication between the server and the client, including 'defer' messages to instruct the client to wait a while in times of heavy server load, handshaking to exchange version data, and more.
+
 v0.5.2:
 - Cleaned up date format for improved server recognition. Solves problem where the "last ten" list wouldn't update properly on the website.
 - Changed submission URL to match updated server settings

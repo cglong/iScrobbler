@@ -1,30 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Audion</key>
-	<false/>
-        
-        <key>iTunes</key>
-	<true/>
-        
-        <key>debug</key>
-	<true/>
-        
-	<key>Number of Songs to Save</key>
-	<integer>5</integer>
-        
-	<key>url</key>
-	<string>http://post.audioscrobbler.com/iscrobbler.php</string>
-        
-	<key>useragent</key>
-	<string>Mozilla/4.5 (compatible; iScrobbler/0.5.2; Mac_PowerPC)</string>
-        
-	<key>username</key>
-	<string></string>
-        
-	<key>version</key>
-	<string>0.5.2i</string>
-        
-</dict>
-</plist>
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict>	<key>Audion</key>	<false/>                <key>iTunes</key>	<true/>                <key>debug</key>	<true/>        	<key>Number of Songs to Save</key>	<integer>5</integer>        	<key>url</key>	<string>http://post.audioscrobbler.com/genericplugin.php</string>        	<key>useragent</key>	<string>Mozilla/4.5 (compatible; iScrobbler/0.5.2; Mac_PowerPC)</string>        	<key>username</key>	<string></string>        	<key>version</key>	<string>0.5.2</string>        </dict></plist>

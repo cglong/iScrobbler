@@ -1,27 +1,1 @@
-List of known bugs and issues..
-
-- Does not take into account songs played on iPod.
-
-- iScrobbler blocks when iTunes is ripping.
-
-- Implement a queue so songs get submitted later if a connection can't be made immediately.
-
-- Implement a more intelligent submission delay so that flipping through songs doesn't result in the song you land on not being submitted due to spam blocking.
-
-- Copy/Paste is broken. This might be an issue with Interface Builder.. I'm in communication with an apple tech about it, and hopefully will have a solution soon. Drag 'n' Drop however, does work. You can drag out of the detailed result data box (not the detailed song data table, yet), and drag in and out of the username and password fields.
-
-FIXED: Removed useless edit menu.
-- Why is there an Edit item in the menu? Seems silly, pointless, especially considering it's right before the Quit item.
-
-WORK AROUND: Radio data does not get submitted at all currently.
-- information gets submitted for streaming stations. For example, this got sent for one station I tuned into: artist: missing value trackname: KCRW Music [00m:00s]
-
-FIXED: Related to ampersand problem. Proper URL decoding on server side solved problem.
-- tracks I've submitted with apostrophes are displayed with escape characters, a la:
-artist: Gomez trackname: Whippin\' Piccadilly
-
-FIXED: Silly mistake on my part.
-- "Submit a Bug Report" button didn't seem to respond
-
-FIXED: Proper URL Encoding on the client side, and decoding on the server side solved the problem.
-- If a song title uses an ampersand (my example, "Cloak & Dagger" by the band Daniel Amos), the song is submitted as "Cloak" only, the ampersand and everything after is ignored.
+List of known bugs and issues..- Does not take into account songs played on iPod.- iScrobbler blocks when iTunes is ripping.- Implement a queue so songs get submitted later if a connection can't be made immediately.FIXED: Rewrote entire submission system with object oriented goodness, now behaves correctly.- Implement a more intelligent submission delay so that flipping through songs doesn't result in the song you land on not being submitted due to spam blocking.- Copy/Paste is broken. This might be an issue with Interface Builder.. I'm in communication with an apple tech about it, and hopefully will have a solution soon. Drag 'n' Drop however, does work. You can drag out of the detailed result data box (not the detailed song data table, yet), and drag in and out of the username and password fields.FIXED: Removed useless edit menu.- Why is there an Edit item in the menu? Seems silly, pointless, especially considering it's right before the Quit item.WORK AROUND: Radio data does not get submitted at all currently.- information gets submitted for streaming stations. For example, this got sent for one station I tuned into: artist: missing value trackname: KCRW Music [00m:00s]FIXED: Related to ampersand problem. Proper URL decoding on server side solved problem.- tracks I've submitted with apostrophes are displayed with escape characters, a la:artist: Gomez trackname: Whippin\' PiccadillyFIXED: Silly mistake on my part.- "Submit a Bug Report" button didn't seem to respondFIXED: Proper URL Encoding on the client side, and decoding on the server side solved the problem.- If a song title uses an ampersand (my example, "Cloak & Dagger" by the band Daniel Amos), the song is submitted as "Cloak" only, the ampersand and everything after is ignored.
