@@ -298,6 +298,11 @@ NS_ENDHANDLER
     return (7200.00); // Two hours
 }
 
+- (BOOL)useBatchSubmission
+{
+    return ([prefs boolForKey:@"Use Batch Submission"]);
+}
+
 - (void)scheduleResubmit
 {
     [resubmitTimer invalidate];
@@ -353,6 +358,12 @@ NS_ENDHANDLER
         [[QueueManager sharedInstance] syncQueue:nil];
         ScrobLog(SCROB_LOG_VERBOSE, @"Song Queue cleaned, count = %i", [[QueueManager sharedInstance] count]);
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
+        
+        // See if there are any more entries in the queue
+        if (![self useBatchSubmission] && [[QueueManager sharedInstance] count]) {
+            // Schedule the next sub after a minute delay
+            [self performSelector:@selector(submit:) withObject:nil afterDelay:0.05];
+        }
     } else {
         ScrobLog(SCROB_LOG_INFO, @"Server error, songs left in queue, count = %i", [[QueueManager sharedInstance] count]);
 		hsState = hs_needed;
@@ -450,6 +461,11 @@ didFinishLoadingExit:
     if (!submissionCount) {
         inFlight = nil;
         return;
+    }
+    
+    if (submissionCount > 1 && ![self useBatchSubmission]) {
+        submissionCount = 1;
+        inFlight = [NSArray arrayWithObject:[inFlight objectAtIndex:0]];
     }
     
     [resubmitTimer invalidate];

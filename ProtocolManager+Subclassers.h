@@ -48,6 +48,8 @@
 
 - (float)handshakeMaxDelay;
 
+- (BOOL)useBatchSubmission;
+
 @end
 
 // Handshake reponse keys
