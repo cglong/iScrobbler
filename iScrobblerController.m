@@ -405,6 +405,7 @@
     [handshakeHandle setUserAgent:[prefs stringForKey:@"useragent"]];
 	
 	NSData *data = [handshakeHandle loadInForeground];
+	[handshakeHandle flushCachedData];
 	NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	
 	NSLog(@"Result: %@", result);
@@ -515,7 +516,8 @@
     // Process Body, if OK, then remove the last song from the queue
     if([result hasPrefix:@"OK"])
     {
-        for(i=0; i<[songQueue count]; i++)
+		int count = [songQueue count];
+        for(i=0; i < count; i++)
         {
             [songQueue removeObjectAtIndex:0];
         }
