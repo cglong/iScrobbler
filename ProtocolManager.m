@@ -332,8 +332,6 @@ NS_ENDHANDLER
     [self setSubmitResult:[self submitResponse:result]];
     [result release];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
-    
     // Process Body, if OK, then remove the last song from the queue
     if([[self lastSubmissionResult] isEqualToString:HS_RESULT_OK])
     {
@@ -348,7 +346,7 @@ NS_ENDHANDLER
         NSLog(@"Server error, songs left in queue, count = %i", [[QueueManager sharedInstance] count]);
 		hsState = hs_needed;
         
-		if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
+		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
 			// Send notification if we received BADAUTH twice
 			if (lastAttemptBadAuth) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
@@ -366,6 +364,8 @@ NS_ENDHANDLER
     [self setLastSongSubmitted:[inFlight lastObject]];
     [inFlight release];
     inFlight = nil;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
     
     //NSLog(@"songQueue: %@",songQueue);
 	
@@ -399,12 +399,12 @@ NS_ENDHANDLER
         HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
         reason, HS_RESPONSE_KEY_RESULT_MSG,
         nil]];
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
     [inFlight release];
     inFlight = nil;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
     
     // Kick off resubmit timer
     [self scheduleResubmit];
