@@ -8,6 +8,8 @@
 
 #import <openssl/md5.h>
 
+#import <Carbon/Carbon.h>
+
 #import "iScrobblerController.h"
 #import "PreferenceController.h"
 #import "SongData.h"
