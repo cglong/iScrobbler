@@ -55,9 +55,8 @@
     // Request the password and release it, this will force it to ask
     // permission when loading, so it doesn't annoy you halfway through
     // a song.
-    NSString * pass = [[NSString alloc] init];
+    NSString * pass = [[[NSString alloc] init] autorelease];
     pass = [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]];
-    [pass release];
     
     // Activate CURLHandle
     [CURLHandle curlHelloSignature:@"XxXx" acceptAll:YES];
