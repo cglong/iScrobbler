@@ -41,6 +41,10 @@
 
 #define MAIN_TIMER_INTERVAL 10.0
 
+@interface SongData (iScrobblerControllerAdditions)
+    - (SongData*)initWithiTunesResultString:(NSString*)string;
+@end
+
 @implementation iScrobblerController
 
 - (BOOL)validateMenuItem:(NSMenuItem *)anItem
@@ -314,41 +318,11 @@
     
 }
 
-// Caller must release
-- (SongData*)createSong:(NSArray*)data
-{
-    if (10 != [data count]) {
-        ScrobLog(SCROB_LOG_WARN, @"Bad song data received.\n");
-        ScrobTrace("    %@\n", data);
-        return (nil);
-    }
-    
-    SongData * song = [[SongData alloc] init];
-    [song setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
-        floatValue]]];
-    [song setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
-        floatValue]]];
-    [song setTitle:[data objectAtIndex:2]];
-    [song setDuration:[NSNumber numberWithFloat:[[data objectAtIndex:3] floatValue]]];
-    [song setPosition:[NSNumber numberWithFloat:[[data objectAtIndex:4] floatValue]]];
-    [song setArtist:[data objectAtIndex:5]];
-    [song setAlbum:[data objectAtIndex:6]];
-    [song setPath:[data objectAtIndex:7]];
-    [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
-        locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
-    [song setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
-    
-    [song setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[song position] doubleValue]]];
-    //ScrobTrace(@"SongData allocated and filled");
-    return (song);
-}
-
 -(void)mainTimer:(NSTimer *)timer
 {
     // micah_modell@users.sourceforge.net
     // Check for null and branch to avoid having the application hang.
     NSAppleEventDescriptor * executionResult = [ script executeAndReturnError: nil ] ;
-    
     if( nil != executionResult )
     {
         NSString *result=[[NSString alloc] initWithString:[ executionResult stringValue]];
@@ -365,13 +339,8 @@
     } else if([result hasPrefix:@"INACTIVE"]) {
         
     } else {
-        // Parse the result and create an array
-        NSArray *parsedResult = [[NSArray alloc] initWithArray:[result componentsSeparatedByString:@"***"]];
 		NSDate *now;
-        
-        // Make a SongData object out of the array
-        SongData *song = [self createSong:parsedResult];
-        [parsedResult release];
+        SongData *song = [[SongData alloc] initWithiTunesResultString:result];
         
         if (NO == [prefs boolForKey:@"Shared Music Submission"] &&
              [[song path] isEqualToString:@"Shared Track"]) {
@@ -824,13 +793,9 @@ validate:
                 
                 added = 0;
                 while ((data = [en nextObject])) {
-                    NSArray *components = [data componentsSeparatedByString:@"***"];
                     NSTimeInterval postDate;
-                    
-                    if ([components count] > 1) {
-                        ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Song components from script: %@\n", components);
-                        
-                        song = [self createSong:components];
+                    song = [[SongData alloc] initWithiTunesResultString:data];
+                    if (song) {
                         // Since this song was played "offline", we set the post date
                         // in the past 
                         postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
@@ -907,6 +872,44 @@ sync_ipod_script_release:
         [self setValue:nil forKey:@"iPodMountPath"];
         [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
     }
+}
+
+@end
+
+@implementation SongData (iScrobblerControllerAdditions)
+
+- (SongData*)initWithiTunesResultString:(NSString*)string
+{
+    self = [super init];
+    
+    NSArray *data = [[NSArray alloc] initWithArray:[string componentsSeparatedByString:@"***"]];
+    ScrobLog(SCROB_LOG_TRACE, @"Song components from iTunes result: %@\n", data);
+    
+    if (10 != [data count]) {
+        ScrobLog(SCROB_LOG_WARN, @"Bad song data received.\n");
+        return (nil);
+    }
+    
+    SongData * song = [[SongData alloc] init];
+    [song setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
+        floatValue]]];
+    [song setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
+        floatValue]]];
+    [song setTitle:[data objectAtIndex:2]];
+    [song setDuration:[NSNumber numberWithFloat:[[data objectAtIndex:3] floatValue]]];
+    [song setPosition:[NSNumber numberWithFloat:[[data objectAtIndex:4] floatValue]]];
+    [song setArtist:[data objectAtIndex:5]];
+    [song setAlbum:[data objectAtIndex:6]];
+    [song setPath:[data objectAtIndex:7]];
+    [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
+        locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
+    [song setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
+    
+    [song setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[song position] doubleValue]]];
+    [self setPostDate:[NSCalendarDate date]];
+    [self setHasQueued:NO];
+    //ScrobTrace(@"SongData allocated and filled");
+    return (song);
 }
 
 @end
