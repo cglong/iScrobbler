@@ -29,29 +29,30 @@ keys and values are output as %{key}=%{value}; in between arguments is !{&}.
 /*"	Convert a dictionary to an HTTP-formatted string with the given encoding, as above.  The inOrdering parameter specifies the order to place the inputs, for servers that care about this.  (Note that keys in the dictionary that aren't in inOrdering will not be included.)  If inOrdering is nil, all keys and values will be output in an unspecified order.
 "*/
 
-- (NSString *) specialFormatForHTTPUsingEncoding:(NSStringEncoding)inEncoding ordering:(NSArray *)inOrdering
+- (NSString *)specialFormatForHTTPUsingEncoding:(NSStringEncoding)inEncoding ordering:(NSArray *)inOrdering
 {
-    NSMutableString *s = [NSMutableString stringWithCapacity:256];
-    NSEnumerator *e = (nil == inOrdering) ? [self keyEnumerator] : [inOrdering objectEnumerator];
-    id key;
+    NSMutableString *resultString = [NSMutableString string];
+    NSEnumerator *keyEnumerator = inOrdering ? [inOrdering objectEnumerator] : [self keyEnumerator];
+    id key = nil;
     CFStringEncoding cfStrEnc = CFStringConvertNSStringEncodingToEncoding(inEncoding);
 
-    while ((key = [e nextObject]))
+    while ((key = [keyEnumerator nextObject]))
     {
-        NSString *escapedObject
-            = (NSString *) CFURLCreateStringByAddingPercentEscapes(
-        NULL, (CFStringRef) [[self objectForKey:key] description], NULL, NULL, cfStrEnc);
+        CFStringRef escapedObject =
+		CFURLCreateStringByAddingPercentEscapes(NULL, // allocator
+												(CFStringRef) [[self objectForKey:key] description], // original
+												NULL, // ignore characters
+												NULL, // legal chars to escape
+												cfStrEnc); // encoding
 
-        [s appendFormat:@"%@=%@&", key, escapedObject];
+        [resultString appendFormat:@"%@=%@&", key, escapedObject];
+		CFRelease(escapedObject);
     }
-    // Delete final & from the string
-    if (![s isEqualToString:@""])
-    {
-        [s deleteCharactersInRange:NSMakeRange([s length]-1, 1)];
-    }
-    return s;
+    // Remove final "&" from string (if we actually made one)
+    if ([resultString length])
+        [resultString deleteCharactersInRange:NSMakeRange([resultString length]-1, 1)];
+	
+    return resultString;
 }
-
-
 
 @end

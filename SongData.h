@@ -9,18 +9,18 @@
 #import <Foundation/Foundation.h>
 
 @interface SongData : NSObject <NSCopying> {
-    NSNumber * trackIndex;
-    NSNumber * playlistIndex;
-    NSString * title;
-    NSNumber * duration;
-    NSNumber * position;
-    NSString * artist;
-    NSString * album;
-    NSString * path;
-    NSDate * startTime;
+    NSNumber *trackIndex;
+    NSNumber *playlistIndex;
+    NSString *title;
+    NSNumber *duration;
+    NSNumber *position;
+    NSString *artist;
+    NSString *album;
+    NSString *path;
+    NSDate *startTime;
     BOOL hasQueued;
-    NSNumber * pausedTime;
-    NSDate * postDate;
+    NSNumber *pausedTime;
+    NSDate *postDate;
 }
 
 // returns a float value between 0 and 100 indicating how much of the song

@@ -11,84 +11,94 @@
 
 #import "KeyChain.h"
 
-static KeyChain* defaultKeyChain = nil;
+#import <Security/SecKeyChain.h>
+#import <Security/SecKeyChainItem.h>
+
+#define MAX_PASSWORD_LENGTH			127
 
 @interface KeyChain (KeyChainPrivate)
--(KCItemRef)_genericPasswordReferenceForService:(NSString *)service account:(NSString*)account;
+- (KCItemRef)_genericPasswordReferenceForService:(NSString *)service account:(NSString*)account;
 @end
+
+static KeyChain *_defaultKeyChain = nil;
 
 @implementation KeyChain
 
-+ (KeyChain*) defaultKeyChain {
-    return ( defaultKeyChain ? defaultKeyChain : [[[self alloc] init] autorelease] );
-}
-
-- (id)init
-{
-    self = [super init];
-    maxPasswordLength = 127;
-    return self;
+// FIXME: This should be a _sharedInstance method
++ (KeyChain *) defaultKeyChain {
+	if (!_defaultKeyChain)
+		_defaultKeyChain = [[self alloc] init];
+	
+    return _defaultKeyChain;
 }
 
 - (void)setGenericPassword:(NSString*)password forService:(NSString *)service account:(NSString*)account
 {
-    OSStatus ret;
-    KCItemRef itemref = NULL;
-    void *p = (void *)malloc(128 * sizeof(char));
-        if ([service length] == 0 || [account length] == 0) {
-            return ;
-        }
-            if (!password || [password length] == 0) {
-                [self removeGenericPasswordForService:service account:account];
-            } else {
-                strcpy(p,[password cString]);
-                        if (itemref = [self _genericPasswordReferenceForService:service account:account])
-                            KCDeleteItem(itemref);
-                        ret = kcaddgenericpassword([service cString], [account cString], [password cStringLength],
-                                                   p, NULL);
-                        free(p);
-            }
+	if (![service length] || ![account length]) return;
+	
+	if (![password length]) {
+		[self removeGenericPasswordForService:service account:account];
+	} else {
+		OSStatus ret;
+		SecKeychainItemRef itemref = NULL;
+		if (itemref = [self _genericPasswordReferenceForService:service account:account]) {
+			ret = SecKeychainItemModifyAttributesAndData(itemref, // item
+														  NULL, // attributes
+														  [password cStringLength], [password cString]); // data
+		} else {		
+			ret = SecKeychainAddGenericPassword(NULL, // keychain
+												[service cStringLength], [service cString], // service
+												[account cStringLength], [account cString], // name
+												[password cStringLength], [password cString], // data
+												NULL); // returned item
+		}
+		if (ret)
+			NSLog(@"Error (%i) setting password for service: %@  account: %@", ret, service, account);
+	}
 }
 
 - (NSString*)genericPasswordForService:(NSString *)service account:(NSString*)account
 {
-    OSStatus ret;
-    UInt32 length;
-    void *p = (void *)malloc(maxPasswordLength * sizeof(char));
-    NSString *string = @"";
-        if ([service length] == 0 || [account length] == 0) {
-            free(p);
-            return @"";
-        }
-            ret = kcfindgenericpassword([service cString], [account cString], maxPasswordLength-1, p, &length, nil);
-            if (!ret)
-                string = [NSString stringWithCString:(const char*)p length:length];
-            free(p);
-            return string;
+	if (![service length]|| ![account length]) return nil;
+	
+	char *passwordData = NULL;
+    UInt32 passwordLength = 0;
+	OSStatus status = SecKeychainFindGenericPassword(NULL, // keychain
+													 [service cStringLength], [service cString],
+													 [account cStringLength], [account cString],
+													 &passwordLength, (void **)&passwordData,
+													 NULL); // item ref
+		
+	if (status) {
+		NSLog(@"Error (%i) fetching password for service: %@  account: %@", status, service, account);
+		return nil;
+	}
+	
+	return [NSString stringWithCString:passwordData length:passwordLength];
 }
 - (void)removeGenericPasswordForService:(NSString *)service account:(NSString*)account
 {
-    KCItemRef itemref = nil ;
+    SecKeychainItemRef itemref = nil ;
     if (itemref = [self _genericPasswordReferenceForService:service account:account])
-        KCDeleteItem(itemref);
-}
-- (void)setMaxPasswordLength:(unsigned)length
-{
-    if (![self isEqual:defaultKeyChain]) {
-        maxPasswordLength = length ;
-    } else {
-    }
-}
-- (unsigned)maxPasswordLength
-{
-    return maxPasswordLength;
+        SecKeychainItemDelete(itemref);
 }
 @end
+
 @implementation KeyChain (KeyChainPrivate)
-- (KCItemRef)_genericPasswordReferenceForService:(NSString *)service account:(NSString*)account
+- (SecKeychainItemRef)_genericPasswordReferenceForService:(NSString *)service account:(NSString*)account
 {
-    KCItemRef itemref = nil;
-    kcfindgenericpassword([service cString],[account cString],nil,nil,nil,&itemref);
+    SecKeychainItemRef itemref = nil;
+	OSStatus status = SecKeychainFindGenericPassword(NULL, // keychain
+													  [service cStringLength], [service cString], // service
+													  [account cStringLength], [account cString], // name
+													  0, NULL, // password data
+													 &itemref); // item ref
+	
+	if (status) {
+		NSLog(@"Error (%i) finding password for service: %@  account: %@", status, service, account);
+		return nil;
+	}
+	
     return itemref;
 }
 @end

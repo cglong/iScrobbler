@@ -8,71 +8,27 @@
 //
 
 #import <AppKit/AppKit.h>
-#import "SongData.h"
 
 
 @class iScrobblerController;
 @class KeyChain;
+@class SongData;
 
-extern NSString *CDCNumSongsKey;
-
-@interface PreferenceController : NSWindowController
+@interface PreferenceController : NSObject
 {
-    IBOutlet NSTextField *numRecentSongsField;
-    IBOutlet NSTextField *username;
-    IBOutlet NSSecureTextField *password;
-    IBOutlet NSTextField *passwordStored;
-    IBOutlet NSTextField *lastResultShortField;
-    IBOutlet NSTextView *lastResultLongField;
-    IBOutlet NSTextField *lastSongSubmitted;
-    IBOutlet NSTextView *lastResultDataField;
-    IBOutlet NSTextField *versionNumber;
-    IBOutlet NSTextField *versionWarning;
-    IBOutlet NSButton *updateButton;
-    IBOutlet NSTableView *songDataTable;
-    IBOutlet NSWindow *window;
-//    IBOutlet NSButton *copyButton;
-    NSUserDefaults *prefs;
-    NSString *lastResult;
-    NSString *lastResultLong;
-    NSString *lastResultShort;
-	NSString *lastHandshakeResult;
-    NSNotificationCenter *nc;
-    KeyChain * myKeyChain;
-    SongData *songData;
-    NSString * downloadURL;
-   }
-// -(IBAction)changeNumRecentSongs:(id)sender;
--(IBAction)apply:(id)sender;
--(IBAction)forgetPassword:(id)sender;
--(IBAction)OK:(id)sender;
--(IBAction)cancel:(id)sender;
--(IBAction)submitWebBugReport:(id)sender;
--(IBAction)submitEmailBugReport:(id)sender;
--(void)savePrefs;
--(void)setLastResult: (NSString *)newLastResult;
--(NSString *)lastResult;
--(void)setLastHandshakeResult: (NSString *)newLastHandshakeResult;
--(NSString *)lastHandshakeResult;
--(void)setLastResultShort: (NSString *)newLastResultShort;
--(NSString *)lastResultShort;
--(void)setLastResultLong: (NSString *)newLastResultLong;
--(NSString *)lastResultLong;
--(void)setSongData: (SongData *)newSongData;
--(SongData *)songData;
--(void)handleLastResultChanged:(NSNotification *)aNotification;
--(void)handleLastHandshakeResultChanged:(NSNotification *)aNotification;
--(void)updateFields;
--(void)generateResultText;
--(IBAction)queryiTunes:(id)sender;
--(IBAction)queryAudion:(id)sender;
--(IBAction)downloadUpdate:(id)sender;
--(NSString *)downloadURL;
--(void)setDownloadURL:(NSString *)newDownloadURL;
-- (int)numberOfRowsInTableView:(NSTableView *)tableView;
-- (id)tableView:(NSTableView *)tableView
-objectValueForTableColumn:(NSTableColumn *)tableColumn
-            row:(int)row;
-//-(IBAction)copy:(id)sender;
+    IBOutlet NSSecureTextField *_passwordField;
+    IBOutlet NSWindow *_preferencesWindow;
+}
+
+- (NSWindow *)preferencesWindow;
+- (void)showPreferencesWindow;
+
+- (IBAction)OK:(id)sender;
+- (IBAction)cancel:(id)sender;
+
+//- (IBAction)submitWebBugReport:(id)sender;
+//- (IBAction)submitEmailBugReport:(id)sender;
+
+//- (IBAction)copy:(id)sender;
 @end
 

@@ -2,6 +2,13 @@ Change Log for iScrobbler:
 
 (Releases/comments tagged as RAB are by Rod Begbie)
 
+v0.7.0 (ECS):
+- Mostly re-written: no longer dependant on any external frameworks (uses system supplied functions instead).
+- No more leaks (except a known one in Apple's AppleScript code...)
+- Much cleaner preferences dialog.
+- Now does exponential network backoff to avoid loading the server (part of 1.2 procotol)
+- Several dialogs to handle various errors better.
+
 v0.6.4 (RAB):
 - iScrobbler will no longer bitch that your username & password are wrong, just because the server says it once.  It'll try twice.  If the server *still* complains, *then* iScrobbler will pop-up the error message.
 - Removed a bunch of extraneous logging statements.

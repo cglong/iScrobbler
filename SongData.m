@@ -8,34 +8,54 @@
 
 #import "SongData.h"
 
+#import "NSString_iScrobblerAdditions.h"
+
 @implementation SongData
 
 - (id)init
 {
-    [super init];
+    if (self = [super init]) {
 
-    // initialize some empty values
-    [self setTrackIndex:[NSNumber numberWithFloat:0.0]];
-    [self setPlaylistIndex:[NSNumber numberWithFloat:0.0]];
-    [self setTitle:@""];
-    [self setDuration:[NSNumber numberWithFloat:0.0]];
-    [self setPosition:[NSNumber numberWithFloat:0.0]];
-    [self setArtist:@""];
-    [self setAlbum:@""];
-    [self setPath:@""];
-    [self setPostDate:[NSCalendarDate date]];
-    [self setHasQueued:NO];
+		// FIXME: ECS -- these should not be necessary!
+		// initialize some empty values
+		[self setTrackIndex:[NSNumber numberWithFloat:0.0]];
+		[self setPlaylistIndex:[NSNumber numberWithFloat:0.0]];
+		[self setTitle:@""];
+		[self setDuration:[NSNumber numberWithFloat:0.0]];
+		[self setPosition:[NSNumber numberWithFloat:0.0]];
+		[self setArtist:@""];
+		[self setAlbum:@""];
+		[self setPath:@""];
+		[self setPostDate:[NSCalendarDate date]];
+		[self setHasQueued:NO];
 
-    // initialize with current time
-    [self setStartTime:[NSDate date]];
+		// initialize with current time
+		[self setStartTime:[NSDate date]];
+	}
 
     return self;
 }
 
+- (void)dealloc
+{
+    [trackIndex release];
+    [playlistIndex release];
+    [title release];
+    [duration release];
+    [position release];
+    [artist release];
+    [album release];
+    [path release];
+    [startTime release];
+    [postDate release];
+    [super dealloc];
+}    
+
+
 // Override copyWithZone so we can return copies of the object.
 - (id)copyWithZone: (NSZone *)zone
 {
-    id copy = [[[self class] alloc] init];
+    id copy = [[[self class] allocWithZone:zone] init];
 
     [copy setArtist:[self artist]];
     [copy setTrackIndex:[self trackIndex]];
@@ -50,8 +70,14 @@
     [copy setPausedTime:[self pausedTime]];
     [copy setPostDate:[self postDate]];
 
-    return (copy);
+    return copy;
 }
+
+- (NSString *)description {
+	return [[super description] stringByAppendingFormat:@"[\"%@\", queued = %i]", [self title], hasQueued];
+}
+
+#pragma mark -
 
 // returns a float value between 0 and 100 indicating how much of the song
 // has been played as a percent
@@ -61,7 +87,7 @@
 
     // The amount of time passed since the song started, divided by the duration of the song
     // times 100 to generate a percentage.
-    NSNumber * percentage = [NSNumber numberWithDouble:(([[self timePlayed] doubleValue] / [[self duration] doubleValue]) * 100)];
+    NSNumber * percentage = [NSNumber numberWithDouble:(([[self timePlayed] doubleValue] / [[self duration] doubleValue]) * 100.0)];
 
     return percentage;
 }
@@ -73,7 +99,7 @@
     // into a positive number, and plus 5 to account for Timer error.
     // Due to timer firing discrepencies, this should not be considered an 'exact' time.
     NSNumber * time = [NSNumber numberWithDouble:(-[[self startTime]
-        timeIntervalSinceNow] + 5)];
+        timeIntervalSinceNow] + 5.0)];
     return time;
 }
 
@@ -85,20 +111,12 @@
 - (NSMutableDictionary *)postDict: (int)submissionNumber
 {
     //NSLog(@"preparing postDict");
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 
     // URL escape relevant fields
-	NSString * escapedtitle = [(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self title], NULL,
-        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-
-    NSString * escapedartist = [(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self artist], NULL,
-        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-
-    NSString * escapedalbum = [(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self album], NULL,
-        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+	NSString *escapedtitle = [[self title] stringByAddingPercentEscapesIncludingCharacters:@"&+"];
+    NSString *escapedartist = [[self artist] stringByAddingPercentEscapesIncludingCharacters:@"&+"];
+    NSString *escapedalbum = [[self album] stringByAddingPercentEscapesIncludingCharacters:@"&+"];
 		
     // If the file isn't already in the queue, then assume this is the first real
     // post generation, and create a new postDate. Otherwise, assume we are already
@@ -107,7 +125,10 @@
         [self setPostDate:[NSCalendarDate date]];
     }
 
-/*    NSString * escapeddate = [(NSString*) CFURLCreateStringByAddingPercentEscapes(NULL, 	(CFStringRef)[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]], NULL, (CFStringRef)@"&+", 	kCFStringEncodingUTF8) autorelease]; */
+/*  
+		// ECS: Why is this commented out? 10/26/04
+	NSString *dateString = [self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
+	NSString * escapeddate = [dateString stringByAddingPercentEscapesIncludingCharacters:@"&+"]; */
     
     // populate the dictionary
     [dict setObject:escapedtitle forKey:[NSString stringWithFormat:@"t[%i]", submissionNumber]];
@@ -115,11 +136,10 @@
     [dict setObject:escapedartist forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
     [dict setObject:escapedalbum forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
     [dict setObject:@"" forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
-    [dict setObject:[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
+    [dict setObject:[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
 
-    // return and autorelease
     //NSLog(@"postDict done");
-    return [dict autorelease];
+    return dict;
 }
 
 ////// Accessors Galore ///////
@@ -249,10 +269,7 @@
 
 - (void)setHasQueued:(BOOL)newHasQueued
 {
-    if(newHasQueued)
-        hasQueued = YES;
-    else
-        hasQueued = NO;
+	hasQueued = newHasQueued;
 }
 
 // pausedTime is the total length of time the song has been paused for
@@ -280,20 +297,5 @@
     [postDate release];
     postDate = newPostDate;
 }
-
-- (void)dealloc
-{
-    [trackIndex release];
-    [playlistIndex release];
-    [title release];
-    [duration release];
-    [position release];
-    [artist release];
-    [album release];
-    [path release];
-    [startTime release];
-    [postDate release];
-    [super dealloc];
-}    
 
 @end
