@@ -32,6 +32,7 @@ extern NSString *CDCNumSongsKey;
     IBOutlet NSTableView *songDataTable;
     IBOutlet NSWindow *window;
 //    IBOutlet NSButton *copyButton;
+    IBOutlet NSButton *iPodSyncSwitch;
     NSUserDefaults *prefs;
     NSString *lastResult;
     NSString *lastResultLong;
@@ -69,6 +70,7 @@ extern NSString *CDCNumSongsKey;
 -(IBAction)downloadUpdate:(id)sender;
 -(NSString *)downloadURL;
 -(void)setDownloadURL:(NSString *)newDownloadURL;
+-(void)iPodSyncSwitched:(id)sender;
 - (int)numberOfRowsInTableView:(NSTableView *)tableView;
 - (id)tableView:(NSTableView *)tableView
 objectValueForTableColumn:(NSTableColumn *)tableColumn
