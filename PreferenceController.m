@@ -125,10 +125,16 @@
     
 	if(![[passwordField stringValue] isEqualToString:@""])
 	{
-		[[KeyChain defaultKeyChain] setGenericPassword:[passwordField stringValue]
+		@try {
+        [[KeyChain defaultKeyChain] setGenericPassword:[passwordField stringValue]
 											forService:@"iScrobbler"
 											   account:username];
-		 ScrobTrace(@"password stored as: %@",[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler" account:username]);
+		 //ScrobTrace(@"password stored as: %@",[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler" account:username]);
+         } @catch (NSException *exception) {
+            NSBeginAlertSheet([exception name], @"OK", nil, nil, [self preferencesWindow], nil, nil, nil, nil, [exception reason]);
+            ScrobLog(SCROB_LOG_ERR, @"KeyChain Error: '%@' - %@\n", [exception reason], [exception userInfo]);
+            @throw exception;
+         }
 	} else {
 		[[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:username];
 	}
@@ -144,7 +150,11 @@
 
 - (IBAction)OK:(id)sender
 {
-	[self savePrefs];
+	@try {
+    [self savePrefs];
+    } @catch (NSException *exception) {
+        return;
+    }
 	[preferencesWindow performClose:sender];
 }
 
