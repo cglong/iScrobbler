@@ -1077,7 +1077,8 @@
 		F575CEAE02FF7FB901A80164 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.nib;
-			path = Preferences.nib;
+			name = Preferences.nib;
+			path = English.lproj/Preferences.nib;
 			refType = 4;
 			sourceTree = "<group>";
 		};

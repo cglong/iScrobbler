@@ -73,6 +73,8 @@
 
 -(NSString *)md5hash:(NSString *)input;
 
+- (void)showApplicationIsDamagedDialog;
+
 @end
 
 #import "ScrobLog.h"

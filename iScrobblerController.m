@@ -20,7 +20,6 @@
 #import "QueueManager.h"
 #import "ProtocolManager.h"
 #import "ScrobLog.h"
-//#import <mHashMacOSX/mhash.h>
 #import <ExtFSDiskManager/ExtFSDiskManager.h>
 
 @interface iScrobblerController ( private )
@@ -387,7 +386,7 @@
     [preferenceController takeValue:[[ProtocolManager sharedInstance] lastSubmissionResult] forKey:@"lastResult"];
 	
     [NSApp activateIgnoringOtherApps:YES];
-    [[preferenceController window] makeKeyAndOrderFront:nil];
+    [preferenceController showPreferencesWindow];
 }
 
 -(IBAction)openScrobblerHomepage:(id)sender
@@ -433,8 +432,7 @@
 }
 
 - (void)changeLastHandshakeResult:(NSString*)result
-{	
-    [preferenceController setLastHandshakeResult:result];
+{
     [nc postNotificationName:@"lastHandshakeResultChanged" object:self];
 	
     ScrobLog(SCROB_LOG_VERBOSE, @"Handshakeresult changed: %@", result);
@@ -460,6 +458,18 @@
 -(IBAction)cleanLog:(id)sender
 {
     ScrobLogTruncate();
+}
+
+- (void)showApplicationIsDamagedDialog {
+	[NSApp activateIgnoringOtherApps:YES];
+	int result = NSRunCriticalAlertPanel(NSLocalizedString(@"Critical Error", nil),
+										 NSLocalizedString(@"The iScrobbler application appears to be damaged.  Please download a new copy from the iScrobbler homepage.", nil),
+										 NSLocalizedString(@"Quit", nil),
+										 NSLocalizedString(@"Open iScrobbler Homepage", nil), nil);
+	if (result == NSAlertAlternateReturn)
+		[self openScrobblerHomepage:self];
+	
+	[NSApp terminate:self];
 }
 
 #define ONE_WEEK (3600.0 * 24.0 * 7.0)
