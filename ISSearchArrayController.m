@@ -88,7 +88,6 @@
 - (BOOL)tableView:(NSTableView *)table writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard
 {
     [pboard declareTypes:[NSArray arrayWithObjects:NSTabularTextPboardType, NSStringPboardType, nil] owner:self];
-    NSLog(@"tableView:writeRows:\n");
     NSArray *objects = [self arrangedObjects], *dataKeys = nil;
     NSEnumerator *en = [rows objectEnumerator];
     NSNumber *idx;
