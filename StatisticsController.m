@@ -111,18 +111,14 @@ static enum {title, album, artist} g_cycleState = title;
         g_nowPlaying = [song retain];
         g_cycleState = title;
         
+        [g_cycleTimer invalidate];
+        g_cycleTimer = nil;
         if (g_nowPlaying) {
-            if (!g_cycleTimer) {
-                // Create the timer
-                g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
-                    selector:@selector(cycleNowPlaying:) userInfo:nil repeats:YES];
-            } else {
-                [g_cycleTimer setFireDate:[NSDate dateWithTimeIntervalSinceNow:10.0]];
-            }
+            // Create the timer
+            g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
+                selector:@selector(cycleNowPlaying:) userInfo:nil repeats:YES];
             [g_cycleTimer fire];
         } else {
-            [g_cycleTimer invalidate];
-            g_cycleTimer = nil;
             [nowPlayingText setStringValue:
                 // 0x2026 == Unicode elipses
                 [NSLocalizedString(@"Waiting for track", "") stringByAppendingFormat:@"%C", 0x2026]];
