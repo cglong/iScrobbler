@@ -278,7 +278,7 @@
         // If the songlist is empty, then simply add the song object to the songlist
         if([songList count]==0)
         {
-            ScrobLog(SCROB_LOG_INFO, @"adding first item");
+            ScrobLog(SCROB_LOG_VERBOSE, @"adding first item");
             [songList insertObject:song atIndex:0];
         }
         else
@@ -313,7 +313,7 @@
                 // If the track wasn't found anywhere in the list, we add a new item
                 if(!found)
                 {
-                    ScrobLog(SCROB_LOG_INFO, @"adding new item");
+                    ScrobLog(SCROB_LOG_VERBOSE, @"adding new item");
                     [songList insertObject:song atIndex:0];
                 }
                 // If the trackname was found elsewhere in the list, we remove the old

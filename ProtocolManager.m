@@ -498,7 +498,7 @@ NS_ENDHANDLER
     
     [dict release];
     
-    ScrobLog(SCROB_LOG_VERBOSE, @"%u song(s) submitted...\n", [inFlight count]);
+    ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
 }
 
 - (id)init
