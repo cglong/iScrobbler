@@ -71,6 +71,7 @@
 		};
 		1058C7A2FEA54F0111CA2CBB = {
 			children = (
+				D3EC06B707299A8200C13782,
 				DCFFB94D05B0F84A007D210F,
 				DCFFB95405B0F869007D210F,
 				29B97325FDCFA39411CA2CEA,
@@ -170,6 +171,7 @@
 				29B97318FDCFA39411CA2CEA,
 				F575CEAE02FF7FB901A80164,
 				F5D8D308030C568001A80164,
+				D3EC0A740729CFA600C13782,
 				089C165CFE840E0CC02AAC07,
 				DC00A46205B21B9200674DB4,
 			);
@@ -237,12 +239,12 @@
 		4A9504CCFFE6A4B311CA0CBA = {
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OPTIMIZATION_CFLAGS = "-O0";
-				ZERO_LINK = YES;
+				ZERO_LINK = NO;
 			};
 			isa = PBXBuildStyle;
 			name = Development;
@@ -261,6 +263,63 @@
 //4A2
 //4A3
 //4A4
+//D30
+//D31
+//D32
+//D33
+//D34
+		D3EC06B707299A8200C13782 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = ExtFSDiskManager.framework;
+			path = /Library/Frameworks/ExtFSDiskManager.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		D3EC06B807299A8200C13782 = {
+			fileRef = D3EC06B707299A8200C13782;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC06C507299A9100C13782 = {
+			fileRef = D3EC06B707299A8200C13782;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC0A740729CFA600C13782 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.applescript;
+			path = iPodUpdate.applescript;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC0A760729CFB600C13782 = {
+			fileRef = D3EC0A740729CFA600C13782;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC0FA5072AF41E00C13782 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			isa = PBXShellScriptBuildPhase;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "install_name_tool -change /Library/Frameworks/ExtFSDiskManager.framework/Versions/B/ExtFSDiskManager @executable_path/../Frameworks/ExtFSDiskManager.framework/Versions/B/ExtFSDiskManager \"${SYMROOT}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOS/${PRODUCT_NAME}\"\n";
+		};
+//D30
+//D31
+//D32
+//D33
+//D34
 //DC0
 //DC1
 //DC2
@@ -355,6 +414,7 @@
 			files = (
 				DC5C93B705B338AC004FAABB,
 				DC5C93B505B3389C004FAABB,
+				D3EC06C507299A9100C13782,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -444,6 +504,7 @@
 				EB50660003FB7FDA005DC01B,
 				EB50660303FB7FDF005DC01B,
 				EBDF4CE904009EA7005DC01B,
+				D3EC0A760729CFB600C13782,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -473,6 +534,7 @@
 				EB5069B603FBC574005DC01B,
 				DCFFB94E05B0F84A007D210F,
 				DCFFB95505B0F869007D210F,
+				D3EC06B807299A8200C13782,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -493,15 +555,14 @@
 				EB5065F303FB7A51005DC01B,
 				EB5065F403FB7A51005DC01B,
 				EB5065F503FB7A51005DC01B,
+				D3EC0FA5072AF41E00C13782,
 			);
 			buildSettings = {
-				DEBUGGING_SYMBOLS = NO;
-				FRAMEWORK_SEARCH_PATHS = /Users/rod/Library/Frameworks;
+				FRAMEWORK_SEARCH_PATHS = "\"~/Library/Frameworks\"";
 				HEADER_SEARCH_PATHS = "";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_FLAGS = "";
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = iScrobbler;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
@@ -523,7 +584,7 @@
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>0.6.3</string>
+	<string>0.7.0</string>
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
@@ -539,7 +600,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.6.3</string>
+	<string>0.7.0</string>
 	<key>LSUIElement</key>
 	<string>1</string>
 	<key>NSMainNibFile</key>
