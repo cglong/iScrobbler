@@ -58,11 +58,12 @@ static QueueManager *g_QManager = nil;
     [song setHasQueued:YES];
     [songQueue addObject:song];
     ++totalSubmissions;
+    totalSubmissionSeconds += [[song duration] unsignedIntValue];
     
     [[NSNotificationCenter defaultCenter]
         postNotificationName:QM_NOTIFICATION_SONG_QUEUED
         object:self
-        userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_SONG_DEQUEUED]]; 
+        userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_USERINFO_KEY_SONG]]; 
 
 #define QM_NOTIFICATION_USERINFO_KEY_SONG @"Song"
     
@@ -119,7 +120,7 @@ static QueueManager *g_QManager = nil;
             [[NSNotificationCenter defaultCenter]
                 postNotificationName:QM_NOTIFICATION_SONG_DEQUEUED
                 object:self
-                userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_SONG_DEQUEUED]];
+                userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_USERINFO_KEY_SONG]];
         
             [found release];
             
@@ -144,6 +145,11 @@ static QueueManager *g_QManager = nil;
 - (unsigned)totalSubmissionsCount
 {
     return (totalSubmissions);
+}
+
+- (NSNumber*)totalSubmissionsPlayTimeInSeconds
+{
+    return ([NSNumber numberWithUnsignedInt:totalSubmissionSeconds]);
 }
 
 // Aliases for Protocol Manager methods

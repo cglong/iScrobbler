@@ -16,6 +16,7 @@
 	NSString *queuePath;
     id songQueue;
     unsigned totalSubmissions;
+    unsigned totalSubmissionSeconds;
 }
 
 + (QueueManager*)sharedInstance;
@@ -43,6 +44,7 @@
 - (unsigned)count;
 
 - (unsigned)totalSubmissionsCount;
+- (NSNumber*)totalSubmissionsPlayTimeInSeconds;
 
 // Aliases for Protocol Manager methods
 - (unsigned)submissionAttemptsCount;
