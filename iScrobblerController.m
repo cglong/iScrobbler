@@ -890,6 +890,8 @@ sync_ipod_script_release:
     
     if (10 != [data count]) {
         ScrobLog(SCROB_LOG_WARN, @"Bad song data received.\n");
+        [data release];
+        [super dealloc];
         return (nil);
     }
     
@@ -906,6 +908,8 @@ sync_ipod_script_release:
     [self setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
         locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
     [self setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
+    
+    [data release];
     
     [self setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[self position] doubleValue]]];
     [self setPostDate:[NSCalendarDate date]];
