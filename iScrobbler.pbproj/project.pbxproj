@@ -782,6 +782,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_FLAGS = "";
 				OTHER_CFLAGS = "-fobjc-exceptions";
+				PREBINDING = NO;
 				PRODUCT_NAME = iScrobbler;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
