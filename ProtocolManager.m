@@ -17,7 +17,7 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 
-#define HANDSHAKE_TIMEOUT 30
+#define REQUEST_TIMEOUT 60.0
 #define HANDSHAKE_DEFAULT_DELAY 60.0
 
 @interface ProtocolManager (Private)
@@ -29,7 +29,7 @@
 - (void)setLastSongSubmitted:(SongData*)song;
 - (NSString*)md5Challenge;
 - (NSString*)submitURL;
-- (void)setIsNetworkAvailble:(BOOL)available;
+- (void)setIsNetworkAvailable:(BOOL)available;
 
 @end
 
@@ -95,9 +95,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     [killTimer invalidate];
     killTimer = nil;
     
-	ScrobLog(SCROB_LOG_VERBOSE, @"Handshake result: %@", result);
+	ScrobLog(SCROB_LOG_VERBOSE, @"Handshake result: %@\n", result);
 	if ([result length] == 0) {
-		ScrobLog(SCROB_LOG_WARN, @"Connection failed");
+		ScrobLog(SCROB_LOG_WARN, @"Handshake connection failed.\n");
         result = [NSMutableString stringWithString:@"FAILED\nConnection failed"];
 	}
     
@@ -172,7 +172,7 @@ NS_ENDHANDLER
 	//ScrobTrace(@"query: %@", [nsurl query]);
 	
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:nsurl cachePolicy:
-        NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
+        NSURLRequestReloadIgnoringCacheData timeoutInterval:REQUEST_TIMEOUT];
 	[request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
     NSURLConnection *connection = [NSURLConnection connectionWithRequest:request delegate:self];
@@ -340,7 +340,7 @@ NS_ENDHANDLER
     }
     
     if (hs_valid != hsState) {
-        ScrobLog(SCROB_LOG_CRIT, @"Internal inconsistency! Invalid Handshake state (%u)!\n", hsState);
+        ScrobLog(SCROB_LOG_ERR, @"Internal inconsistency! Invalid Handshake state (%u)!\n", hsState);
         [self setSubmitResult:
             [NSDictionary dictionaryWithObjectsAndKeys:
             HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
@@ -356,7 +356,7 @@ NS_ENDHANDLER
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
     //[self changeLastResult:result];
-    ScrobLog(SCROB_LOG_VERBOSE, @"songs in queue after loading: %d", [[QueueManager sharedInstance] count]);
+    ScrobLog(SCROB_LOG_TRACE, @"Tracks in queue after submission: %d", [[QueueManager sharedInstance] count]);
 	
 	ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
     
@@ -370,7 +370,7 @@ NS_ENDHANDLER
             [[QueueManager sharedInstance] removeSong:[inFlight objectAtIndex:i] sync:NO];
         }
         [[QueueManager sharedInstance] syncQueue:nil];
-        ScrobLog(SCROB_LOG_VERBOSE, @"Song Queue cleaned, count = %i", [[QueueManager sharedInstance] count]);
+        ScrobLog(SCROB_LOG_TRACE, @"Queue cleaned, track count: %u", [[QueueManager sharedInstance] count]);
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
         
         ++successfulSubmissions;
@@ -381,7 +381,7 @@ NS_ENDHANDLER
             [self performSelector:@selector(submit:) withObject:nil afterDelay:0.05];
         }
     } else {
-        ScrobLog(SCROB_LOG_INFO, @"Server error, songs left in queue, count = %i", [[QueueManager sharedInstance] count]);
+        ScrobLog(SCROB_LOG_INFO, @"Server error -- tracks in queue: %u", [[QueueManager sharedInstance] count]);
 		hsState = hs_needed;
         
 		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
@@ -442,7 +442,7 @@ didFinishLoadingExit:
     // Kick off resubmit timer
     [self scheduleResubmit];
     
-    ScrobLog(SCROB_LOG_INFO, @"Connection error, songQueue count: %d",[[QueueManager sharedInstance] count]);
+    ScrobLog(SCROB_LOG_INFO, @"Connection error -- tracks in queue: %u", [[QueueManager sharedInstance] count]);
 }
 
 - (void)resubmit:(NSTimer*)timer
@@ -475,7 +475,7 @@ didFinishLoadingExit:
     // doing anything else. If we've already handshaked, then no
     // worries.
     if (hs_valid != hsState) {
-		ScrobLog(SCROB_LOG_VERBOSE, @"Need to handshake");
+		ScrobLog(SCROB_LOG_VERBOSE, @"Need to handshake.\n");
 		[self handshake];
         return;
     }
@@ -531,7 +531,7 @@ didFinishLoadingExit:
     NSMutableURLRequest *request =
 		[NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self submitURL]]
 								cachePolicy:NSURLRequestReloadIgnoringCacheData
-							timeoutInterval:30.0];
+							timeoutInterval:REQUEST_TIMEOUT];
 	[request setHTTPMethod:@"POST"];
 	[request setHTTPBody:[[dict httpPostString] dataUsingEncoding:NSUTF8StringEncoding]];
     // Set the user-agent to something Mozilla-compatible
@@ -545,7 +545,7 @@ didFinishLoadingExit:
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
 }
 
-- (void)setIsNetworkAvailble:(BOOL)available
+- (void)setIsNetworkAvailable:(BOOL)available
 {
     isNetworkAvailable = available;
     ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is availbable? \"%@\".\n",
@@ -669,7 +669,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 {
     ProtocolManager *pm = (ProtocolManager*)info;
     
-    [pm setIsNetworkAvailble:(flags & kSCNetworkFlagsReachable) ? YES : NO];
+    [pm setIsNetworkAvailable:(flags & kSCNetworkFlagsReachable) ? YES : NO];
     if ((flags & kSCNetworkFlagsReachable))
         [pm submit:nil];
 }
