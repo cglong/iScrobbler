@@ -179,7 +179,7 @@ static enum {title, album, artist} g_cycleState = title;
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
     [super showWindow:sender];
-    
+
     // This will fire off a Now Playing notification
     [[NSApp delegate] mainTimer:nil];
     
@@ -192,8 +192,24 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    // We don't simply call [[NSNotificationCenter defaultCenter] removeObserver:self] because
+    // that seems to destroy our delegate link to the window (etDelegate: must register us as
+    // an observer for window notifications instead of calling windowWillClose: directly).
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:PM_NOTIFICATION_HANDSHAKE_START object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:PM_NOTIFICATION_SUBMIT_COMPLETE object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:PM_NOTIFICATION_SUBMIT_START object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:QM_NOTIFICATION_SONG_QUEUED object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:@"Now Playing" object:nil];
+    
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
+    ScrobTrace(@"received\n");
     
     [g_cycleTimer invalidate];
     g_cycleTimer = nil;
