@@ -21,7 +21,9 @@
 #define USER_STATISTICS_MENUITEM_TAG			2
 #define PREFERENCES_MENUITEM_TAG				3
 
-#define UNSUBMITTED_SONGS_PATH 
+#define MAIN_TIMER_INTERVAL 10
+
+#define UNSUBMITTED_SONGS_PATH UnsubmittedSongs.plist
 
 NSString *iScrobblerPrefsRecentSongsCountKey = @"Number of Songs to Save";
 NSString *iScrobblerPrefsClientVersionKey = @"version";
@@ -40,7 +42,6 @@ BOOL ISShouldLog() {
 	}
 	return shouldLog;
 }
-
 
 // Logging
 void ISLog(NSString *function, NSString *format, ...) {
@@ -66,6 +67,9 @@ void ISLog(NSString *function, NSString *format, ...) {
 	
 	// Make a SongData object out of the array
 	SongData *song = [[[SongData alloc] init] autorelease];
+	
+	// FIXME: we should check to make sure there are 8 pieces first!
+	
 	[song setTrackIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:0]
 		floatValue]]];
 	[song setPlaylistIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:1]
@@ -86,6 +90,9 @@ void ISLog(NSString *function, NSString *format, ...) {
 - (void)iTunesUpdateTimer:(NSTimer *)timer; //called when mainTimer fires
 - (void)_updateMenu; //sync _recentlyPlayedList and theMenu
 - (void)_setupStatusItem;
+- (void)handleiPodUpdateResult:(NSString *)result;
+- (NSArray *)songsFromResultString:(NSString *)resultString;
+- (IBAction)iPodSync:(id)sender;
 
 - (void)addSongToRecentlyPlayedList:(SongData *)newSong;
 - (SongData *)lastSongPlayed;
@@ -116,7 +123,7 @@ void ISLog(NSString *function, NSString *format, ...) {
 		_recentlyPlayedList = [[NSMutableArray alloc] init];
 		
 		// setup iTunes timer.
-		_iTunesUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:(10.0) // update from iTunes every 10 seconds.
+		_iTunesUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:MAIN_TIMER_INTERVAL
 															   target:self
 															 selector:@selector(iTunesUpdateTimer:)
 															 userInfo:nil
@@ -471,6 +478,203 @@ void ISLog(NSString *function, NSString *format, ...) {
 	
 	[self _setupAppSupportDirectory];
 	[[self submissionController] writeUnsubmittedSongsToDisk];
+}
+
+#pragma mark -
+
+#define ONE_WEEK (3600.0 * 24.0 * 7.0)
+- (void) restoreITunesLastPlayedTime
+{
+    NSTimeInterval lastPlayedTimeInterval = [[NSUserDefaults standardUserDefaults] floatForKey:@"iTunesLastPlayedTime"];
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    NSDate *lastPlayedDate = [NSDate dateWithTimeIntervalSince1970:lastPlayedTimeInterval];
+	
+    if (!lastPlayedTimeInterval || lastPlayedTimeInterval > now || lastPlayedTimeInterval < (now - ONE_WEEK)) {
+        NSLog(@"Discarding invalid iTunesLastPlayedTime value (lastPlayedTime=%.0lf, now=%.0lf).\n",
+			  lastPlayedTimeInterval, now);
+        lastPlayedDate = [NSDate date];
+    }
+    
+    [self setITunesLastPlayedTime:lastPlayedDate];
+}
+
+// FIXME: Why does this method exist?  Why not just prefs?
+- (void) setITunesLastPlayedTime:(NSDate*)date
+{
+    [date retain];
+    [_iTunesLastPlayedTime release];
+    _iTunesLastPlayedTime = date;
+    // Update prefs
+    [[NSUserDefaults standardUserDefaults] setFloat:[_iTunesLastPlayedTime timeIntervalSince1970] forKey:@"iTunesLastPlayedTime"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+/*
+ Validate all of the post dates. We do this, because there seems
+ to be a iTunes bug that royally screws up last played times during daylight
+ savings changes.
+ 
+ Scenario: Unplug iPod on 10/30, play a lot of songs, then sync the next day (10/31 - after 0200)
+ and some of the last played dates will be very bad.
+ */
+- (NSMutableArray*)validateIPodSync:(NSArray*)songs
+{
+    NSMutableArray *sorted = [[songs sortedArrayUsingSelector:@selector(compareSongPostDate:)] mutableCopy];
+    int i;
+    
+validate:
+		for (i = 1; i < [sorted count]; ++i) {
+			SongData *thisSong = [sorted objectAtIndex:i];
+			SongData *lastSong = [sorted objectAtIndex:i-1];
+			NSTimeInterval thisPost = [[thisSong postDate] timeIntervalSince1970];
+			NSTimeInterval lastPost = [[lastSong postDate] timeIntervalSince1970];
+			
+			if ((lastPost + [[lastSong duration] doubleValue]) > thisPost) {
+				NSLog(@"iPodSync: Discarding '%@' because of invalid play time.\n\t'%@' = Start: %@, Duration: %@"
+					  "\n\t'%@' = Start: %@, Duration: %@\n", thisSong, lastSong, [lastSong postDate], [lastSong duration],
+					  thisSong, [thisSong postDate], [thisSong duration]);
+				[sorted removeObjectAtIndex:i];
+				goto validate;
+			}
+		}
+    
+    return ([sorted autorelease]);
+}
+
+#define IPOD_UPDATE_SCRIPT_DATE_FMT @"%A, %B %d, %Y %I:%M:%S %p"
+#define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
+#define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
+
+- (NSArray *)songsFromResultString:(NSString *)resultString {
+	NSArray *songStrings = [resultString componentsSeparatedByString:IPOD_UPDATE_SCRIPT_SONG_TOKEN];
+	NSEnumerator *songStringEnumerator = [songStrings objectEnumerator];
+	NSString *songString = nil;
+	
+	SongData *song = nil;
+	NSMutableArray *iPodSubmissionQueue = [NSMutableArray array];
+	
+	while ((songString = [songStringEnumerator nextObject])) {
+		NSArray *components = [songString componentsSeparatedByString:@"***"];
+		NSTimeInterval postDate;
+		
+		if ([components count] > 1) {
+			song = [self createSong:components];
+			// Since this song was played "offline", we set the post date
+			// in the past 
+			postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
+			[song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
+			// Make sure the song passes submission rules                            
+			[song setStartTime:[NSDate dateWithTimeIntervalSince1970:postDate]];
+			[song setPosition:[song duration]];
+			
+			[iPodSubmissionQueue addObject:song];
+			[song release];
+		}
+	}
+	return iPodSubmissionQueue;
+}
+
+- (void)handleiPodUpdate:(NSString *)result {
+	
+	if (!result)
+		return;
+	
+	if (![result hasPrefix:@"INACTIVE"]) {
+		
+		NSArray *iPodSubmissionQueue = [self songsFromResultsString:result];
+		iPodSubmissionQueue = [self validateIPodSync:iPodSubmissionQueue];
+		
+		SongData *song = nil;
+		NSEnumerator *songEnumerator = [iPodSubmissionQueue objectEnumerator];
+		
+		while ((song = [songEnumerator nextObject])) {
+			ISLog(@"syncIPod:", @"Queuing '%@' with postDate '%@'\n", song, [song postDate]);
+			[[self submissionController] queueSongForSubmission:song];
+		}
+		
+		[self setITunesLastPlayedTime:[NSDate date]];
+	}
+}
+
+- (NSString *)iPodUpdateScriptUpdatedText {
+	// Copy the script
+	NSMutableString *text = [[_iPodUpdateScriptContents mutableCopy] autorelease];
+	
+	// Our main timer loop is only fired every 10 seconds, so we have to
+	// make sure to adjust our time
+	NSTimeInterval intervalToFudgedNow = [_iTunesLastPlayedTime timeIntervalSince1970] + MAIN_TIMER_INTERVAL;
+	NSTimeInterval intervalToNow = [[NSDate date] timeIntervalSince1970];
+	if (intervalToNow > intervalToFudgedNow) {
+		[self setITunesLastPlayedTime:[NSDate dateWithTimeIntervalSince1970:intervalToFudgedNow]];
+	} else {
+		[self setITunesLastPlayedTime:[NSDate date]]; // why not use the interval?
+	}
+	
+	// Replace the token with our last update
+	[text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
+						  withString:[_iTunesLastPlayedTime descriptionWithCalendarFormat:
+													IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:nil]
+							 options:0 range:NSMakeRange(0, [text length])];
+	
+	ISLog(@"iPodUpdateScriptUpdatedText", @"Requesting songs played after '%@'\n",
+		  [_iTunesLastPlayedTime descriptionWithCalendarFormat:IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:nil]);
+	
+	return text;
+}
+
+- (void)syncIPod:(id)sender
+{
+	// make sure we've loaded up the script text
+	// this could be moved into it's own accessor....
+	if (!_iPodUpdateScriptContents) {
+		// Get our iPod update script as text
+		NSString *iTunesScriptPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.applescript"];
+		_iPodUpdateScriptContents = [[NSString alloc] initWithContentsOfFile:iTunesScriptPath];
+		if (!_iPodUpdateScriptContents) {
+			NSLog(@"Failed to find iPodUpdateScript.  (path = %@)", iTunesScriptPath);
+			[self showApplicationIsDamagedDialog];
+		}
+	}
+	
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Sync iPod"]) {
+		
+		// get an up-to-date copy of the script text.
+		NSString *scriptText = [self iPodUpdateScriptUpdatedText];
+		
+        // Run script
+		NSDictionary *errInfo = nil;
+		NSAppleEventDescriptor *result = [[[NSAppleScript alloc] initWithSource:scriptText] executeAndReturnError:&errInfo];
+        
+		// handle result
+		[self handleiPodUpdateResult:[result stringValue]];
+	}
+}
+
+
+#pragma mark -
+
+- (void)deviceDidMount:(NSNotification*)notification
+{
+    NSDictionary *object = [notification object];
+	NSString *mountPath = [object objectForKey:@"NSDevicePath"];
+    NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
+	
+    BOOL isDir = NO;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir)
+        [self setValue:mountPath forKey:@"iPodMountPath"];
+	
+	// FIXME: we should also pop up a 
+}
+
+- (void)deviceDidUnmount:(NSNotification*)notification
+{
+	NSDictionary *object = [notification object];
+	NSString *mountPath = [object objectForKey:@"NSDevicePath"];
+	
+    if ([_iPodMountPath isEqualToString:mountPath])
+        [self setValue:nil forKey:@"iPodMountPath"];
+	
+	[self iPodSync:nil]; // now that we're sure iTunes synced, we can sync...
 }
 
 @end
