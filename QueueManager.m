@@ -10,7 +10,7 @@
 #import "QueueManager.h"
 #import "SongData.h"
 #import "iScrobblerController.h"
-#import "ProtocolManager.h"s
+#import "ProtocolManager.h"
 
 static QueueManager *g_QManager = nil;
 
