@@ -15,12 +15,9 @@
 #import "SongData.h"
 #import "keychain.h"
 #import "NSString+parse.h"
-#import "CURLHandle+SpecialEncoding.h"
-#import "NSDictionary+httpEncoding.h"
 #import "QueueManager.h"
 #import "ProtocolManager.h"
 #import "ScrobLog.h"
-#import <ExtFSDiskManager/ExtFSDiskManager.h>
 
 @interface iScrobblerController ( private )
 
@@ -48,7 +45,7 @@
     if(CLEAR_MENUITEM_TAG == [anItem tag])
         [mainTimer fire];
     else if(SUBMIT_IPOD_MENUITEM_TAG == [anItem tag] &&
-         (!iPodDisk || ![prefs boolForKey:@"Sync iPod"]))
+         (!iPodMountPath || ![prefs boolForKey:@"Sync iPod"]))
         return NO;
     return YES;
 }
@@ -123,18 +120,11 @@
                    name:@"CDCNumRecentSongsChanged"
                  object:nil];
         
-        // Initialize ExtFSManager
-        (void)[ExtFSMediaController mediaController];
-        
-        // Register for ExtFSManager disk notifications
-        [nc addObserver:self
-                selector:@selector(volMount:)
-                name:ExtFSMediaNotificationMounted
-                object:nil];
-        [nc addObserver:self
-                selector:@selector(volUnmount:)
-                name:ExtFSMediaNotificationUnmounted
-                object:nil];
+        // Register for mounts and unmounts (iPod support)
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
         
         // Create protocol mgr
         (void)[ProtocolManager sharedInstance];
@@ -652,33 +642,35 @@ sync_ipod_script_release:
     }
 }
 
-// ExtFSManager notifications
-- (void)volMount:(NSNotification*)notification
+// NSWorkSpace mount notifications
+- (void)volumeDidMount:(NSNotification*)notification
 {
-    ExtFSMedia *media = [notification object];
-    NSString *iPodCtl =
-        [[media mountPoint] stringByAppendingPathComponent:@"iPod_Control"];
-    BOOL isDir;
+    NSDictionary *object = [notification object];
+	NSString *mountPath = [object objectForKey:@"NSDevicePath"];
+    NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
+	
+    ScrobTrace(@"Volume mounted: %@", object);
     
-    ScrobTrace(@"Volume '%@' (%@) mounted on '%@'.\n", [media volName], [media bsdName], [media mountPoint]);
-    
-    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodCtl isDirectory:&isDir]
-         && isDir) {
-        iPodDisk = [media retain];
+    BOOL isDir = NO;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
+        [self setValue:mountPath forKey:@"iPodMountPath"];
+        [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
     }
 }
 
-- (void)volUnmount:(NSNotification*)notification
+- (void)volumeDidUnmount:(NSNotification*)notification
 {
-    ScrobTrace(@"Volume '%@' unmounted.\n", [[notification object] bsdName]);
+    NSDictionary *object = [notification object];
+	NSString *mountPath = [object objectForKey:@"NSDevicePath"];
+	
+    ScrobTrace(@"Volume unmounted: %@.\n", object);
     
-    if (iPodDisk != [notification object])
-        return;
-    
-    [iPodDisk release];
-    iPodDisk = nil;
-    
-    [self syncIPod:nil];
+    if ([iPodMountPath isEqualToString:mountPath]) {
+        [self setValue:nil forKey:@"iPodMountPath"];
+        [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
+    }
+	
+	[self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
 }
 
 @end

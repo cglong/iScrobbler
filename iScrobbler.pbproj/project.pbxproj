@@ -74,7 +74,6 @@
 		};
 		1058C7A2FEA54F0111CA2CBB = {
 			children = (
-				D3EC06B707299A8200C13782,
 				DCFFB94D05B0F84A007D210F,
 				29B97325FDCFA39411CA2CEA,
 				29B97324FDCFA39411CA2CEA,
@@ -410,26 +409,6 @@
 			settings = {
 			};
 		};
-		D3EC06B707299A8200C13782 = {
-			isa = PBXFileReference;
-			lastKnownFileType = wrapper.framework;
-			name = ExtFSDiskManager.framework;
-			path = /Library/Frameworks/ExtFSDiskManager.framework;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		D3EC06B807299A8200C13782 = {
-			fileRef = D3EC06B707299A8200C13782;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		D3EC06C507299A9100C13782 = {
-			fileRef = D3EC06B707299A8200C13782;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		D3EC0A740729CFA600C13782 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -535,7 +514,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				DC5C93B705B338AC004FAABB,
-				D3EC06C507299A9100C13782,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -661,7 +639,6 @@
 				EB5069B503FBC574005DC01B,
 				EB5069B603FBC574005DC01B,
 				DCFFB94E05B0F84A007D210F,
-				D3EC06B807299A8200C13782,
 				D3B61FE70744343500AF5A33,
 			);
 			isa = PBXFrameworksBuildPhase;

@@ -41,7 +41,9 @@
     NSUserDefaults * prefs;
 
     NSNotificationCenter *nc;
-    ExtFSMedia *iPodDisk;
+    
+    NSString *iPodMountPath;
+    BOOL isIPodMounted;
     
     // iPod sync management
     NSDate *iTunesLastPlayedTime;
