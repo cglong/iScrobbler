@@ -17,12 +17,13 @@ if itunes_active is true then
 		
 		set out to ""
 		repeat with theTrack in mytracks
-			if (get class of theTrack) is not URL track then
+			set trackClass to (get class of theTrack)
+			if trackClass is file track then
 				set trackIndex to index of theTrack
 				set playlistIndex to index of the container of theTrack
 				set songTitle to name of theTrack as string
 				set songLength to duration of theTrack as string
-				set songPosition to player position as string
+				set songPosition to "0" (* player position as string // the song has already played, so player pos will not be returned *)
 				set songArtist to artist of theTrack as string
 				set songLocation to location of theTrack as string
 				set songAlbum to album of theTrack as string
