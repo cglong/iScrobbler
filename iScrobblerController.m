@@ -9,12 +9,9 @@
 #import <openssl/md5.h>
 
 #import "iScrobblerController.h"
-#import <CURLHandle/CURLHandle.h>
-#import <CURLHandle/CURLHandle+extras.h>
 #import "PreferenceController.h"
 #import "SongData.h"
 #import "keychain.h"
-#import "NSString+parse.h"
 #import "QueueManager.h"
 #import "ProtocolManager.h"
 #import "ScrobLog.h"
@@ -49,9 +46,7 @@
 - (BOOL)validateMenuItem:(NSMenuItem *)anItem
 {
     //ScrobTrace(@"%@", [anItem title]);
-    if(CLEAR_MENUITEM_TAG == [anItem tag])
-        [self mainTimer:nil];
-    else if(SUBMIT_IPOD_MENUITEM_TAG == [anItem tag] &&
+    if(SUBMIT_IPOD_MENUITEM_TAG == [anItem tag] &&
          (!iPodMountPath || ![prefs boolForKey:@"Sync iPod"]))
         return NO;
     return YES;
@@ -80,36 +75,58 @@
     static BOOL isiTunesPlaying = NO;
     ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
     
-    // We got a notification, kill the current timer
+    // We received a notification, kill the current timer
     [mainTimer invalidate];
     [mainTimer release];
     mainTimer = nil;
+    
+    SongData *prevSong = nil;
+    if ([songList count] > 0)
+        prevSong = [[songList objectAtIndex:0] retain]; // Retain just incase the song is removed 
     
     [self mainTimer:nil]; // Update state
     
     SongData *curSong = nil;
     if ([songList count] > 0)
         curSong = [songList objectAtIndex:0];
-        
+    
+    /* Workaround for iTunes bug (as of 4.7):
+       If the script is run at the exact moment a track switch on an Audio CD occurs,
+       the new track will have the previous track's duration set as it's current position.
+       Since the notification happens at that moment we are always hit by the bug.
+       Note: This seems to only affect Audio CD's, encoded files aren't affected. (Shared tracks?)
+       Note 2: It would be possible for our conditions to occur while not on a track switch if for
+       instance the user changed some song meta-data. However this should be a very rare occurence.
+       */
+    if (![prevSong isEqualToSong:curSong] && [[prevSong duration] isEqualToNumber:[curSong position]])
+        [curSong setPosition:[NSNumber numberWithUnsignedInt:0]];
+    
     BOOL wasiTunesPlaying = isiTunesPlaying;
     
     BOOL isPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
-    //ScrobLog(SCROB_LOG_VERBOSE, @"\t %@ hasQueued: %i\n", [curSong brief], [curSong hasQueued]);
     if (isPlaying && ![curSong hasQueued]) {
         isiTunesPlaying = YES;
         
         // Fire the main timer at the appropos time to get it queued.
         double fireInterval = [curSong submitIntervalFromNow];
-        ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track '%@'.\n",
-            fireInterval, [curSong brief]);
-        mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                        target:self
-                        selector:@selector(mainTimer:)
-                        userInfo:nil
-                        repeats:NO] retain];
+        if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
+            ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track '%@'.\n",
+                fireInterval, [curSong brief]);
+            mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                            target:self
+                            selector:@selector(mainTimer:)
+                            userInfo:nil
+                            repeats:NO] retain];
+        } else {
+            ScrobLog(SCROB_LOG_WARN,
+                @"Invalid submit interval '%0.2lf' for track '%@'. Track will not be submitted. Duration: %@, Position: %@.\n",
+                fireInterval, [curSong brief], [curSong duration], [curSong position]);
+        }
     } else {
         isiTunesPlaying = NO;
     }
+    
+    [prevSong release];
     
     // The last played time updates in mainTimer are redundant when using iTunes 4.7
     // We can get a Stopped notice when iTunes is Paused.
@@ -292,7 +309,7 @@
 {
     if (10 != [data count]) {
         ScrobLog(SCROB_LOG_WARN, @"Bad song data received.\n");
-        ScrobTrace("%@\n", data);
+        ScrobTrace("    %@\n", data);
         return (nil);
     }
     
@@ -361,7 +378,7 @@
         // If the songlist is empty, then simply add the song object to the songlist
         if([songList count]==0)
         {
-            ScrobLog(SCROB_LOG_VERBOSE, @"adding first item");
+            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
             [songList insertObject:song atIndex:0];
             nowPlaying = song;
         }
@@ -394,6 +411,7 @@
                     [firstSongInList setPosition:[song position]];
                     [firstSongInList setLastPlayed:[song lastPlayed]];
                     [firstSongInList setRating:[song rating]];
+                    ScrobLog(SCROB_LOG_VERBOSE, @"Queing song '%@' for submission\n", [firstSongInList brief]);
                     [[QueueManager sharedInstance] queueSong:firstSongInList];
                 }
             } else {
@@ -414,7 +432,7 @@
                 // If the track wasn't found anywhere in the list, we add a new item
                 if(!found)
                 {
-                    ScrobLog(SCROB_LOG_VERBOSE, @"adding new item");
+                    ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
                     [songList insertObject:song atIndex:0];
                 }
                 // If the trackname was found elsewhere in the list, we remove the old
