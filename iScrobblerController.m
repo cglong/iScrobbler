@@ -261,8 +261,10 @@
         repeats:YES] fire];
 #endif
 
-    [self enableStatusItemMenu:
-        [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"]];
+    BOOL enableMenu = [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"];
+    if (!enableMenu && (GetCurrentKeyModifiers() & shiftKey))
+        enableMenu = YES;
+    [self enableStatusItemMenu:enableMenu];
 	
     [self mainTimer:nil];
 }
