@@ -416,12 +416,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		D3CB131007750960009236FF = {
-			fileRef = D3CB130E07750960009236FF;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		D3CB1313077509D3009236FF = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -583,16 +577,6 @@
 				);
 			};
 		};
-		EB1639430407FD4A005DC01B = {
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				D3CB131007750960009236FF,
-			);
-			isa = PBXCopyFilesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		EB16394A04080C51005DC01B = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -731,7 +715,6 @@
 		};
 		EB5065F603FB7A51005DC01B = {
 			buildPhases = (
-				EB1639430407FD4A005DC01B,
 				EB16389E0406E7A6005DC01B,
 				EB5065F103FB7A51005DC01B,
 				EB5065F203FB7A51005DC01B,
