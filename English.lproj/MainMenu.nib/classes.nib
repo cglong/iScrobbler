@@ -3,9 +3,9 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
-                clearMenu = id; 
-                openPrefs = id; 
-                openScrobblerHomepage = id; 
+                clearRecentSongsMenu = id; 
+                openAudioScrobblerHomepage = id; 
+                openPreferencesWindow = id; 
                 openUserHomepage = id; 
                 playSong = id; 
             }; 
