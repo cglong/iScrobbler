@@ -111,8 +111,6 @@
             (CFStringRef)[[song postDate] descriptionWithCalendarFormat:@"%Y-%m-%d %H:%M:%S"
                 timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil],
             NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-
-/*    NSString * escapeddate = [(NSString*) CFURLCreateStringByAddingPercentEscapes(NULL, 	(CFStringRef)[[song postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]], NULL, (CFStringRef)@"&+", 	kCFStringEncodingUTF8) autorelease]; */
     
     // populate the dictionary
     [dict setObject:escapedtitle forKey:[NSString stringWithFormat:@"t[%i]", submissionNumber]];
