@@ -29,6 +29,8 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)handshakeCompleteHandler:(NSNotification*)note
 {
+    [submissionProgress stopAnimation:nil];
+    
     ProtocolManager *pm = [ProtocolManager sharedInstance];
     id selection = [values selection];
 
@@ -67,11 +69,16 @@ static enum {title, album, artist} g_cycleState = title;
     unsigned int minutes = ((time % 86400U) % 3600U) / 60U;
     unsigned int seconds = ((time % 86400U) % 3600U) % 60U;
     NSString *timeString = [NSString stringWithFormat:@"%u %s, %u:%02u:%02u",
-        (1 == days ? "day" : "days"), days, hours, minutes, seconds];
+        days, (1 == days ? "day" : "days"), hours, minutes, seconds];
     [selection setValue:timeString forKey:@"Tracks Submitted Play Time"];
     [selection setValue:[pm lastSubmissionMessage] forKey:@"Server Response"];
     [selection setValue:[[pm lastSongSubmitted] brief] forKey:@"Last Track Submission"];
     
+}
+
+- (void)handshakeStartHandler:(NSNotification*)note
+{
+    [submissionProgress startAnimation:nil];
 }
 
 - (void)submitStartHandler:(NSNotification*)note
@@ -144,6 +151,10 @@ static enum {title, album, artist} g_cycleState = title;
 - (IBAction)showWindow:(id)sender
 {
     // Register for PM notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(handshakeStartHandler:)
+            name:PM_NOTIFICATION_HANDSHAKE_START
+            object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(handshakeCompleteHandler:)
             name:PM_NOTIFICATION_HANDSHAKE_COMPLETE
