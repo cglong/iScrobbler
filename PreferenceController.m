@@ -45,6 +45,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 -(void)windowDidLoad
 {
     [versionNumber setStringValue:[[prefs stringForKey:@"version"] substringToIndex:5]];
+    [iPodSyncSwitch setState:([prefs boolForKey:@"Sync iPod"] ? NSOnState : NSOffState)];
     [self updateFields];
     [window makeMainWindow];
 }
@@ -134,17 +135,29 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     } else if([[self lastResult] hasPrefix:@"The requested file was not found"]) {
         [self setLastResultShort:NOT_FOUND_SHORT];
         [self setLastResultLong:NOT_FOUND_LONG];
+    } else {
+        // BDB: -Bug Fix- Handle non-specific errors
+        [self setLastResultShort:FAILURE_SHORT];
+        [self setLastResultLong:FAILURE_LONG];
     }
 }    
 
 - (void)updateFields
 {
+    NSString *tmp;
     [self generateResultText];
     [numRecentSongsField setIntValue:[prefs integerForKey:CDCNumSongsKey]];
     [username setStringValue:[prefs stringForKey:@"username"]];
-    [lastResultDataField setString:[self lastResult]];
-    [lastResultLongField setString:[self lastResultLong]];
-    [lastResultShortField setStringValue:[self lastResultShort]];
+    // BDB: -Bug Fix- If one of the results is nil, the prefs window will not open because an NSException is thrown.
+    if (!(tmp = [self lastResult]))
+        tmp = @"";
+    [lastResultDataField setString:tmp];
+    if (!(tmp = [self lastResultLong]))
+        tmp = @"";
+    [lastResultLongField setString:tmp];
+    if (!(tmp = [self lastResultShort]))
+        tmp = @"";
+    [lastResultShortField setStringValue:tmp];
 
     //NSLog(@"preparing lastSongSubmitted");
     //NSLog(@"songData: %@",songData);
@@ -315,6 +328,11 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [newDownloadURL retain];
     [downloadURL release];
     downloadURL = newDownloadURL;
+}
+
+-(void)iPodSyncSwitched:(id)sender
+{
+    [prefs setBool:(NSOnState == [sender state] ? YES : NO) forKey:@"Sync iPod"];
 }
 
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
