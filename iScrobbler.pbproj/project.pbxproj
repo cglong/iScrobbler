@@ -10,8 +10,6 @@
 				F575CE9702FE0E8801A80164,
 				F575CEAA02FF7F3501A80164,
 				EB506A5B03FBF354005DC01B,
-				EB774697043C96FB005DC01B,
-				EB7746A1043C9839005DC01B,
 				EB50662D03FBB239005DC01B,
 				EB3E2C0204360335005DC01B,
 				EB607519042A747B005DC01B,
@@ -647,8 +645,6 @@
 				EB506A5D03FBF354005DC01B,
 				EB60751B042A747B005DC01B,
 				EB3E2C0404360335005DC01B,
-				EB774699043C96FB005DC01B,
-				EB7746A3043C9839005DC01B,
 				D312EB580735548F00A2CFD5,
 				D312EDA207359DE000A2CFD5,
 				D312EE020735A78D00A2CFD5,
@@ -716,7 +712,7 @@
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>0.7.4</string>
+	<string>0.7.5</string>
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
@@ -732,7 +728,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.7.4</string>
+	<string>0.7.5</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.2.0</string>
 	<key>LSUIElement</key>
@@ -976,22 +972,8 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		EB774697043C96FB005DC01B = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			path = "CURLHandle+SpecialEncoding.m";
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		EB774698043C96FB005DC01B = {
 			fileRef = EB774696043C96FB005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		EB774699043C96FB005DC01B = {
-			fileRef = EB774697043C96FB005DC01B;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -1004,22 +986,8 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		EB7746A1043C9839005DC01B = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			path = "NSDictionary+httpEncoding.m";
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		EB7746A2043C9839005DC01B = {
 			fileRef = EB7746A0043C9839005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		EB7746A3043C9839005DC01B = {
-			fileRef = EB7746A1043C9839005DC01B;
 			isa = PBXBuildFile;
 			settings = {
 			};
