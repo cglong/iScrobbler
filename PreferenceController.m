@@ -146,7 +146,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [lastResultLongField setString:[self lastResultLong]];
     [lastResultShortField setStringValue:[self lastResultShort]];
 
-    NSLog(@"preparing lastSongSubmitted");
+    //NSLog(@"preparing lastSongSubmitted");
     //NSLog(@"songData: %@",songData);
     if([self songData] != nil)
     {
@@ -212,7 +212,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 -(IBAction)submitEmailBugReport:(id)sender
 {
 
-    NSString* mailtoLink = [NSString stringWithFormat:@"mailto:audioscrobbler-development@lists.sourceforge.net?subject=iScrobbler Bug Report&body=--Please explain the circumstances of the bug here--\nThanks for contributing!\n\nResult Data Dump:\n\n%@\n\n%@",lastResult,songData];
+    NSString* mailtoLink = [NSString stringWithFormat:@"mailto:audioscrobbler-development@lists.sourceforge.net?subject=iScrobbler Bug Report&body=Please fill in the problem you're seeing below.  Before submitting, you might like to check http://www.audioscrobbler.com/ to see the status of the Audioscrobbler service.  Thanks for contributing!\n\n--Please explain the circumstances of the bug here--\n\n\n\nLast Server Result: %@\n",lastResult];
     
     NSURL *url = [NSURL URLWithString:[(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)mailtoLink, NULL, NULL, 	kCFStringEncodingUTF8) autorelease]];

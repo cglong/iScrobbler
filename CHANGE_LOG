@@ -1,6 +1,12 @@
 Change Log for iScrobbler:
 
 (Releases/comments tagged as RAB are by Rod Begbie)
+
+v0.6.4 (RAB):
+- iScrobbler will no longer bitch that your username & password are wrong, just because the server says it once.  It'll try twice.  If the server *still* complains, *then* iScrobbler will pop-up the error message.
+- Removed a bunch of extraneous logging statements.
+- Encourage users to check the Audioscrobbler homepage before mailing bugs to the mailing list.
+
 v0.6.3 (RAB):
 - Fixed bug that caused crash on startup for some users (Mad props to Micah Gideon Modell for finding and fixing this)
 

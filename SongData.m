@@ -84,7 +84,7 @@
 // fields to the dict.
 - (NSMutableDictionary *)postDict: (int)submissionNumber
 {
-    NSLog(@"preparing postDict");
+    //NSLog(@"preparing postDict");
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
 
     // URL escape relevant fields
@@ -118,7 +118,7 @@
     [dict setObject:[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
 
     // return and autorelease
-    NSLog(@"postDict done");
+    //NSLog(@"postDict done");
     return [dict autorelease];
 }
 

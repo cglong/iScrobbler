@@ -67,6 +67,9 @@
 	
     // Indicate that we have not yet handshaked
     haveHandshaked = NO;
+	
+	// Set the BADAUTH to false
+	lastAttemptBadAuth = NO;
     
 	// Create an instance of the preferenceController
     if(!preferenceController)
@@ -529,7 +532,15 @@
 		
 		// If the password is wrong, show the preferences window.
 		if ([result hasPrefix:@"BADAUTH"]) {
-			[self openPrefs:self];
+			// Only show the preferences window if we get BADAUTH
+			// twice in a row.
+			if (lastAttemptBadAuth) {
+				[self openPrefs:self];
+			} else {
+			    lastAttemptBadAuth = YES;
+			}
+		} else {
+			lastAttemptBadAuth = NO;
 		}
     }
 	
@@ -567,7 +578,7 @@
 {
     [self setLastResult:newResult];
 	
-    NSLog(@"song data before sending: %@",[songQueue objectAtIndex:0]);
+    //NSLog(@"song data before sending: %@",[songQueue objectAtIndex:0]);
     [preferenceController takeValue:[self lastResult] forKey:@"lastResult"];
     [preferenceController takeValue:[[[songQueue objectAtIndex:0] copy] autorelease]
                              forKey:@"songData"];
