@@ -8,12 +8,18 @@
 
 #import "SongData.h"
 
+static unsigned int g_songID = 0;
+
 @implementation SongData
 
 - (id)init
 {
     [super init];
 
+    // set the id
+    songID = g_songID;
+    IncrementAtomic((SInt32*)&g_songID);
+    
     // initialize some empty values
     [self setTrackIndex:[NSNumber numberWithFloat:0.0]];
     [self setPlaylistIndex:[NSNumber numberWithFloat:0.0]];
@@ -57,8 +63,8 @@
 
 - (NSString*)description
 {
-    return ([NSString stringWithFormat:@"<SongData: %p> %@, %@, %@",
-        self, [self title], [self album], [self artist]]);
+    return ([NSString stringWithFormat:@"<SongData: %p> %@",
+        self, [self breif]]);
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
@@ -69,7 +75,7 @@
 
     // The amount of time passed since the song started, divided by the duration of the song
     // times 100 to generate a percentage.
-    NSNumber * percentage = [NSNumber numberWithDouble:(([[self timePlayed] doubleValue] / [[self duration] doubleValue]) * 100)];
+    NSNumber * percentage = [NSNumber numberWithDouble:(([[self position] doubleValue] / [[self duration] doubleValue]) * 100)];
 
     return percentage;
 }
@@ -85,56 +91,69 @@
     return time;
 }
 
-// returns an NSMutableDictionary object that is packaged and ready for submission.
-// postDict adds URL escaped title, artist and filename, and duration and time of
-// submission field.
-// The receiver is still responsible for adding the username, password and version
-// fields to the dict.
-- (NSMutableDictionary *)postDict: (int)submissionNumber
-{
-    //NSLog(@"preparing postDict");
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-
-    // URL escape relevant fields
-	NSString * escapedtitle = [(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self title], NULL,
-        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-
-    NSString * escapedartist = [(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self artist], NULL,
-        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-
-    NSString * escapedalbum = [(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self album], NULL,
-        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-		
-    // If the file isn't already in the queue, then assume this is the first real
-    // post generation, and create a new postDate. Otherwise, assume we are already
-    // in the queue, and that a new postDate isn't necessary.
-    if(![self hasQueued]) {
-        [self setPostDate:[NSCalendarDate date]];
-    }
-
-/*    NSString * escapeddate = [(NSString*) CFURLCreateStringByAddingPercentEscapes(NULL, 	(CFStringRef)[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]], NULL, (CFStringRef)@"&+", 	kCFStringEncodingUTF8) autorelease]; */
-    
-    // populate the dictionary
-    [dict setObject:escapedtitle forKey:[NSString stringWithFormat:@"t[%i]", submissionNumber]];
-    [dict setObject:[self duration] forKey:[NSString stringWithFormat:@"l[%i]", submissionNumber]];
-    [dict setObject:escapedartist forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
-    [dict setObject:escapedalbum forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
-    [dict setObject:@"" forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
-    [dict setObject:[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
-
-    // return and autorelease
-    //NSLog(@"postDict done");
-    return [dict autorelease];
-}
-
 - (BOOL)isEqualToSong:(SongData*)song
 {
     return ([[self title] isEqualToString:[song title]] &&
              [[self artist] isEqualToString:[song artist]] && 
              [[self album] isEqualToString:[song album]]);
+}
+
+- (NSString*)breif
+{
+    return ([NSString stringWithFormat:@"%@, %@, %@",
+        [self title], [self album], [self artist]]);
+}
+
+- (NSComparisonResult) compareSongPostDate:(SongData*)song
+{
+    return ([[self postDate] compare:[song postDate]]);
+}
+
+// This is a dump of /dev/urandom
+#define SD_MAGIC [NSNumber numberWithUnsignedInt:0xae0da1b7]
+#define SD_KEY_MAGIC @"SDM"
+#define SD_KEY_TITLE @"Title"
+#define SD_KEY_ALBUM @"Ablum"
+#define SD_KEY_ARTIST @"Artist"
+#define SD_KEY_INDEX @"Track Index"
+#define SD_KEY_PLAYLIST @"Playlist ID"
+#define SD_KEY_DURATION @"Duration"
+#define SD_KEY_PATH @"Path"
+#define SD_KEY_POST @"Post Time"
+#define SD_KEY_LASTPLAYED @"Last Played"
+- (NSDictionary*)songData
+{
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
+        [self title], SD_KEY_TITLE,
+        [self album], SD_KEY_ALBUM,
+        [self artist], SD_KEY_ARTIST,
+        [self trackIndex], SD_KEY_INDEX,
+        [self playlistIndex], SD_KEY_PLAYLIST,
+        [self duration], SD_KEY_DURATION,
+        [self path], SD_KEY_PATH,
+        [self postDate], SD_KEY_POST,
+        [self lastPlayed], SD_KEY_LASTPLAYED,
+        SD_MAGIC, SD_KEY_MAGIC,
+        nil];
+    return (d);
+}
+
+- (BOOL)setSongData:(NSDictionary*)data
+{
+    if ([SD_MAGIC isEqualToNumber:[data objectForKey:SD_KEY_MAGIC]]) {
+        [self setTitle:[data objectForKey:SD_KEY_TITLE]];
+        [self setAlbum:[data objectForKey:SD_KEY_ALBUM]];
+        [self setArtist:[data objectForKey:SD_KEY_ARTIST]];
+        [self setTrackIndex:[data objectForKey:SD_KEY_INDEX]];
+        [self setPlaylistIndex:[data objectForKey:SD_KEY_PLAYLIST]];
+        [self setDuration:[data objectForKey:SD_KEY_DURATION]];
+        [self setPath:[data objectForKey:SD_KEY_PATH]];
+        [self setPostDate:[data objectForKey:SD_KEY_POST]];
+        [self setLastPlayed:[data objectForKey:SD_KEY_LASTPLAYED]];
+        return (YES);
+    }
+    
+    return (NO);
 }
 
 ////// Accessors Galore ///////
@@ -306,6 +325,11 @@
     [date retain];
     [lastPlayed release];
     lastPlayed = date;
+}
+
+- (NSNumber*)songID
+{
+    return ([NSNumber numberWithUnsignedInt:songID]);
 }
 
 - (void)dealloc
