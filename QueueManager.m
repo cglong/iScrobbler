@@ -34,7 +34,10 @@ static QueueManager *g_QManager = nil;
     SongData *found;
     NSEnumerator *en = [songQueue objectEnumerator];
     
-    if (![[ProtocolManager sharedInstance] canSubmitSong:song])
+    if (![song canSubmit])
+        return;
+    
+    if([song hasQueued])
         return;
     
     while ((found = [en nextObject])) {
@@ -45,10 +48,7 @@ static QueueManager *g_QManager = nil;
     if (found) {
         // Found in queue
         // Check to see if the song has been played again
-        if (![[song lastPlayed] isGreaterThan:[found lastPlayed]] ||
-             // And make sure the duration is valid
-             [[song lastPlayed] timeIntervalSince1970] <=
-             ([[found lastPlayed] timeIntervalSince1970] + [[found duration] doubleValue]) )
+        if (![song hasPlayedAgain:found])
             return;
         // Otherwise, the song will be in the queue twice,
         // on the assumption that it has been played again
@@ -59,7 +59,7 @@ static QueueManager *g_QManager = nil;
     [songQueue addObject:song];
     
     if (submit) {
-        [song setPostDate:[NSCalendarDate date]];
+        [song setPostDate:[song startTime]];
         [self submit];
     }
 }
