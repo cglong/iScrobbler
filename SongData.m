@@ -75,8 +75,8 @@ static float songTimeFudge;
 
 - (NSString*)description
 {
-    return ([NSString stringWithFormat:@"<SongData: %p> %@",
-        self, [self brief]]);
+    return ([NSString stringWithFormat:@"<SongData: %p> %@ (id: %u)",
+        self, [self brief], songID]);
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
@@ -271,6 +271,7 @@ static float songTimeFudge;
 - (void)setPosition:(NSNumber *)newPosition
 {
     [newPosition retain];
+    [position release];
     position = newPosition;
 }
 
@@ -444,8 +445,10 @@ static float songTimeFudge;
     [album release];
     [path release];
     [startTime release];
+    [pausedTime release];
     [postDate release];
     [lastPlayed release];
+    [rating release];
     [super dealloc];
 }    
 
