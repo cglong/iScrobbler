@@ -6,7 +6,7 @@
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net/
 
-// ECS 10/27/04: It looks like most of this code was stolen from
+// ECS 10/27/04: It looks like most of the original iScrobbler code was stolen from
 // http://cocoadevcentral.com/articles/000052.php
 
 #import "iScrobblerController.h"
@@ -23,14 +23,11 @@
 
 #define MAIN_TIMER_INTERVAL 10
 
-#define UNSUBMITTED_SONGS_PATH UnsubmittedSongs.plist
-
 NSString *iScrobblerPrefsRecentSongsCountKey = @"Number of Songs to Save";
 NSString *iScrobblerPrefsClientVersionKey = @"version";
 NSString *iScrobblerPrefsClientIdKey = @"clientid";
 NSString *iScrobblerPrefsProtocolVersionKey = @"protocol";
 NSString *iScrobblerPrefsServerURLKey = @"url";
-
 
 static BOOL haveCheckedLoggingDefault = NO;
 static BOOL shouldLog = NO;
