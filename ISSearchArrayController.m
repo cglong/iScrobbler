@@ -120,7 +120,7 @@
             key = [dataKeys objectAtIndex:i];
             if (![key isEqualToString:@"Play Time"]) { /* ACK! Internal knowledge of dict. */ 
                 value = [data objectForKey:[dataKeys objectAtIndex:i]];
-                [textData appendFormat:@"%@\t", value];
+                [textData appendFormat:@"%@\t", [value description]];
             }
         }
         // Replace the last tab with a newline
