@@ -81,13 +81,6 @@
 
 @end
 
-@protocol ProtocolManagerDelgate
-
-- (NSString*)proxyUserName;
-- (NSString*)proxyUserAuthentication;
-
-@end
-
 @interface SongData (ProtocolManagerAdditions)
 
 // Tests to see if the song is ready to submit
