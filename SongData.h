@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @interface SongData : NSObject <NSCopying> {
+    unsigned int songID; // Internal id #
     NSNumber * trackIndex;
     NSNumber * playlistIndex;
     NSString * title;
@@ -31,16 +32,11 @@
 // returns the amount of time, in seconds, that the song has been playing.
 - (NSNumber *)timePlayed;
 
-// returns an NSMutableDictionary object that is packaged and ready for submission.
-// postDict adds URL escaped title, artist and filename, and duration and time of
-// submission field.
-// The receiver is still responsible for adding the username, password and version
-// fields to the dict.
-// submissionNumber is the number of this data in the submission queue. For single
-// submissions this number will be 0.
-- (NSMutableDictionary *)postDict:(int)submissionNumber;
-
 - (BOOL)isEqualToSong:(SongData*)song;
+
+- (NSString*)breif;
+
+- (NSComparisonResult) compareSongPostDate:(SongData*)song;
 
 ////// Accessors Galore ///////
 
@@ -60,7 +56,7 @@
 - (NSNumber *)duration;
 - (void)setDuration:(NSNumber *)newDuration;
 
-// position is the current track position within the song
+// position is the current track position (in seconds) within the song
 - (NSNumber *)position;
 - (void)setPosition:(NSNumber *)newPosition;
 
@@ -95,5 +91,11 @@
 // lastPlayed is the last time iTunes played the song
 - (NSDate *)lastPlayed;
 - (void)setLastPlayed:(NSDate *)date;
+
+- (NSNumber*)songID;
+
+// Used for persistent cache storage
+- (NSDictionary*)songData;
+- (BOOL)setSongData:(NSDictionary*)data;
 
 @end
