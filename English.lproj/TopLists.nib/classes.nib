@@ -2,6 +2,13 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
+            ACTIONS = {search = id; }; 
+            CLASS = ISSearchArrayController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {searchField = NSSearchField; }; 
+            SUPERCLASS = NSArrayController; 
+        }, 
+        {
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {topArtistsController = id; topTracksController = id; }; 
