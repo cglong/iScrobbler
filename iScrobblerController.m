@@ -418,9 +418,9 @@
                         // song is still playing.
                         double fireInterval = [[firstSongInList duration] doubleValue] -
                             [[firstSongInList position] doubleValue];
-                        if (fireInterval > 0.0)
+                        if (fireInterval > 1.0)
                             fireInterval /= 2.0;
-                        if (fireInterval > 0.0) {
+                        if (fireInterval >= 1.0) {
                             ScrobLog(SCROB_LOG_VERBOSE,
                                 @"Track '%@' failed submission rules. Possilble iTunes time shift. "
                                 @"Trying again in %0.0lf seconds.\n", [firstSongInList brief], fireInterval);
