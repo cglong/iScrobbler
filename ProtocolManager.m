@@ -458,10 +458,7 @@ didFinishLoadingExit:
     int submissionCount;
     int i;
 	
-    if (inFlight)
-        return;
-    
-    if (myConnection) {
+    if (inFlight || myConnection) {
         ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission...\n");
         return;
     }
@@ -549,10 +546,14 @@ didFinishLoadingExit:
 
 - (void)setIsNetworkAvailable:(BOOL)available
 {
-    isNetworkAvailable = available;
-    ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is availbable? \"%@\".\n",
+    if ((isNetworkAvailable = available))
+        handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
+    ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is available? \"%@\".\n",
         isNetworkAvailable ? @"Yes" : @"No");
 }
+
+#define IsNetworkUp(flags) \
+(((flags) & kSCNetworkFlagsReachable) && 0 == ((flags) & (kSCNetworkFlagsConnectionRequired|kSCNetworkFlagsConnectionAutomatic)))
 
 - (id)init
 {
@@ -565,12 +566,15 @@ didFinishLoadingExit:
     // Get the current state
     SCNetworkConnectionFlags connectionFlags;
     if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
-         (connectionFlags & kSCNetworkFlagsReachable))
+         IsNetworkUp(connectionFlags))
         isNetworkAvailable = YES;
     // Install a callback to get notified of iface up/down events
     SCNetworkReachabilityContext reachContext = {0};
     reachContext.info = self;
-    if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext)) {
+    if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext) ||
+         !SCNetworkReachabilityScheduleWithRunLoop(g_networkReachRef,
+            [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopDefaultMode))
+    {
         ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor, assuming network is always available.\n");
         isNetworkAvailable = YES;
     }
@@ -670,8 +674,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     SCNetworkConnectionFlags flags, void *info)
 {
     ProtocolManager *pm = (ProtocolManager*)info;
+    BOOL up = IsNetworkUp(flags);
     
-    [pm setIsNetworkAvailable:(flags & kSCNetworkFlagsReachable) ? YES : NO];
-    if ((flags & kSCNetworkFlagsReachable))
+    ScrobTrace(@"Connection flags: %x.\n", flags);
+    [pm setIsNetworkAvailable:up];
+    if (up)
         [pm submit:nil];
 }
