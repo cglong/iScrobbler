@@ -80,23 +80,23 @@ static ProtocolManager *g_PM = nil;
 {
     [sender flushCachedData];
     NSData *data = [sender resourceData];
-	NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	NSMutableString *result = [[[NSMutableString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+    // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade
+    (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
     [killTimer invalidate];
     killTimer = nil;
     
-	ScrobLog(SCROB_LOG_VERBOSE, @"Result: %@", result);
+	ScrobLog(SCROB_LOG_VERBOSE, @"Handshake result: %@", result);
 	if ([result length] == 0) {
 		ScrobLog(SCROB_LOG_WARN, @"Connection failed");
-		[result release];
-        result = [[NSString alloc] initWithString:@"FAILED\nConnection failed"];
+        result = [NSMutableString stringWithString:@"FAILED\nConnection failed"];
 	}
     
 NS_DURING
     [self setHandshakeResult:[self handshakeResponse:result]];
 NS_HANDLER
-    [result release];
-    result = [[NSString alloc] initWithString:@"FAILED\nInternal exception caused by bad server response."];
+    result = [NSMutableString stringWithString:@"FAILED\nInternal exception caused by bad server response."];
     [self setHandshakeResult:[NSDictionary dictionaryWithObjectsAndKeys:
         HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
         result, HS_RESPONSE_KEY_RESULT_MSG,
@@ -106,7 +106,6 @@ NS_HANDLER
         @"", HS_RESPONSE_KEY_INTERVAL,
         nil]];
 NS_ENDHANDLER
-	[result release];
 	
 	if ([self validHandshake]) {
 		NSURL *nsurl = [NSURL URLWithString:[self submitURL]];
@@ -145,8 +144,16 @@ NS_ENDHANDLER
         return;
     }
     
+    hsState = hs_inprogress;
+    
     NSString* url = /*@"127.0.0.1"*/ [self handshakeURL];
     ScrobLog(SCROB_LOG_VERBOSE, @"Handshaking... %@", url);
+    
+    if (!url) {
+        ScrobLog(SCROB_LOG_CRIT, @"Empty handshake URL!\n");
+        hsState = hs_needed;
+        return;
+    }
 
 	NSURL *nsurl = [NSURL URLWithString:url];
 	//SCrobTrace(@"nsurl: %@",nsurl);
@@ -155,6 +162,13 @@ NS_ENDHANDLER
 	
 	CURLHandle *handshakeHandle = (CURLHandle*)[CURLHandle cachedHandleForURL:nsurl];	
 	
+    // Setup timer to kill the current handhskake and reset state
+    // if we've been in progress for 5 minutes
+    killTimer = [NSTimer scheduledTimerWithTimeInterval:300.0 target:self
+        selector:@selector(killHandshake:)
+        userInfo:[NSDictionary dictionaryWithObjectsAndKeys:handshakeHandle, @"Handle", nil]
+        repeats:NO];
+    
 	// fail on errors (response code >= 300)
     [handshakeHandle setFailsOnError:YES];
 	[handshakeHandle setFollowsRedirects:YES];
@@ -163,16 +177,8 @@ NS_ENDHANDLER
     // Set the user-agent to something Mozilla-compatible
     [handshakeHandle setUserAgent:[self userAgent]];
 	
-    hsState = hs_inprogress;
     [handshakeHandle addClient:self];
 	[handshakeHandle loadInBackground];
-    
-    // Setup timer to kill the current handhskake and reset state
-    // if we've been in progress for 5 minutes
-    killTimer = [NSTimer scheduledTimerWithTimeInterval:300.0 target:self
-        selector:@selector(killHandshake:)
-        userInfo:[NSDictionary dictionaryWithObjectsAndKeys:handshakeHandle, @"Handle", nil]
-        repeats:NO];
 }
 
 - (NSString*)clientVersion
@@ -313,19 +319,31 @@ NS_ENDHANDLER
         return;
     }
     
+    if (hs_valid != hsState) {
+        ScrobLog(SCROB_LOG_CRIT, @"Internal inconsistency! Invalid Handshake state (%u)!\n", hsState);
+        [self setSubmitResult:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+            HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
+            @"Internal inconsistency!", HS_RESPONSE_KEY_RESULT_MSG,
+            nil]];
+        hsState = hs_needed;
+        goto didFinishLoadingExit;
+    }
+    
     int i;
     NSData *data = [sender resourceData];
-    NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSMutableString *result = [[[NSMutableString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+    // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade
+    (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
     //[self changeLastResult:result];
     ScrobLog(SCROB_LOG_VERBOSE, @"songs in queue after loading: %d", [[QueueManager sharedInstance] count]);
 	
-	ScrobLog(SCROB_LOG_VERBOSE, @"Server result: %@", result);
+	ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
     
     [self setSubmitResult:[self submitResponse:result]];
-    [result release];
     
-    // Process Body, if OK, then remove the last song from the queue
+    // Process Body, and if OK, remove the in flight songs from the queue
     if([[self lastSubmissionResult] isEqualToString:HS_RESULT_OK])
     {
 		int count = [inFlight count];
@@ -354,16 +372,12 @@ NS_ENDHANDLER
         [self scheduleResubmit];
     }
     
+didFinishLoadingExit:
     [self setLastSongSubmitted:[inFlight lastObject]];
     [inFlight release];
     inFlight = nil;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
-    
-    //ScrobTrace(@"songQueue: %@",songQueue);
-	
-    //ScrobTrace(@"lastResult: %@",lastResult);
-    
 }
 
 -(void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender { }
