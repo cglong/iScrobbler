@@ -101,7 +101,7 @@
 // Rating on a scale of 0 to 100
 - (NSNumber*)rating;
 - (void)setRating:(NSNumber*)newRating;
-// Scales rating to between 0 and 5 (as iTunes present it to the user)
+// Scales rating to between 0 and 5 (as iTunes presents it to the user)
 - (NSNumber*)scaledRating;
 // String of stars representing the scaled rating
 - (NSString*)starRating;
