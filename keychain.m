@@ -25,14 +25,12 @@ static KeyChain* defaultKeyChain = nil;
 @implementation KeyChain
 
 + (KeyChain*) defaultKeyChain {
-    return ( defaultKeyChain ? defaultKeyChain : [[self alloc] init] );
+    return ( defaultKeyChain ? defaultKeyChain : (defaultKeyChain = [[KeyChain alloc] init]) );
 }
 
 - (id)init
 {
-    self = [super init];
-    maxPasswordLength = 127;
-    return self;
+    return (self = [super init]);
 }
 
 - (void)setGenericPassword:(NSString*)password forService:(NSString *)service account:(NSString*)account
@@ -92,23 +90,13 @@ static KeyChain* defaultKeyChain = nil;
 
 - (void)removeGenericPasswordForService:(NSString *)service account:(NSString*)account
 {
-    KCItemRef itemref = nil ;
+    SecKeychainItemRef itemref;
     if (itemref = [self copyGenericPasswordReferenceForService:service account:account]) {
         KCDeleteItem(itemref);
         CFRelease(itemref);
     }
 }
 
-- (void)setMaxPasswordLength:(unsigned)length
-{
-    if (![self isEqual:defaultKeyChain]) {
-        maxPasswordLength = length ;
-    }
-}
-- (unsigned)maxPasswordLength
-{
-    return maxPasswordLength;
-}
 @end
 
 @implementation KeyChain (KeyChainPrivate)
