@@ -223,7 +223,8 @@
     [song setAlbum:[data objectAtIndex:6]];
     [song setPath:[data objectAtIndex:7]];
     if (9 == [data count])
-        [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]]];
+        [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
+            locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
     //NSLog(@"SongData allocated and filled");
     return (song);
 }
@@ -474,11 +475,11 @@
 #define ONE_WEEK (3600.0 * 24.0 * 7.0)
 - (void) restoreITunesLastPlayedTime
 {
-    NSTimeInterval ti = [prefs floatForKey:@"iTunesLastPlayedTime"];
+    NSTimeInterval ti = [[prefs stringForKey:@"iTunesLastPlayedTime"] doubleValue];
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
 
-    if (!ti || ti > now || ti < (now - ONE_WEEK)) {
+    if (!ti || ti > (now + MAIN_TIMER_INTERVAL) || ti < (now - ONE_WEEK)) {
         NSLog(@"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
             ti, now);
         tr = [NSDate date];
@@ -493,7 +494,8 @@
     [iTunesLastPlayedTime release];
     iTunesLastPlayedTime = date;
     // Update prefs
-    [prefs setFloat:[iTunesLastPlayedTime timeIntervalSince1970] forKey:@"iTunesLastPlayedTime"];
+    [prefs setObject:[NSString stringWithFormat:@"%.2lf", [iTunesLastPlayedTime timeIntervalSince1970]]
+        forKey:@"iTunesLastPlayedTime"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
@@ -540,7 +542,7 @@ validate:
         NSMutableString *text = [iPodUpdateScript mutableCopy];
         NSAppleScript *iuscript;
         NSAppleEventDescriptor *result;
-        NSDictionary *errInfo;
+        NSDictionary *errInfo, *localeInfo;
         NSTimeInterval now, fudge;
         unsigned int added;
         
@@ -554,15 +556,18 @@ validate:
             [self setITunesLastPlayedTime:[NSDate date]];
         }
         
+        // AppleScript expects the date string formated according to the users's system settings
+        localeInfo = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+        
         // Replace the token with our last update
         [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
             withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:
-                IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:nil]
+                IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:localeInfo]
             options:0 range:NSMakeRange(0, [iPodUpdateScript length])];
         
 #ifdef IS_VERBOSE
         NSLog(@"syncIPod: Requesting songs played after '%@'\n",
-            [iTunesLastPlayedTime descriptionWithCalendarFormat:IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:nil]);
+            [iTunesLastPlayedTime descriptionWithCalendarFormat:IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:localeInfo]);
 #endif
         // Run script
         iuscript = [[NSAppleScript alloc] initWithSource:text];
@@ -574,6 +579,20 @@ validate:
                 NSString *data;
                 SongData *song;
                 NSMutableArray *iqueue = [NSMutableArray array];
+                
+                if ([[result stringValue] hasPrefix:@"ERROR"]) {
+                    NSString *errmsg, *errnum;
+                NS_DURING
+                    errmsg = [songs objectAtIndex:1];
+                    errnum = [songs objectAtIndex:2];
+                NS_HANDLER
+                    errmsg = errnum = @"UNKNOWN";
+                NS_ENDHANDLER
+                    // Display dialog instead of logging?
+                    NSLog(@"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
+                        errmsg, errnum);
+                    goto sync_ipod_script_release;
+                }
                 
                 added = 0;
                 while ((data = [en nextObject])) {
@@ -609,11 +628,12 @@ validate:
                     [[QueueManager sharedInstance] submit];
                 }
             }
-        } else if (!iPodUpdateScript) {
+        } else if (!result) {
             // Script error
-            NSLog(@"iPodUpdateScript error: %@\n", errInfo);
+            NSLog(@"iPodUpdateScript execution error: %@\n", errInfo);
         }
         
+sync_ipod_script_release:
         [iuscript release];
         [text release];
     } else {
