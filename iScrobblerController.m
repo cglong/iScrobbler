@@ -16,6 +16,7 @@
 #import "ProtocolManager.h"
 #import "ScrobLog.h"
 #import "StatisticsController.h"
+#import "TopListsController.h"
 
 @interface iScrobblerController ( private )
 
@@ -237,6 +238,10 @@
         (void)[QueueManager sharedInstance];
         if ([[QueueManager sharedInstance] count])
             [[QueueManager sharedInstance] submit];
+        
+        // Create top lists controller so it will pick up subs
+        // We do this after creating the QM so that queued subs are not counted.
+        (void)[TopListsController sharedInstance];
     }
     return self;
 }
@@ -279,6 +284,9 @@
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
+    }
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]) {
+        [self openTopLists:nil];
     }
 }
 
@@ -555,6 +563,12 @@ mainTimerReleaseResult:
 -(IBAction)openStatistics:(id)sender
 {
     [[StatisticsController sharedInstance] showWindow:sender];
+    [NSApp activateIgnoringOtherApps:YES];
+}
+
+-(IBAction)openTopLists:(id)sender
+{
+    [[TopListsController sharedInstance] showWindow:sender];
     [NSApp activateIgnoringOtherApps:YES];
 }
 

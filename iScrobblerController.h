@@ -73,6 +73,7 @@
 -(IBAction)openUserHomepage:(id)sender;
 
 -(IBAction)openStatistics:(id)sender;
+-(IBAction)openTopLists:(id)sender;
 
 -(IBAction)syncIPod:(id)sender;
 -(IBAction)cleanLog:(id)sender;

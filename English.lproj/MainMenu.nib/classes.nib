@@ -8,6 +8,7 @@
                 openPrefs = id; 
                 openScrobblerHomepage = id; 
                 openStatistics = id; 
+                openTopLists = id; 
                 openUserHomepage = id; 
                 playSong = id; 
                 syncIPod = id; 

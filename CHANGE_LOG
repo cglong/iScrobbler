@@ -12,7 +12,7 @@ v1.0.0 (BDB and ECS)
 - Network status is now monitored, and we will only send when the network is available. Submissions will be queued until that time. 
 - If iTunes 4.7 or greater is being used, we no longer have to constantly poll iTunes. Instead, iTunes will notify us when a new track is played. This reduces our lifetime CPU usage quite a bit.
 - Tracks from iTunes Shared Music are now submitted by default.
-- Redesigned and expanded client statistics.
+- Redesigned and expanded client statistics -- including up-to-the-minute Top Artist and Track lists.
 - Any suitable iTunes playlist can be used for iPod Submissions ("Recently Played" is no longer hard-coded).
 - The client log level can now be set from the Preferences window. (Note: If you hover over each menu item long enough, a tool tip will appear explaining the meaning of each level.)
 - The iTunes scripts no longer return file path info (it was never used in iScrobbler proper anyway).

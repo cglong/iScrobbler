@@ -16,6 +16,7 @@
 				D312EE000735A78D00A2CFD5,
 				D3B61DF30744151D00AF5A33,
 				D3CB1314077509D3009236FF,
+				D3CB38A607A59AFE009236FF,
 			);
 			isa = PBXGroup;
 			name = Classes;
@@ -171,6 +172,7 @@
 				29B97318FDCFA39411CA2CEA,
 				D3CB13A1077514A7009236FF,
 				D3CB130E07750960009236FF,
+				D3CB38A207A59AE5009236FF,
 				F5D8D308030C568001A80164,
 				D3EC0A740729CFA600C13782,
 				D3CB14FC07755151009236FF,
@@ -482,6 +484,58 @@
 				);
 			};
 		};
+		D3CB38A207A59AE5009236FF = {
+			children = (
+				D3CB38A307A59AE5009236FF,
+			);
+			isa = PBXVariantGroup;
+			name = TopLists.nib;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB38A307A59AE5009236FF = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.nib;
+			name = English;
+			path = English.lproj/TopLists.nib;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB38A407A59AE5009236FF = {
+			fileRef = D3CB38A207A59AE5009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3CB38A507A59AFE009236FF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = TopListsController.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB38A607A59AFE009236FF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = TopListsController.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB38A707A59AFE009236FF = {
+			fileRef = D3CB38A507A59AFE009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3CB38A807A59AFE009236FF = {
+			fileRef = D3CB38A607A59AFE009236FF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		D3D4741F077407F50076AA7D = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -623,6 +677,7 @@
 				D312EE010735A78D00A2CFD5,
 				D3B61DF40744151D00AF5A33,
 				D3CB1315077509D3009236FF,
+				D3CB38A707A59AFE009236FF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -638,6 +693,7 @@
 				EB50660303FB7FDF005DC01B,
 				EBDF4CE904009EA7005DC01B,
 				D3EC0A760729CFB600C13782,
+				D3CB38A407A59AE5009236FF,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -655,6 +711,7 @@
 				D312EE020735A78D00A2CFD5,
 				D3B61DF50744151D00AF5A33,
 				D3CB1316077509D3009236FF,
+				D3CB38A807A59AFE009236FF,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -851,6 +908,7 @@
 				D312EDFF0735A78D00A2CFD5,
 				D3B61DF20744151D00AF5A33,
 				D3CB1313077509D3009236FF,
+				D3CB38A507A59AFE009236FF,
 			);
 			isa = PBXGroup;
 			name = Headers;
