@@ -501,9 +501,22 @@ NS_ENDHANDLER
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
 }
 
+- (void)applicationWillTerminate:(NSNotification*)notification
+{
+    [CURLHandle curlGoodbye];
+}
+
 - (id)init
 {
     self = [super init];
+    
+    // Activate CURLHandle
+    [CURLHandle curlHelloSignature:@"net.sourceforge.iscrobbler" acceptAll:YES];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                selector:@selector(applicationWillTerminate:)
+                name:NSApplicationWillTerminateNotification
+                object:nil];
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     // Indicate that we have not yet handshaked

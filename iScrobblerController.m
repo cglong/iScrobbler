@@ -92,9 +92,6 @@
     // a song.
     (void)[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
         account:[prefs stringForKey:@"username"]];
-    
-    // Activate CURLHandle
-    [CURLHandle curlHelloSignature:@"XxXx" acceptAll:YES];
 	
 	// Create an instance of the preferenceController
     if(!preferenceController)
@@ -410,7 +407,6 @@
 }
 
 -(void)dealloc{
-	[CURLHandle curlGoodbye];
 	[nc removeObserver:self];
 	[nc release];
 	[statusItem release];
