@@ -35,7 +35,7 @@ static BOOL shouldLog = NO;
 
 BOOL ISShouldLog() {
 	if (!haveCheckedLoggingDefault) {
-		shouldLog = [[[NSUserDefaults standardUserDefaults] boolForKey:@"EnableDebugLogging"] boolValue];
+		shouldLog = [[NSUserDefaults standardUserDefaults] boolForKey:@"EnableDebugLogging"];
 		haveCheckedLoggingDefault = YES;
 	}
 	return shouldLog;
@@ -46,7 +46,6 @@ BOOL ISShouldLog() {
 void ISLog(NSString *function, NSString *format, ...) {
 	if (!ISShouldLog())
 		return;
-	NSLog(@"ISLog function = %@ format = %@", function, format);
     va_list args;
     va_start(args, format);
 	NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
