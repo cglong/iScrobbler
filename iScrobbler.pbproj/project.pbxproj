@@ -1028,6 +1028,7 @@
 			fileEncoding = 4;
 			isa = PBXFileReference;
 			lastKnownFileType = text.xml;
+			lineEnding = 0;
 			path = defaults.plist;
 			refType = 4;
 			sourceTree = "<group>";
