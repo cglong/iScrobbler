@@ -9,6 +9,7 @@ v0.7.4 (BDB)
 - Our scripts no longer use the Finder to gather system info. For those that use Finder alternatives, this means iScrobbler won't launch the Finder anymore.
 - Internal changes to ready ourself for a 0.8.0 release.
 - More robust server response parsing.
+- If a song's Artist, or Title is missing the song will not be submitted (since it would be rejected by the server).
 - Fixed a bug that caused a song played two or more times sequentially to only be submitted once.
 - Fixed Cut/Copy/Paste not working (thanks to Wevah).
 
