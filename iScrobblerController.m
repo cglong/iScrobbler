@@ -329,9 +329,8 @@
     
     // add songs from songList array to menu
     enumerator=[songList reverseObjectEnumerator];
-    while ((song = [enumerator nextObject]))
-    {
-        //ScrobTrace(@"Corrupted song:\n%@",song);
+    int songsToDisplay = [prefs integerForKey:@"Number of Songs to Save"];
+    while ((song = [enumerator nextObject]) && addedSongs < songsToDisplay) {
         item = [[[NSMenuItem alloc] initWithTitle:[song title]
                                            action:@selector(playSong:)
                                     keyEquivalent:@""] autorelease];
@@ -488,8 +487,13 @@
             }
         }
         // If there are more items in the list than the user wanted
-        // Then we remove the last item in the songlist
-        while([songList count]>[prefs integerForKey:@"Number of Songs to Save"]) {
+        // Then we remove the last item in the songlist.
+        // XXX: We always retain the most recent song so that we can submit even
+        // when the "Songs to Save" pref is 0.
+        // This should really be re-visted as it's not clean at all. In fact, this whole
+        // method needs to be scrapped and implemented correctly. There's too much cruft left
+        // over from 0.6/0.7.x and supporting < iTunes 4.7.
+        while([songList count] > 1 && [songList count] > [prefs integerForKey:@"Number of Songs to Save"]) {
             //ScrobTrace(@"Removed an item from songList");
             [songList removeObject:[songList lastObject]];
         }
