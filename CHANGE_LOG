@@ -18,6 +18,8 @@ v1.0.0 (BDB and ECS)
 - The iTunes scripts no longer return file path info (it was never used in iScrobbler proper anyway).
 - Human readable time zones are no longer included in the date strings we give to AppleScript. They are not necessary, and were just causing problems.
 - More robust persitent cache and handling of bad track data.
+- Connection timeout is now sixty seconds.
+- Fixed a 24 byte memory leak that occured with every song played (from 0.6.x releases). According to Malloc Debug iScrobbler is now leak free!
 
 v0.7.5 (BDB)
 - Fixed a bug that caused us to URL encode HTTP post data twice. This bug has been around since the first iScrobbler release, but the old submission server had its own bug that canceled out our double encoding. However, the new Java submission server "fixed" this bug and so our double encoded strings started causing URL escape sequences to become part of the track data.
