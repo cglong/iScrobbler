@@ -4,6 +4,7 @@ Change Log for iScrobbler:
 (BDB is Brian Bergstrand)
 
 v1.0.0 (BDB and ECS)
+- This version (and all future versions) requires 10.3.0 or higher.
 - Removed all third-party framework dependencies.
 - The system proxy authentication settings are now supported.
 - Redesigned preferences dialog.
