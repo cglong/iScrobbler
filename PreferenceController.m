@@ -129,17 +129,17 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [lastResultLongField setString:[self lastResultLong]];
     [lastResultShortField setStringValue:[self lastResultShort]];
 
-    //NSLog(@"songdata: %@",songData);
-    
-    if(songData != nil)
+    NSLog(@"preparing lastSongSubmitted");
+    NSLog(@"songData: %@",songData);
+    if([self songData] != nil)
     {
         NSMutableString* unEscapedTitle = [NSMutableString stringWithString:[(NSString*)
-        CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[songData 		objectForKey:@"title"], (CFStringRef)@"") autorelease]];
+        CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[[self songData] 		title], (CFStringRef)@"") autorelease]];
         
-        if(![[songData objectForKey:@"artist"] isEqualToString:@""])
+        if(![[[self songData] artist] isEqualToString:@""])
         {
             [unEscapedTitle insertString:@" - " atIndex:0];
-            NSString* unEscapedArtist = [(NSString*) 		CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[songData 			objectForKey:@"artist"], (CFStringRef)@"") autorelease];
+            NSString* unEscapedArtist = [(NSString*) 		CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[[self songData] 			artist], (CFStringRef)@"") autorelease];
 
             [unEscapedTitle insertString:unEscapedArtist atIndex:0];
         }
@@ -194,10 +194,8 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
 -(IBAction)submitEmailBugReport:(id)sender
 {
-    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:songData];
-    [dict removeObjectForKey:@"password"];
 
-    NSString* mailtoLink = [NSString stringWithFormat:@"mailto:sam@flexistentialist.org?subject=iScrobbler Bug Report&body=--Please explain the circumstances of the bug here--\nThanks for contributing!\n\nResult Data Dump:\n\n%@\n\n%@",lastResult,dict];
+    NSString* mailtoLink = [NSString stringWithFormat:@"mailto:sam@flexistentialist.org?subject=iScrobbler Bug Report&body=--Please explain the circumstances of the bug here--\nThanks for contributing!\n\nResult Data Dump:\n\n%@\n\n%@",lastResult,songData];
     
     NSURL *url = [NSURL URLWithString:[(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)mailtoLink, NULL, NULL, 	kCFStringEncodingUTF8) autorelease]];
@@ -252,14 +250,14 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 -(IBAction)queryiTunes:(id)sender {}
 -(IBAction)queryAudion:(id)sender {}
 
--(void)setSongData: (NSMutableDictionary *)newSongData
+-(void)setSongData: (SongData *)newSongData
 {
     [newSongData retain];
     [songData release];
     songData = newSongData;
 }
 
--(NSMutableDictionary *)songData
+-(SongData *)songData
 {
     return songData;
 }
@@ -307,7 +305,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     
     [array insertObject:@"Time"
                 atIndex:0];
-    [array insertObject:@"Filename"
+    [array insertObject:@"Path"
                 atIndex:0];
     [array insertObject:@"Duration"
                 atIndex:0];
@@ -325,9 +323,10 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         //[tableColumn setWidth:[attribString size]];
         return [attribString autorelease];
     } else {
-        [tableColumn setWidth:([[[self songData] objectForKey:@"filename"] 	sizeWithAttributes:attribs].width + 5)];
+        [tableColumn setWidth:([[[self songData] path] sizeWithAttributes:attribs].width + 5)];
         
-        attribString = [attribString initWithString:[(NSString*) 	CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[[self songData] 	objectForKey:[[array objectAtIndex:row] lowercaseString]], (CFStringRef)@"") 	autorelease] attributes:attribs];
+        attribString = [attribString initWithString:[(NSString*)CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef)[[self songData] artist],
+            (CFStringRef)@"") autorelease] attributes:attribs];
         //[tableColumn setWidth:NSMakeSize([attribString size].width];
         return [attribString autorelease];
     }

@@ -33,11 +33,24 @@
 // has been played as a percent
 - (NSNumber *)percentPlayed
 {
-    NSNumber * percentage = [[NSNumber alloc] init];
+    //NSLog(@"duration played: %f", -[[self startTime] timeIntervalSinceNow] + 10 );
 
-    percentage = [NSNumber numberWithDouble:((-[[self startTime] timeIntervalSinceNow] / [[self duration] 	doubleValue]) *100)];
+    // The amount of time passed since the song started, divided by the duration of the song
+    // times 100 to generate a percentage.
+    NSNumber * percentage = [NSNumber numberWithDouble:(([[self timePlayed] doubleValue] / [[self duration] doubleValue]) * 100)];
 
-    return [percentage autorelease];
+    return percentage;
+}
+
+// returns the amount of time, in seconds, that the song has been playing.
+- (NSNumber *)timePlayed
+{
+    // The amount of time passed since the beginning of the track, made
+    // into a positive number, and plus 5 to account for Timer error.
+    // Due to timer firing discrepencies, this should not be considered an 'exact' time.
+    NSNumber * time = [NSNumber numberWithDouble:(-[[self startTime]
+        timeIntervalSinceNow] + 5)];
+    return time;
 }
 
 // returns an NSMutableDictionary object that is packaged and ready for submission.
@@ -177,6 +190,33 @@
     [newStartTime retain];
     [startTime release];
     startTime = newStartTime;
+}
+
+// hasQueued is a bool value indicating whether the song has been queued or not
+- (BOOL)hasQueued
+{
+    return hasQueued;
+}
+
+- (void)setHasQueued:(BOOL)newHasQueued
+{
+    if(newHasQueued)
+        hasQueued = YES;
+    else
+        hasQueued = NO;
+}
+
+// pausedTime is the total length of time the song has been paused for
+- (NSNumber *)pausedTime
+{
+    return pausedTime;
+}
+
+- (void)setPausedTime:(NSNumber *)newPausedTime
+{
+    [newPausedTime retain];
+    [pausedTime release];
+    pausedTime = newPausedTime;
 }
 
 - (void)dealloc

@@ -42,11 +42,20 @@
 
     NSDictionary * defaultPrefs = [NSDictionary dictionaryWithContentsOfFile:file];
 
+    songQueue = [[NSMutableArray alloc] init];
+
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     [prefs registerDefaults:defaultPrefs];
 
     if(!myKeyChain)
         myKeyChain=[[KeyChain alloc] init];
+
+    // Request the password and release it, this will force it to ask
+    // permission when loading, so it doesn't annoy you halfway through
+    // a song.
+    NSString * pass = [[NSString alloc] init];
+    pass = [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]];
+    [pass release];
     
     // Activate CURLHandle
     [CURLHandle curlHelloSignature:@"XxXx" acceptAll:YES];
@@ -98,7 +107,7 @@
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
     SongData *song;
-       NSLog(@"updating menu");
+    //   NSLog(@"updating menu");
 
     // remove songs from menu
     while(item=[enumerator nextObject])
@@ -116,7 +125,7 @@
         
         [item setTarget:self];
         [theMenu insertItem:item atIndex:0];
-        NSLog(@"added item to menu");
+    //    NSLog(@"added item to menu");
     }
 }
 
@@ -132,11 +141,11 @@
     // NSLog(@"Shit in parsed result array:\n%@\n",parsedResult);
     
     // If the script didn't return an error, continue
-    if([result isEqualToString:@"NOT PLAYING"]) {
+    if([result hasPrefix:@"NOT PLAYING"]) {
 
-    } else if([result isEqualToString:@"RADIO"]) {
+    } else if([result hasPrefix:@"RADIO"]) {
 
-    } else if([result isEqualToString:@"INACTIVE"]) {
+    } else if([result hasPrefix:@"INACTIVE"]) {
         
     } else {
         // Parse the result and create an array
@@ -144,14 +153,16 @@
 
         // Make a SongData object out of the array
         SongData * song = [[SongData alloc] init];
-        [song setTrackIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:0] floatValue]]];
-        [song setPlaylistIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:1] floatValue]]];
+        [song setTrackIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:0]
+            floatValue]]];
+        [song setPlaylistIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:1]
+            floatValue]]];
         [song setTitle:[parsedResult objectAtIndex:2]];
         [song setDuration:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:3] floatValue]]];
         [song setPosition:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:4] floatValue]]];
         [song setArtist:[parsedResult objectAtIndex:5]];
         [song setPath:[parsedResult objectAtIndex:6]];
-        NSLog(@"SongData allocated and filled");
+        //NSLog(@"SongData allocated and filled");
 
         // If the songlist is empty, then simply add the song object to the songlist
         if([songList count]==0)
@@ -166,17 +177,27 @@
             // of the song has been played, and queue a submission if necessary.
             if([[song title] isEqualToString:[[songList objectAtIndex:0] title]])
             {
-                printf("Song position: %.1f\n",[[song percentPlayed] floatValue]);
-                
-                if([[song percentPlayed] floatValue] > 50)
+                //printf("percentPlayed: %.1f\n",[[[songList objectAtIndex:0] percentPlayed]
+                //    floatValue]);
+                //printf("timePlayed: %.1f\n",[[[songList objectAtIndex:0] timePlayed]
+                //    floatValue]);
+                // If the song hasn't been queued yet, see if its ready.
+                if(![[songList objectAtIndex:0] hasQueued])
                 {
-                    NSLog(@"Ready to queue.");
-                    [self queueData:song];
+                    if([[[songList objectAtIndex:0] percentPlayed] floatValue] > 10 ||
+                       [[[songList objectAtIndex:0] timePlayed] floatValue] > 120 )
+                    {
+                        NSLog(@"Ready to send.");
+                        [[songList objectAtIndex:0] setHasQueued:YES];
+                        [songQueue insertObject:[songList objectAtIndex:0] atIndex:0];
+                        [self sendData:[songList objectAtIndex:0]];
+                        NSLog(@"songQueue at timer: %@",songQueue);
+                    }
                 }
             } else {
                 // Check to see if the current result's track name is anywhere in the songlist
                 // If it is, we set found equal to the index position where it was found
-                 NSLog(@"Looking for track");
+                // NSLog(@"Looking for track");
                 int j;
                 int found = 0;
                 for(j = 0; j < [songList count]; j++) {
@@ -186,19 +207,19 @@
                         break;
                     }
                 }
-                NSLog(@"Found = %i",j);
+                //NSLog(@"Found = %i",j);
 
                 // If the trackname wasn't found anywhere in the list, we add a new item
                 if(!found)
                 {
-                     NSLog(@"adding new item");
+                     //NSLog(@"adding new item");
                     [songList insertObject:song atIndex:0];
                 }
                 // If the trackname was found elsewhere in the list, we remove the old
                 // item, and add the new one onto the beginning of the list.
                 else
                 {
-                   NSLog(@"removing old, adding new");
+                  // NSLog(@"removing old, adding new");
                     [songList removeObjectAtIndex:found];
                     [songList insertObject:song atIndex:0];
                 }
@@ -211,15 +232,15 @@
             [songList removeObject:[songList lastObject]];
         }
 
-        NSLog(@"About to release song and parsedResult");
+        //NSLog(@"About to release song and parsedResult");
         [self updateMenu];
         [song release];
         [parsedResult release];
-        NSLog(@"song and parsedResult released");
+        //NSLog(@"song and parsedResult released");
     }
     
     [result release];
-    NSLog(@"result released");
+    //NSLog(@"result released");
 }
 
 -(IBAction)playSong:(id)sender{
@@ -260,8 +281,10 @@
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
 
-    [preferenceController takeValue:lastResult forKey:@"lastResult"];
-    [preferenceController takeValue:songData forKey:@"songData"];
+    [preferenceController takeValue:[self lastResult] forKey:@"lastResult"];
+    
+    if([songQueue count] != 0)
+        [preferenceController takeValue:[songQueue objectAtIndex:0] forKey:@"songData"];
 
     [NSApp activateIgnoringOtherApps:YES];
     [[preferenceController window] makeKeyAndOrderFront:nil];
@@ -295,10 +318,9 @@
      [nc release];
      [lastResult release];
      [myKeyChain release];
-     //[queue release];
+     [songQueue release];
      [statusItem release];
      [songList release];
-     [songData release];
      [script release];
      [mainTimer invalidate];
      [mainTimer release];
@@ -309,11 +331,10 @@
 
 - (void)queueData:(SongData *)song
 {
-    //int ready = 0;
     [song retain];
 
     NSLog(@"Queuing");
-        
+            
     [song release];
 }
 
@@ -334,7 +355,7 @@
     
     NSString *toHash = [[NSString alloc] initWithString:[myKeyChain 	genericPasswordForService:@"iScrobbler" account:[prefs 	stringForKey:@"username"]]];
 
-    NSString *pass = [[NSString alloc] initWithString:[self md5hash:[toHash 	autorelease]]];
+    NSString *pass = [[NSString alloc] initWithString:[self md5hash:[toHash autorelease]]];
 
     //NSLog(@"hashed password: %@",pass);
     [dict setObject:pass forKey:@"password"];
@@ -342,52 +363,64 @@
     [pass autorelease];
 
     //NSLog(@"pass released");
-    [self setSongData:dict];
-    [dict release];
     
     //NSLog(@"Dictionary Created: %@",[self songData]);
     
     // fail on errors (response code >= 300)
-     [myURLHandle setFailsOnError:YES];
-     [myURLHandle setFollowsRedirects:YES];
+    [myURLHandle setFailsOnError:YES];
+    [myURLHandle setFollowsRedirects:YES];
 
     // Set the user-agent to something Mozilla-compatible
     [myURLHandle setUserAgent:[prefs stringForKey:@"useragent"]];
     
     // Handle "POST"
-    [myURLHandle setPostDictionary:[self songData] encoding:NSASCIIStringEncoding];
+    [myURLHandle setPostDictionary:dict encoding:NSUTF8StringEncoding];
 
     // And load in background...
     [myURLHandle addClient:self];
     [myURLHandle loadInBackground];
+
+    [dict release];
 
     // NSLog(@"Data loading...");
 }
 
 - (void)URLHandleResourceDidFinishLoading:(NSURLHandle *)sender
 {
-    NSData *data = [myURLHandle resourceData];	
+    NSData *data = [myURLHandle resourceData];
+    NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 
-    // Process Body
-    [self changeLastResult:[[NSString alloc] initWithData:data
-                                               encoding:NSUTF8StringEncoding]];
+    [self changeLastResult:result];
+    NSLog(@"songQueue: %@",songQueue);
+
+
+    // Process Body, if OK, then remove the last song from the queue
+    if([result hasPrefix:@"OK"])
+    {
+        [songQueue removeObjectAtIndex:0];
+    }
+
+    NSLog(@"songQueue: %@",songQueue);
+
     //NSLog(@"lastResult: %@",lastResult);
     
 }
 
--(void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender {}
+-(void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender { }
 
 -(void)URLHandleResourceDidCancelLoading:(NSURLHandle *)sender
 {
     [myURLHandle removeClient:self];
 }
 
--(void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes {}
+-(void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes { }
 
 -(void)URLHandle:(NSURLHandle *)sender resourceDidFailLoadingWithReason:(NSString *)reason
 {
     [self changeLastResult:reason];
     [myURLHandle removeClient:self];
+
+    NSLog(@"songQueue: %@",songQueue);
 }
 
 - (NSString *)lastResult
@@ -398,15 +431,13 @@
 - (void)changeLastResult:(NSString *)newResult
 {
     [self setLastResult:newResult];
-    
-    //NSLog(@"song data before sending: %@",songData);
+
+    NSLog(@"song data before sending: %@",[songQueue objectAtIndex:0]);
     [preferenceController takeValue:[self lastResult] forKey:@"lastResult"];
-    [preferenceController takeValue:[self songData] forKey:@"songData"];
+    [preferenceController takeValue:[songQueue objectAtIndex:0] forKey:@"songData"];
     [nc postNotificationName:@"lastResultChanged" object:self];
    
     //NSLog(@"result changed");
-
-   
 }
 
 
@@ -416,19 +447,6 @@
     [lastResult release];
     lastResult = newResult;
 }
-
--(void)setSongData: (NSMutableDictionary *)newSongData
-{
-    [newSongData retain];
-    [songData release];
-    songData = newSongData;
-}
-
--(NSMutableDictionary *)songData
-{
-    return songData;
-}
-
                        
 - (void)setURLHandle:(CURLHandle *)inURLHandle
 {

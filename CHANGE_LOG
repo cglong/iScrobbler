@@ -5,6 +5,7 @@ v0.5.2:
 - Changed submission URL to match updated server settings
 
 v0.5.1:
+
 - Removed the Edit menu, as it isn't needed and was in a weird place. Copy/Paste didn't even work properly with it in, so we aren't losing anything. Use drag 'n' drop until copy/paste is fixed.
 - Web Radio stream data does not get sent at all. This is until I figure out a better way to handle the applescript that gathers the data.
 - Outgoing data has proper URL encoding. This should fix the problem with songs containing special characters (such as ampersands) not getting properly submitted.

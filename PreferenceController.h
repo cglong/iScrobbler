@@ -8,6 +8,8 @@
 //
 
 #import <AppKit/AppKit.h>
+#import "SongData.h"
+
 
 @class iScrobblerController;
 @class KeyChain;
@@ -36,7 +38,7 @@ extern NSString *CDCNumSongsKey;
     NSString *lastResultShort;
     NSNotificationCenter *nc;
     KeyChain * myKeyChain;
-    NSMutableDictionary *songData;
+    SongData *songData;
     NSString * downloadURL;
    }
 // -(IBAction)changeNumRecentSongs:(id)sender;
@@ -53,8 +55,8 @@ extern NSString *CDCNumSongsKey;
 -(NSString *)lastResultShort;
 -(void)setLastResultLong: (NSString *)newLastResultLong;
 -(NSString *)lastResultLong;
--(void)setSongData: (NSMutableDictionary *)newSongData;
--(NSMutableDictionary *)songData;
+-(void)setSongData: (SongData *)newSongData;
+-(SongData *)songData;
 -(void)handleLastResultChanged:(NSNotification *)aNotification;
 -(void)updateFields;
 -(void)generateResultText;

@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @interface SongData : NSObject {
-
     NSNumber * trackIndex;
     NSNumber * playlistIndex;
     NSString * title;
@@ -18,12 +17,16 @@
     NSString * artist;
     NSString * path;
     NSDate * startTime;
-
+    BOOL hasQueued;
+    NSNumber * pausedTime;
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
 // has been played as a percent
 - (NSNumber *)percentPlayed;
+
+// returns the amount of time, in seconds, that the song has been playing.
+- (NSNumber *)timePlayed;
 
 // returns an NSMutableDictionary object that is packaged and ready for submission.
 // postDict adds URL escaped title, artist and filename, and duration and time of
@@ -65,5 +68,14 @@
 // startTime is the system time at which the track began playing
 - (NSDate *)startTime;
 - (void)setStartTime:(NSDate *)newStartTime;
+
+// hasQueued is a bool value indicating whether the song has been queued or not
+- (BOOL)hasQueued;
+- (void)setHasQueued:(BOOL)newHasQueued;
+
+// pausedTime is the total length of time the song has been paused for
+- (NSNumber *)pausedTime;
+- (void)setPausedTime:(NSNumber *)newPausedTime;
+
 
 @end

@@ -32,6 +32,9 @@
     //stores info about the songs iTunes has played
     NSMutableArray *songList;
 
+    //stores data waiting to be sent to the server
+    NSMutableArray *songQueue;
+
     //the CURLHandle object that will do the data transmission
     CURLHandle * myURLHandle;
 
@@ -45,7 +48,6 @@
     NSUserDefaults * prefs;
 
     NSNotificationCenter *nc;
-    NSMutableDictionary * songData;
     KeyChain * myKeyChain;
 }
 
@@ -54,9 +56,6 @@
 // set the last result
 -(void)setLastResult:(NSString *)newResult;
 -(void)changeLastResult:(NSString *)newResult;
-
--(void)setSongData: (NSMutableDictionary *)newSongData;
--(NSMutableDictionary *)songData;
 
 //called when mainTimer fires
 -(void)timer:(NSTimer *)timer;
