@@ -12,6 +12,9 @@
 #import "SongData.h"
 #import "ISSearchArrayController.h"
 
+// From iScrobblerController.m
+void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
+
 static TopListsController *g_topLists = nil;
 
 @implementation TopListsController
@@ -24,13 +27,16 @@ static TopListsController *g_topLists = nil;
     return ((g_topLists = [[TopListsController alloc] initWithWindowNibName:@"TopLists"]));
 }
 
+#define PLAY_TIME_FORMAT @"%u:%02u:%02u:%02u"
 - (void)songQueuedHandler:(NSNotification*)note
 {
     SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
-    NSString *artist = [song artist], *track = [song title];
+    NSString *artist = [song artist], *track = [song title], *playTime;
     NSMutableDictionary *entry;
     NSEnumerator *en;
     NSNumber *count;
+    unsigned int time, days, hours, minutes, seconds;
+    
     
     // Top Artists
     en = [[topArtistsController content] objectEnumerator];
@@ -40,13 +46,24 @@ static TopListsController *g_topLists = nil;
             count = [NSNumber numberWithUnsignedInt:
                 [count unsignedIntValue] + 1];
             [entry setValue:count forKeyPath:@"Play Count"];
+            
+            time = [[entry objectForKey:@"Total Duration"] unsignedIntValue];
+            time += [[song duration] unsignedIntValue];
+            ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
+            playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+            [entry setValue:[NSNumber numberWithUnsignedInt:time] forKeyPath:@"Total Duration"];
+            [entry setValue:playTime forKeyPath:@"Play Time"];
             break;
         }
     }
 
     if (!entry) {
+        time = [[song duration] unsignedIntValue];
+        ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
+        playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                    [song artist], @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count", nil];
+                    [song artist], @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
+                    [song duration], @"Total Duration", playTime, @"Play Time", nil];
     } else {
         entry = nil;
     }
@@ -102,7 +119,7 @@ static TopListsController *g_topLists = nil;
     if ((self = [super initWithWindowNibName:windowNibName])) {
         startDate = [[NSDate date] retain];
         
-        //So stats are tracked while the window is close, load the nib to create our Array Controllers
+        //So stats are tracked while the window is closed, load the nib to create our Array Controllers
         (void)[super window];
         
         // Register for QM notes
@@ -139,7 +156,8 @@ static TopListsController *g_topLists = nil;
     // Setup our sort descriptors
     NSSortDescriptor *playCountSort = [[NSSortDescriptor alloc] initWithKey:@"Play Count" ascending:NO];
     NSSortDescriptor *artistSort = [[NSSortDescriptor alloc] initWithKey:@"Artist" ascending:YES];
-    NSArray *sorters = [NSArray arrayWithObjects:playCountSort, artistSort, nil];
+    NSSortDescriptor *playTimeSort = [[NSSortDescriptor alloc] initWithKey:@"Play Time" ascending:YES];
+    NSArray *sorters = [NSArray arrayWithObjects:playCountSort, artistSort, playTimeSort, nil];
     
     [topArtistsController setSortDescriptors:sorters];
     
@@ -149,6 +167,7 @@ static TopListsController *g_topLists = nil;
     
     [playCountSort release];
     [artistSort release];
+    [playTimeSort release];
     [trackSort release];
 }
 

@@ -5,7 +5,7 @@
             ACTIONS = {search = id; }; 
             CLASS = ISSearchArrayController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {searchField = NSSearchField; }; 
+            OUTLETS = {searchField = NSSearchField; tableView = id; }; 
             SUPERCLASS = NSArrayController; 
         }, 
         {
