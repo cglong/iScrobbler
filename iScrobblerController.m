@@ -99,7 +99,7 @@
     
     /* Workaround for iTunes bug (as of 4.7):
        If the script is run at the exact moment a track switch on an Audio CD occurs,
-       the new track will have the previous track's duration set as it's current position.
+       the new track will have the previous track's duration set as its current position.
        Since the notification happens at that moment we are always hit by the bug.
        Note: This seems to only affect Audio CD's, encoded files aren't affected. (Shared tracks?)
        Note 2: It would be possible for our conditions to occur while not on a track switch if for
@@ -120,6 +120,11 @@
         if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
             ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track '%@'.\n",
                 fireInterval, [curSong brief]);
+            // If an error occured in mainTimer:, it could have setup another timer instance,
+            // so make sure to release it.
+            [mainTimer invalidate];
+            [mainTimer release];
+            mainTimer = nil;
             mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
                             target:self
                             selector:@selector(mainTimer:)
@@ -430,19 +435,18 @@
                         if (fireInterval > 1.0)
                             fireInterval /= 2.0;
                         if (fireInterval >= 1.0) {
-                            ScrobLog(SCROB_LOG_VERBOSE,
-                                @"Track '%@' failed submission rules. Possilble iTunes time shift. "
-                                @"Trying again in %0.0lf seconds.\n", [firstSongInList brief], fireInterval);
                             if (!mainTimer) {
                                 // This will only occur if we are using iTunes notifications and
                                 // in that case, iTunesPlayerInfoHandler: will release mainTimer.
+                                ScrobLog(SCROB_LOG_VERBOSE,
+                                    @"Track '%@' failed submission rules. Possilble iTunes time shift. "
+                                    @"Trying again in %0.0lf seconds.\n", [firstSongInList brief], fireInterval);
                                 mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
                                                 target:self
                                                 selector:@selector(mainTimer:)
                                                 userInfo:nil
                                                 repeats:NO] retain];
-                            } else
-                                [self performSelector:@selector(mainTimer:) withObject:nil afterDelay:fireInterval];
+                            } // else there is already a timer set to fire on the track
                         } else {
                             ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules. "
                                 @"There is not enough play time left to retry submission.\n",
