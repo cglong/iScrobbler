@@ -9,9 +9,21 @@ if itunes_active is true then
 	tell application "iTunes"
 		if player state is playing then
 			set theTrack to get current track
-			if (get class of theTrack) is URL track then
-				return "RADIO"
+			
+			(* TODO : 0.8.0 : Support non-file tracks (optional) *)
+			set trackClass to (get class of theTrack)
+			if trackClass is file track or trackClass is audio CD track then
+				set songLocation to location of theTrack as string
+			else
+				if trackClass is URL track then
+					set songLocation to address of theTrack as string
+					return "RADIO"
+				else (* shared track *)
+					set songLocation to "Shared Track"
+					return "RADIO"
+				end if
 			end if
+			
 			set trackIndex to index of theTrack
 			set playlistIndex to index of the container of theTrack
 			set songTitle to name of theTrack as string
