@@ -105,6 +105,12 @@
     NSString * escapedalbum = [(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[song album], NULL,
         (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+        
+    NSString * escapedDate = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL,
+            (CFStringRef)[[song postDate] descriptionWithCalendarFormat:@"%Y-%m-%d %H:%M:%S"
+                timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil],
+            NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
 
 /*    NSString * escapeddate = [(NSString*) CFURLCreateStringByAddingPercentEscapes(NULL, 	(CFStringRef)[[song postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]], NULL, (CFStringRef)@"&+", 	kCFStringEncodingUTF8) autorelease]; */
     
@@ -114,7 +120,7 @@
     [dict setObject:escapedartist forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
     [dict setObject:escapedalbum forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
     [dict setObject:@"" forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
-    [dict setObject:[[song postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
+    [dict setObject:escapedDate forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
 
     // return and autorelease
     //ScrobTrace(@"postDict done");

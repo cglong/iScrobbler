@@ -12,7 +12,6 @@
 #import "ProtocolManager_v11.h"
 #import <CURLHandle/CURLHandle.h>
 #import <CURLHandle/CURLHandle+extras.h>
-#import "CURLHandle+SpecialEncoding.h"
 #import "keychain.h"
 #import "QueueManager.h"
 #import "SongData.h"
@@ -31,6 +30,12 @@
 - (void)setURLHandle:(CURLHandle *)inURLHandle;
 - (NSString*)md5Challenge;
 - (NSString*)submitURL;
+
+@end
+
+@interface NSDictionary (ProtocolManagerAdditions)
+
+- (NSString*) httpPostString;
 
 @end
 
@@ -513,7 +518,7 @@ didFinishLoadingExit:
     
     //ScrobTrace(@"dict before sending: %@",dict);
     // Handle "POST"
-    [myURLHandle setSpecialPostDictionary:dict encoding:NSUTF8StringEncoding];
+    [myURLHandle setString:[dict httpPostString] forKey:CURLOPT_POSTFIELDS];
     
     // And load in background...
     [myURLHandle addClient:self];
@@ -607,6 +612,27 @@ didFinishLoadingExit:
         ScrobLog(SCROB_LOG_WARN, @"Track \"%@\" will not be submitted because it is missing "
             @"Artist, or Title information. Please correct this.", [self breif]);
     return (NO);
+}
+
+@end
+
+@implementation NSDictionary (ProtocolManagerAdditions)
+
+- (NSString*) httpPostString
+{
+    NSMutableString *s = [NSMutableString string];
+    NSEnumerator *e = [self keyEnumerator];
+    id key;
+
+    while ((key = [e nextObject])) {
+        [s appendFormat:@"%@=%@&", key, [self objectForKey:key]];
+    }
+    
+    // Delete final & from the string
+    if (![s isEqualToString:@""])
+        [s deleteCharactersInRange:NSMakeRange([s length]-1, 1)];
+    
+    return (s);
 }
 
 @end
