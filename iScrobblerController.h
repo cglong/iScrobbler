@@ -42,6 +42,8 @@
 
     NSNotificationCenter *nc;
     
+    BOOL haveShownUpdateNowDialog;
+    
     NSString *iPodMountPath;
     BOOL isIPodMounted;
     
@@ -76,6 +78,7 @@
 -(NSString *)md5hash:(NSString *)input;
 
 - (void)showApplicationIsDamagedDialog;
+- (void)showBadCredentialsDialog;
 
 @end
 

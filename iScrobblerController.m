@@ -26,9 +26,10 @@
 - (void) restoreITunesLastPlayedTime;
 - (void) setITunesLastPlayedTime:(NSDate*)date;
 
-// ExtFSManager notifications
-- (void) volMount:(NSNotification*)notification;
-- (void) volUnmount:(NSNotification*)notification;
+- (void)showNewVersionExistsDialog;
+
+- (void) volumeDidMount:(NSNotification*)notification;
+- (void) volumeDidUnmount:(NSNotification*)notification;
 
 @end
 
@@ -56,15 +57,15 @@
     
     [self changeLastHandshakeResult:[pm lastHandshakeResult]];
     
-    if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]) ||
-         [[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
-        [self openPrefs:self];
-    }
+    if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]))
+        [self showNewVersionExistsDialog];
+    else if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
+        [self showBadCredentialsDialog];
 }
 
 - (void)badAuthHandler:(NSNotification*)note
 {
-    [self openPrefs:self];
+    [self showBadCredentialsDialog];
 }
 
 - (void)submitCompleteHandler:(NSNotification*)note
@@ -385,6 +386,11 @@
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
+- (IBAction)openiScrobblerDownloadPage:(id)sender {
+	//NSLog(@"openiScrobblerDownloadPage");
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.audioscrobbler.com/download.php"]];
+}
+
 -(IBAction)openUserHomepage:(id)sender
 {
     NSString *prefix = @"http://www.audioscrobbler.com/user/";
@@ -450,7 +456,44 @@
     ScrobLogTruncate();
 }
 
-- (void)showApplicationIsDamagedDialog {
+- (void)showBadCredentialsDialog
+{	
+	[NSApp activateIgnoringOtherApps:YES];
+	
+	// we should give them the option to ignore
+	// these messages, and only update the menu icon... -- ECS 10/30/04
+	int result = NSRunAlertPanel(NSLocalizedString(@"Authentication Failure", nil),
+								NSLocalizedString(@"Audioscrobbler.com did not accept your username and password.  Please update your user credentials in the iScrobbler preferences.", nil),
+								NSLocalizedString(@"Open iScrobbler Preferences", nil),
+								NSLocalizedString(@"New Account", nil),
+								nil); // NSLocalizedString(@"Ignore", nil)
+	
+	if (result == NSAlertDefaultReturn)
+		[self openPrefs:self];
+	else if (result == NSAlertAlternateReturn)
+		[self openScrobblerHomepage:self];
+	//else
+	//	ignoreBadCredentials = YES;
+}
+
+- (void)showNewVersionExistsDialog
+{
+	if (!haveShownUpdateNowDialog) {
+		[NSApp activateIgnoringOtherApps:YES];
+		int result = NSRunAlertPanel(NSLocalizedString(@"New Plugin Available", nil),
+									 NSLocalizedString(@"A new version (%@) of the iScrobbler iTunes plugin is now available.  It strongly suggested you update to the latest version.", nil),
+									 NSLocalizedString(@"Open Download Page", nil),
+									 NSLocalizedString(@"Ignore", nil),
+									 nil); // NSLocalizedString(@"Ignore", nil)
+		if (result == NSAlertDefaultReturn)
+			[self openiScrobblerDownloadPage:self];
+		
+		haveShownUpdateNowDialog = YES;
+	}
+}
+
+- (void)showApplicationIsDamagedDialog
+{
 	[NSApp activateIgnoringOtherApps:YES];
 	int result = NSRunCriticalAlertPanel(NSLocalizedString(@"Critical Error", nil),
 										 NSLocalizedString(@"The iScrobbler application appears to be damaged.  Please download a new copy from the iScrobbler homepage.", nil),
