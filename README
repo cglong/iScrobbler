@@ -14,6 +14,10 @@ mHashMacOSX.framework is licensed under the GPL.
 CURLHandle can be found at http://curlhandle.sourceforge.net, and is licensed under
 the public domain.
 
+Note: The 0.7.x releases require the ExtFSDiskManager framework (for iPod support).
+This framework is part of the Ext2 for Mac OS X project <http://sourceforge.net/projects/ext2fsx/>,
+and is licensed under a BSD style license.
+
 If you are using iScrobbler for testing, you will need to change the URL that it
 sends POST queries to by editing 'defaults.plist' with the correct URL.
 

@@ -14,6 +14,7 @@
                 cancel = id; 
                 downloadUpdate = id; 
                 forgetPassword = id; 
+                iPodSyncSwitched = id; 
                 queryAudion = id; 
                 queryiTunes = id; 
                 submitEmailBugReport = id; 
@@ -22,6 +23,7 @@
             CLASS = PreferenceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                iPodSyncSwitch = NSButton; 
                 lastResultDataField = NSTextView; 
                 lastResultLongField = NSTextView; 
                 lastResultShortField = NSTextField; 

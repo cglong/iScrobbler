@@ -1,6 +1,16 @@
 Change Log for iScrobbler:
 
 (Releases/comments tagged as RAB are by Rod Begbie)
+(BDB is Brian Bergstrand)
+
+v0.7.0 (BDB)
+- Added initial support for iPod syncing.
+Limitations:
+ - If you start playing iTunes before syncing your iPod, then all songs on the iPod will be discarded.
+ *Special note for users who have iPod Disk Mode enabled: Since iScrobbler delays syncing until the iPod is ejected, you must manually sync using the "Sync iPod" item in the control menu, or eject your iPod before you start playing music in iTunes. Either way, make sure to wait until iTunes says your iPod is "up to date".
+ - Seeking a song on the iPod could trigger spam protection on the server.
+- Fixed possible bug that would cause the Preferences window to fail to load.
+- Fixed bug that reported "Last Submission Successful" in the details drawer even though the submission failed.
 
 v0.6.4 (RAB):
 - iScrobbler will no longer bitch that your username & password are wrong, just because the server says it once.  It'll try twice.  If the server *still* complains, *then* iScrobbler will pop-up the error message.

@@ -8,6 +8,7 @@
                 openScrobblerHomepage = id; 
                 openUserHomepage = id; 
                 playSong = id; 
+                syncIPod = id; 
             }; 
             CLASS = iScrobblerController; 
             LANGUAGE = ObjC; 

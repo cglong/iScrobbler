@@ -28,6 +28,7 @@
 
     // initialize with current time
     [self setStartTime:[NSDate date]];
+    [self setLastPlayed:[NSDate date]];
 
     return self;
 }
@@ -49,8 +50,15 @@
     [copy setHasQueued:[self hasQueued]];
     [copy setPausedTime:[self pausedTime]];
     [copy setPostDate:[self postDate]];
+    [copy setLastPlayed:[self lastPlayed]];
 
     return (copy);
+}
+
+- (NSString*)description
+{
+    return ([NSString stringWithFormat:@"<SongData: %p> %@, %@, %@",
+        self, [self title], [self album], [self artist]]);
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
@@ -120,6 +128,13 @@
     // return and autorelease
     //NSLog(@"postDict done");
     return [dict autorelease];
+}
+
+- (BOOL)isEqualToSong:(SongData*)song
+{
+    return ([[self title] isEqualToString:[song title]] &&
+             [[self artist] isEqualToString:[song artist]] && 
+             [[self album] isEqualToString:[song album]]);
 }
 
 ////// Accessors Galore ///////
@@ -281,6 +296,18 @@
     postDate = newPostDate;
 }
 
+- (NSDate *)lastPlayed
+{
+    return lastPlayed;
+}
+
+- (void)setLastPlayed:(NSDate *)date
+{
+    [date retain];
+    [lastPlayed release];
+    lastPlayed = date;
+}
+
 - (void)dealloc
 {
     [trackIndex release];
@@ -293,6 +320,7 @@
     [path release];
     [startTime release];
     [postDate release];
+    [lastPlayed release];
     [super dealloc];
 }    
 

@@ -21,6 +21,7 @@
     BOOL hasQueued;
     NSNumber * pausedTime;
     NSDate * postDate;
+    NSDate * lastPlayed;
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
@@ -38,6 +39,8 @@
 // submissionNumber is the number of this data in the submission queue. For single
 // submissions this number will be 0.
 - (NSMutableDictionary *)postDict:(int)submissionNumber;
+
+- (BOOL)isEqualToSong:(SongData*)song;
 
 ////// Accessors Galore ///////
 
@@ -88,5 +91,9 @@
 // postDate is the moment in which the initial submission was attempted
 - (NSDate *)postDate;
 - (void)setPostDate:(NSDate *)newPostDate;
+
+// lastPlayed is the last time iTunes played the song
+- (NSDate *)lastPlayed;
+- (void)setLastPlayed:(NSDate *)date;
 
 @end
