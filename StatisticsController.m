@@ -178,7 +178,7 @@ static enum {title, album, artist} g_cycleState = title;
 - (void)windowDidLoad
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
-        [detailsText setStringValue:NSLocalizedString(@"Hide Submission Details", "")];
+        [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
         [detailsDisclosure setState:NSOnState];
     } else
         [self showDetails:nil];
@@ -195,7 +195,7 @@ static enum {title, album, artist} g_cycleState = title;
         wframe.origin.y -= dvframe.size.height + AQUA_SPACING;
         [win setFrame:wframe display:YES animate:YES];
         [detailsView setHidden:NO];
-        [detailsText setStringValue:NSLocalizedString(@"Hide Submission Details", "")];
+        [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"iScrobbler Statistics Details Open"];
     } else {
         // Remove details view
@@ -204,7 +204,7 @@ static enum {title, album, artist} g_cycleState = title;
         wframe.size.height -= dvframe.size.height + AQUA_SPACING;
         wframe.origin.y += dvframe.size.height + AQUA_SPACING;
         [win setFrame:wframe display:YES animate:YES];
-        [detailsText setStringValue:NSLocalizedString(@"Show Submission Details", "")];
+        [detailsText setStringValue:NSLocalizedString(@"Show submission details", "")];
         [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"iScrobbler Statistics Details Open"];
     }
 }
