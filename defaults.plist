@@ -36,13 +36,13 @@
 	<string>1.1</string>
         
 	<key>useragent</key>
-	<string>Mozilla/4.5 (compatible; iScrobbler/0.7.5; Mac_PowerPC)</string>
+	<string>Mozilla/4.5 (compatible; iScrobbler/0.8.0; Mac_PowerPC)</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>0.7.5</string>
+	<string>0.8.0</string>
         
 </dict>
 </plist>

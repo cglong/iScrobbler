@@ -712,7 +712,7 @@
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>0.7.5</string>
+	<string>0.8.0</string>
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
@@ -728,9 +728,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.7.5</string>
+	<string>0.8.0</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.2.0</string>
+	<string>10.3.0</string>
 	<key>LSUIElement</key>
 	<string>1</string>
 	<key>NSMainNibFile</key>
