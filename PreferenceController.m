@@ -133,7 +133,7 @@
 		[[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:username];
 	}
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"CDCNumRecentSongsChanged" object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SCROB_PREFS_CHANGED object:self];
 }
 
 - (IBAction)cancel:(id)sender
