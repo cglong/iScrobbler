@@ -34,6 +34,11 @@
 
 @end
 
+// See iTunesPlayerInfoHandler: for why this is needed
+@interface ProtocolManager (NoCompilerWarnings)
+    - (float)minTimePlayed;
+@end
+
 #define CLEAR_MENUITEM_TAG          1
 #define SUBMIT_IPOD_MENUITEM_TAG    4
 
@@ -45,7 +50,7 @@
 {
     ScrobTrace(@"%@", [anItem title]);
     if(CLEAR_MENUITEM_TAG == [anItem tag])
-        [mainTimer fire];
+        [self mainTimer:nil];
     else if(SUBMIT_IPOD_MENUITEM_TAG == [anItem tag] &&
          (!iPodMountPath || ![prefs boolForKey:@"Sync iPod"]))
         return NO;
@@ -65,6 +70,46 @@
 - (void)badAuthHandler:(NSNotification*)note
 {
     [self showBadCredentialsDialog];
+}
+
+// This method handles firing mainTimer: at the appropos time so we don't need to poll
+// iTunes constantly.
+- (void)iTunesPlayerInfoHandler:(NSNotification*)note
+{
+    NSDictionary *info = [note userInfo];
+    ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
+    
+    // We got a notification, kill the current timer
+    [mainTimer invalidate];
+    [mainTimer release];
+    mainTimer = nil;
+    
+    [self mainTimer:nil]; // Update state
+    
+    SongData *curSong = nil;
+    if ([songList count] > 0)
+        curSong = [songList objectAtIndex:0];
+    
+    BOOL isPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
+    //ScrobLog(SCROB_LOG_VERBOSE, @"\t %@ hasQueued: %i\n", [curSong brief], [curSong hasQueued]);
+    if (isPlaying && ![curSong hasQueued]) {
+        // iTunes gives us the track time as a quad int containing milliseconds, we need seconds
+        double trackTime = [[info objectForKey:@"Total Time"] doubleValue] / 1000.0;
+        
+        // Fire the main timer again in half the track time to get it queued.
+        // Ack! Protocol implementation details exposed! Don't know how else to do this though.
+        trackTime = ceil(trackTime / 2.0); // Adjust the fire time to compensate for sub-seconds...
+        if (trackTime > [[ProtocolManager sharedInstance] minTimePlayed])
+            trackTime = [[ProtocolManager sharedInstance] minTimePlayed];
+        trackTime -= [[curSong position] doubleValue]; // and elapsed time.
+        
+        ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track %@.\n", trackTime, [curSong brief]);
+        mainTimer = [[NSTimer scheduledTimerWithTimeInterval:trackTime
+                        target:self
+                        selector:@selector(mainTimer:)
+                        userInfo:nil
+                        repeats:NO] retain];
+    }
 }
 
 - (void)enableStatusItemMenu:(BOOL)enable
@@ -144,6 +189,11 @@
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
         
+        // Register for iTunes track change notifications (4.7 and greater)
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
+            object:nil];
+        
         // Create protocol mgr
         (void)[ProtocolManager sharedInstance];
         
@@ -185,7 +235,7 @@
     [self enableStatusItemMenu:
         [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"]];
 	
-    [mainTimer fire];
+    [self mainTimer:nil];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -436,7 +486,7 @@ mainTimerReleaseResult:
     [play executeAndReturnError:nil];
     
     [play release];
-    [mainTimer fire];
+    [self mainTimer:nil];
 }
 
 -(IBAction)clearMenu:(id)sender{
@@ -450,7 +500,7 @@ mainTimerReleaseResult:
         if([item action]==@selector(playSong:))
             [theMenu removeItem:item];
 	
-	[mainTimer fire];
+	[self mainTimer:nil];
 }
 
 -(IBAction)openPrefs:(id)sender{
@@ -636,8 +686,8 @@ validate:
         
         if ((lastPost + [[lastSong duration] doubleValue]) > thisPost) {
             ScrobLog(SCROB_LOG_WARN, @"iPodSync: Discarding '%@' because of invalid play time.\n\t'%@' = Start: %@, Duration: %@"
-                "\n\t'%@' = Start: %@, Duration: %@\n", [thisSong breif], [lastSong breif], [lastSong postDate], [lastSong duration],
-                [thisSong breif], [thisSong postDate], [thisSong duration]);
+                "\n\t'%@' = Start: %@, Duration: %@\n", [thisSong brief], [lastSong brief], [lastSong postDate], [lastSong duration],
+                [thisSong brief], [thisSong postDate], [thisSong duration]);
             [sorted removeObjectAtIndex:i];
             goto validate;
         }
@@ -746,11 +796,11 @@ validate:
                         ScrobLog(SCROB_LOG_WARN,
                             @"Anachronistic post date for song '%@'. Discarding -- possible date parse error.\n\t"
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, iTunesLastPlayed: %@.\n",
-                            [song breif], [song postDate], [song lastPlayed], [[song duration] doubleValue],
+                            [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
                             iTunesLastPlayedTime);
                         continue;
                     }
-                    ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song breif], [song postDate]);
+                    ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
                     [[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
                 }
