@@ -17,3 +17,5 @@
 + (StatisticsController*) sharedInstance;
 
 @end
+
+#define OPEN_STATS_WINDOW_AT_LAUNCH @"iScrobbler Statistics Window Open"
