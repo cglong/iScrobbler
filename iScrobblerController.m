@@ -408,6 +408,10 @@
 	NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	
 	NSLog(@"Result: %@", result);
+	if ([result length] == 0) {
+		NSLog(@"Connection failed");
+		result = [[NSString alloc] initWithString:@"FAILED\nConnection failed"];
+	}
 	
 	NSArray *splitResult = [result componentsSeparatedByString:@"\n"];
 	NSString *handshakeResult = [splitResult objectAtIndex:0];
