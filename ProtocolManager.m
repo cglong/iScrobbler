@@ -600,8 +600,14 @@ didFinishLoadingExit:
     BOOL good = ( [[self duration] floatValue] >= 30.0 &&
         ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self position] floatValue] > [pm minTimePlayed]) );
-
-    return (good);
+    
+    if ([[self artist] length] > 0 && [[self album] length] > 0 &&
+        [[self title] length] > 0)
+        return (good);
+    else
+        ScrobLog(SCROB_LOG_WARN, @"Track \"%@\" will not be submitted because it is missing "
+            @"Artist, Title, or Album information. Please correct this.", [self breif]);
+    return (NO);
 }
 
 @end
