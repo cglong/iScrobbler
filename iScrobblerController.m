@@ -48,7 +48,7 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)anItem
 {
-    ScrobTrace(@"%@", [anItem title]);
+    //ScrobTrace(@"%@", [anItem title]);
     if(CLEAR_MENUITEM_TAG == [anItem tag])
         [self mainTimer:nil];
     else if(SUBMIT_IPOD_MENUITEM_TAG == [anItem tag] &&
@@ -77,6 +77,7 @@
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
     NSDictionary *info = [note userInfo];
+    static BOOL isiTunesPlaying = NO;
     ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
     
     // We got a notification, kill the current timer
@@ -89,28 +90,32 @@
     SongData *curSong = nil;
     if ([songList count] > 0)
         curSong = [songList objectAtIndex:0];
+        
+    BOOL wasiTunesPlaying = isiTunesPlaying;
     
     BOOL isPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
     //ScrobLog(SCROB_LOG_VERBOSE, @"\t %@ hasQueued: %i\n", [curSong brief], [curSong hasQueued]);
     if (isPlaying && ![curSong hasQueued]) {
-        // iTunes gives us the track time as a quad int containing milliseconds, we need seconds
-        double trackTime = [[info objectForKey:@"Total Time"] doubleValue] / 1000.0;
+        isiTunesPlaying = YES;
         
-        // Fire the main timer again in half the track time to get it queued.
-        // Ack! Protocol implementation details exposed! Don't know how else to do this though.
-        trackTime = ceil(trackTime / 2.0); // Adjust the fire time to compensate for sub-seconds...
-        if (trackTime > [[ProtocolManager sharedInstance] minTimePlayed])
-            trackTime = [[ProtocolManager sharedInstance] minTimePlayed];
-        trackTime -= [[curSong position] doubleValue]; // and elapsed time.
-        trackTime += 5.0; // Add some fudge to make sure we get submitted when the timer fires
-        
-        ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track %@.\n", trackTime, [curSong brief]);
-        mainTimer = [[NSTimer scheduledTimerWithTimeInterval:trackTime
+        // Fire the main timer at the appropos time to get it queued.
+        double fireInterval = [curSong submitIntervalFromNow];
+        ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track '%@'.\n",
+            fireInterval, [curSong brief]);
+        mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
                         target:self
                         selector:@selector(mainTimer:)
                         userInfo:nil
                         repeats:NO] retain];
+    } else {
+        isiTunesPlaying = NO;
     }
+    
+    // The last played time updates in mainTimer are redundant when using iTunes 4.7
+    // We can get a Stopped notice when iTunes is Paused.
+    if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
+        [self setITunesLastPlayedTime:[NSDate date]];
+    ScrobTrace(@"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
 }
 
 - (void)enableStatusItemMenu:(BOOL)enable
@@ -226,13 +231,16 @@
                                                 userInfo:nil
                                                  repeats:YES] retain];
     
+// We don't need to do this right now, as the only thing that uses playlists is the prefs.
+#if 0
     // Timer to update our internal copy of iTunes playlists
     [[NSTimer scheduledTimerWithTimeInterval:300.0
         target:self
         selector:@selector(iTunesPlaylistUpdate:)
         userInfo:nil
         repeats:YES] fire];
-    
+#endif
+
     [self enableStatusItemMenu:
         [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"]];
 	
@@ -371,12 +379,14 @@
                 if (pos <  [[firstSongInList position] floatValue] &&
                      // The following conditions do not work with iTunes 4.7, since we are not
                      // constantly updating the song's position by polling iTunes. With 4.7 we update
-                     // when the the song first plays and when it's ready for submission -- that's it.
+                     // when the the song first plays, when it's ready for submission or if the user
+                     // changes some song metadata -- that's it.
                 #if 0
                      (pos <= [SongData songTimeFudge]) &&
                      // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
                      (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
                 #endif
+                     [firstSongInList hasQueued] &&
                      (pos <= [SongData songTimeFudge]) ) {
                     [songList insertObject:song atIndex:0];
                     nowPlaying = song;
@@ -511,6 +521,10 @@ mainTimerReleaseResult:
 
 -(IBAction)openPrefs:(id)sender{
     // ScrobTrace(@"opening prefs");
+    
+    // Update iTunes playlists
+    [self iTunesPlaylistUpdate:nil];
+    
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
 	
@@ -702,7 +716,6 @@ validate:
     return ([sorted autorelease]);
 }
 
-//#define IPOD_UPDATE_SCRIPT_DATE_FMT @"%A, %B %d, %Y %I:%M:%S %p"
 #define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
 #define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
 #define IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST @"Recently Played"
@@ -718,6 +731,7 @@ validate:
         NSAppleEventDescriptor *result;
         NSDictionary *errInfo, *localeInfo;
         NSTimeInterval now, fudge;
+        NSMutableString *formatString;
         unsigned int added;
         
         // Our main timer loop is only fired every 10 seconds, so we have to
@@ -732,11 +746,15 @@ validate:
         
         // AppleScript expects the date string formated according to the users's system settings
         localeInfo = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+        formatString = [NSMutableString stringWithString:[localeInfo objectForKey:NSTimeDateFormatString]];
+        // Remove the pesky human readable TZ specifier -- it causes AppleScript to fail for some locales
+        [formatString replaceOccurrencesOfString:@" %Z" withString:@""
+            options:0 range:NSMakeRange(0,[formatString length])];
         
         // Replace the date token with our last update
         [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
-            withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:
-                [localeInfo objectForKey:NSTimeDateFormatString] timeZone:nil locale:localeInfo]
+            withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:formatString
+                 timeZone:nil locale:localeInfo]
             options:0 range:NSMakeRange(0, [text length])];
         
         // Replace the default playlist with the user's choice
@@ -745,7 +763,7 @@ validate:
             options:0 range:NSMakeRange(0, [text length])];
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
-            [iTunesLastPlayedTime descriptionWithCalendarFormat:[localeInfo objectForKey:NSTimeDateFormatString]
+            [iTunesLastPlayedTime descriptionWithCalendarFormat:formatString
                 timeZone:nil locale:localeInfo]);
         // Run script
         iuscript = [[NSAppleScript alloc] initWithSource:text];
