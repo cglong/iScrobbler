@@ -394,11 +394,12 @@
 	//NSLog(@"host: %@",[nsurl host]);
 	//NSLog(@"query: %@", [nsurl query]);
 	
-	CURLHandle *handshakeHandle = [CURLHandle cachedHandleForURL:nsurl];
+	CURLHandle *handshakeHandle = [CURLHandle cachedHandleForURL:nsurl];	
 	
 	// fail on errors (response code >= 300)
     [handshakeHandle setFailsOnError:YES];
-    [handshakeHandle setFollowsRedirects:YES];
+	[handshakeHandle setFollowsRedirects:YES];
+	[handshakeHandle setConnectionTimeout:30];
 	
     // Set the user-agent to something Mozilla-compatible
     [handshakeHandle setUserAgent:[prefs stringForKey:@"useragent"]];
@@ -432,7 +433,6 @@
 		[handshakeResult hasPrefix:@"UPDATE"]) {
 		[self openPrefs:self];
 	}
-	[handshakeHandle release];
 }
 
 - (void)sendData

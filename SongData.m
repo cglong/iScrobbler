@@ -88,14 +88,18 @@
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
 
     // URL escape relevant fields
-    //NSString * escapedtitle = [(NSString*)
-    //    CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self title], NULL,
-    //    (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+	NSString * escapedtitle = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self title], NULL,
+        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
 
-    //NSString * escapedartist = [(NSString*)
-    //    CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self artist], NULL,
-    //    (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+    NSString * escapedartist = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self artist], NULL,
+        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
 
+    NSString * escapedalbum = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[self album], NULL,
+        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+		
     // If the file isn't already in the queue, then assume this is the first real
     // post generation, and create a new postDate. Otherwise, assume we are already
     // in the queue, and that a new postDate isn't necessary.
@@ -106,10 +110,10 @@
 /*    NSString * escapeddate = [(NSString*) CFURLCreateStringByAddingPercentEscapes(NULL, 	(CFStringRef)[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]], NULL, (CFStringRef)@"&+", 	kCFStringEncodingUTF8) autorelease]; */
     
     // populate the dictionary
-    [dict setObject:[self title] forKey:[NSString stringWithFormat:@"t[%i]", submissionNumber]];
+    [dict setObject:escapedtitle forKey:[NSString stringWithFormat:@"t[%i]", submissionNumber]];
     [dict setObject:[self duration] forKey:[NSString stringWithFormat:@"l[%i]", submissionNumber]];
-    [dict setObject:[self artist] forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
-    [dict setObject:[self album] forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
+    [dict setObject:escapedartist forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
+    [dict setObject:escapedalbum forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
     [dict setObject:@"" forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
     [dict setObject:[[self postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
 
