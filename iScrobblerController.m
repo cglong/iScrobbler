@@ -374,8 +374,6 @@
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
 	
-    [preferenceController takeValue:[[ProtocolManager sharedInstance] lastSubmissionResult] forKey:@"lastResult"];
-	
     [NSApp activateIgnoringOtherApps:YES];
     [preferenceController showPreferencesWindow];
 }

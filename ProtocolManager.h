@@ -11,12 +11,12 @@
 
 #import "SongData.h"
 
-@class CURLHandle;
 @class KeyChain;
+@protocol ProtocolManagerDelgate;
 
 // This is an abstract class cluster
 
-@interface ProtocolManager : NSObject <NSURLHandleClient> {
+@interface ProtocolManager : NSObject {
     NSUserDefaults *prefs;
     
 @private
@@ -33,8 +33,10 @@
     // Resubmission timer
     NSTimer *resubmitTimer;
     KeyChain *myKeyChain;
-    //the CURLHandle object that will do the data transmission
-    CURLHandle *myURLHandle;
+    // The  object that will do the data transmission
+    NSURLConnection *myConnection;
+    // Received data
+    NSMutableData *myData;
     // Handshake state
     enum {hs_needed, hs_inprogress, hs_delay, hs_valid} hsState;
     // Dealy time until next Handshake attempt
@@ -68,6 +70,13 @@
 - (BOOL)validHandshake;
 
 - (BOOL)updateAvailable;
+
+@end
+
+@protocol ProtocolManagerDelgate
+
+- (NSString*)proxyUserName;
+- (NSString*)proxyUserAuthentication;
 
 @end
 

@@ -7,11 +7,11 @@
 //  http://iscrobbler.sourceforge.net
 //
 
+#import <SystemConfiguration/SystemConfiguration.h>
+
 #import "ProtocolManager.h"
 #import "ProtocolManager+Subclassers.h"
 #import "ProtocolManager_v11.h"
-#import <CURLHandle/CURLHandle.h>
-#import <CURLHandle/CURLHandle+extras.h>
 #import "keychain.h"
 #import "QueueManager.h"
 #import "SongData.h"
@@ -27,7 +27,6 @@
 - (void)setHandshakeResult:(NSDictionary*)result;
 - (void)setSubmitResult:(NSDictionary*)result;
 - (void)setLastSongSubmitted:(SongData*)song;
-- (void)setURLHandle:(CURLHandle *)inURLHandle;
 - (NSString*)md5Challenge;
 - (NSString*)submitURL;
 
@@ -40,6 +39,7 @@
 @end
 
 static ProtocolManager *g_PM = nil;
+static SCDynamicStoreRef g_scStore = nil;
 
 @implementation ProtocolManager
 
@@ -67,13 +67,12 @@ static ProtocolManager *g_PM = nil;
 
 - (void)killHandshake:(NSTimer*)timer
 {
-    CURLHandle *h = [[timer userInfo] objectForKey:@"Handle"];
+    NSURLConnection *h = [[timer userInfo] objectForKey:@"Handle"];
     killTimer = nil;
     
     if (hs_inprogress == hsState) {
         // Kill handshake that seems to be stuck
-        [h removeClient:self];
-        [h cancelLoadInBackground];
+        [h cancel];
         // Reset state and try again
         hsState = hs_needed;
         ScrobLog(SCROB_LOG_INFO, @"Stopped runaway handshake. Trying again...\n");
@@ -81,10 +80,8 @@ static ProtocolManager *g_PM = nil;
     }
 }
 
-- (void)completeHandshake:(NSURLHandle *)sender
+- (void)completeHandshake:(NSData *)data
 {
-    [sender flushCachedData];
-    NSData *data = [sender resourceData];
 	NSMutableString *result = [[[NSMutableString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
     // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
@@ -113,9 +110,6 @@ NS_HANDLER
 NS_ENDHANDLER
 	
 	if ([self validHandshake]) {
-		NSURL *nsurl = [NSURL URLWithString:[self submitURL]];
-		[myURLHandle setURL:nsurl];
-		
         hsState = hs_valid;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
         
@@ -165,25 +159,17 @@ NS_ENDHANDLER
 	//ScrobTrace(@"host: %@",[nsurl host]);
 	//ScrobTrace(@"query: %@", [nsurl query]);
 	
-	CURLHandle *handshakeHandle = (CURLHandle*)[CURLHandle cachedHandleForURL:nsurl];	
+    NSURLRequest *request = [NSURLRequest requestWithURL:nsurl cachePolicy:
+        NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
 	
+    NSURLConnection *connection = [NSURLConnection connectionWithRequest:request delegate:self];
+    
     // Setup timer to kill the current handhskake and reset state
     // if we've been in progress for 5 minutes
     killTimer = [NSTimer scheduledTimerWithTimeInterval:300.0 target:self
         selector:@selector(killHandshake:)
-        userInfo:[NSDictionary dictionaryWithObjectsAndKeys:handshakeHandle, @"Handle", nil]
+        userInfo:[NSDictionary dictionaryWithObjectsAndKeys:connection, @"Handle", nil]
         repeats:NO];
-    
-	// fail on errors (response code >= 300)
-    [handshakeHandle setFailsOnError:YES];
-	[handshakeHandle setFollowsRedirects:YES];
-	[handshakeHandle setConnectionTimeout:HANDSHAKE_TIMEOUT];
-	
-    // Set the user-agent to something Mozilla-compatible
-    [handshakeHandle setUserAgent:[self userAgent]];
-	
-    [handshakeHandle addClient:self];
-	[handshakeHandle loadInBackground];
 }
 
 - (NSString*)clientVersion
@@ -260,13 +246,6 @@ NS_ENDHANDLER
     lastSongSubmitted = song;
 }
 
-- (void)setURLHandle:(CURLHandle *)inURLHandle
-{
-    [inURLHandle retain];
-    [myURLHandle release];
-    myURLHandle = inURLHandle;
-}
-
 - (NSString*)md5Challenge
 {
     return ([hsResult objectForKey:HS_RESPONSE_KEY_MD5]);
@@ -319,13 +298,21 @@ NS_ENDHANDLER
         nextResubmission = [self handshakeMaxDelay];
 }
 
-// URL callbacks
-- (void)URLHandleResourceDidFinishLoading:(NSURLHandle *)sender
+// URLConnection callbacks
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+	if (!myData) {
+		myData = [[NSMutableData alloc] init];
+	}
+	[myData appendData:data];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
-    [sender removeClient:self];
-    
     if (hs_inprogress == hsState) {
-        [self completeHandshake:sender];
+        [self completeHandshake:myData];
+        [myData release];
+        myData = nil;
         return;
     }
     
@@ -341,8 +328,7 @@ NS_ENDHANDLER
     }
     
     int i;
-    NSData *data = [sender resourceData];
-    NSMutableString *result = [[[NSMutableString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+    NSMutableString *result = [[[NSMutableString alloc] initWithData:myData encoding:NSUTF8StringEncoding] autorelease];
     // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
@@ -393,39 +379,35 @@ didFinishLoadingExit:
     [inFlight release];
     inFlight = nil;
     
+    [myData release];
+    myData = nil;
+    
+    myConnection = nil;
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
 }
 
--(void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender { }
-
--(void)URLHandleResourceDidCancelLoading:(NSURLHandle *)sender
+-(void)connection:(NSURLConnection *)sender didFailWithError:(NSError *)reason
 {
-    [sender removeClient:self];
-    [self setLastSongSubmitted:nil];
-    [inFlight release];
-    inFlight = nil;
-}
-
--(void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes { }
-
--(void)URLHandle:(NSURLHandle *)sender resourceDidFailLoadingWithReason:(NSString *)reason
-{
-    [myURLHandle removeClient:self];
+    [myData release];
+    myData = nil;
     
     if (hs_inprogress == hsState) {
-        [self completeHandshake:sender];
+        [self completeHandshake:[NSData data]];
         return;
     }
     
     [self setSubmitResult:
         [NSDictionary dictionaryWithObjectsAndKeys:
         HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
-        reason, HS_RESPONSE_KEY_RESULT_MSG,
+        [reason localizedDescription], HS_RESPONSE_KEY_RESULT_MSG,
         nil]];
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
     [inFlight release];
     inFlight = nil;
+    
+    myConnection = nil;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
     
@@ -452,7 +434,12 @@ didFinishLoadingExit:
     if (inFlight)
         return;
     
-    // First things first, we must execute a server handshake before
+    if (myConnection) {
+        ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission...\n");
+        return;
+    }
+    
+    // We must execute a server handshake before
     // doing anything else. If we've already handshaked, then no
     // worries.
     if (hs_valid != hsState) {
@@ -509,42 +496,28 @@ didFinishLoadingExit:
         [dict addEntriesFromDictionary:[self encodeSong:[inFlight objectAtIndex:i] submissionNumber:i]];
     }
     
-    // fail on errors (response code >= 300)
-    [myURLHandle setFailsOnError:YES];
-    [myURLHandle setFollowsRedirects:YES];
-    
+    NSMutableURLRequest *request =
+		[NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self submitURL]]
+								cachePolicy:NSURLRequestReloadIgnoringCacheData
+							timeoutInterval:30.0];
+	[request setHTTPMethod:@"POST"];
+	[request setHTTPBody:[[dict httpPostString] dataUsingEncoding:NSUTF8StringEncoding]];
     // Set the user-agent to something Mozilla-compatible
-    [myURLHandle setUserAgent:[prefs stringForKey:@"useragent"]];
-    
-    //ScrobTrace(@"dict before sending: %@",dict);
-    // Handle "POST"
-    [myURLHandle setString:[dict httpPostString] forKey:CURLOPT_POSTFIELDS];
-    
-    // And load in background...
-    [myURLHandle addClient:self];
-    [myURLHandle loadInBackground];
+    [request setValue:[prefs stringForKey:@"useragent"] forHTTPHeaderField:@"User-Agent"];
     
     [dict release];
     
+    myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+    
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
-}
-
-- (void)applicationWillTerminate:(NSNotification*)notification
-{
-    [CURLHandle curlGoodbye];
 }
 
 - (id)init
 {
     self = [super init];
     
-    // Activate CURLHandle
-    [CURLHandle curlHelloSignature:@"net.sourceforge.iscrobbler" acceptAll:YES];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                selector:@selector(applicationWillTerminate:)
-                name:NSApplicationWillTerminateNotification
-                object:nil];
+    // Init System Config Store
+    g_scStore = SCDynamicStoreCreate(NULL, CFSTR("net.sourceforge.iscrobbler"), NULL, NULL);
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     // Indicate that we have not yet handshaked
@@ -567,17 +540,6 @@ didFinishLoadingExit:
         nil]];
     
     myKeyChain = [[KeyChain defaultKeyChain] retain];
-    
-    // Set the URL for CURLHandle
-    [self setURLHandle:(CURLHandle *)
-        [[NSURL URLWithString:[prefs stringForKey:@"url"]] URLHandleUsingCache:NO]];
-#if 0
-    [self setURLHandle:(CURLHandle *)
-        [[NSURL URLWithString:@"http://127.0.0.1/"] URLHandleUsingCache:NO]];
-    #warning Set Handshake NO
-    hsState = hs_valid;
-    [myURLHandle setURL:[NSURL URLWithString:@"http://127.0.0.1/v1.1.php"]];
-#endif
 
     // We are an abstract class, only subclasses return valid objects
     return (nil);
@@ -592,7 +554,6 @@ didFinishLoadingExit:
     [hsResult release];
     [submitResult release];
     [myKeyChain release];
-    [myURLHandle release];
 }
 
 @end

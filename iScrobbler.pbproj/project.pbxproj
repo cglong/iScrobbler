@@ -53,7 +53,8 @@
 //104
 		1058C7A0FEA54F0111CA2CBB = {
 			children = (
-				D3B61FE60744343500AF5A33,
+				D3D4746007740A760076AA7D,
+				D3D4741F077407F50076AA7D,
 				EB5069B303FBC574005DC01B,
 				EB5069B403FBC574005DC01B,
 				EB5069A903FBC43A005DC01B,
@@ -74,7 +75,6 @@
 		};
 		1058C7A2FEA54F0111CA2CBB = {
 			children = (
-				DCFFB94D05B0F84A007D210F,
 				29B97325FDCFA39411CA2CEA,
 				29B97324FDCFA39411CA2CEA,
 			);
@@ -395,16 +395,30 @@
 			settings = {
 			};
 		};
-		D3B61FE60744343500AF5A33 = {
+		D3D4741F077407F50076AA7D = {
 			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.dylib";
-			name = libcrypto.0.9.dylib;
-			path = /usr/lib/libcrypto.0.9.dylib;
+			lastKnownFileType = wrapper.framework;
+			name = SystemConfiguration.framework;
+			path = /System/Library/Frameworks/SystemConfiguration.framework;
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
-		D3B61FE70744343500AF5A33 = {
-			fileRef = D3B61FE60744343500AF5A33;
+		D3D47420077407F50076AA7D = {
+			fileRef = D3D4741F077407F50076AA7D;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D4746007740A760076AA7D = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = libcrypto.0.9.7.dylib;
+			path = /usr/lib/libcrypto.0.9.7.dylib;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		D3D4746107740A760076AA7D = {
+			fileRef = D3D4746007740A760076AA7D;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -459,26 +473,6 @@
 			settings = {
 			};
 		};
-		DC5C93B705B338AC004FAABB = {
-			fileRef = DCFFB94D05B0F84A007D210F;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		DCFFB94D05B0F84A007D210F = {
-			isa = PBXFileReference;
-			lastKnownFileType = wrapper.framework;
-			name = CURLHandle.framework;
-			path = /Library/Frameworks/CURLHandle.framework;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		DCFFB94E05B0F84A007D210F = {
-			fileRef = DCFFB94D05B0F84A007D210F;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 //DC0
 //DC1
 //DC2
@@ -513,7 +507,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				DC5C93B705B338AC004FAABB,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -638,8 +631,8 @@
 				EB5069AA03FBC43A005DC01B,
 				EB5069B503FBC574005DC01B,
 				EB5069B603FBC574005DC01B,
-				DCFFB94E05B0F84A007D210F,
-				D3B61FE70744343500AF5A33,
+				D3D47420077407F50076AA7D,
+				D3D4746107740A760076AA7D,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -663,7 +656,7 @@
 				D3EC0FA5072AF41E00C13782,
 			);
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "\"~/Library/Frameworks\"";
+				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = "";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_FLAGS = "";
