@@ -628,16 +628,15 @@ validate:
         // AppleScript expects the date string formated according to the users's system settings
         localeInfo = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
         
-        // Replace the token with our last update
-        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST
+        // Replace the date token with our last update
+        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
             withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:
                 [localeInfo objectForKey:NSTimeDateFormatString] timeZone:nil locale:localeInfo]
             options:0 range:NSMakeRange(0, [text length])];
         
-        NSString *playlist = [prefs stringForKey:@"iPod Submission Playlist"];
         // Replace the default playlist with the user's choice
         [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST
-            withString:playlist
+            withString:[prefs stringForKey:@"iPod Submission Playlist"]
             options:0 range:NSMakeRange(0, [text length])];
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
