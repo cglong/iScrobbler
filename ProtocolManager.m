@@ -378,7 +378,7 @@ NS_ENDHANDLER
         ++successfulSubmissions;
         
         // See if there are any more entries in the queue
-        if (![self useBatchSubmission] && [[QueueManager sharedInstance] count]) {
+        if ([[QueueManager sharedInstance] count]) {
             // Schedule the next sub after a minute delay
             [self performSelector:@selector(submit:) withObject:nil afterDelay:0.05];
         }
@@ -489,6 +489,12 @@ didFinishLoadingExit:
     if (submissionCount > 1 && ![self useBatchSubmission]) {
         submissionCount = 1;
         inFlight = [NSArray arrayWithObject:[inFlight objectAtIndex:0]];
+    } else if (submissionCount > 100) {
+        /* From IRC:
+           Russ​​: ...The server cuts any submission off at 1000,
+           I personally recommend you don't go over 50 or 100 in a single submission */
+        submissionCount = 100;
+        inFlight = [inFlight subarrayWithRange:NSMakeRange(0,100)];
     }
     
     [resubmitTimer invalidate];
