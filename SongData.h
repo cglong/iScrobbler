@@ -22,6 +22,7 @@
     NSNumber * pausedTime;
     NSDate * postDate;
     NSDate * lastPlayed;
+    NSNumber *rating;
     BOOL hasQueued;
     BOOL hasSeeked;
 }
@@ -96,6 +97,14 @@
 // lastPlayed is the last time iTunes played the song
 - (NSDate *)lastPlayed;
 - (void)setLastPlayed:(NSDate *)date;
+
+// Rating on a scale of 0 to 100
+- (NSNumber*)rating;
+- (void)setRating:(NSNumber*)newRating;
+// Scales rating to between 0 and 5 (as iTunes present it to the user)
+- (NSNumber*)scaledRating;
+// String of stars representing the scaled rating
+- (NSString*)starRating;
 
 - (NSNumber*)songID;
 

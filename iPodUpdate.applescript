@@ -28,7 +28,8 @@ if itunes_active is true then
 				set songLocation to location of theTrack as string
 				set songAlbum to album of theTrack as string
 				set songLastPlayed to played date of theTrack as string
-				set out to (out & ((trackIndex as string) & "***" & (playlistIndex as string) & "***" & songTitle & "***" & songLength & "***" & songPosition & "***" & songArtist & "***" & songAlbum & "***" & songLocation & "***" & songLastPlayed) as string) & "$$$"
+				set songRating to rating of theTrack as string
+				set out to (out & ((trackIndex as string) & "***" & (playlistIndex as string) & "***" & songTitle & "***" & songLength & "***" & songPosition & "***" & songArtist & "***" & songAlbum & "***" & songLocation & "***" & songLastPlayed & "***" & songRating) as string) & "$$$"
 			end if
 		end repeat
 		return out

@@ -77,10 +77,14 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
-    NSString *msg;
+    NSString *msg, *rating;
     switch (g_cycleState) {
         case title:
-            msg = [g_nowPlaying title];
+            rating = [g_nowPlaying starRating];
+            if ([rating length] > 0)
+                msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%@)", rating];
+            else
+                msg = [g_nowPlaying title];
             g_cycleState = album;
             break;
         case album:
@@ -112,6 +116,8 @@ static enum {title, album, artist} g_cycleState = title;
                 // Create the timer
                 g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
                     selector:@selector(cycleNowPlaying:) userInfo:nil repeats:YES];
+            } else {
+                [g_cycleTimer setFireDate:[NSDate dateWithTimeIntervalSinceNow:10.0]];
             }
             [g_cycleTimer fire];
         } else {

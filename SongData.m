@@ -336,9 +336,41 @@ static float songTimeFudge;
 
 - (void)setLastPlayed:(NSDate *)date
 {
-    [date retain];
-    [lastPlayed release];
-    lastPlayed = date;
+    if (date) {
+        [date retain];
+        [lastPlayed release];
+        lastPlayed = date;
+    }
+}
+
+- (NSNumber*)rating
+{
+    return (rating);
+}
+
+- (void)setRating:(NSNumber*)newRating
+{
+    [newRating retain];
+    [rating release];
+    rating = newRating;
+}
+
+- (NSNumber*)scaledRating
+{
+    return  ([NSNumber numberWithInt:[rating intValue] / 20]);
+}
+
+- (NSString*)starRating
+{
+    int r = [[self scaledRating] intValue];
+    NSMutableString *stars = [NSMutableString string];
+    
+    int i;
+    for (i = 0; i < r; ++i) {
+        [stars appendFormat:@"%C", 0x2605 /* unicode star */];
+    }
+    
+    return (stars);
 }
 
 - (NSNumber*)songID

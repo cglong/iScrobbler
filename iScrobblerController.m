@@ -210,6 +210,12 @@
 // Caller must release
 - (SongData*)createSong:(NSArray*)data
 {
+    if (10 != [data count]) {
+        ScrobLog(SCROB_LOG_WARN, @"Bad song data received.\n");
+        ScrobTrace("%@\n", data);
+        return (nil);
+    }
+    
     SongData * song = [[SongData alloc] init];
     [song setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
         floatValue]]];
@@ -221,9 +227,10 @@
     [song setArtist:[data objectAtIndex:5]];
     [song setAlbum:[data objectAtIndex:6]];
     [song setPath:[data objectAtIndex:7]];
-    if (9 == [data count])
-        [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
-            locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
+    [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
+        locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
+    [song setRating:[NSNumber numberWithInt:[[data objectAtIndex:9] intValue]]];
+    
     [song setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[song position] doubleValue]]];
     //ScrobTrace(@"SongData allocated and filled");
     return (song);
@@ -299,7 +306,7 @@
                 } else {
                     [firstSongInList setPosition:[song position]];
                     [firstSongInList setLastPlayed:[song lastPlayed]];
-                    [firstSongInList setHasSeeked];
+                    [firstSongInList setRating:[song rating]];
                     [[QueueManager sharedInstance] queueSong:firstSongInList];
                 }
             } else {
