@@ -12,6 +12,7 @@
 @interface ISSearchArrayController : NSArrayController
 {
     IBOutlet NSSearchField *searchField;
+    IBOutlet id tableView;
     NSString *searchString;
 }
 
@@ -20,5 +21,10 @@
 - (NSString *)searchString;
 - (void)setSearchString:(NSString *)string;
 - (BOOL)isSearchInProgress;
+
+// Drag and Drop support
+- (BOOL)tableView:(NSTableView *)tv writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard;
+- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(int)row
+    dropOperation:(NSTableViewDropOperation)op;
 
 @end

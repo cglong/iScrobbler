@@ -8,7 +8,24 @@
 //
 #import "ISSearchArrayController.h"
 
+@interface NSTableView (ISPasteboardCopyAddition)
+- (void)copy:(id)sender;
+// Aren't really supposed to use Categories to override methods, but screw it.
+- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal;
+@end
+
+@interface NSIndexSet (ISArrayAdditions)
+- (NSArray*)arrayOfIndexes;
+@end
+
 @implementation ISSearchArrayController
+
+- (void)awakeFromNib
+{
+    // register for drag and drop
+    [tableView registerForDraggedTypes:[NSArray arrayWithObjects:NSTabularTextPboardType, NSStringPboardType, nil]];
+    NSLog(@"%@\n", tableView);
+}
 
 - (IBAction)search:(id)sender
 {
@@ -35,7 +52,8 @@
         id value, key;
         while ((key = [keyenum nextObject])) {
             value = [obj objectForKey:key];
-            if ([value isKindOfClass:nsstringClass]) {
+            /* ACK! Internal knowledge of dict. */
+            if ([value isKindOfClass:nsstringClass] && ![key isEqualToString:@"Play Time"]) {
                 [keyString appendString:[value lowercaseString]];
             }
         }
@@ -46,8 +64,6 @@
         [keyString setString:@""];
     }
     
-    // Hack! The search field loses focus, presumbably because the table takes it while the contents are refreshed.
-    //[[NSApp keyWindow] performSelector:@selector(makeFirstResponder:) withObject:searchField afterDelay:0.02];
     return ([super arrangeObjects:matches]);
 }
 
@@ -68,6 +84,94 @@
 - (BOOL)isSearchInProgress
 {
     return (searchString && [searchString length]);
+}
+
+- (BOOL)tableView:(NSTableView *)table writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard
+{
+    [pboard declareTypes:[NSArray arrayWithObjects:NSTabularTextPboardType, NSStringPboardType, nil] owner:self];
+    NSLog(@"tableView:writeRows:\n");
+    NSArray *objects = [self arrangedObjects], *dataKeys = nil;
+    NSEnumerator *en = [rows objectEnumerator];
+    NSNumber *idx;
+    NSDictionary *data;
+    BOOL headers = YES;
+    id key, value;
+    int i;
+    // Copy the dict data into text
+    NSMutableString *textData = [NSMutableString string];
+    while ((idx = [en nextObject])) {
+        data = [objects objectAtIndex:[idx intValue]];
+        // Note: We only get the keys from one object, so that our tabulated colmns contain the correct data
+        if (!dataKeys)
+            dataKeys = [[data allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+        if (headers) {
+            // Add keys into text
+            for (i = 0; i < [dataKeys count]; ++i) {
+                key = [dataKeys objectAtIndex:i];
+                if (![key isEqualToString:@"Play Time"]) /* ACK! Internal knowledge of dict. */
+                    [textData appendFormat:@"%@\t", key];
+            }
+            // Replace the last tab with a newline
+            [textData replaceCharactersInRange:NSMakeRange([textData length]-1, 1) withString:@"\n"];
+            headers = NO;
+        }
+        
+        // Add values into text
+        for (i = 0; i < [dataKeys count]; ++i) {
+            key = [dataKeys objectAtIndex:i];
+            if (![key isEqualToString:@"Play Time"]) { /* ACK! Internal knowledge of dict. */ 
+                value = [data objectForKey:[dataKeys objectAtIndex:i]];
+                [textData appendFormat:@"%@\t", value];
+            }
+        }
+        // Replace the last tab with a newline
+        [textData replaceCharactersInRange:NSMakeRange([textData length]-1, 1) withString:@"\n"];
+    }
+    
+    // Just in case the receiver does not accept TabText type
+    (void)[pboard setString:textData forType:NSStringPboardType];
+    (void)[pboard setString:textData forType:NSTabularTextPboardType];
+    
+    return (YES);
+}
+
+- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(int)row
+    dropOperation:(NSTableViewDropOperation)op
+{
+    return (NO);
+}
+
+@end
+
+@implementation NSTableView (ISPasteboardCopyAddition)
+
+- (void)copy:(id)sender
+{
+    NSArray *idxs = [[self selectedRowIndexes] arrayOfIndexes];
+    (void)[[self delegate] tableView:self writeRows:idxs toPasteboard:[NSPasteboard generalPasteboard]];
+}
+
+- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal
+{
+    if (isLocal)
+        return (NSDragOperationNone);
+    
+    return (NSDragOperationCopy);
+}
+
+@end
+
+@implementation NSIndexSet (ISArrayAdditions)
+
+- (NSArray*)arrayOfIndexes
+{
+    NSMutableArray *array = [NSMutableArray array];
+
+    unsigned idx = [self firstIndex];
+    for (; NSNotFound != idx; idx = [self indexGreaterThanIndex:idx])
+        [array addObject:[NSNumber numberWithUnsignedInt:idx]];
+
+    return (array);
 }
 
 @end
