@@ -4,6 +4,7 @@
         {
             ACTIONS = {
                 clearMenu = id; 
+                helpRequest = id; 
                 openPrefs = id; 
                 openScrobblerHomepage = id; 
                 openUserHomepage = id; 

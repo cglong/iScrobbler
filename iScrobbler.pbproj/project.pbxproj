@@ -66,6 +66,8 @@
 				07E68F2E072FF9DD00A9321A,
 				07E68E30072F8C7600A9321A,
 				07E68E31072F8C7600A9321A,
+				D312F983073C32DE00A2CFD5,
+				D312F988073C32F600A2CFD5,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -182,7 +184,7 @@
 		};
 		07E68E41072F8C7600A9321A = {
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			path = Info.plist;
 			refType = 4;
 			sourceTree = "<group>";
@@ -435,12 +437,14 @@
 		};
 		29B97317FDCFA39411CA2CEA = {
 			children = (
+				D312F986073C32F600A2CFD5,
 				07E68E41072F8C7600A9321A,
 				07E68DFF072F8BF600A9321A,
 				29B97318FDCFA39411CA2CEA,
 				07E68F2D072FF9DD00A9321A,
 				07E68F32072FFF0100A9321A,
 				F5D8D308030C568001A80164,
+				D312F982073C32DE00A2CFD5,
 				089C165CFE840E0CC02AAC07,
 				DC00A46205B21B9200674DB4,
 			);
@@ -533,6 +537,54 @@
 //4A2
 //4A3
 //4A4
+//D30
+//D31
+//D32
+//D33
+//D34
+		D312F982073C32DE00A2CFD5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.applescript;
+			path = iPodUpdate.applescript;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312F983073C32DE00A2CFD5 = {
+			fileRef = D312F982073C32DE00A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312F986073C32F600A2CFD5 = {
+			children = (
+				D312F987073C32F600A2CFD5,
+			);
+			isa = PBXVariantGroup;
+			name = iPodLimitations.rtf;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312F987073C32F600A2CFD5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.rtf;
+			name = English;
+			path = English.lproj/iPodLimitations.rtf;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312F988073C32F600A2CFD5 = {
+			fileRef = D312F986073C32F600A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+//D30
+//D31
+//D32
+//D33
+//D34
 //DC0
 //DC1
 //DC2

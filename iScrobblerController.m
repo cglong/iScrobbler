@@ -20,6 +20,7 @@
 #define AUDIOSCROBBLER_HOMEPAGE_MENUITEM_TAG	1
 #define USER_STATISTICS_MENUITEM_TAG			2
 #define PREFERENCES_MENUITEM_TAG				3
+#define HELP_IPOD_SUPPORT_MENUITEM_TAG          99999
 
 #define MAIN_TIMER_INTERVAL 10
 
@@ -112,7 +113,7 @@ void ISLog(NSString *function, NSString *format, ...) {
 		@"http://post.audioscrobbler.com/", @"url",
 		@"osx", @"clientid",
 		@"1.1", @"protocol",
-		@"0.7.0", @"version",
+		@"0.8.0", @"version",
 		nil];
 	[[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
 }
@@ -144,6 +145,12 @@ void ISLog(NSString *function, NSString *format, ...) {
 	
     [_iTunesUpdateTimer fire]; // make sure we update from iTunes immediately on load.
     [[self submissionController] scheduleSubmissionTimerIfNeeded]; // start submitting if necessary.
+    
+    // Register for mounts and unmounts (iPod support)
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+        selector:@selector(deviceDidMount:) name:NSWorkspaceDidMountNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+        selector:@selector(deviceDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
 }
 
 - (void)dealloc{
@@ -321,6 +328,22 @@ void ISLog(NSString *function, NSString *format, ...) {
 }
 
 #pragma mark -
+
+- (IBAction)helpRequest:(id)sender
+{
+    if ([sender respondsToSelector:@selector(tag)]) {
+        unsigned tag = [sender tag];
+        
+        switch (tag) {
+            case HELP_IPOD_SUPPORT_MENUITEM_TAG:
+            
+            break;
+            
+            default:
+            break;
+        }
+    }
+}
 
 - (IBAction)playSong:(id)sender{
     int index = [[sender menu] indexOfItem:sender];
