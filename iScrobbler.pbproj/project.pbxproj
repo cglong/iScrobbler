@@ -904,6 +904,7 @@
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
+			lineEnding = 0;
 			path = PreferenceController.m;
 			refType = 4;
 			sourceTree = "<group>";
