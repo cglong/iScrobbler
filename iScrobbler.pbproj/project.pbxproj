@@ -9,9 +9,7 @@
 			children = (
 				F575CE9702FE0E8801A80164,
 				F575CEAA02FF7F3501A80164,
-				EB506A5B03FBF354005DC01B,
 				EB50662D03FBB239005DC01B,
-				EB3E2C0204360335005DC01B,
 				EB607519042A747B005DC01B,
 				D312EB560735548F00A2CFD5,
 				D312EDA007359DE000A2CFD5,
@@ -601,34 +599,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		EB3E2C0104360335005DC01B = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			path = SongTableView.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		EB3E2C0204360335005DC01B = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			path = SongTableView.m;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		EB3E2C0304360335005DC01B = {
-			fileRef = EB3E2C0104360335005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		EB3E2C0404360335005DC01B = {
-			fileRef = EB3E2C0204360335005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		EB45285C040A8D11005DC01B = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -643,12 +613,8 @@
 				EB50663003FBB284005DC01B,
 				EB5065F903FB7F83005DC01B,
 				EB5065FB03FB7F86005DC01B,
-				EB506A5C03FBF354005DC01B,
 				EBDF4CE7040094E5005DC01B,
 				EB60751A042A747B005DC01B,
-				EB3E2C0304360335005DC01B,
-				EB774698043C96FB005DC01B,
-				EB7746A2043C9839005DC01B,
 				D312EB570735548F00A2CFD5,
 				D312EDA107359DE000A2CFD5,
 				D312EDA407359E0A00A2CFD5,
@@ -681,9 +647,7 @@
 				EB5065FA03FB7F84005DC01B,
 				EB5065FC03FB7F87005DC01B,
 				EB5065FD03FB7FD5005DC01B,
-				EB506A5D03FBF354005DC01B,
 				EB60751B042A747B005DC01B,
-				EB3E2C0404360335005DC01B,
 				D312EB580735548F00A2CFD5,
 				D312EDA207359DE000A2CFD5,
 				D312EE020735A78D00A2CFD5,
@@ -877,11 +841,7 @@
 			children = (
 				F575CE9802FE0E8801A80164,
 				F575CEAB02FF7F3501A80164,
-				EB506A5A03FBF354005DC01B,
-				EB774696043C96FB005DC01B,
-				EB7746A0043C9839005DC01B,
 				EB50662F03FBB284005DC01B,
-				EB3E2C0104360335005DC01B,
 				EB607518042A747B005DC01B,
 				D312EB550735548F00A2CFD5,
 				D312ED9F07359DE000A2CFD5,
@@ -938,34 +898,6 @@
 			settings = {
 			};
 		};
-		EB506A5A03FBF354005DC01B = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			path = "NSString+parse.h";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		EB506A5B03FBF354005DC01B = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			path = "NSString+parse.m";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		EB506A5C03FBF354005DC01B = {
-			fileRef = EB506A5A03FBF354005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		EB506A5D03FBF354005DC01B = {
-			fileRef = EB506A5B03FBF354005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		EB607518042A747B005DC01B = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -992,34 +924,6 @@
 		};
 		EB60751B042A747B005DC01B = {
 			fileRef = EB607519042A747B005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		EB774696043C96FB005DC01B = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			path = "CURLHandle+SpecialEncoding.h";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		EB774698043C96FB005DC01B = {
-			fileRef = EB774696043C96FB005DC01B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		EB7746A0043C9839005DC01B = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			path = "NSDictionary+httpEncoding.h";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		EB7746A2043C9839005DC01B = {
-			fileRef = EB7746A0043C9839005DC01B;
 			isa = PBXBuildFile;
 			settings = {
 			};
