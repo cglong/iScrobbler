@@ -73,7 +73,7 @@ static StatisticsController *g_sub;
             object:nil];
     
     // Raise level so the window is pretty much in front of everything.
-    [[self window] setLevel:NSModalPanelWindowLevel];
+    //[[self window] setLevel:NSModalPanelWindowLevel];
     [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"iScrobbler Statistics Window Open"];
