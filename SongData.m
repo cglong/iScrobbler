@@ -9,8 +9,19 @@
 #import "SongData.h"
 
 static unsigned int g_songID = 0;
+static float songTimeFudge;
 
 @implementation SongData
+
++ (float)songTimeFudge
+{
+    return (songTimeFudge);
+}
+
++ (void)setSongTimeFudge:(float)fudge
+{
+    songTimeFudge = fudge;
+}
 
 - (id)init
 {
@@ -121,6 +132,7 @@ static unsigned int g_songID = 0;
 #define SD_KEY_PATH @"Path"
 #define SD_KEY_POST @"Post Time"
 #define SD_KEY_LASTPLAYED @"Last Played"
+#define SD_KEY_STARTTIME @"Start Time"
 - (NSDictionary*)songData
 {
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -133,6 +145,7 @@ static unsigned int g_songID = 0;
         [self path], SD_KEY_PATH,
         [self postDate], SD_KEY_POST,
         [self lastPlayed], SD_KEY_LASTPLAYED,
+        [self startTime], SD_KEY_STARTTIME,
         SD_MAGIC, SD_KEY_MAGIC,
         nil];
     return (d);
@@ -150,6 +163,8 @@ static unsigned int g_songID = 0;
         [self setPath:[data objectForKey:SD_KEY_PATH]];
         [self setPostDate:[data objectForKey:SD_KEY_POST]];
         [self setLastPlayed:[data objectForKey:SD_KEY_LASTPLAYED]];
+        if ([data objectForKey:SD_KEY_STARTTIME])
+            [self setStartTime:[data objectForKey:SD_KEY_STARTTIME]];
         return (YES);
     }
     
@@ -219,7 +234,6 @@ static unsigned int g_songID = 0;
 - (void)setPosition:(NSNumber *)newPosition
 {
     [newPosition retain];
-    [position release];
     position = newPosition;
 }
 
@@ -332,6 +346,24 @@ static unsigned int g_songID = 0;
     return ([NSNumber numberWithUnsignedInt:songID]);
 }
 
+- (BOOL)hasSeeked
+{
+    return (hasSeeked);
+}
+
+- (void)setHasSeeked
+{
+// This is broken by pausing the song -- need to work something out
+#if 0
+    float pos = [position floatValue];
+    //NSDate *now = [NSDate date];
+    double delta = round([lastPlayed timeIntervalSince1970] - [startTime timeIntervalSince1970]);
+    
+    if (!hasSeeked && startTime && (pos < delta || pos > (delta + songTimeFudge)))
+        hasSeeked = YES;
+#endif
+}
+
 - (void)dealloc
 {
     [trackIndex release];
@@ -347,5 +379,17 @@ static unsigned int g_songID = 0;
     [lastPlayed release];
     [super dealloc];
 }    
+
+@end
+
+@implementation SongData (SongDataComparisons)
+
+- (BOOL)hasPlayedAgain:(SongData*)song
+{
+    return ( [self isEqualToSong:song] &&
+             // And make sure the duration is valid
+             [[song lastPlayed] timeIntervalSince1970] >
+             ([[self lastPlayed] timeIntervalSince1970] + [[song duration] doubleValue]) );
+}
 
 @end

@@ -19,11 +19,16 @@
     NSString * album;
     NSString * path;
     NSDate * startTime;
-    BOOL hasQueued;
     NSNumber * pausedTime;
     NSDate * postDate;
     NSDate * lastPlayed;
+    BOOL hasQueued;
+    BOOL hasSeeked;
 }
+
+// Value to pad time calculations with
++ (float)songTimeFudge;
++ (void)setSongTimeFudge:(float)fudge;
 
 // returns a float value between 0 and 100 indicating how much of the song
 // has been played as a percent
@@ -94,8 +99,17 @@
 
 - (NSNumber*)songID;
 
+- (BOOL)hasSeeked;
+- (void)setHasSeeked;
+
 // Used for persistent cache storage
 - (NSDictionary*)songData;
 - (BOOL)setSongData:(NSDictionary*)data;
+
+@end
+
+@interface SongData (SongDataComparisons)
+
+- (BOOL)hasPlayedAgain:(SongData*)song;
 
 @end
