@@ -41,7 +41,7 @@ static TopListsController *g_topLists = nil;
     // Top Artists
     en = [[topArtistsController content] objectEnumerator];
     while ((entry = [en nextObject])) {
-        if ([artist isEqualToString:[entry objectForKey:@"Artist"]]) {
+        if (NSOrderedSame == [artist caseInsensitiveCompare:[entry objectForKey:@"Artist"]]) {
             count = [entry objectForKey:@"Play Count"];
             count = [NSNumber numberWithUnsignedInt:
                 [count unsignedIntValue] + 1];
@@ -84,8 +84,8 @@ static TopListsController *g_topLists = nil;
     id lastPlayedDate = [[song startTime] addTimeInterval:[[song duration] doubleValue]];
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
-        if ([artist isEqualToString:[entry objectForKey:@"Artist"]] &&
-             [track isEqualToString:[entry objectForKey:@"Track"]]) {
+        if (NSOrderedSame == [artist caseInsensitiveCompare:[entry objectForKey:@"Artist"]] &&
+             NSOrderedSame == [track caseInsensitiveCompare:[entry objectForKey:@"Track"]]) {
             count = [entry objectForKey:@"Play Count"];
             count = [NSNumber numberWithUnsignedInt:
                 [count unsignedIntValue] + 1];

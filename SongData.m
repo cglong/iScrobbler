@@ -105,9 +105,9 @@ static float songTimeFudge;
 
 - (BOOL)isEqualToSong:(SongData*)song
 {
-    return ([[self title] isEqualToString:[song title]] &&
-             [[self artist] isEqualToString:[song artist]] && 
-             [[self album] isEqualToString:[song album]]);
+    return (NSOrderedSame == [[self title] caseInsensitiveCompare:[song title]] &&
+             NSOrderedSame == [[self artist] caseInsensitiveCompare:[song artist]] && 
+             NSOrderedSame == [[self album] caseInsensitiveCompare:[song album]]);
 }
 
 - (NSString*)brief
