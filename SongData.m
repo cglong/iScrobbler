@@ -7,6 +7,7 @@
 //
 
 #import "SongData.h"
+#import "ScrobLog.h"
 
 static unsigned int g_songID = 0;
 static float songTimeFudge;
@@ -53,7 +54,7 @@ static float songTimeFudge;
 // Override copyWithZone so we can return copies of the object.
 - (id)copyWithZone: (NSZone *)zone
 {
-    id copy = [[[self class] alloc] init];
+    SongData *copy = [[[self class] alloc] init];
 
     [copy setArtist:[self artist]];
     [copy setTrackIndex:[self trackIndex]];
@@ -135,36 +136,72 @@ static float songTimeFudge;
 #define SD_KEY_STARTTIME @"Start Time"
 - (NSDictionary*)songData
 {
+    NSString *ptitle, *palbum, *partist, *ppath;
+    NSNumber *ptrackIndex, *pplaylistIndex, *pduration;
+    NSDate *ppostDate, *plastPlayed, *pstartTime;
+    
+    ptitle = [self title];
+    palbum = [self album];
+    partist = [self artist];
+    ptrackIndex = [self trackIndex];
+    pplaylistIndex = [self playlistIndex];
+    pduration = [self duration];
+    ppath = [self path];
+    ppostDate = [self postDate];
+    plastPlayed = [self lastPlayed];
+    pstartTime = [self startTime];
+    
+    if (!ptitle || !partist || !pduration || !ppostDate) {
+        ScrobLog(SCROB_LOG_WARN, @"Can't create peristent song data for '%@'\n", [self brief]);
+        return (nil);
+    }
+    
+    if (!pstartTime)
+        pstartTime = ppostDate;
+    if (!plastPlayed)
+        plastPlayed = [pstartTime addTimeInterval:[pduration doubleValue]];
+    
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
-        [self title], SD_KEY_TITLE,
-        [self album], SD_KEY_ALBUM,
-        [self artist], SD_KEY_ARTIST,
-        [self trackIndex], SD_KEY_INDEX,
-        [self playlistIndex], SD_KEY_PLAYLIST,
-        [self duration], SD_KEY_DURATION,
-        [self path], SD_KEY_PATH,
-        [self postDate], SD_KEY_POST,
-        [self lastPlayed], SD_KEY_LASTPLAYED,
-        [self startTime], SD_KEY_STARTTIME,
         SD_MAGIC, SD_KEY_MAGIC,
+        ptitle, SD_KEY_TITLE,
+        palbum ? palbum : @"", SD_KEY_ALBUM,
+        partist, SD_KEY_ARTIST,
+        ptrackIndex ? ptrackIndex : [NSNumber numberWithInt:0], SD_KEY_INDEX,
+        pplaylistIndex ? pplaylistIndex : [NSNumber numberWithInt:0], SD_KEY_PLAYLIST,
+        pduration, SD_KEY_DURATION,
+        ppath ? ppath : @"", SD_KEY_PATH,
+        ppostDate, SD_KEY_POST,
+        plastPlayed, SD_KEY_LASTPLAYED,
+        pstartTime, SD_KEY_STARTTIME,
         nil];
     return (d);
 }
 
 - (BOOL)setSongData:(NSDictionary*)data
 {
-    if ([SD_MAGIC isEqualToNumber:[data objectForKey:SD_KEY_MAGIC]]) {
-        [self setTitle:[data objectForKey:SD_KEY_TITLE]];
-        [self setAlbum:[data objectForKey:SD_KEY_ALBUM]];
-        [self setArtist:[data objectForKey:SD_KEY_ARTIST]];
-        [self setTrackIndex:[data objectForKey:SD_KEY_INDEX]];
-        [self setPlaylistIndex:[data objectForKey:SD_KEY_PLAYLIST]];
-        [self setDuration:[data objectForKey:SD_KEY_DURATION]];
-        [self setPath:[data objectForKey:SD_KEY_PATH]];
-        [self setPostDate:[data objectForKey:SD_KEY_POST]];
-        [self setLastPlayed:[data objectForKey:SD_KEY_LASTPLAYED]];
-        if ([data objectForKey:SD_KEY_STARTTIME])
-            [self setStartTime:[data objectForKey:SD_KEY_STARTTIME]];
+    NSNumber *magic = [data objectForKey:SD_KEY_MAGIC];
+    id obj;
+    if (magic && [SD_MAGIC isEqualToNumber:magic]) {
+        if ((obj = [data objectForKey:SD_KEY_TITLE]))
+            [self setTitle:obj];
+        if ((obj = [data objectForKey:SD_KEY_ALBUM]))
+            [self setAlbum:obj];
+        if ((obj = [data objectForKey:SD_KEY_ARTIST]))
+            [self setArtist:obj];
+        if ((obj = [data objectForKey:SD_KEY_INDEX]))
+            [self setTrackIndex:obj];
+        if ((obj = [data objectForKey:SD_KEY_PLAYLIST]))
+            [self setPlaylistIndex:obj];
+        if ((obj = [data objectForKey:SD_KEY_DURATION]))
+            [self setDuration:obj];
+        if ((obj = [data objectForKey:SD_KEY_PATH]))
+            [self setPath:obj];
+        if ((obj = [data objectForKey:SD_KEY_POST]))
+            [self setPostDate:obj];
+        if ((obj = [data objectForKey:SD_KEY_LASTPLAYED]))
+            [self setLastPlayed:obj];
+        if ((obj = [data objectForKey:SD_KEY_STARTTIME]))
+            [self setStartTime:obj];
         return (YES);
     }
     
