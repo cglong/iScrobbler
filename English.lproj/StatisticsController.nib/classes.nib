@@ -4,7 +4,7 @@
         {
             CLASS = StatisticsController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {values = id; }; 
+            OUTLETS = {nowPlayingText = id; values = id; }; 
             SUPERCLASS = NSWindowController; 
         }
     ); 

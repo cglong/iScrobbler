@@ -10,8 +10,12 @@
 #import "StatisticsController.h"
 #import "ProtocolManager.h"
 #import "QueueManager.h"
+#import "iScrobblerController.h"
 
-static StatisticsController *g_sub;
+static StatisticsController *g_sub = nil;
+static SongData *g_nowPlaying = nil;
+static NSTimer *g_cycleTimer = nil;
+static enum {title, album, artist} g_cycleState = title;
 
 @implementation StatisticsController
 
@@ -71,6 +75,55 @@ static StatisticsController *g_sub;
         forKey:@"Tracks Queued"];
 }
 
+- (void)cycleNowPlaying:(NSTimer *)timer
+{
+    NSString *msg;
+    switch (g_cycleState) {
+        case title:
+            msg = [g_nowPlaying title];
+            g_cycleState = album;
+            break;
+        case album:
+            msg = [g_nowPlaying album];
+            g_cycleState = artist;
+            break;
+        case artist:
+            msg = [g_nowPlaying artist];
+            g_cycleState = title;
+            break;
+    }
+    
+    // It would be cool if we could do some text alpha fading when the msg changes,
+    // but that's too much work...
+    [nowPlayingText setStringValue:msg];
+}
+
+- (void)nowPlaying:(NSNotification*)note
+{
+    SongData *song = [note object];
+    
+    if (!song || ![g_nowPlaying isEqualToSong:song]) {
+        [g_nowPlaying release];
+        g_nowPlaying = [song retain];
+        g_cycleState = title;
+        
+        if (g_nowPlaying) {
+            if (!g_cycleTimer) {
+                // Create the timer
+                g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
+                    selector:@selector(cycleNowPlaying:) userInfo:nil repeats:YES];
+            }
+            [g_cycleTimer fire];
+        } else {
+            [g_cycleTimer invalidate];
+            g_cycleTimer = nil;
+            [nowPlayingText setStringValue:
+                // 0x2026 == Unicode elipses
+                [NSLocalizedString(@"Waiting for track", "") stringByAppendingFormat:@"%C", 0x2026]];
+        }
+    }
+}
+
 - (IBAction)showWindow:(id)sender
 {
     // Register for PM notifications
@@ -87,14 +140,20 @@ static StatisticsController *g_sub;
             selector:@selector(songQueuedHandler:)
             name:QM_NOTIFICATION_SONG_QUEUED
             object:nil];
+    // And Now Playing
+    [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(nowPlaying:)
+            name:@"Now Playing"
+            object:nil];
     
-    // Raise level so the window is pretty much in front of everything.
-    //[[self window] setLevel:NSModalPanelWindowLevel];
     [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"iScrobbler Statistics Window Open"];
     
     [super showWindow:sender];
+    
+    // This will fire off a Now Playing notification
+    [[NSApp delegate] mainTimer:nil];
     
     // Set current values
     [self submitCompleteHandler:nil];
@@ -107,6 +166,11 @@ static StatisticsController *g_sub;
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"iScrobbler Statistics Window Open"];
+    
+    [g_cycleTimer invalidate];
+    g_cycleTimer = nil;
+    [g_nowPlaying release];
+    g_nowPlaying = nil;
 }
 
 @end

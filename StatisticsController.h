@@ -12,6 +12,7 @@
 @interface StatisticsController : NSWindowController
 {
     IBOutlet id values;
+    IBOutlet id nowPlayingText;
 }
 
 + (StatisticsController*) sharedInstance;

@@ -238,7 +238,8 @@
     if( nil != executionResult )
     {
         NSString *result=[[NSString alloc] initWithString:[ executionResult stringValue]];
-	
+        SongData *nowPlaying = nil;
+        
     //ScrobTrace(@"timer fired");
     //ScrobTrace(@"%@",result);
     
@@ -275,6 +276,7 @@
         {
             ScrobLog(SCROB_LOG_VERBOSE, @"adding first item");
             [songList insertObject:song atIndex:0];
+            nowPlaying = song;
         }
         else
         {
@@ -285,12 +287,15 @@
             if ([song isEqualToSong:firstSongInList]) {
                 // Determine if the song is being played twice (or more in a row)
                 float pos = [[song position] floatValue];
+                nowPlaying = firstSongInList;
+                
                 if (pos <  [[firstSongInList position] floatValue] &&
                      (pos <= [SongData songTimeFudge]) &&
                      // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
                      (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
                      <= [SongData songTimeFudge]) ) {
                     [songList insertObject:song atIndex:0];
+                    nowPlaying = song;
                 } else {
                     [firstSongInList setPosition:[song position]];
                     [firstSongInList setLastPlayed:[song lastPlayed]];
@@ -326,6 +331,8 @@
                     [songList removeObjectAtIndex:found];
                     [songList insertObject:song atIndex:0];
                 }
+                
+                nowPlaying = song;
             }
         }
         // If there are more items in the list than the user wanted
@@ -340,6 +347,10 @@
     }
     
 mainTimerReleaseResult:
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
+        object:nowPlaying userInfo:nil];
+
     [result release];
     //ScrobTrace(@"result released");
     }
