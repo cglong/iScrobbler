@@ -114,9 +114,15 @@
 	
 - (void)savePrefs
 {
-	[[NSUserDefaultsController sharedUserDefaultsController] save:self];
+    NSString *oldUserName = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
+    
+    [[NSUserDefaultsController sharedUserDefaultsController] save:self];
 	
 	NSString *username = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
+    
+    if (![oldUserName isEqualToString:username])
+        [[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:oldUserName];
+    
 	if(![[passwordField stringValue] isEqualToString:@""])
 	{
 		[[KeyChain defaultKeyChain] setGenericPassword:[passwordField stringValue]
