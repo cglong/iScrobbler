@@ -17,6 +17,7 @@ v1.0.0 (BDB and ECS)
 - The client log level can now be set from the Preferences window. (Note: If you hover over each menu item long enough, a tool tip will appear explaining the meaning of each level.)
 - The iTunes scripts no longer return file path info (it was never used in iScrobbler proper anyway).
 - Human readable time zones are no longer included in the date strings we give to AppleScript. They are not necessary, and were just causing problems.
+- More robust persitent cache and handling of bad track data.
 
 v0.7.5 (BDB)
 - Fixed a bug that caused us to URL encode HTTP post data twice. This bug has been around since the first iScrobbler release, but the old submission server had its own bug that canceled out our double encoding. However, the new Java submission server "fixed" this bug and so our double encoded strings started causing URL escape sequences to become part of the track data.
