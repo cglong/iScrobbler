@@ -653,7 +653,7 @@ sync_ipod_script_release:
         [[media mountPoint] stringByAppendingPathComponent:@"iPod_Control"];
     BOOL isDir;
     
-    NSLog(@"Volume '%@' mounted.\n", [media volName]);
+    NSLog(@"Volume '%@' (%@) mounted on '%@'.\n", [media volName], [media bsdName], [media mountPoint]);
     
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodCtl isDirectory:&isDir]
          && isDir) {
@@ -663,7 +663,7 @@ sync_ipod_script_release:
 
 - (void)volUnmount:(NSNotification*)notification
 {
-    NSLog(@"Volume '%@' unmounted.\n", [[notification object] volName]);
+    NSLog(@"Volume '%@' unmounted.\n", [[notification object] bsdName]);
     
     if (iPodDisk != [notification object])
         return;
