@@ -8,7 +8,9 @@ v0.7.4 (BDB)
 - New pref to disable version check. If enabled, iScrobbler will no longer open the Preferences window to notify you of a new version.
 - Our scripts no longer use the Finder to gather system info. For those that use Finder alternatives, this means iScrobbler won't launch the Finder anymore.
 - Internal changes to ready ourself for a 0.8.0 release.
+- More robust server response parsing.
 - Fixed a bug that caused a song played two or more times sequentially to only be submitted once.
+- Fixed Cut/Copy/Paste not working (thanks to Wevah).
 
 v0.7.3 (BDB)
 - Added even more date verification for iPod songs to lessen the chance of server SPAM warnings.
