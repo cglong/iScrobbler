@@ -460,8 +460,8 @@ static float songTimeFudge;
 {
     return ( [self isEqualToSong:song] &&
              // And make sure the duration is valid
-             [[song lastPlayed] timeIntervalSince1970] >
-             ([[self lastPlayed] timeIntervalSince1970] + [[song duration] doubleValue]) );
+             [[song startTime] timeIntervalSince1970] >
+             ([[self startTime] timeIntervalSince1970] + [[song duration] doubleValue]) );
 }
 
 @end

@@ -48,7 +48,7 @@ static QueueManager *g_QManager = nil;
     if (found) {
         // Found in queue
         // Check to see if the song has been played again
-        if (![song hasPlayedAgain:found])
+        if (![found hasPlayedAgain:song])
             return;
         // Otherwise, the song will be in the queue twice,
         // on the assumption that it has been played again
