@@ -300,6 +300,9 @@
     if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]) {
         [self openTopLists:nil];
     }
+    
+    if (0 == [[prefs stringForKey:@"username"] length])
+        [self openPrefs:nil];
 }
 
 - (void)updateMenu
