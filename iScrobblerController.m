@@ -78,6 +78,11 @@
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     [prefs registerDefaults:defaultPrefs];
     
+    // One user has reported the version # showing up in his personal prefs.
+    // I don't know how this is happening, but I've never seen it myself. So here,
+    // we just force the version # from the defaults into the personal prefs.
+    [prefs setObject:[defaultPrefs objectForKey:@"version"] forKey:@"version"];
+    
     [SongData setSongTimeFudge:MAIN_TIMER_INTERVAL + (MAIN_TIMER_INTERVAL / 2.0)];
 	
     // Request the password and lease it, this will force it to ask
