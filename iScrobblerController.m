@@ -495,6 +495,7 @@
         }
 		
         [self updateMenu];
+        [nowPlaying retain];
         [song release];
     }
     
@@ -502,7 +503,8 @@ mainTimerReleaseResult:
 
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
         object:nowPlaying userInfo:nil];
-
+    [nowPlaying release];
+    
     [result release];
     //ScrobTrace(@"result released");
     } else {
