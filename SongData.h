@@ -40,7 +40,7 @@
 
 - (BOOL)isEqualToSong:(SongData*)song;
 
-- (NSString*)breif;
+- (NSString*)brief;
 
 - (NSComparisonResult) compareSongPostDate:(SongData*)song;
 

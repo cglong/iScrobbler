@@ -231,7 +231,7 @@ static QueueManager *g_QManager = nil;
                     while ((data = [en nextObject])) {
                         song = [[SongData alloc] init];
                         if ([song setSongData:data]) {
-                            ScrobLog(SCROB_LOG_VERBOSE, @"Restoring song '%@' from persistent store.", [song breif]);
+                            ScrobLog(SCROB_LOG_VERBOSE, @"Restoring song '%@' from persistent store.", [song brief]);
                             // Make sure the song passes submission rules
                             [song setStartTime:[song postDate]];
                             [song setPosition:[song duration]];

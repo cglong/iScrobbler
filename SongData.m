@@ -75,7 +75,7 @@ static float songTimeFudge;
 - (NSString*)description
 {
     return ([NSString stringWithFormat:@"<SongData: %p> %@",
-        self, [self breif]]);
+        self, [self brief]]);
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
@@ -109,7 +109,7 @@ static float songTimeFudge;
              [[self album] isEqualToString:[song album]]);
 }
 
-- (NSString*)breif
+- (NSString*)brief
 {
     return ([NSString stringWithFormat:@"%@, %@, %@",
         [self title], [self album], [self artist]]);

@@ -60,7 +60,7 @@ static enum {title, album, artist} g_cycleState = title;
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm successfulSubmissionsCount]]
         forKey:@"Successful Submissions"];
     [selection setValue:[pm lastSubmissionMessage] forKey:@"Server Response"];
-    [selection setValue:[[pm lastSongSubmitted] breif] forKey:@"Last Track Submission"];
+    [selection setValue:[[pm lastSongSubmitted] brief] forKey:@"Last Track Submission"];
     
 }
 

@@ -623,7 +623,7 @@ didFinishLoadingExit:
         return (good);
     else
         ScrobLog(SCROB_LOG_WARN, @"Track \"%@\" will not be submitted because it is missing "
-            @"Artist, or Title information. Please correct this.", [self breif]);
+            @"Artist, or Title information. Please correct this.", [self brief]);
     return (NO);
 }
 
