@@ -39,6 +39,8 @@
 #define CLEAR_MENUITEM_TAG          1
 #define SUBMIT_IPOD_MENUITEM_TAG    4
 
+#define MAIN_TIMER_INTERVAL 10.0
+
 @implementation iScrobblerController
 
 - (BOOL)validateMenuItem:(NSMenuItem *)anItem
@@ -86,6 +88,8 @@
 	
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     [prefs registerDefaults:defaultPrefs];
+    
+    [SongData setSongTimeFudge:MAIN_TIMER_INTERVAL + (MAIN_TIMER_INTERVAL / 2.0)];
 	
     // Request the password and lease it, this will force it to ask
     // permission when loading, so it doesn't annoy you halfway through
@@ -158,8 +162,6 @@
     return self;
 }
 
-#define MAIN_TIMER_INTERVAL 10.0
-
 - (void)awakeFromNib
 {
     songList=[[NSMutableArray alloc ]init];
@@ -230,6 +232,7 @@
     if (9 == [data count])
         [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
             locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
+    [song setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[song position] doubleValue]]];
     //ScrobTrace(@"SongData allocated and filled");
     return (song);
 }
@@ -246,9 +249,6 @@
 	
     //ScrobTrace(@"timer fired");
     //ScrobTrace(@"%@",result);
-	
-    // For Debugging: Display the contents of the parsed result array
-    // ScrobTrace(@"Parsed result array:\n%@\n",parsedResult);
     
     // If the script didn't return an error, continue
     if([result hasPrefix:@"NOT PLAYING"]) {
@@ -259,17 +259,17 @@
         
     } else {
         // Parse the result and create an array
-        NSArray *parsedResult = [[NSArray alloc] initWithArray:[result 				componentsSeparatedByString:@"***"]];
+        NSArray *parsedResult = [[NSArray alloc] initWithArray:[result componentsSeparatedByString:@"***"]];
 		NSDate *now;
         
         // Make a SongData object out of the array
         SongData *song = [self createSong:parsedResult];
+        [parsedResult release];
         
         // iPod sync date management, the goal is to detect the valid songs to sync
 		now = [NSDate date];
         // XXX We need to do something fancy here, because this assumes
-        // the user will sync the iPod before playing anything in iTunes,
-        // and that we have been running the whole time they were gone.
+        // the user will sync the iPod before playing anything in iTunes.
         [self setITunesLastPlayedTime:now];
         
         // If the songlist is empty, then simply add the song object to the songlist
@@ -280,17 +280,24 @@
         }
         else
         {
+            SongData *firstSongInList = [songList objectAtIndex:0];
             // Is the track equal to the track that's
-            // currently in first place in the song list? If so, find out what percentage
-            // of the song has been played, and queue a submission if necessary.
-            if([song isEqualToSong:[songList objectAtIndex:0]])
-            {
-                [[songList objectAtIndex:0] setPosition:[song position]];
-                [[songList objectAtIndex:0] setLastPlayed:[song lastPlayed]];
-                // If the song hasn't been queued yet, see if its ready.
-                if(![[songList objectAtIndex:0] hasQueued])
-                {
-                    [[QueueManager sharedInstance] queueSong:[songList objectAtIndex:0]];
+            // currently in first place in the song list? If so, update the
+            // play time, and queue a submission.
+            if ([song isEqualToSong:firstSongInList]) {
+                // Determine if the song is being played twice (or more in a row)
+                float pos = [[song position] floatValue];
+                if (pos <  [[firstSongInList position] floatValue] &&
+                     (pos <= [SongData songTimeFudge]) &&
+                     // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
+                     (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
+                     <= [SongData songTimeFudge]) ) {
+                    [songList insertObject:song atIndex:0];
+                } else {
+                    [firstSongInList setPosition:[song position]];
+                    [firstSongInList setLastPlayed:[song lastPlayed]];
+                    [firstSongInList setHasSeeked];
+                    [[QueueManager sharedInstance] queueSong:firstSongInList];
                 }
             } else {
                 // Check to see if the current track is anywhere in the songlist
@@ -330,11 +337,8 @@
             [songList removeObject:[songList lastObject]];
         }
 		
-        //ScrobTrace(@"About to release song and parsedResult");
         [self updateMenu];
         [song release];
-        [parsedResult release];
-        //ScrobTrace(@"song and parsedResult released");
     }
     
     [result release];
