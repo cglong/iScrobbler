@@ -16,13 +16,28 @@
 #import "CURLHandle+SpecialEncoding.h"
 #import "NSDictionary+httpEncoding.h"
 #import <mHashMacOSX/mhash.h>
+#import <ExtFSDiskManager/ExtFSDiskManager.h>
+
+#define IS_VERBOSE 1
 
 @interface iScrobblerController ( private )
 
 - (void) setURLHandle:(CURLHandle *)inURLHandle;
+- (void) restoreITunesLastPlayedTime;
+- (void) setITunesLastPlayedTime:(NSDate*)date;
+- (void) queueSong:(SongData*)newSong;
+
+// ExtFSManager notifications
+- (void) volMount:(NSNotification*)notification;
+- (void) volUnmount:(NSNotification*)notification;
 
 @end
 
+@interface SongData (ControllerPrivate)
+
+- (NSComparisonResult) syncIPodSortHelper:(SongData*)song;
+
+@end
 
 @implementation iScrobblerController
 
@@ -31,6 +46,9 @@
     //NSLog(@"%@",[anItem title]);
     if([[anItem title] isEqualToString:@"Clear Menu"])
         [mainTimer fire];
+    else if([[anItem title] isEqualToString:@"Sync iPod"] &&
+         (!iPodDisk || ![prefs boolForKey:@"Sync iPod"]))
+        return NO;
     return YES;
 }
 
@@ -52,7 +70,7 @@
     if(!myKeyChain)
         myKeyChain=[[KeyChain alloc] init];
 	
-    // Request the password and release it, this will force it to ask
+    // Request the password and lease it, this will force it to ask
     // permission when loading, so it doesn't annoy you halfway through
     // a song.
     NSString * pass = [[[NSString alloc] init] autorelease];
@@ -79,6 +97,13 @@
     NSURL *url=[NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
                 stringByAppendingPathComponent:@"Scripts/controlscript.scpt"] ];
 	
+    // Get our iPod update script as text
+    file = [[[NSBundle mainBundle] resourcePath]
+                stringByAppendingPathComponent:@"iPodUpdate.applescript"];
+    iPodUpdateScript = [[NSString alloc] initWithContentsOfFile:file];
+    
+    [self restoreITunesLastPlayedTime];
+    
     if(self=[super init])
     {
         script=[[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
@@ -86,9 +111,24 @@
         [nc addObserver:self selector:@selector(handleChangedNumRecentTunes:)
                    name:@"CDCNumRecentSongsChanged"
                  object:nil];
+        
+        // Initialize ExtFSManager
+        (void)[ExtFSMediaController mediaController];
+        
+        // Register for ExtFSManager disk notifications
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                selector:@selector(volMount:)
+                name:ExtFSMediaNotificationMounted
+                object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                selector:@selector(volUnmount:)
+                name:ExtFSMediaNotificationUnmounted
+                object:nil];
     }
     return self;
 }
+
+#define MAIN_TIMER_INTERVAL 10.0
 
 - (void)awakeFromNib
 {
@@ -97,7 +137,7 @@
     [self setLastResult:@"No data sent yet."];
     //NSLog(@"lastResult: %@",lastResult);
 	
-    mainTimer = [[NSTimer scheduledTimerWithTimeInterval:(10.0)
+    mainTimer = [[NSTimer scheduledTimerWithTimeInterval:(MAIN_TIMER_INTERVAL)
                                                   target:self
                                                 selector:@selector(mainTimer:)
                                                 userInfo:nil
@@ -162,6 +202,26 @@
     }
 }
 
+// Caller must release
+- (SongData*)createSong:(NSArray*)data
+{
+    SongData * song = [[SongData alloc] init];
+    [song setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
+        floatValue]]];
+    [song setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
+        floatValue]]];
+    [song setTitle:[data objectAtIndex:2]];
+    [song setDuration:[NSNumber numberWithFloat:[[data objectAtIndex:3] floatValue]]];
+    [song setPosition:[NSNumber numberWithFloat:[[data objectAtIndex:4] floatValue]]];
+    [song setArtist:[data objectAtIndex:5]];
+    [song setAlbum:[data objectAtIndex:6]];
+    [song setPath:[data objectAtIndex:7]];
+    if (9 == [data count])
+        [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]]];
+    //NSLog(@"SongData allocated and filled");
+    return (song);
+}
+
 -(void)mainTimer:(NSTimer *)timer
 {
     // micah_modell@users.sourceforge.net
@@ -188,21 +248,18 @@
     } else {
         // Parse the result and create an array
         NSArray *parsedResult = [[NSArray alloc] initWithArray:[result 				componentsSeparatedByString:@"***"]];
-		
+		NSDate *now;
+        
         // Make a SongData object out of the array
-        SongData * song = [[SongData alloc] init];
-        [song setTrackIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:0]
-            floatValue]]];
-        [song setPlaylistIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:1]
-            floatValue]]];
-        [song setTitle:[parsedResult objectAtIndex:2]];
-        [song setDuration:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:3] floatValue]]];
-        [song setPosition:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:4] floatValue]]];
-        [song setArtist:[parsedResult objectAtIndex:5]];
-        [song setAlbum:[parsedResult objectAtIndex:6]];
-        [song setPath:[parsedResult objectAtIndex:7]];
-        //NSLog(@"SongData allocated and filled");
-		
+        SongData *song = [self createSong:parsedResult];
+        
+        // iPod sync date management, the goal is to detect the valid songs to sync
+		now = [NSDate date];
+        // XXX We need to do something fancy here, because this assumes
+        // the user will sync the iPod before playing anything in iTunes,
+        // and that we have been running the whole time they were gone.
+        [self setITunesLastPlayedTime:now];
+        
         // If the songlist is empty, then simply add the song object to the songlist
         if([songList count]==0)
         {
@@ -211,11 +268,12 @@
         }
         else
         {
-            // is the title of the result track the same as the title of the track thats
+            // Is the track equal to the track that's
             // currently in first place in the song list? If so, find out what percentage
             // of the song has been played, and queue a submission if necessary.
-            if([[song title] isEqualToString:[[songList objectAtIndex:0] title]])
+            if([song isEqualToSong:[songList objectAtIndex:0]])
             {
+                [[songList objectAtIndex:0] setLastPlayed:[song lastPlayed]];
                 // If the song hasn't been queued yet, see if its ready.
                 if(![[songList objectAtIndex:0] hasQueued])
                 {
@@ -233,13 +291,13 @@
                     }
                 }
             } else {
-                // Check to see if the current result's track name is anywhere in the songlist
+                // Check to see if the current track is anywhere in the songlist
                 // If it is, we set found equal to the index position where it was found
                 // NSLog(@"Looking for track");
                 int j;
                 int found = 0;
                 for(j = 0; j < [songList count]; j++) {
-                    if([[[songList objectAtIndex:j] title] isEqualToString:[song title]])
+                    if([[songList objectAtIndex:j] isEqualToSong:song])
                     {
                         found = j;
                         break;
@@ -247,7 +305,7 @@
                 }
                 //NSLog(@"Found = %i",j);
 				
-                // If the trackname wasn't found anywhere in the list, we add a new item
+                // If the track wasn't found anywhere in the list, we add a new item
                 if(!found)
                 {
                     NSLog(@"adding new item");
@@ -398,7 +456,7 @@
 	//NSLog(@"host: %@",[nsurl host]);
 	//NSLog(@"query: %@", [nsurl query]);
 	
-	CURLHandle *handshakeHandle = [CURLHandle cachedHandleForURL:nsurl];	
+	CURLHandle *handshakeHandle = (CURLHandle*)[CURLHandle cachedHandleForURL:nsurl];	
 	
 	// fail on errors (response code >= 300)
     [handshakeHandle setFailsOnError:YES];
@@ -580,8 +638,10 @@
 	
     //NSLog(@"song data before sending: %@",[songQueue objectAtIndex:0]);
     [preferenceController takeValue:[self lastResult] forKey:@"lastResult"];
-    [preferenceController takeValue:[[[songQueue objectAtIndex:0] copy] autorelease]
+    if ([songQueue count]) {
+        [preferenceController takeValue:[[[songQueue objectAtIndex:0] copy] autorelease]
                              forKey:@"songData"];
+    }
     [nc postNotificationName:@"lastResultChanged" object:self];
 	
     NSLog(@"result changed");
@@ -665,5 +725,198 @@
     return digestHexText;
 }
 
+#define ONE_WEEK (3600.0 * 24.0 * 7.0)
+- (void) restoreITunesLastPlayedTime
+{
+    NSTimeInterval ti = [prefs floatForKey:@"iTunesLastPlayedTime"];
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
+
+    if (!ti || ti > now || ti < (now - ONE_WEEK)) {
+        NSLog(@"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
+            ti, now);
+        tr = [NSDate date];
+    }
+    
+    [self setITunesLastPlayedTime:tr];
+}
+
+- (void) setITunesLastPlayedTime:(NSDate*)date
+{
+    [date retain];
+    [iTunesLastPlayedTime release];
+    iTunesLastPlayedTime = date;
+    // Update prefs
+    [prefs setFloat:[iTunesLastPlayedTime timeIntervalSince1970] forKey:@"iTunesLastPlayedTime"];
+}
+
+- (void)queueSong:(SongData*)newSong
+{
+    SongData *song;
+    NSEnumerator *en = [songQueue objectEnumerator];
+    
+    while ((song = [en nextObject])) {
+        if ([song isEqualToSong:newSong])
+            break;
+    }
+    
+    if (song) {
+        // Found in queue
+        // Check to see if the song has been played again
+        if (![[newSong lastPlayed] isGreaterThan:[song lastPlayed]] ||
+             // And make sure the duration is valid
+             [[newSong lastPlayed] timeIntervalSince1970] <=
+             ([[song lastPlayed] timeIntervalSince1970] + [[song duration] doubleValue]) )
+            return;
+        // Otherwise, the song will be in the queue twice,
+        // on the assumption that it has been played again
+    }
+    
+    if ([songQueue count] > 0) {
+        // Verify post date
+        song = [songQueue objectAtIndex:0];
+        if (![[newSong postDate] isGreaterThan:[song postDate]]) {
+            NSLog(@"Discarding \"%@, %@, %@\", invalid post date (q=%@, s=%@)\n",
+                [newSong title], [newSong album], [newSong artist], [song postDate], [newSong postDate]);
+            return;
+        }
+    }
+    
+    // Add to top of list
+    [newSong setHasQueued:YES];
+    [songQueue insertObject:newSong atIndex:0];
+}
+
+#define IPOD_UPDATE_SCRIPT_DATE_FMT @"%A, %B %d, %Y %I:%M:%S %p"
+#define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
+#define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
+
+- (void)syncIPod:(id)sender
+{
+    if (iPodUpdateScript && [prefs boolForKey:@"Sync iPod"]) {
+        // Copy the script
+        NSMutableString *text = [iPodUpdateScript mutableCopy];
+        NSAppleScript *iuscript;
+        NSAppleEventDescriptor *result;
+        NSDictionary *errInfo;
+        NSTimeInterval now, fudge;
+        unsigned int added;
+        
+        // Our main timer loop is only fired every 10 seconds, so we have to
+        // make sure to adjust our time
+        fudge = [iTunesLastPlayedTime timeIntervalSince1970]+MAIN_TIMER_INTERVAL;
+        now = [[NSDate date] timeIntervalSince1970];
+        if (now > fudge) {
+            [self setITunesLastPlayedTime:[NSDate dateWithTimeIntervalSince1970:fudge]];
+        } else {
+            [self setITunesLastPlayedTime:[NSDate date]];
+        }
+        
+        // Replace the token with our last update
+        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
+            withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:
+                IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:nil]
+            options:0 range:NSMakeRange(0, [iPodUpdateScript length])];
+        
+#ifdef IS_VERBOSE
+        NSLog(@"syncIPod: Requesting songs played after '%@'\n",
+            [iTunesLastPlayedTime descriptionWithCalendarFormat:IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:nil]);
+#endif
+        // Run script
+        iuscript = [[NSAppleScript alloc] initWithSource:text];
+        if ((result = [iuscript executeAndReturnError:&errInfo])) {
+            if (![[result stringValue] hasPrefix:@"INACTIVE"]) {
+                NSArray *songs = [[result stringValue]
+                    componentsSeparatedByString:IPOD_UPDATE_SCRIPT_SONG_TOKEN];
+                NSEnumerator *en = [songs objectEnumerator];
+                NSString *data;
+                SongData *song;
+                NSMutableArray *iqueue;
+                
+                added = 0;
+                iqueue = [[NSMutableArray alloc] init];
+                while ((data = [en nextObject])) {
+                    NSArray *components = [data componentsSeparatedByString:@"***"];
+                    NSTimeInterval postDate;
+                    
+                    if ([components count] > 1) {
+                        song = [self createSong:components];
+                        if ([[song duration] doubleValue] < 30.0)
+                            continue;
+                        // Since this song was played "offline", we set the post date
+                        // in the past 
+                        postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
+                        [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
+                        [iqueue addObject:song];
+                        [song release];
+                        ++added;
+                    }
+                }
+                [self setITunesLastPlayedTime:[NSDate date]];
+                if (added > 0) {
+                    // Order the array from oldest to newest so we don't trigger spam protection
+                    // (sendData uses the queue order to determine submission order)
+                    NSArray *submissions = [iqueue sortedArrayUsingSelector:@selector(syncIPodSortHelper:)];
+                    int i = 0;
+                    for (; i < [submissions count]; ++i) {
+                        song = [submissions objectAtIndex:i];
+                    #ifdef IS_VERBOSE
+                        NSLog(@"syncIPod: Queuing '%@, %@, %@' with postDate '%@'\n",
+                            [song title], [song album], [song artist], [song postDate]);
+                    #endif
+                        [self queueSong:song];
+                    }
+                    [self sendData];
+                }
+                    
+                [iqueue release];
+            }
+        } else if (!iPodUpdateScript) {
+            // Script error
+            NSLog(@"iPodUpdateScript error: %@\n", errInfo);
+        }
+        
+        [iuscript release];
+        
+        [text release];
+    
+    } else {
+        NSLog(@"iPodUpdateScript missing\n");
+    }
+}
+
+// ExtFSManager notifications
+- (void)volMount:(NSNotification*)notification
+{
+    ExtFSMedia *media = [notification object];
+    NSString *iPodCtl =
+        [[media mountPoint] stringByAppendingPathComponent:@"iPod_Control"];
+    BOOL isDir;
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodCtl isDirectory:&isDir]
+         && isDir) {
+        iPodDisk = [media retain];
+    }
+}
+
+- (void)volUnmount:(NSNotification*)notification
+{
+    if (iPodDisk != [notification object])
+        return;
+    
+    [iPodDisk release];
+    iPodDisk = nil;
+    
+    [self syncIPod:nil];
+}
+
+@end
+
+@implementation SongData (ControllerPrivate)
+
+- (NSComparisonResult) syncIPodSortHelper:(SongData*)song
+{
+    return ([[self postDate] compare:[song postDate]]);
+}
 
 @end
