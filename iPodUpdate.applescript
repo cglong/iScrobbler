@@ -7,7 +7,12 @@ end tell
 
 if itunes_active is true then
 	tell application "iTunes"
-		set mytracks to get tracks of user playlist "Recently Played" whose played date is greater than date "Thursday, January 1, 1970 12:00:00 AM"
+		set myPlaylist to "Recently Played"
+		try
+			set mytracks to get tracks of user playlist myPlaylist whose played date is greater than date "Thursday, January 1, 1970 12:00:00 AM"
+		on error errmsg number errnum
+			return "ERROR" & "$$$" & errmsg & "$$$" & (errnum as text)
+		end try
 		
 		set out to ""
 		repeat with theTrack in mytracks
