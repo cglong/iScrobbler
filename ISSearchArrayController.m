@@ -24,7 +24,6 @@
 {
     // register for drag and drop
     [tableView registerForDraggedTypes:[NSArray arrayWithObjects:NSTabularTextPboardType, NSStringPboardType, nil]];
-    NSLog(@"%@\n", tableView);
 }
 
 - (IBAction)search:(id)sender
@@ -165,7 +164,7 @@
 
 - (NSArray*)arrayOfIndexes
 {
-    NSMutableArray *array = [NSMutableArray array];
+    NSMutableArray *array = [NSMutableArray arrayWithCapacity:[self count]];
 
     unsigned idx = [self firstIndex];
     for (; NSNotFound != idx; idx = [self indexGreaterThanIndex:idx])
