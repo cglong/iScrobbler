@@ -46,7 +46,7 @@ static ProtocolManager *g_PM = nil;
         else if ([@"1.2" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
             g_PM = [[ProtocolManager_v11 alloc] init];
         else
-            NSLog(@"Unknown protocol version\n");
+            ScrobLog(SCROB_LOG_CRIT, @"Unknown protocol version\n");
     }
     return (g_PM);
 }
@@ -55,7 +55,7 @@ static ProtocolManager *g_PM = nil;
 {
     if (hs_delay == hsState) {
         hsState = hs_needed;
-        NSLog(@"Re-trying handshake after delay...\n");
+        ScrobLog(SCROB_LOG_VERBOSE, @"Re-trying handshake after delay...\n");
         [self handshake];
     }
 }
@@ -71,7 +71,7 @@ static ProtocolManager *g_PM = nil;
         [h cancelLoadInBackground];
         // Reset state and try again
         hsState = hs_needed;
-        NSLog(@"Stopped runaway handshake. Trying again...\n");
+        ScrobLog(SCROB_LOG_INFO, @"Stopped runaway handshake. Trying again...\n");
         [self handshake];
     }
 }
@@ -85,9 +85,9 @@ static ProtocolManager *g_PM = nil;
     [killTimer invalidate];
     killTimer = nil;
     
-	NSLog(@"Result: %@", result);
+	ScrobLog(SCROB_LOG_VERBOSE, @"Result: %@", result);
 	if ([result length] == 0) {
-		NSLog(@"Connection failed");
+		ScrobLog(SCROB_LOG_WARN, @"Connection failed");
 		[result release];
         result = [[NSString alloc] initWithString:@"FAILED\nConnection failed"];
 	}
@@ -137,21 +137,21 @@ NS_ENDHANDLER
 - (void)handshake
 {
     if (hs_inprogress == hsState) {
-        NSLog(@"Handshake already in progress...\n");
+        ScrobLog(SCROB_LOG_INFO, @"Handshake already in progress...\n");
         return;
     }
     if (hs_delay == hsState) {
-        NSLog(@"Handshake delayed...\n");
+        ScrobLog(SCROB_LOG_VERBOSE, @"Handshake delayed...\n");
         return;
     }
     
     NSString* url = /*@"127.0.0.1"*/ [self handshakeURL];
-    NSLog(@"Handshaking... %@", url);
+    ScrobLog(SCROB_LOG_VERBOSE, @"Handshaking... %@", url);
 
 	NSURL *nsurl = [NSURL URLWithString:url];
-	//NSLog(@"nsurl: %@",nsurl);
-	//NSLog(@"host: %@",[nsurl host]);
-	//NSLog(@"query: %@", [nsurl query]);
+	//SCrobTrace(@"nsurl: %@",nsurl);
+	//ScrobTrace(@"host: %@",[nsurl host]);
+	//ScrobTrace(@"query: %@", [nsurl query]);
 	
 	CURLHandle *handshakeHandle = (CURLHandle*)[CURLHandle cachedHandleForURL:nsurl];	
 	
@@ -325,9 +325,9 @@ NS_ENDHANDLER
     NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	
     //[self changeLastResult:result];
-    NSLog(@"songs in queue after loading: %d", [[QueueManager sharedInstance] count]);
+    ScrobLog(SCROB_LOG_VERBOSE, @"songs in queue after loading: %d", [[QueueManager sharedInstance] count]);
 	
-	NSLog(@"Server result: %@", result);
+	ScrobLog(SCROB_LOG_VERBOSE, @"Server result: %@", result);
     
     [self setSubmitResult:[self submitResponse:result]];
     [result release];
@@ -340,10 +340,10 @@ NS_ENDHANDLER
             [[QueueManager sharedInstance] removeSong:[inFlight objectAtIndex:i] sync:NO];
         }
         [[QueueManager sharedInstance] syncQueue:nil];
-        NSLog(@"Song Queue cleaned, count = %i", [[QueueManager sharedInstance] count]);
+        ScrobLog(SCROB_LOG_VERBOSE, @"Song Queue cleaned, count = %i", [[QueueManager sharedInstance] count]);
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
     } else {
-        NSLog(@"Server error, songs left in queue, count = %i", [[QueueManager sharedInstance] count]);
+        ScrobLog(SCROB_LOG_INFO, @"Server error, songs left in queue, count = %i", [[QueueManager sharedInstance] count]);
 		hsState = hs_needed;
         
 		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
@@ -367,9 +367,9 @@ NS_ENDHANDLER
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
     
-    //NSLog(@"songQueue: %@",songQueue);
+    //ScrobTrace(@"songQueue: %@",songQueue);
 	
-    //NSLog(@"lastResult: %@",lastResult);
+    //ScrobTrace(@"lastResult: %@",lastResult);
     
 }
 
@@ -409,13 +409,13 @@ NS_ENDHANDLER
     // Kick off resubmit timer
     [self scheduleResubmit];
     
-    NSLog(@"Connection error, songQueue count: %d",[[QueueManager sharedInstance] count]);
+    ScrobLog(SCROB_LOG_INFO, @"Connection error, songQueue count: %d",[[QueueManager sharedInstance] count]);
 }
 
 - (void)resubmit:(NSTimer*)timer
 {
     resubmitTimer = nil;
-    NSLog(@"Trying resubmission after delay...\n");
+    ScrobLog(SCROB_LOG_VERBOSE, @"Trying resubmission after delay...\n");
     [self submit:nil];
     
 }
@@ -433,7 +433,7 @@ NS_ENDHANDLER
     // doing anything else. If we've already handshaked, then no
     // worries.
     if (hs_valid != hsState) {
-		NSLog(@"Need to handshake");
+		ScrobLog(SCROB_LOG_VERBOSE, @"Need to handshake");
 		[self handshake];
         return;
     }
@@ -460,17 +460,17 @@ NS_ENDHANDLER
     //retrieve the password from the keychain, and hash it for sending
     NSString *pass = [[NSString alloc] initWithString:
         [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]]];
-    //NSLog(@"pass: %@", pass);
+    //ScrobTrace(@"pass: %@", pass);
     NSString *hashedPass = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:pass]];
     [pass release];
-    //NSLog(@"hashedPass: %@", hashedPass);
-    //NSLog(@"md5Challenge: %@", md5Challenge);
+    //ScrobTrace(@"hashedPass: %@", hashedPass);
+    //ScrobTrace(@"md5Challenge: %@", md5Challenge);
     NSString *concat = [[NSString alloc] initWithString:[hashedPass stringByAppendingString:[self md5Challenge]]];
     [hashedPass release];
-    //NSLog(@"concat: %@", concat);
+    //ScrobTrace(@"concat: %@", concat);
     NSString *response = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:concat]];
     [concat release];
-    //NSLog(@"response: %@", response);
+    //ScrobTrace(@"response: %@", response);
     
     [dict setObject:response forKey:@"s"];
     [response autorelease];
@@ -488,7 +488,7 @@ NS_ENDHANDLER
     // Set the user-agent to something Mozilla-compatible
     [myURLHandle setUserAgent:[prefs stringForKey:@"useragent"]];
     
-    //NSLog(@"dict before sending: %@",dict);
+    //ScrobTrace(@"dict before sending: %@",dict);
     // Handle "POST"
     [myURLHandle setSpecialPostDictionary:dict encoding:NSUTF8StringEncoding];
     
@@ -498,7 +498,7 @@ NS_ENDHANDLER
     
     [dict release];
     
-    NSLog(@"Data loading...");
+    ScrobLog(SCROB_LOG_VERBOSE, @"%u song(s) submitted...\n", [inFlight count]);
 }
 
 - (id)init

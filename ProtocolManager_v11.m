@@ -90,7 +90,7 @@
 
 - (NSDictionary*)encodeSong:(SongData*)song submissionNumber:(int)submissionNumber
 {
-    //NSLog(@"preparing postDict");
+    //ScrobTrace(@"preparing postDict");
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
 
     // URL escape relevant fields
@@ -117,7 +117,7 @@
     [dict setObject:[[song postDate] dateWithCalendarFormat:@"%Y-%m-%d %H:%M:%S" 	timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]] forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
 
     // return and autorelease
-    //NSLog(@"postDict done");
+    //ScrobTrace(@"postDict done");
     return [dict autorelease];
 }
 

@@ -71,7 +71,7 @@ static unsigned int g_songID = 0;
 // has been played as a percent
 - (NSNumber *)percentPlayed
 {
-    //NSLog(@"duration played: %f", -[[self startTime] timeIntervalSinceNow] + 10 );
+    //ScrobLog(SCROB_LOG_VERBOSE, @"duration played: %f", -[[self startTime] timeIntervalSinceNow] + 10 );
 
     // The amount of time passed since the song started, divided by the duration of the song
     // times 100 to generate a percentage.

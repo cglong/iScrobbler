@@ -150,7 +150,7 @@ static QueueManager *g_QManager = nil;
     if ((good = [self writeToFile:queuePath atomically:YES])) {
         NSString *data = [NSString stringWithContentsOfFile:queuePath];
         if (!data || 0 == [data length]) {
-            NSLog(@"Failed to read queue file: %@! Queue (%u entries) not saved.\n",
+            ScrobLog(SCROB_LOG_ERR, @"Failed to read queue file: %@! Queue (%u entries) not saved.\n",
                 queuePath, [songQueue count]);
             return;
         }
@@ -161,7 +161,7 @@ static QueueManager *g_QManager = nil;
         [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:CACHE_SIG_KEY];
         [[NSFileManager defaultManager] removeFileAtPath:queuePath handler:nil];
     } else {
-        NSLog(@"Failed to create queue file: %@!\n", queuePath);
+        ScrobLog(SCROB_LOG_ERR, @"Failed to create queue file: %@!\n", queuePath);
     }
 }
 
@@ -198,9 +198,7 @@ static QueueManager *g_QManager = nil;
                     while ((data = [en nextObject])) {
                         song = [[SongData alloc] init];
                         if ([song setSongData:data]) {
-                        #ifdef IS_VERBOSE
-                            NSLog(@"Restoring song '%@' from persistent store.", [song breif]);
-                        #endif
+                            ScrobLog(SCROB_LOG_VERBOSE, @"Restoring song '%@' from persistent store.", [song breif]);
                             // Make sure the song passes submission rules
                             [song setStartTime:[song postDate]];
                             [song setPosition:[song duration]];
@@ -210,14 +208,14 @@ static QueueManager *g_QManager = nil;
                     }
                 }
             } else if (data) {
-                NSLog(@"Ignoring persistent cache: it's corrupted.");
+                ScrobLog(SCROB_LOG_WARN, @"Ignoring persistent cache: it's corrupted.");
                 // This will remove the file, since the queue is 0
             #ifdef notyet
                 [self syncQueue:nil];
             #endif
             }
         } else {
-            NSLog(@"Persistent cache disabled: could not find path.");
+            ScrobLog(SCROB_LOG_ERR, @"Persistent cache disabled: could not find path.");
         }
     }
     

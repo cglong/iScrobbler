@@ -12,6 +12,7 @@
 #import "PreferenceControllerStrings.h"
 #import "keychain.h"
 #import "ProtocolManager.h"
+#import "ScrobLog.h"
 
 NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
@@ -19,7 +20,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
 -(id)init
 {
-	NSLog(@"Preferences init");
+	ScrobTrace(@"Preferences init");
     if(self=[super initWithWindowNibName:@"Preferences"]){
         [self setWindowFrameAutosaveName:@"PrefWindow"];
     }
@@ -56,14 +57,14 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     [prefs setInteger:[numRecentSongsField intValue] forKey:CDCNumSongsKey];
         
     [prefs synchronize];
-    NSLog(@"prefs saved");
+    ScrobTrace(@"prefs saved");
 
     if(![[password stringValue] isEqualToString:@""])
     {
         [myKeyChain setGenericPassword:[password stringValue]
                                  forService:@"iScrobbler"
                                     account:[prefs stringForKey:@"username"]];
-        // NSLog(@"password stored as: %@",[myKeyChain genericPasswordForService:@"iScrobbler"
+        // ScrobTrace(@"password stored as: %@",[myKeyChain genericPasswordForService:@"iScrobbler"
         //                                                account:[prefs stringForKey:@"username"]]);
     }
     [nc postNotificationName:@"CDCNumRecentSongsChanged" object:self];
@@ -81,17 +82,17 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
 
 -(void)generateResultText
 {
-	//NSLog(@"lastHandshakeResult: %@", [self lastHandshakeResult]);
+	//ScrobTrace(@"lastHandshakeResult: %@", [self lastHandshakeResult]);
 	
 	if([self lastHandshakeResult] == nil) {
-		//NSLog(@"No connection yet");
+		//ScrobTrace(@"No connection yet");
         [self setLastResult:@"No connection yet."];
         [self setLastResultLong:NO_CONNECTION_LONG];
         [self setLastResultShort:NO_CONNECTION_SHORT];
     }  else if([[ProtocolManager sharedInstance] validHandshake]) {
-		//NSLog(@"iScrobbler is Up To Date");
+		//ScrobTrace(@"iScrobbler is Up To Date");
         if([[ProtocolManager sharedInstance] updateAvailable]) {
-		//NSLog(@"iScrobbler version is out of date");
+		//ScrobTrace(@"iScrobbler version is out of date");
         NSMutableDictionary * attribs = [NSMutableDictionary dictionary];
         NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
         [style setAlignment:NSCenterTextAlignment];
@@ -109,16 +110,16 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         [self setDownloadURL:[[ProtocolManager sharedInstance] updateURL]];
         }
     } else if([[self lastHandshakeResult] isEqualToString:HS_RESULT_FAILED]) {
-		//NSLog(@"Handshaking Failed");
+		//ScrobTrace(@"Handshaking Failed");
         [self setLastResultShort:FAILURE_SHORT];
         [self setLastResultLong:[[ProtocolManager sharedInstance] lastHandshakeMessage]];
     } else if([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
-		//NSLog(@"Bad User!  Bad!");
+		//ScrobTrace(@"Bad User!  Bad!");
         [self setLastResultShort:AUTH_SHORT];
         [self setLastResultLong:AUTH_LONG];
     }
 	
-    //NSLog(@"lastResult: %@", [self lastResult]);
+    //ScrobTrace(@"lastResult: %@", [self lastResult]);
 	//Check to see if the script returns OK
     if([[ProtocolManager sharedInstance] validHandshake]) {
         if([[self lastResult] isEqualToString:HS_RESULT_OK]) {
@@ -164,9 +165,9 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
         tmp = @"";
     [lastResultShortField setStringValue:tmp];
 
-    //NSLog(@"preparing lastSongSubmitted");
+    //ScrobTrace(@"preparing lastSongSubmitted");
     SongData *song = [[ProtocolManager sharedInstance] lastSongSubmitted];
-    //NSLog(@"songData: %@",song);
+    //ScrobTrace(@"songData: %@",song);
     if(song != nil)
     {
         NSMutableString* unEscapedTitle = [NSMutableString stringWithString:[(NSString*)
@@ -194,7 +195,7 @@ NSString *CDCNumSongsKey=@"Number of Songs to Save";
     }
     
     [password setStringValue:@""];
-    //NSLog(@"Fields updated");
+    //ScrobTrace(@"Fields updated");
 }
 
 - (IBAction)forgetPassword:(id)sender
