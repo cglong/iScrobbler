@@ -45,7 +45,7 @@
 	<string>1.1</string>
         
 	<key>useragent</key>
-	<string>Mozilla/4.5 (compatible; iScrobbler/1.0.0; Mac_PowerPC)</string>
+	<string>Mozilla/5.0 (Macintosh; U; PPC Mac OS X; compatible) iScrobbler/1.0.0</string>
         
 	<key>username</key>
 	<string></string>
