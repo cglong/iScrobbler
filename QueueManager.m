@@ -129,7 +129,10 @@ static QueueManager *g_QManager = nil;
     NSMutableArray *data = [NSMutableArray array];
     NSDictionary *songData;
     SongData *song;
-    NSEnumerator *en = [[self songs] objectEnumerator];
+    NSEnumerator *en = [songQueue objectEnumerator];
+    
+    if (0 == [songQueue count])
+        return (NO);
     
     while ((song = [en nextObject])) {
         if ((songData = [song songData]))
@@ -144,8 +147,13 @@ static QueueManager *g_QManager = nil;
 - (void)syncQueue:(id)sender
 {
     BOOL good;
-    if ([songQueue count] && (good = [self writeToFile:queuePath atomically:YES])) {
+    if ((good = [self writeToFile:queuePath atomically:YES])) {
         NSString *data = [NSString stringWithContentsOfFile:queuePath];
+        if (!data || 0 == [data length]) {
+            NSLog(@"Failed to read queue file: %@! Queue (%u entries) not saved.\n",
+                queuePath, [songQueue count]);
+            return;
+        }
         NSString *md5 = [[NSApp delegate] md5hash:data];
         [[NSUserDefaults standardUserDefaults] setObject:md5 forKey:CACHE_SIG_KEY];
         [[NSUserDefaults standardUserDefaults] synchronize];
