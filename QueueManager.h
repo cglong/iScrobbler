@@ -11,6 +11,8 @@
 
 @class SongData;
 
+typedef enum {kqSuccess, kqIsQueued, kqFailed} QueueResult_t;
+
 @interface QueueManager : NSObject {
 @private
 	NSString *queuePath;
@@ -22,10 +24,10 @@
 + (QueueManager*)sharedInstance;
 
 // Queues a song, sets the post date, and immediately tries to submit it.
-- (void)queueSong:(SongData*)song;
+- (QueueResult_t)queueSong:(SongData*)song;
 
 // If submit is false, the post date is not set.
-- (void)queueSong:(SongData*)song submit:(BOOL)submit;
+- (QueueResult_t)queueSong:(SongData*)song submit:(BOOL)submit;
 
 - (void)submit;
 

@@ -24,25 +24,25 @@ static QueueManager *g_QManager = nil;
 }
 
 // Queues a song and immediately tries to send it.
-- (void)queueSong:(SongData*)song
+- (QueueResult_t)queueSong:(SongData*)song
 {
-    [self queueSong:song submit:YES];
+    return ([self queueSong:song submit:YES]);
 }
 
-- (void)queueSong:(SongData*)song submit:(BOOL)submit
+- (QueueResult_t)queueSong:(SongData*)song submit:(BOOL)submit
 {
     SongData *found;
     NSEnumerator *en = [songQueue objectEnumerator];
     
     if (![song canSubmit]) {
-        ScrobLog(SCROB_LOG_TRACE, @"Song '%@ [%@]' failed submission rules. Not queuing.\n",
-            [song brief], [song duration]);
-        return;
+        ScrobLog(SCROB_LOG_TRACE, @"Track '%@ [%@ of %@]' failed submission rules. Not queuing.\n",
+            [song brief], [song position], [song duration]);
+        return (kqFailed);
     }
     
     if([song hasQueued]) {
-        ScrobLog(SCROB_LOG_TRACE, @"Song '%@' is already queued for submission. Ignoring.\n", song);
-        return;
+        ScrobLog(SCROB_LOG_TRACE, @"Track '%@' is already queued for submission. Ignoring.\n", song);
+        return (kqIsQueued);
     }
     
     while ((found = [en nextObject])) {
@@ -54,14 +54,14 @@ static QueueManager *g_QManager = nil;
         // Found in queue
         // Check to see if the song has been played again
         if (![found hasPlayedAgain:song]) {
-            ScrobLog(SCROB_LOG_TRACE, @"Song '%@' found in queue as '%@'. Ignoring.\n", song, found);
-            return;
+            ScrobLog(SCROB_LOG_TRACE, @"Track '%@' found in queue as '%@'. Ignoring.\n", song, found);
+            return (kqIsQueued);
         }
         // Otherwise, the song will be in the queue twice,
         // on the assumption that it has been played again
     }
     
-    ScrobLog(SCROB_LOG_VERBOSE, @"Queuing song '%@' for submission\n", [song brief]);
+    ScrobLog(SCROB_LOG_VERBOSE, @"Queuing track '%@' for submission\n", [song brief]);
     
     // Add to top of list
     [song setHasQueued:YES];
@@ -78,6 +78,8 @@ static QueueManager *g_QManager = nil;
         [song setPostDate:[song startTime]];
         [self submit];
     }
+    
+    return (kqSuccess);
 }
 
 - (void)submit
@@ -250,7 +252,7 @@ static QueueManager *g_QManager = nil;
                             // Make sure the song passes submission rules
                             [song setStartTime:[song postDate]];
                             [song setPosition:[song duration]];
-                            [self queueSong:song submit:NO]; 
+                            (void)[self queueSong:song submit:NO]; 
                         } else {
                             ScrobLog(SCROB_LOG_ERR, @"Failed to restore song from persistent store: %@\n", data); 
                         }
