@@ -26,10 +26,6 @@
 - (IBAction)OK:(id)sender;
 - (IBAction)cancel:(id)sender;
 
-//- (IBAction)submitWebBugReport:(id)sender;
-//- (IBAction)submitEmailBugReport:(id)sender;
-
-//- (IBAction)copy:(id)sender;
 @end
 
 #define SCROB_PREFS_CHANGED @"iScrobbler Prefs Changed"
