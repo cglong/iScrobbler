@@ -533,7 +533,7 @@ validate:
     return ([sorted autorelease]);
 }
 
-#define IPOD_UPDATE_SCRIPT_DATE_FMT @"%A, %B %d, %Y %I:%M:%S %p"
+//#define IPOD_UPDATE_SCRIPT_DATE_FMT @"%A, %B %d, %Y %I:%M:%S %p"
 #define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
 #define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
 
@@ -566,12 +566,13 @@ validate:
         // Replace the token with our last update
         [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
             withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:
-                IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:localeInfo]
+                [localeInfo objectForKey:NSTimeDateFormatString] timeZone:nil locale:localeInfo]
             options:0 range:NSMakeRange(0, [iPodUpdateScript length])];
         
 #ifdef IS_VERBOSE
         NSLog(@"syncIPod: Requesting songs played after '%@'\n",
-            [iTunesLastPlayedTime descriptionWithCalendarFormat:IPOD_UPDATE_SCRIPT_DATE_FMT timeZone:nil locale:localeInfo]);
+            [iTunesLastPlayedTime descriptionWithCalendarFormat:[localeInfo objectForKey:NSTimeDateFormatString]
+                timeZone:nil locale:localeInfo]);
 #endif
         // Run script
         iuscript = [[NSAppleScript alloc] initWithSource:text];
