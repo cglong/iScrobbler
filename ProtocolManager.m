@@ -563,21 +563,26 @@ didFinishLoadingExit:
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     
-    g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
-        [[[NSURL URLWithString:[self handshakeURL]] host] cString]);
-    // Get the current state
-    SCNetworkConnectionFlags connectionFlags;
-    if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
-         IsNetworkUp(connectionFlags))
-        isNetworkAvailable = YES;
-    // Install a callback to get notified of iface up/down events
-    SCNetworkReachabilityContext reachContext = {0};
-    reachContext.info = self;
-    if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext) ||
-         !SCNetworkReachabilityScheduleWithRunLoop(g_networkReachRef,
-            [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopDefaultMode))
-    {
-        ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor, assuming network is always available.\n");
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
+        g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
+            [[[NSURL URLWithString:[self handshakeURL]] host] cString]);
+        // Get the current state
+        SCNetworkConnectionFlags connectionFlags;
+        if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
+             IsNetworkUp(connectionFlags))
+            isNetworkAvailable = YES;
+        // Install a callback to get notified of iface up/down events
+        SCNetworkReachabilityContext reachContext = {0};
+        reachContext.info = self;
+        if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext) ||
+             !SCNetworkReachabilityScheduleWithRunLoop(g_networkReachRef,
+                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopDefaultMode))
+        {
+            ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor - assuming network is always available.\n");
+            isNetworkAvailable = YES;
+        }
+    } else { // @"IgnoreNetworkMonitor"
+        ScrobLog(SCROB_LOG_INFO, @"Ignoring network status monitor - assuming network is always available.\n");
         isNetworkAvailable = YES;
     }
     
