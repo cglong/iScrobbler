@@ -406,7 +406,40 @@
                     [firstSongInList setPosition:[song position]];
                     [firstSongInList setLastPlayed:[song lastPlayed]];
                     [firstSongInList setRating:[song rating]];
-                    [[QueueManager sharedInstance] queueSong:firstSongInList];
+                    QueueResult_t qr = [[QueueManager sharedInstance] queueSong:firstSongInList];
+                    if (kqFailed == qr) {
+                        // Fire ourself again in half of the remaining track play time.
+                        // The queue can fail when playing from a network stream (or CD),
+                        // and iTunes has to re-buffer. This means the elapsed track play time
+                        // would be less than elapsed real-world time and the track may not be 1/2
+                        // done.
+                        // This mismatched elapsed time can also occur when the user has crossfade
+                        // turned on, since the new song will actually start playing while the current
+                        // song is still playing.
+                        double fireInterval = [[firstSongInList duration] doubleValue] -
+                            [[firstSongInList position] doubleValue];
+                        if (fireInterval > 0.0)
+                            fireInterval /= 2.0;
+                        if (fireInterval > 0.0) {
+                            ScrobLog(SCROB_LOG_VERBOSE,
+                                @"Track '%@' failed submission rules. Possilble iTunes time shift. "
+                                @"Trying again in %0.0lf seconds.\n", [firstSongInList brief], fireInterval);
+                            if (!mainTimer) {
+                                // This will only occur if we are using iTunes notifications and
+                                // in that case, iTunesPlayerInfoHandler: will release mainTimer.
+                                mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                                                target:self
+                                                selector:@selector(mainTimer:)
+                                                userInfo:nil
+                                                repeats:NO] retain];
+                            } else
+                                [self performSelector:@selector(mainTimer:) withObject:nil afterDelay:fireInterval];
+                        } else {
+                            ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules. "
+                                @"There is not enough play time left to retry submission.\n",
+                                [firstSongInList brief]);
+                        }
+                    }
                 }
             } else {
                 // Check to see if the current track is anywhere in the songlist
@@ -843,7 +876,7 @@ validate:
                         continue;
                     }
                     ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
-                    [[QueueManager sharedInstance] queueSong:song submit:NO];
+                    (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
                 }
                 
