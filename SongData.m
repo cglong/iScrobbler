@@ -285,6 +285,18 @@
     pausedTime = newPausedTime;
 }
 
+- (NSDate *)lastPlayed
+{
+    return _lastPlayed;
+}
+
+- (void)setLastPlayed:(NSDate *)date
+{
+    [date retain];
+    [_lastPlayed release];
+    _lastPlayed = date;
+}
+
 // postDate is the moment in which the initial submission was attempted
 - (NSDate *)postDate
 {

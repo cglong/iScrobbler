@@ -68,7 +68,7 @@ void ISLog(NSString *function, NSString *format, ...) {
 	// Make a SongData object out of the array
 	SongData *song = [[[SongData alloc] init] autorelease];
 	
-	// FIXME: we should check to make sure there are 8 pieces first!
+	// FIXME: we should check to make sure there are 8/9 pieces first!
 	
 	[song setTrackIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:0]
 		floatValue]]];
@@ -80,6 +80,8 @@ void ISLog(NSString *function, NSString *format, ...) {
 	[song setArtist:[parsedResult objectAtIndex:5]];
 	[song setAlbum:[parsedResult objectAtIndex:6]];
 	[song setPath:[parsedResult objectAtIndex:7]];
+	if (9 == [parsedResult count])
+        [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[parsedResult objectAtIndex:8]]];
 	//ISLog(@"songWithiTunesResultString:", @"SongData allocated and filled");
 	return song;
 }
@@ -99,6 +101,7 @@ void ISLog(NSString *function, NSString *format, ...) {
 - (unsigned int)indexOfSongInRecentlyPlayedList:(SongData *)song;
 
 - (NSString *)password;
+- (void) setITunesLastPlayedTime:(NSDate*)date;
 @end
 
 
@@ -554,22 +557,17 @@ validate:
 	NSMutableArray *iPodSubmissionQueue = [NSMutableArray array];
 	
 	while ((songString = [songStringEnumerator nextObject])) {
-		NSArray *components = [songString componentsSeparatedByString:@"***"];
-		NSTimeInterval postDate;
 		
-		if ([components count] > 1) {
-			song = [self createSong:components];
-			// Since this song was played "offline", we set the post date
-			// in the past 
-			postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
-			[song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
-			// Make sure the song passes submission rules                            
-			[song setStartTime:[NSDate dateWithTimeIntervalSince1970:postDate]];
-			[song setPosition:[song duration]];
-			
-			[iPodSubmissionQueue addObject:song];
-			[song release];
-		}
+		song = [SongData songWithiTunesResultString:songString];
+		// Since this song was played "offline", we set the post date
+		// in the past 
+		NSTimeInterval postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
+		[song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
+		// Make sure the song passes submission rules                            
+		[song setStartTime:[NSDate dateWithTimeIntervalSince1970:postDate]];
+		[song setPosition:[song duration]];
+		
+		[iPodSubmissionQueue addObject:song];
 	}
 	return iPodSubmissionQueue;
 }
@@ -581,7 +579,7 @@ validate:
 	
 	if (![result hasPrefix:@"INACTIVE"]) {
 		
-		NSArray *iPodSubmissionQueue = [self songsFromResultsString:result];
+		NSArray *iPodSubmissionQueue = [self songsFromResultString:result];
 		iPodSubmissionQueue = [self validateIPodSync:iPodSubmissionQueue];
 		
 		SongData *song = nil;

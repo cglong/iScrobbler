@@ -20,6 +20,7 @@
     NSDate *startTime;
     BOOL hasQueued;
     NSNumber *pausedTime;
+	NSDate *_lastPlayed;
     NSDate *postDate;
 }
 
@@ -84,6 +85,9 @@
 // pausedTime is the total length of time the song has been paused for
 - (NSNumber *)pausedTime;
 - (void)setPausedTime:(NSNumber *)newPausedTime;
+
+- (NSDate *)lastPlayed;
+- (void)setLastPlayed:(NSDate *)date;
 
 // postDate is the moment in which the initial submission was attempted
 - (NSDate *)postDate;
