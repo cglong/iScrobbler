@@ -11,6 +11,7 @@ v0.7.3 (BDB)
 - Fixed another bug concerning the way we handle BADAUTH from the server on a submission. (Intro'd in 0.7.1).
 - Fixed a bug that was causing the Preference window's "Last Song Submitted" field to show the previous submitted song, not the current one.
 - Fixed some memory leaks (from 0.6.x).
+- Fixed a bug in support framework that would cause iPod sync to fail if the iPod name contained any non-ASCII characters.
 
 v0.7.2 (BDB)
 - Fixed a possible handshake bug that could cause handshaking to never complete when we recieved an unexpected server response.
