@@ -591,6 +591,8 @@ validate:
                     NSTimeInterval postDate;
                     
                     if ([components count] > 1) {
+                        ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Song components from script: %@\n", components);
+                        
                         song = [self createSong:components];
                         // Since this song was played "offline", we set the post date
                         // in the past 
