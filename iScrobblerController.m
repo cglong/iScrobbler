@@ -30,6 +30,8 @@
 - (void) volumeDidMount:(NSNotification*)notification;
 - (void) volumeDidUnmount:(NSNotification*)notification;
 
+- (void)iTunesPlaylistUpdate:(NSTimer*)timer;
+
 @end
 
 #define CLEAR_MENUITEM_TAG          1
@@ -147,6 +149,13 @@
                                                 selector:@selector(mainTimer:)
                                                 userInfo:nil
                                                  repeats:YES] retain];
+    
+    // Timer to update our internal copy of iTunes playlists
+    [[NSTimer scheduledTimerWithTimeInterval:300.0
+        target:self
+        selector:@selector(iTunesPlaylistUpdate:)
+        userInfo:nil
+        repeats:YES] fire];
     
     statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
 	
@@ -326,6 +335,42 @@
 mainTimerReleaseResult:
     [result release];
     //ScrobTrace(@"result released");
+    }
+}
+
+- (void)iTunesPlaylistUpdate:(NSTimer*)timer
+{
+    static NSAppleScript *iTunesPlaylistScript = nil;
+    
+    if (!iTunesPlaylistScript) {
+        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
+                    stringByAppendingPathComponent:@"Scripts/iTunesGetPlaylists.scpt"]];
+        iTunesPlaylistScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
+        if (!iTunesPlaylistScript) {
+            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetPlaylists.scpt!\n");
+            [self showApplicationIsDamagedDialog];
+        }
+    }
+    
+    NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:nil];
+    if(executionResult ) {
+        NSArray *parsedResult = [[executionResult stringValue] componentsSeparatedByString:@"$$$"];
+        NSEnumerator *en = [parsedResult objectEnumerator];
+        NSString *playlist;
+        NSMutableArray *names = [NSMutableArray arrayWithCapacity:[parsedResult count]];
+        
+        while ((playlist = [en nextObject])) {
+            NSArray *properties = [playlist componentsSeparatedByString:@"***"];
+            NSString *name = [properties objectAtIndex:0];
+            
+            if (name && [name length] > 0)
+                [names addObject:name];
+        }
+        
+        if ([names count]) {
+            [self setValue:[names sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)]
+                forKey:@"iTunesPlaylists"];
+        }
     }
 }
 
@@ -547,6 +592,7 @@ validate:
 //#define IPOD_UPDATE_SCRIPT_DATE_FMT @"%A, %B %d, %Y %I:%M:%S %p"
 #define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
 #define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
+#define IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST @"Recently Played"
 
 - (void)syncIPod:(id)sender
 {
@@ -575,10 +621,16 @@ validate:
         localeInfo = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
         
         // Replace the token with our last update
-        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
+        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST
             withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:
                 [localeInfo objectForKey:NSTimeDateFormatString] timeZone:nil locale:localeInfo]
-            options:0 range:NSMakeRange(0, [iPodUpdateScript length])];
+            options:0 range:NSMakeRange(0, [text length])];
+        
+        NSString *playlist = [prefs stringForKey:@"iPod Submission Playlist"];
+        // Replace the default playlist with the user's choice
+        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST
+            withString:playlist
+            options:0 range:NSMakeRange(0, [text length])];
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
             [iTunesLastPlayedTime descriptionWithCalendarFormat:[localeInfo objectForKey:NSTimeDateFormatString]

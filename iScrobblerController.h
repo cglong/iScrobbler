@@ -49,6 +49,8 @@
     
     // iPod sync management
     NSDate *iTunesLastPlayedTime;
+    
+    NSArray *iTunesPlaylists;
 }
 
 //called when mainTimer fires

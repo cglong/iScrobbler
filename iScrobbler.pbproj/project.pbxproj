@@ -175,6 +175,7 @@
 				D3CB130E07750960009236FF,
 				F5D8D308030C568001A80164,
 				D3EC0A740729CFA600C13782,
+				D3CB14FC07755151009236FF,
 				089C165CFE840E0CC02AAC07,
 				DC00A46205B21B9200674DB4,
 			);
@@ -470,6 +471,23 @@
 			settings = {
 			};
 		};
+		D3CB14FC07755151009236FF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.applescript;
+			path = iTunesGetPlaylists.applescript;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3CB150007755179009236FF = {
+			fileRef = D3CB14FC07755151009236FF;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Debug,
+				);
+			};
+		};
 		D3D4741F077407F50076AA7D = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -562,6 +580,7 @@
 			buildActionMask = 2147483647;
 			contextName = "";
 			files = (
+				D3CB150007755179009236FF,
 				EB16389F0406E7C7005DC01B,
 			);
 			isSharedContext = 0;

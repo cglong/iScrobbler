@@ -20,6 +20,9 @@
     <key>Sync iPod</key>
     <integer>1</integer>
     
+    <key>iPod Submission Playlist</key>
+    <string>Recently Played</string>
+    
     <key>Disable Update Notification</key>
     <integer>0</integer>
     
