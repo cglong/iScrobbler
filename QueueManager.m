@@ -59,6 +59,13 @@ static QueueManager *g_QManager = nil;
     [songQueue addObject:song];
     ++totalSubmissions;
     
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:QM_NOTIFICATION_SONG_QUEUED
+        object:self
+        userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_SONG_DEQUEUED]]; 
+
+#define QM_NOTIFICATION_USERINFO_KEY_SONG @"Song"
+    
     if (submit) {
         [song setPostDate:[song startTime]];
         [self submit];
@@ -105,7 +112,16 @@ static QueueManager *g_QManager = nil;
         found = [songQueue objectAtIndex:idx];
         if ([found isEqualToSong:song] &&
              [[found songID] isEqualToNumber:[song songID]]) {
+            
+            [found retain];
             [songQueue removeObjectAtIndex:idx];
+            
+            [[NSNotificationCenter defaultCenter]
+                postNotificationName:QM_NOTIFICATION_SONG_DEQUEUED
+                object:self
+                userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_SONG_DEQUEUED]];
+        
+            [found release];
             
             if (sync)
                 [self syncQueue:nil];

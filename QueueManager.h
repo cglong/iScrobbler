@@ -52,3 +52,8 @@
 - (void)syncQueue:(id)sender;
 
 @end
+
+#define QM_NOTIFICATION_SONG_QUEUED @"QMNotificationSongQueued"
+#define QM_NOTIFICATION_SONG_DEQUEUED @"QMNotificationSongDeQueued"
+
+#define QM_NOTIFICATION_USERINFO_KEY_SONG @"Song"

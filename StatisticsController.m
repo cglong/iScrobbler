@@ -60,6 +60,17 @@ static StatisticsController *g_sub;
     
 }
 
+- (void)songQueuedHandler:(NSNotification*)note
+{
+    QueueManager *qm = [QueueManager sharedInstance];
+    id selection = [values selection];
+    
+    [selection setValue:[NSNumber numberWithUnsignedInt:[qm totalSubmissionsCount]]
+        forKey:@"Tracks Submitted"];
+    [selection setValue:[NSNumber numberWithUnsignedInt:[qm count]]
+        forKey:@"Tracks Queued"];
+}
+
 - (IBAction)showWindow:(id)sender
 {
     // Register for PM notifications
@@ -70,6 +81,11 @@ static StatisticsController *g_sub;
     [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(submitCompleteHandler:)
             name:PM_NOTIFICATION_SUBMIT_COMPLETE
+            object:nil];
+    // And QM notes
+    [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(songQueuedHandler:)
+            name:QM_NOTIFICATION_SONG_QUEUED
             object:nil];
     
     // Raise level so the window is pretty much in front of everything.
