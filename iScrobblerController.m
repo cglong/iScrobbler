@@ -18,6 +18,7 @@
 #import "QueueManager.h"
 #import "ProtocolManager.h"
 #import "ScrobLog.h"
+#import "StatisticsController.h"
 
 @interface iScrobblerController ( private )
 
@@ -128,12 +129,7 @@
                 selector:@selector(badAuthHandler:)
                 name:PM_NOTIFICATION_BADAUTH
                 object:nil];
-    #if 0
-        [nc addObserver:self
-                selector:@selector(submitCompleteHandler:)
-                name:PM_NOTIFICATION_SUBMIT_COMPLETE
-                object:nil];
-    #endif
+        
         // Create queue mgr
         (void)[QueueManager sharedInstance];
         if ([[QueueManager sharedInstance] count])
@@ -391,6 +387,11 @@ mainTimerReleaseResult:
     NSString *prefix = @"http://www.audioscrobbler.com/user/";
     NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
     [[NSWorkspace sharedWorkspace] openURL:url];
+}
+
+-(IBAction)openStatistics:(id)sender
+{
+    [[StatisticsController sharedInstance] showWindow:sender];
 }
 
 -(void) handleChangedNumRecentTunes:(NSNotification *)aNotification
@@ -667,11 +668,11 @@ sync_ipod_script_release:
 // NSWorkSpace mount notifications
 - (void)volumeDidMount:(NSNotification*)notification
 {
-    NSDictionary *object = [notification object];
-	NSString *mountPath = [object objectForKey:@"NSDevicePath"];
+    NSDictionary *info = [notification userInfo];
+	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
     NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
 	
-    ScrobTrace(@"Volume mounted: %@", object);
+    ScrobTrace(@"Volume mounted: %@", info);
     
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
@@ -682,17 +683,16 @@ sync_ipod_script_release:
 
 - (void)volumeDidUnmount:(NSNotification*)notification
 {
-    NSDictionary *object = [notification object];
-	NSString *mountPath = [object objectForKey:@"NSDevicePath"];
+    NSDictionary *info = [notification userInfo];
+	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
 	
-    ScrobTrace(@"Volume unmounted: %@.\n", object);
+    ScrobTrace(@"Volume unmounted: %@.\n", info);
     
     if ([iPodMountPath isEqualToString:mountPath]) {
+        [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
         [self setValue:nil forKey:@"iPodMountPath"];
         [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
     }
-	
-	[self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
 }
 
 @end
