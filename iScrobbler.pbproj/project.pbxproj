@@ -72,6 +72,8 @@
 		};
 		1058C7A2FEA54F0111CA2CBB = {
 			children = (
+				DCFFB94D05B0F84A007D210F,
+				DCFFB95405B0F869007D210F,
 				29B97325FDCFA39411CA2CEA,
 				29B97324FDCFA39411CA2CEA,
 			);
@@ -126,7 +128,6 @@
 		};
 		29B97314FDCFA39411CA2CEA = {
 			children = (
-				DCFFB94D05B0F84A007D210F,
 				EB45285C040A8D11005DC01B,
 				EB24D529040AECC8005DC01B,
 				EB16394A04080C51005DC01B,
@@ -168,7 +169,6 @@
 				EBDF4CE804009EA7005DC01B,
 				EBBB2F1E03F7C3F2005DC01B,
 				29B97318FDCFA39411CA2CEA,
-				DCFFB95405B0F869007D210F,
 				F575CEAE02FF7FB901A80164,
 				F5D8D308030C568001A80164,
 				089C165CFE840E0CC02AAC07,
@@ -280,23 +280,30 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		DC00A46305B21B9200674DB4 = {
-			fileRef = DC00A46205B21B9200674DB4;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		DC00A47B05B21BD100674DB4 = {
 			fileRef = DC00A46205B21B9200674DB4;
 			isa = PBXBuildFile;
 			settings = {
 			};
 		};
+		DC5C93B505B3389C004FAABB = {
+			fileRef = DCFFB95405B0F869007D210F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		DC5C93B705B338AC004FAABB = {
+			fileRef = DCFFB94D05B0F84A007D210F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		DCFFB94D05B0F84A007D210F = {
-			isa = PBXFileReference;
+			fallbackIsa = PBXFileReference;
+			isa = PBXFrameworkReference;
 			lastKnownFileType = wrapper.framework;
 			name = CURLHandle.framework;
-			path = /Users/rod/Library/Frameworks/CURLHandle.framework;
+			path = /Library/Frameworks/CURLHandle.framework;
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
@@ -307,10 +314,11 @@
 			};
 		};
 		DCFFB95405B0F869007D210F = {
-			isa = PBXFileReference;
+			fallbackIsa = PBXFileReference;
+			isa = PBXFrameworkReference;
 			lastKnownFileType = wrapper.framework;
 			name = mHashMacOSX.framework;
-			path = /Users/rod/Library/Frameworks/mHashMacOSX.framework;
+			path = /Library/Frameworks/mHashMacOSX.framework;
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
@@ -354,7 +362,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				DC00A46305B21B9200674DB4,
+				DC5C93B705B338AC004FAABB,
+				DC5C93B505B3389C004FAABB,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
