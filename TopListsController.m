@@ -10,6 +10,7 @@
 #import "TopListsController.h"
 #import "QueueManager.h"
 #import "SongData.h"
+#import "ISSearchArrayController.h"
 
 static TopListsController *g_topLists = nil;
 
@@ -31,6 +32,7 @@ static TopListsController *g_topLists = nil;
     NSEnumerator *en;
     NSNumber *count;
     
+    // Top Artists
     en = [[topArtistsController content] objectEnumerator];
     while ((entry = [en nextObject])) {
         if ([artist isEqualToString:[entry objectForKey:@"Artist"]]) {
@@ -43,16 +45,25 @@ static TopListsController *g_topLists = nil;
     }
 
     if (!entry) {
-        [topArtistsController addObject:
-            [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                [song artist], @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count", nil]];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                    [song artist], @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count", nil];
+    } else {
+        entry = nil;
     }
     
-    // This is necessary even when adding a new object. According to the doc, addObject adds both to
-    // the content array and the arrangedObjects array, which I would think it would also cause a re-sort,
-    // but it doesn't.
-    [topArtistsController rearrangeObjects];
+    if (![topArtistsController isSearchInProgress]) {
+        if (entry)
+            [topArtistsController addObject:entry];
+        [topArtistsController rearrangeObjects];
+    } else if (entry) {
+        // Can't alter the arrangedObjects array when a search is active
+        // So manually enter the item in the content array
+        NSMutableArray *contents = [topArtistsController content];
+        [contents addObject:entry];
+        [topArtistsController setContent:contents];
+    }
     
+    // Top Tracks
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
         if ([artist isEqualToString:[entry objectForKey:@"Artist"]] &&
@@ -66,13 +77,24 @@ static TopListsController *g_topLists = nil;
     }
 
     if (!entry) {
-        [topTracksController addObject:
-            [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                artist, @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
-                track, @"Track", nil]];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                    artist, @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
+                    track, @"Track", nil];
+    } else {
+        entry = nil;
     }
     
-    [topTracksController rearrangeObjects]; // Same requirement as topArtistsController
+    if (![topTracksController isSearchInProgress]) {
+        if (entry)
+            [topTracksController addObject:entry];
+        [topTracksController rearrangeObjects];
+    } else if (entry) {
+        // Can't alter the arrangedObjects array when a search is active
+        // So manually enter the item in the content array
+        NSMutableArray *contents = [topTracksController content];
+        [contents addObject:entry];
+        [topTracksController setContent:contents];
+    }
 }
 
 - (id)initWithWindowNibName:(NSString *)windowNibName
