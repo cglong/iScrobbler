@@ -23,6 +23,7 @@
             CLASS = PreferenceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                disableVersionCheckSwitch = id; 
                 iPodSyncSwitch = NSButton; 
                 lastResultDataField = NSTextView; 
                 lastResultLongField = NSTextView; 
