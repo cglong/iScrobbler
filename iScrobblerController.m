@@ -102,6 +102,7 @@
         if (trackTime > [[ProtocolManager sharedInstance] minTimePlayed])
             trackTime = [[ProtocolManager sharedInstance] minTimePlayed];
         trackTime -= [[curSong position] doubleValue]; // and elapsed time.
+        trackTime += 5.0; // Add some fudge to make sure we get submitted when the timer fires
         
         ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track %@.\n", trackTime, [curSong brief]);
         mainTimer = [[NSTimer scheduledTimerWithTimeInterval:trackTime
@@ -368,10 +369,15 @@
                 nowPlaying = firstSongInList;
                 
                 if (pos <  [[firstSongInList position] floatValue] &&
+                     // The following conditions do not work with iTunes 4.7, since we are not
+                     // constantly updating the song's position by polling iTunes. With 4.7 we update
+                     // when the the song first plays and when it's ready for submission -- that's it.
+                #if 0
                      (pos <= [SongData songTimeFudge]) &&
                      // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
                      (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
-                     <= [SongData songTimeFudge]) ) {
+                #endif
+                     (pos <= [SongData songTimeFudge]) ) {
                     [songList insertObject:song atIndex:0];
                     nowPlaying = song;
                 } else {
