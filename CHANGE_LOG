@@ -1,6 +1,7 @@
-KNOWN PROBLEMS:
+KNOWN ISSUES:
 
 - If you are burning a CD in iTunes, or editing a song's information, then iTunes cannot process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
+- The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
 
 CHANGE HISTORY:
 
@@ -10,6 +11,7 @@ CHANGE HISTORY:
 
 v1.0.1 (BDB)
 - The Top Artists list now includes the total time played for each artist.
+- The Top Tracks list now contains the last played time for each track.
 - Copy/Drag and Drop now work for the Top Lists tables. The data is formatted as TSV and can easily be pasted into a spreadsheet.
 - The Tracks Submitted stat is now only updated after a submission attempt completes.
 - Keychain error feedback.

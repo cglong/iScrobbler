@@ -172,11 +172,14 @@
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     [prefs registerDefaults:defaultPrefs];
     
-    // This sucks. We added a new column to the Top Artists list 1.0.1. But, if the saved Column/Sort orderings
-    // don't match the then the new column is lost. So here, we delete the saved settings from version 1.0.0.
+    // This sucks. We added new columns to the Top Artists and Top Tracks lists in 1.0.1. But,
+    // if the saved Column/Sort orderings don't match then the new column is won't show.
+    // So here, we delete the saved settings from version 1.0.0.
     if ([@"1.0.0" isEqualToString:[prefs objectForKey:@"version"]]) {
         [prefs removeObjectForKey:@"NSTableView Columns Top Artists"];
         [prefs removeObjectForKey:@"NSTableView Sort Ordering Top Artists"];
+        [prefs removeObjectForKey:@"NSTableView Columns Top Tracks"];
+        [prefs removeObjectForKey:@"NSTableView Sort Ordering Top Tracks"];
     }
     
     // One user has reported the version # showing up in his personal prefs.

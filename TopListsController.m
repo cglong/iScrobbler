@@ -81,6 +81,7 @@ static TopListsController *g_topLists = nil;
     }
     
     // Top Tracks
+    id lastPlayedDate = [[song startTime] addTimeInterval:[[song duration] doubleValue]];
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
         if ([artist isEqualToString:[entry objectForKey:@"Artist"]] &&
@@ -89,6 +90,7 @@ static TopListsController *g_topLists = nil;
             count = [NSNumber numberWithUnsignedInt:
                 [count unsignedIntValue] + 1];
             [entry setValue:count forKeyPath:@"Play Count"];
+            [entry setValue:lastPlayedDate forKeyPath:@"Last Played"];
             break;
         }
     }
@@ -96,7 +98,7 @@ static TopListsController *g_topLists = nil;
     if (!entry) {
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                     artist, @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
-                    track, @"Track", nil];
+                    track, @"Track", lastPlayedDate, @"Last Played", nil];
     } else {
         entry = nil;
     }
