@@ -13,7 +13,7 @@
 			EB5065F803FB7A51005DC01B,
 		);
 		perUserDictionary = {
-			PBXPerProjectTemplateStateSaveDate = 70572218;
+			PBXPerProjectTemplateStateSaveDate = 70932417;
 			PBXWorkspaceContents = (
 				{
 					LeftSlideOut = {
@@ -652,7 +652,7 @@
 					WindowLocation = "{93, 288}";
 				},
 			);
-			PBXWorkspaceStateSaveDate = 70572218;
+			PBXWorkspaceStateSaveDate = 70932417;
 		};
 		perUserProjectItems = {
 			EB08CCD30406D2C5005DC01B = EB08CCD30406D2C5005DC01B;
@@ -1426,7 +1426,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: validateMenuItem:";
 		rLen = 0;
-		rLoc = 620;
+		rLoc = 697;
 		rType = 0;
 		vrLen = 580;
 		vrLoc = 500;
@@ -1445,7 +1445,7 @@
 		fRef = EB45285C040A8D11005DC01B;
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 1";
-		rLen = 728;
+		rLen = 823;
 		rLoc = 0;
 		rType = 0;
 		vrLen = 1327;
@@ -1456,7 +1456,7 @@
 		isa = PBXTextBookmark;
 		name = "defaults.plist: 15";
 		rLen = 0;
-		rLoc = 427;
+		rLoc = 404;
 		rType = 0;
 		vrLen = 530;
 		vrLoc = 119;
@@ -1520,7 +1520,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 0;
-		rLoc = 3998;
+		rLoc = 4423;
 		rType = 0;
 		vrLen = 1145;
 		vrLoc = 3853;
@@ -1540,7 +1540,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 0;
-		rLoc = 3861;
+		rLoc = 4286;
 		rType = 0;
 		vrLen = 823;
 		vrLoc = 3795;
@@ -1550,7 +1550,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 2";
 		rLen = 0;
-		rLoc = 949;
+		rLoc = 1044;
 		rType = 0;
 		vrLen = 998;
 		vrLoc = 0;
@@ -1560,7 +1560,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 0;
-		rLoc = 3861;
+		rLoc = 4286;
 		rType = 0;
 		vrLen = 870;
 		vrLoc = 3790;
@@ -1590,7 +1590,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 0;
-		rLoc = 3861;
+		rLoc = 4286;
 		rType = 0;
 		vrLen = 758;
 		vrLoc = 3620;
@@ -1610,7 +1610,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: escapedtitle";
 		rLen = 0;
-		rLoc = 10786;
+		rLoc = 11729;
 		rType = 0;
 		vrLen = 1188;
 		vrLoc = 9565;
@@ -1630,7 +1630,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 11";
 		rLen = 0;
-		rLoc = 1334;
+		rLoc = 1429;
 		rType = 0;
 		vrLen = 1065;
 		vrLoc = 0;
@@ -1670,7 +1670,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: escapedtitle";
 		rLen = 0;
-		rLoc = 10786;
+		rLoc = 11729;
 		rType = 0;
 		vrLen = 1123;
 		vrLoc = 9565;
@@ -1690,7 +1690,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: escapedtitle";
 		rLen = 0;
-		rLoc = 10786;
+		rLoc = 11729;
 		rType = 0;
 		vrLen = 1123;
 		vrLoc = 9565;
@@ -1700,7 +1700,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 11";
 		rLen = 0;
-		rLoc = 1334;
+		rLoc = 1429;
 		rType = 0;
 		vrLen = 1065;
 		vrLoc = 0;
@@ -1710,7 +1710,7 @@
 		isa = PBXTextBookmark;
 		name = "CHANGE_LOG: 1";
 		rLen = 0;
-		rLoc = 1050;
+		rLoc = 1654;
 		rType = 0;
 		vrLen = 0;
 		vrLoc = 0;
@@ -1720,7 +1720,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 3";
 		rLen = 815;
-		rLoc = 885;
+		rLoc = 980;
 		rType = 0;
 		vrLen = 1065;
 		vrLoc = 0;
@@ -1740,7 +1740,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 3";
 		rLen = 815;
-		rLoc = 885;
+		rLoc = 980;
 		rType = 0;
 		vrLen = 1065;
 		vrLoc = 0;
@@ -1760,7 +1760,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 5";
 		rLen = 0;
-		rLoc = 559;
+		rLoc = 654;
 		rType = 0;
 		vrLen = 1249;
 		vrLoc = 0;
@@ -1774,7 +1774,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 7";
 		rLen = 0;
-		rLoc = 407;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 1327;
 		vrLoc = 0;
@@ -1794,7 +1794,7 @@
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 7";
 		rLen = 0;
-		rLoc = 407;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 1108;
 		vrLoc = 0;
@@ -1808,7 +1808,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: validateMenuItem:";
 		rLen = 0;
-		rLoc = 620;
+		rLoc = 697;
 		rType = 0;
 		vrLen = 580;
 		vrLoc = 500;
@@ -1818,7 +1818,7 @@
 		isa = PBXTextBookmark;
 		name = "defaults.plist: 24";
 		rLen = 0;
-		rLoc = 641;
+		rLoc = 644;
 		rType = 0;
 		vrLen = 498;
 		vrLoc = 151;
@@ -1838,7 +1838,7 @@
 		isa = PBXTextBookmark;
 		name = "defaults.plist: 24";
 		rLen = 0;
-		rLoc = 641;
+		rLoc = 644;
 		rType = 0;
 		vrLen = 530;
 		vrLoc = 119;
@@ -1858,7 +1858,7 @@
 		isa = PBXTextBookmark;
 		name = "defaults.plist: 24";
 		rLen = 0;
-		rLoc = 641;
+		rLoc = 644;
 		rType = 0;
 		vrLen = 530;
 		vrLoc = 119;
@@ -1878,7 +1878,7 @@
 		isa = PBXTextBookmark;
 		name = "CHANGE_LOG: 7";
 		rLen = 0;
-		rLoc = 755;
+		rLoc = 1359;
 		rType = 0;
 		vrLen = 856;
 		vrLoc = 0;
@@ -1898,7 +1898,7 @@
 		isa = PBXTextBookmark;
 		name = "CHANGE_LOG: 4";
 		rLen = 0;
-		rLoc = 229;
+		rLoc = 833;
 		rType = 0;
 		vrLen = 1050;
 		vrLoc = 0;
@@ -1918,7 +1918,7 @@
 		isa = PBXTextBookmark;
 		name = "CHANGE_LOG: 4";
 		rLen = 193;
-		rLoc = 36;
+		rLoc = 640;
 		rType = 0;
 		vrLen = 1050;
 		vrLoc = 0;
@@ -1927,7 +1927,7 @@
 		fRef = EB45285C040A8D11005DC01B;
 		isa = PBXTextBookmark;
 		name = "KNOWN_ISSUES: 1";
-		rLen = 728;
+		rLen = 823;
 		rLoc = 0;
 		rType = 0;
 		vrLen = 1327;
@@ -1938,7 +1938,7 @@
 		isa = PBXTextBookmark;
 		name = "defaults.plist: 15";
 		rLen = 0;
-		rLoc = 427;
+		rLoc = 404;
 		rType = 0;
 		vrLen = 530;
 		vrLoc = 119;
@@ -1982,7 +1982,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 142";
 		rLen = 0;
-		rLoc = 5283;
+		rLoc = 6192;
 		rType = 0;
 		vrLen = 508;
 		vrLoc = 3;
@@ -2029,6 +2029,12 @@
 		path = /Developer/Documentation/DeveloperTools/cvs/cvs_38.html;
 		refType = 0;
 	};
+	EB45284F04099EEF005DC01B = {
+		isa = PBXFileReference;
+		name = iscrobbler.icns;
+		path = "/Volumes/Bigboy/cocoa/iscrobblerworking/iscrobbler-osx/iscrobbler.icns";
+		refType = 0;
+	};
 	EB4528530409F66B005DC01B = {
 		fRef = EBDF4CE804009EA7005DC01B;
 		isa = PBXTextBookmark;
@@ -2044,7 +2050,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 0;
-		rLoc = 5283;
+		rLoc = 6192;
 		rType = 0;
 		vrLen = 503;
 		vrLoc = 3;
@@ -2072,7 +2078,7 @@
 		isa = PBXTextBookmark;
 		name = "CHANGE_LOG: 4";
 		rLen = 193;
-		rLoc = 36;
+		rLoc = 640;
 		rType = 0;
 		vrLen = 1050;
 		vrLoc = 0;
@@ -2082,7 +2088,7 @@
 		isa = PBXTextBookmark;
 		name = "CHANGE_LOG: 4";
 		rLen = 193;
-		rLoc = 36;
+		rLoc = 640;
 		rType = 0;
 		vrLen = 1050;
 		vrLoc = 0;
@@ -2092,7 +2098,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: validateMenuItem:";
 		rLen = 23;
-		rLoc = 723;
+		rLoc = 800;
 		rType = 0;
 		vrLen = 691;
 		vrLoc = 544;
@@ -2294,7 +2300,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: init";
 		rLen = 60;
-		rLoc = 1020;
+		rLoc = 1074;
 		rType = 0;
 		vrLen = 1004;
 		vrLoc = 445;
@@ -2354,7 +2360,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: init";
 		rLen = 60;
-		rLoc = 1020;
+		rLoc = 1074;
 		rType = 0;
 		vrLen = 1386;
 		vrLoc = 8533;
@@ -2384,7 +2390,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 26;
-		rLoc = 7506;
+		rLoc = 8449;
 		rType = 0;
 		vrLen = 1161;
 		vrLoc = 5997;
@@ -2404,7 +2410,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 26;
-		rLoc = 7506;
+		rLoc = 8449;
 		rType = 0;
 		vrLen = 1165;
 		vrLoc = 5993;
@@ -2484,7 +2490,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 26;
-		rLoc = 7506;
+		rLoc = 8449;
 		rType = 0;
 		vrLen = 1164;
 		vrLoc = 5993;
@@ -2494,7 +2500,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1233;
+		rLoc = 1315;
 		rType = 0;
 		vrLen = 930;
 		vrLoc = 238;
@@ -2504,7 +2510,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: URLHandle:resourceDidFailLoadingWithReason:";
 		rLen = 0;
-		rLoc = 12943;
+		rLoc = 13670;
 		rType = 0;
 		vrLen = 949;
 		vrLoc = 10151;
@@ -2514,7 +2520,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1233;
+		rLoc = 1315;
 		rType = 0;
 		vrLen = 990;
 		vrLoc = 304;
@@ -2524,7 +2530,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: URLHandleResourceDidCancelLoading:";
 		rLen = 0;
-		rLoc = 12681;
+		rLoc = 13224;
 		rType = 0;
 		vrLen = 1015;
 		vrLoc = 9829;
@@ -2594,7 +2600,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: setLastResult:";
 		rLen = 0;
-		rLoc = 1303;
+		rLoc = 1385;
 		rType = 0;
 		vrLen = 361;
 		vrLoc = 1048;
@@ -2604,7 +2610,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 26;
-		rLoc = 13508;
+		rLoc = 14283;
 		rType = 0;
 		vrLen = 358;
 		vrLoc = 10935;
@@ -2624,7 +2630,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 41";
 		rLen = 0;
-		rLoc = 1046;
+		rLoc = 1128;
 		rType = 0;
 		vrLen = 407;
 		vrLoc = 917;
@@ -2634,7 +2640,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 304;
 		vrLoc = 10829;
@@ -2654,7 +2660,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 41";
 		rLen = 0;
-		rLoc = 1046;
+		rLoc = 1128;
 		rType = 0;
 		vrLen = 379;
 		vrLoc = 917;
@@ -2664,7 +2670,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 304;
 		vrLoc = 10829;
@@ -2694,7 +2700,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 41";
 		rLen = 0;
-		rLoc = 1046;
+		rLoc = 1128;
 		rType = 0;
 		vrLen = 378;
 		vrLoc = 965;
@@ -2704,7 +2710,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 304;
 		vrLoc = 10829;
@@ -2824,7 +2830,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: lastResult";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 385;
 		vrLoc = 875;
@@ -2904,7 +2910,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 41";
 		rLen = 0;
-		rLoc = 1046;
+		rLoc = 1128;
 		rType = 0;
 		vrLen = 606;
 		vrLoc = 31;
@@ -2934,7 +2940,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: lastResult";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 590;
 		vrLoc = 761;
@@ -2944,7 +2950,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 561;
 		vrLoc = 0;
@@ -2954,7 +2960,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: lastResult";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 590;
 		vrLoc = 761;
@@ -2974,7 +2980,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 561;
 		vrLoc = 0;
@@ -3014,7 +3020,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 678;
 		vrLoc = 370;
@@ -3044,7 +3050,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 566;
 		vrLoc = 917;
@@ -3054,7 +3060,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: lastResult";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 512;
 		vrLoc = 10748;
@@ -3094,7 +3100,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: lastResult";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 729;
 		vrLoc = 9683;
@@ -3104,7 +3110,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 561;
 		vrLoc = 0;
@@ -3134,7 +3140,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: lastResult";
 		rLen = 0;
-		rLoc = 13035;
+		rLoc = 13762;
 		rType = 0;
 		vrLen = 728;
 		vrLoc = 9683;
@@ -3144,7 +3150,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 629;
 		vrLoc = 537;
@@ -3184,7 +3190,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9097;
+		rLoc = 10040;
 		rType = 0;
 		vrLen = 663;
 		vrLoc = 8178;
@@ -3214,7 +3220,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9097;
+		rLoc = 10040;
 		rType = 0;
 		vrLen = 784;
 		vrLoc = 7752;
@@ -3224,7 +3230,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 616;
 		vrLoc = 965;
@@ -3234,7 +3240,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: awakeFromNib";
 		rLen = 0;
-		rLoc = 2162;
+		rLoc = 2216;
 		rType = 0;
 		vrLen = 887;
 		vrLoc = 1490;
@@ -3254,7 +3260,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 31;
-		rLoc = 8799;
+		rLoc = 9742;
 		rType = 0;
 		vrLen = 745;
 		vrLoc = 7567;
@@ -3284,7 +3290,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: updateMenu";
 		rLen = 0;
-		rLoc = 3617;
+		rLoc = 4042;
 		rType = 0;
 		vrLen = 871;
 		vrLoc = 2961;
@@ -3314,7 +3320,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: init";
 		rLen = 340;
-		rLoc = 1658;
+		rLoc = 1712;
 		rType = 0;
 		vrLen = 880;
 		vrLoc = 1015;
@@ -3364,7 +3370,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: dealloc";
 		rLen = 31;
-		rLoc = 9994;
+		rLoc = 10937;
 		rType = 0;
 		vrLen = 652;
 		vrLoc = 8050;
@@ -3394,7 +3400,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: nc";
 		rLen = 0;
-		rLoc = 10021;
+		rLoc = 10964;
 		rType = 0;
 		vrLen = 726;
 		vrLoc = 8054;
@@ -3414,7 +3420,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: nc";
 		rLen = 0;
-		rLoc = 10021;
+		rLoc = 10964;
 		rType = 0;
 		vrLen = 726;
 		vrLoc = 8054;
@@ -3434,7 +3440,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13562;
+		rLoc = 14337;
 		rType = 0;
 		vrLen = 493;
 		vrLoc = 10823;
@@ -3474,7 +3480,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 244";
 		rLen = 31;
-		rLoc = 9723;
+		rLoc = 10666;
 		rType = 0;
 		vrLen = 773;
 		vrLoc = 7710;
@@ -3524,7 +3530,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 244";
 		rLen = 31;
-		rLoc = 9723;
+		rLoc = 10666;
 		rType = 0;
 		vrLen = 693;
 		vrLoc = 7710;
@@ -3534,7 +3540,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 38";
 		rLen = 0;
-		rLoc = 941;
+		rLoc = 1023;
 		rType = 0;
 		vrLen = 564;
 		vrLoc = 1114;
@@ -3564,7 +3570,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: URLHandleResourceDidFinishLoading:";
 		rLen = 0;
-		rLoc = 12542;
+		rLoc = 13136;
 		rType = 0;
 		vrLen = 833;
 		vrLoc = 10103;
@@ -3594,7 +3600,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13533;
+		rLoc = 14308;
 		rType = 0;
 		vrLen = 486;
 		vrLoc = 10938;
@@ -3624,7 +3630,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13533;
+		rLoc = 14308;
 		rType = 0;
 		vrLen = 488;
 		vrLoc = 10936;
@@ -3644,7 +3650,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13533;
+		rLoc = 14308;
 		rType = 0;
 		vrLen = 488;
 		vrLoc = 10936;
@@ -3664,7 +3670,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13562;
+		rLoc = 14337;
 		rType = 0;
 		vrLen = 737;
 		vrLoc = 9942;
@@ -3704,7 +3710,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: setLastResult:";
 		rLen = 0;
-		rLoc = 13562;
+		rLoc = 14337;
 		rType = 0;
 		vrLen = 735;
 		vrLoc = 9942;
@@ -3714,7 +3720,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 46";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 602;
 		vrLoc = 912;
@@ -3724,7 +3730,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: dealloc";
 		rLen = 0;
-		rLoc = 9994;
+		rLoc = 10937;
 		rType = 0;
 		vrLen = 698;
 		vrLoc = 8022;
@@ -3744,7 +3750,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9001;
+		rLoc = 9944;
 		rType = 0;
 		vrLen = 737;
 		vrLoc = 7532;
@@ -3763,8 +3769,8 @@
 		fRef = F575CE9702FE0E8801A80164;
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 338";
-		rLen = 46;
-		rLoc = 13037;
+		rLen = 87;
+		rLoc = 13764;
 		rType = 0;
 		vrLen = 637;
 		vrLoc = 10474;
@@ -3774,7 +3780,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: changeLastResult:";
 		rLen = 0;
-		rLoc = 1327;
+		rLoc = 1409;
 		rType = 0;
 		vrLen = 634;
 		vrLoc = 1197;
@@ -3834,7 +3840,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: changeLastResult:";
 		rLen = 0;
-		rLoc = 1327;
+		rLoc = 1409;
 		rType = 0;
 		vrLen = 700;
 		vrLoc = 819;
@@ -3844,7 +3850,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: songData";
 		rLen = 0;
-		rLoc = 10530;
+		rLoc = 11473;
 		rType = 0;
 		vrLen = 1051;
 		vrLoc = 8562;
@@ -3854,7 +3860,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 591;
 		vrLoc = 819;
@@ -3864,7 +3870,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9096;
+		rLoc = 10039;
 		rType = 0;
 		vrLen = 1067;
 		vrLoc = 8499;
@@ -3874,7 +3880,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 592;
 		vrLoc = 818;
@@ -3884,7 +3890,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 338";
 		rLen = 0;
-		rLoc = 13328;
+		rLoc = 14103;
 		rType = 0;
 		vrLen = 524;
 		vrLoc = 10733;
@@ -3924,7 +3930,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 493;
 		vrLoc = 965;
@@ -3934,7 +3940,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 338";
 		rLen = 0;
-		rLoc = 13328;
+		rLoc = 14103;
 		rType = 0;
 		vrLen = 454;
 		vrLoc = 10733;
@@ -4044,7 +4050,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 492;
 		vrLoc = 965;
@@ -4064,7 +4070,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 475;
 		vrLoc = 0;
@@ -4114,7 +4120,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 475;
 		vrLoc = 0;
@@ -4204,7 +4210,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 475;
 		vrLoc = 0;
@@ -4224,7 +4230,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 475;
 		vrLoc = 0;
@@ -4274,7 +4280,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 530;
 		vrLoc = 160;
@@ -4294,7 +4300,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 92;
-		rLoc = 8868;
+		rLoc = 9811;
 		rType = 0;
 		vrLen = 706;
 		vrLoc = 7532;
@@ -4334,7 +4340,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 92;
-		rLoc = 8868;
+		rLoc = 9811;
 		rType = 0;
 		vrLen = 629;
 		vrLoc = 7532;
@@ -4344,7 +4350,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 530;
 		vrLoc = 31;
@@ -4530,7 +4536,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 559;
 		vrLoc = 3;
@@ -4598,7 +4604,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 690;
 		vrLoc = 0;
@@ -4836,7 +4842,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 637;
 		vrLoc = 0;
@@ -4916,7 +4922,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9096;
+		rLoc = 10039;
 		rType = 0;
 		vrLen = 678;
 		vrLoc = 10509;
@@ -4956,7 +4962,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9096;
+		rLoc = 10039;
 		rType = 0;
 		vrLen = 739;
 		vrLoc = 10377;
@@ -4976,7 +4982,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9096;
+		rLoc = 10039;
 		rType = 0;
 		vrLen = 739;
 		vrLoc = 10377;
@@ -4996,7 +5002,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: openPrefs:";
 		rLen = 0;
-		rLoc = 9096;
+		rLoc = 10039;
 		rType = 0;
 		vrLen = 677;
 		vrLoc = 10509;
@@ -5006,7 +5012,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 637;
 		vrLoc = 0;
@@ -5026,7 +5032,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 47";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 637;
 		vrLoc = 0;
@@ -5066,7 +5072,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: sendData:";
 		rLen = 0;
-		rLoc = 10784;
+		rLoc = 11727;
 		rType = 0;
 		vrLen = 539;
 		vrLoc = 8519;
@@ -5096,7 +5102,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: init";
 		rLen = 0;
-		rLoc = 1122;
+		rLoc = 1176;
 		rType = 0;
 		vrLen = 507;
 		vrLoc = 641;
@@ -5116,7 +5122,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: songData";
 		rLen = 0;
-		rLoc = 1122;
+		rLoc = 1176;
 		rType = 0;
 		vrLen = 813;
 		vrLoc = 628;
@@ -5136,7 +5142,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: init";
 		rLen = 0;
-		rLoc = 1122;
+		rLoc = 1176;
 		rType = 0;
 		vrLen = 847;
 		vrLoc = 628;
@@ -5156,7 +5162,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: changeLastResult:";
 		rLen = 0;
-		rLoc = 13307;
+		rLoc = 14082;
 		rType = 0;
 		vrLen = 697;
 		vrLoc = 10547;
@@ -5166,7 +5172,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 56";
 		rLen = 0;
-		rLoc = 1463;
+		rLoc = 1549;
 		rType = 0;
 		vrLen = 520;
 		vrLoc = 1112;
@@ -5186,7 +5192,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: timer:";
 		rLen = 0;
-		rLoc = 1463;
+		rLoc = 1549;
 		rType = 0;
 		vrLen = 576;
 		vrLoc = 1112;
@@ -5206,7 +5212,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: changeLastResult:";
 		rLen = 0;
-		rLoc = 13133;
+		rLoc = 13908;
 		rType = 0;
 		vrLen = 627;
 		vrLoc = 10797;
@@ -5246,7 +5252,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 14";
 		rLen = 0;
-		rLoc = 425;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 636;
 		vrLoc = 3;
@@ -5276,7 +5282,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: sendData:";
 		rLen = 0;
-		rLoc = 11206;
+		rLoc = 12149;
 		rType = 0;
 		vrLen = 584;
 		vrLoc = 0;
@@ -5316,7 +5322,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: sendData:";
 		rLen = 0;
-		rLoc = 11206;
+		rLoc = 12149;
 		rType = 0;
 		vrLen = 539;
 		vrLoc = 308;
@@ -5326,7 +5332,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 48";
 		rLen = 0;
-		rLoc = 1204;
+		rLoc = 1286;
 		rType = 0;
 		vrLen = 709;
 		vrLoc = 819;
@@ -5346,7 +5352,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: init";
 		rLen = 0;
-		rLoc = 1187;
+		rLoc = 1241;
 		rType = 0;
 		vrLen = 957;
 		vrLoc = 3088;
@@ -5366,7 +5372,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: sendData:";
 		rLen = 0;
-		rLoc = 11569;
+		rLoc = 12447;
 		rType = 0;
 		vrLen = 1191;
 		vrLoc = 8778;
@@ -5376,7 +5382,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 48";
 		rLen = 27;
-		rLoc = 1178;
+		rLoc = 1260;
 		rType = 0;
 		vrLen = 561;
 		vrLoc = 0;
@@ -5396,7 +5402,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 14";
 		rLen = 0;
-		rLoc = 425;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 553;
 		vrLoc = 31;
@@ -5416,7 +5422,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.h: 48";
 		rLen = 27;
-		rLoc = 1178;
+		rLoc = 1260;
 		rType = 0;
 		vrLen = 561;
 		vrLoc = 0;
@@ -5446,7 +5452,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: pass";
 		rLen = 0;
-		rLoc = 11454;
+		rLoc = 12397;
 		rType = 0;
 		vrLen = 1101;
 		vrLoc = 9070;
@@ -5506,7 +5512,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: pass";
 		rLen = 0;
-		rLoc = 11454;
+		rLoc = 12397;
 		rType = 0;
 		vrLen = 1038;
 		vrLoc = 9135;
@@ -5526,7 +5532,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 15";
 		rLen = 0;
-		rLoc = 425;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 531;
 		vrLoc = 0;
@@ -5536,7 +5542,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 15";
 		rLen = 0;
-		rLoc = 425;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 529;
 		vrLoc = 0;
@@ -5546,7 +5552,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: 15";
 		rLen = 0;
-		rLoc = 425;
+		rLoc = 502;
 		rType = 0;
 		vrLen = 384;
 		vrLoc = 341;
@@ -5556,7 +5562,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: sendData:";
 		rLen = 0;
-		rLoc = 11568;
+		rLoc = 12447;
 		rType = 0;
 		vrLen = 1206;
 		vrLoc = 9070;
@@ -5616,7 +5622,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: pass";
 		rLen = 93;
-		rLoc = 11361;
+		rLoc = 12304;
 		rType = 0;
 		vrLen = 1058;
 		vrLoc = 9097;
@@ -5646,7 +5652,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: pass";
 		rLen = 0;
-		rLoc = 11454;
+		rLoc = 12397;
 		rType = 0;
 		vrLen = 1160;
 		vrLoc = 9097;
@@ -5666,7 +5672,7 @@
 		isa = PBXTextBookmark;
 		name = "iScrobblerController.m: timer:";
 		rLen = 0;
-		rLoc = 5283;
+		rLoc = 6192;
 		rType = 0;
 		vrLen = 663;
 		vrLoc = 3;
@@ -5704,7 +5710,7 @@
 		isa = PBXTextBookmark;
 		name = iScrobblerController;
 		rLen = 0;
-		rLoc = 24;
+		rLoc = 26;
 		rType = 1;
 	};
 	EBEE283004050D5D005DC01B = {
