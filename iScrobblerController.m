@@ -246,6 +246,12 @@
         SongData *song = [self createSong:parsedResult];
         [parsedResult release];
         
+        if (NO == [prefs boolForKey:@"Shared Music Submission"] &&
+             [[song path] isEqualToString:@"Shared Track"]) {
+            [song release];
+            goto mainTimerReleaseResult;
+        }
+        
         // iPod sync date management, the goal is to detect the valid songs to sync
 		now = [NSDate date];
         // XXX We need to do something fancy here, because this assumes
@@ -321,6 +327,7 @@
         [song release];
     }
     
+mainTimerReleaseResult:
     [result release];
     //ScrobTrace(@"result released");
     }

@@ -10,7 +10,6 @@ if itunes_active is true then
 		if player state is playing then
 			set theTrack to get current track
 			
-			(* TODO : 0.8.0 : Support non-file tracks (optional) *)
 			set trackClass to (get class of theTrack)
 			if trackClass is file track or trackClass is audio CD track then
 				set songLocation to location of theTrack as string
@@ -20,7 +19,6 @@ if itunes_active is true then
 					return "RADIO"
 				else (* shared track *)
 					set songLocation to "Shared Track"
-					return "RADIO"
 				end if
 			end if
 			
