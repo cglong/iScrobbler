@@ -15,6 +15,9 @@
 				EB50662D03FBB239005DC01B,
 				EB3E2C0204360335005DC01B,
 				EB607519042A747B005DC01B,
+				D312EB560735548F00A2CFD5,
+				D312EDA007359DE000A2CFD5,
+				D312EE000735A78D00A2CFD5,
 			);
 			isa = PBXGroup;
 			name = Classes;
@@ -268,6 +271,104 @@
 //D32
 //D33
 //D34
+		D312EB550735548F00A2CFD5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = QueueManager.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EB560735548F00A2CFD5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = QueueManager.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EB570735548F00A2CFD5 = {
+			fileRef = D312EB550735548F00A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312EB580735548F00A2CFD5 = {
+			fileRef = D312EB560735548F00A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312ED9F07359DE000A2CFD5 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = ProtocolManager.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EDA007359DE000A2CFD5 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = ProtocolManager.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EDA107359DE000A2CFD5 = {
+			fileRef = D312ED9F07359DE000A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312EDA207359DE000A2CFD5 = {
+			fileRef = D312EDA007359DE000A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312EDA307359E0A00A2CFD5 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = "ProtocolManager+Subclassers.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EDA407359E0A00A2CFD5 = {
+			fileRef = D312EDA307359E0A00A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312EDFF0735A78D00A2CFD5 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = ProtocolManager_v11.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EE000735A78D00A2CFD5 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = ProtocolManager_v11.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D312EE010735A78D00A2CFD5 = {
+			fileRef = D312EDFF0735A78D00A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D312EE020735A78D00A2CFD5 = {
+			fileRef = D312EE000735A78D00A2CFD5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		D3EC06B707299A8200C13782 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -491,6 +592,10 @@
 				EB3E2C0304360335005DC01B,
 				EB774698043C96FB005DC01B,
 				EB7746A2043C9839005DC01B,
+				D312EB570735548F00A2CFD5,
+				D312EDA107359DE000A2CFD5,
+				D312EDA407359E0A00A2CFD5,
+				D312EE010735A78D00A2CFD5,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -521,6 +626,9 @@
 				EB3E2C0404360335005DC01B,
 				EB774699043C96FB005DC01B,
 				EB7746A3043C9839005DC01B,
+				D312EB580735548F00A2CFD5,
+				D312EDA207359DE000A2CFD5,
+				D312EE020735A78D00A2CFD5,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -584,7 +692,7 @@
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>0.7.0</string>
+	<string>0.7.2</string>
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
@@ -600,7 +708,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.7.0</string>
+	<string>0.7.2</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.2.0</string>
 	<key>LSUIElement</key>
 	<string>1</string>
 	<key>NSMainNibFile</key>
@@ -722,6 +832,10 @@
 				EB50662F03FBB284005DC01B,
 				EB3E2C0104360335005DC01B,
 				EB607518042A747B005DC01B,
+				D312EB550735548F00A2CFD5,
+				D312ED9F07359DE000A2CFD5,
+				D312EDA307359E0A00A2CFD5,
+				D312EDFF0735A78D00A2CFD5,
 			);
 			isa = PBXGroup;
 			name = Headers;
@@ -944,6 +1058,7 @@
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
+			lineEnding = 0;
 			path = iScrobblerController.h;
 			refType = 4;
 			sourceTree = "<group>";
