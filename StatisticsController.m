@@ -64,10 +64,8 @@ static enum {title, album, artist} g_cycleState = title;
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm successfulSubmissionsCount]]
         forKey:@"Successful Submissions"];
     unsigned int time = [[qm totalSubmissionsPlayTimeInSeconds] unsignedIntValue];
-    unsigned int days = time / 86400U;
-    unsigned int hours = (time % 86400U) / 3600U;
-    unsigned int minutes = ((time % 86400U) % 3600U) / 60U;
-    unsigned int seconds = ((time % 86400U) % 3600U) % 60U;
+    unsigned int days, hours, minutes, seconds;
+    ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
     NSString *timeString = [NSString stringWithFormat:@"%u %s, %u:%02u:%02u",
         days, (1 == days ? "day" : "days"), hours, minutes, seconds];
     [selection setValue:timeString forKey:@"Tracks Submitted Play Time"];

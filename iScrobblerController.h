@@ -85,4 +85,7 @@
 
 @end
 
+void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
+    unsigned int *minutes, unsigned int *seconds);
+
 #import "ScrobLog.h"
