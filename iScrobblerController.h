@@ -66,10 +66,13 @@
 -(IBAction)openScrobblerHomepage:(id)sender;
 -(IBAction)openUserHomepage:(id)sender;
 
+-(IBAction)syncIPod:(id)sender;
+-(IBAction)cleanLog:(id)sender;
+
 -(void)handleChangedNumRecentTunes:(NSNotification *)aNotification;
 
 -(NSString *)md5hash:(NSString *)input;
 
 @end
 
-#define IS_VERBOSE 1
+#import "ScrobLog.h"

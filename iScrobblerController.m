@@ -6,6 +6,8 @@
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net/
 
+#import <openssl/md5.h>
+
 #import "iScrobblerController.h"
 #import <CURLHandle/CURLHandle.h>
 #import <CURLHandle/CURLHandle+extras.h>
@@ -17,7 +19,8 @@
 #import "NSDictionary+httpEncoding.h"
 #import "QueueManager.h"
 #import "ProtocolManager.h"
-#import <mHashMacOSX/mhash.h>
+#import "ScrobLog.h"
+//#import <mHashMacOSX/mhash.h>
 #import <ExtFSDiskManager/ExtFSDiskManager.h>
 
 @interface iScrobblerController ( private )
@@ -37,7 +40,7 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)anItem
 {
-    //NSLog(@"%@",[anItem title]);
+    ScrobTrace(@"%@", [anItem title]);
     if([[anItem title] isEqualToString:@"Clear Menu"])
         [mainTimer fire];
     else if([[anItem title] isEqualToString:@"Sync iPod"] &&
@@ -103,7 +106,7 @@
                 stringByAppendingPathComponent:@"iPodUpdate.applescript"];
     iPodUpdateScript = [[NSString alloc] initWithContentsOfFile:file];
     if (!iPodUpdateScript)
-        NSLog(@"Failed to load iPodUpdateScript!\n");
+        ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!\n");
     
     [self restoreITunesLastPlayedTime];
     
@@ -188,7 +191,7 @@
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
     SongData *song;
-    //   NSLog(@"updating menu");
+    // ScrobTrace(@"updating menu");
 	
     // remove songs from menu
     while(item=[enumerator nextObject])
@@ -199,14 +202,14 @@
     enumerator=[songList reverseObjectEnumerator];
     while ((song = [enumerator nextObject]))
     {
-        //NSLog(@"Shit in song:\n%@",song);
+        //ScrobTrace(@"Corrupted song:\n%@",song);
         item = [[[NSMenuItem alloc] initWithTitle:[song title]
                                            action:@selector(playSong:)
                                     keyEquivalent:@""] autorelease];
         
         [item setTarget:self];
         [theMenu insertItem:item atIndex:0];
-		//    NSLog(@"added item to menu");
+		//    ScrobTrace(@"added item to menu");
     }
 }
 
@@ -227,7 +230,7 @@
     if (9 == [data count])
         [song setLastPlayed:[NSDate dateWithNaturalLanguageString:[data objectAtIndex:8]
             locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]]];
-    //NSLog(@"SongData allocated and filled");
+    //ScrobTrace(@"SongData allocated and filled");
     return (song);
 }
 
@@ -241,11 +244,11 @@
     {
         NSString *result=[[NSString alloc] initWithString:[ executionResult stringValue]];
 	
-    //NSLog(@"timer fired");
-    //NSLog(@"%@",result);
+    //ScrobTrace(@"timer fired");
+    //ScrobTrace(@"%@",result);
 	
     // For Debugging: Display the contents of the parsed result array
-    // NSLog(@"Shit in parsed result array:\n%@\n",parsedResult);
+    // ScrobTrace(@"Parsed result array:\n%@\n",parsedResult);
     
     // If the script didn't return an error, continue
     if([result hasPrefix:@"NOT PLAYING"]) {
@@ -272,7 +275,7 @@
         // If the songlist is empty, then simply add the song object to the songlist
         if([songList count]==0)
         {
-            NSLog(@"adding first item");
+            ScrobLog(SCROB_LOG_INFO, @"adding first item");
             [songList insertObject:song atIndex:0];
         }
         else
@@ -292,7 +295,7 @@
             } else {
                 // Check to see if the current track is anywhere in the songlist
                 // If it is, we set found equal to the index position where it was found
-                // NSLog(@"Looking for track");
+                // ScrobTrace(@"Looking for track");
                 int j;
                 int found = 0;
                 for(j = 0; j < [songList count]; j++) {
@@ -302,19 +305,19 @@
                         break;
                     }
                 }
-                //NSLog(@"Found = %i",j);
+                //ScrobTrace(@"Found = %i",j);
 				
                 // If the track wasn't found anywhere in the list, we add a new item
                 if(!found)
                 {
-                    NSLog(@"adding new item");
+                    ScrobLog(SCROB_LOG_INFO, @"adding new item");
                     [songList insertObject:song atIndex:0];
                 }
                 // If the trackname was found elsewhere in the list, we remove the old
                 // item, and add the new one onto the beginning of the list.
                 else
                 {
-                    //NSLog(@"removing old, adding new");
+                    //ScrobTrace(@"removing old, adding new");
                     [songList removeObjectAtIndex:found];
                     [songList insertObject:song atIndex:0];
                 }
@@ -323,19 +326,19 @@
         // If there are more items in the list than the user wanted
         // Then we remove the last item in the songlist
         while([songList count]>[prefs integerForKey:@"Number of Songs to Save"]) {
-            //NSLog(@"Removed an item from songList");
+            //ScrobTrace(@"Removed an item from songList");
             [songList removeObject:[songList lastObject]];
         }
 		
-        //NSLog(@"About to release song and parsedResult");
+        //ScrobTrace(@"About to release song and parsedResult");
         [self updateMenu];
         [song release];
         [parsedResult release];
-        //NSLog(@"song and parsedResult released");
+        //ScrobTrace(@"song and parsedResult released");
     }
     
     [result release];
-    //NSLog(@"result released");
+    //ScrobTrace(@"result released");
     }
 }
 
@@ -362,7 +365,7 @@
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
 	
-	NSLog(@"clearing menu");
+	ScrobTrace(@"clearing menu");
     [songList removeAllObjects];
     
 	while(item=[enumerator nextObject])
@@ -373,7 +376,7 @@
 }
 
 -(IBAction)openPrefs:(id)sender{
-    // NSLog(@"opening prefs");
+    // ScrobTrace(@"opening prefs");
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
 	
@@ -419,11 +422,11 @@
 
 - (void)changeLastResult:(NSString *)newResult
 {
-    //NSLog(@"song data before sending: %@",[songQueue objectAtIndex:0]);
+    //ScrobTrace(@"song data before sending: %@",[songQueue objectAtIndex:0]);
     [preferenceController takeValue:newResult forKey:@"lastResult"];
     [nc postNotificationName:@"lastResultChanged" object:self];
 	
-    NSLog(@"result changed");
+    ScrobLog(SCROB_LOG_VERBOSE, @"result changed");
 }
 
 - (void)changeLastHandshakeResult:(NSString*)result
@@ -431,47 +434,29 @@
     [preferenceController setLastHandshakeResult:result];
     [nc postNotificationName:@"lastHandshakeResultChanged" object:self];
 	
-    NSLog(@"Handshakeresult changed: %@", result);
+    ScrobLog(SCROB_LOG_VERBOSE, @"Handshakeresult changed: %@", result);
 }
 
 - (NSString *)md5hash:(NSString *)input
 {
-    MHASH td;
-    unsigned char *hash;
-    char *buffer,*p;
-    int digestByteSize, digestStringSize, i;
-    static const char *hex_digits = "0123456789abcdef";
-    NSString *digestHexText;
-	
-    // Define the digest byte size, then initialize the
-    // hashing thread.
-    digestByteSize=mhash_get_block_size(MHASH_MD5);
-    td = mhash_init(MHASH_MD5);
-    if (td == MHASH_FAILED) NSLog(@"Hash init failed..");
-	
-    // Perform the hash with the given data
-    mhash(td, [input cString], strlen([input cString]));
-	
-    // Close the hashing thread and dump the data
-    hash = mhash_end(td);
-	
-    // Convert the data returned into a string
-    digestStringSize=2*digestByteSize+1;
-    p=malloc(digestStringSize);
-    buffer=p;
+	unsigned char *hash = MD5([input cString], [input cStringLength], NULL);
+	int i;
     
-    for (i = 0; i <digestByteSize; i++) {
-        *buffer++ = hex_digits[(*hash & 0xf0) >> 4];
-        *buffer++ = hex_digits[*hash & 0x0f];
-		hash++;
-    }
-    
-    *buffer = (char)0;
-    digestHexText=[NSString stringWithCString:p];
-    free(p);
+	NSMutableString *hashString = [NSMutableString string];
 	
-    //NSLog(@"Returning... %@",digestHexText);
-    return digestHexText;
+    // Convert the binary hash into a string
+    for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
+		//ScrobTrace(@"Appending %X to hashString (currently %@)", *hash, hashString);
+		[hashString appendFormat:@"%02x", *hash++];
+	}
+	
+    //ScrobTrace(@"Returning hash... %@ for input: %@", hashString, input);
+    return hashString;
+}
+
+-(IBAction)cleanLog:(id)sender
+{
+    ScrobLogTruncate();
 }
 
 #define ONE_WEEK (3600.0 * 24.0 * 7.0)
@@ -482,7 +467,7 @@
     NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
 
     if (!ti || ti > (now + MAIN_TIMER_INTERVAL) || ti < (now - ONE_WEEK)) {
-        NSLog(@"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
+        ScrobLog(SCROB_LOG_WARN, @"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
             ti, now);
         tr = [NSDate date];
     }
@@ -522,7 +507,7 @@ validate:
         NSTimeInterval lastPost = [[lastSong postDate] timeIntervalSince1970];
         
         if ((lastPost + [[lastSong duration] doubleValue]) > thisPost) {
-            NSLog(@"iPodSync: Discarding '%@' because of invalid play time.\n\t'%@' = Start: %@, Duration: %@"
+            ScrobLog(SCROB_LOG_WARN, @"iPodSync: Discarding '%@' because of invalid play time.\n\t'%@' = Start: %@, Duration: %@"
                 "\n\t'%@' = Start: %@, Duration: %@\n", [thisSong breif], [lastSong breif], [lastSong postDate], [lastSong duration],
                 [thisSong breif], [thisSong postDate], [thisSong duration]);
             [sorted removeObjectAtIndex:i];
@@ -539,7 +524,7 @@ validate:
 
 - (void)syncIPod:(id)sender
 {
-    //NSLog (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
+    ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
     if (iPodUpdateScript && [prefs boolForKey:@"Sync iPod"]) {
         // Copy the script
@@ -569,11 +554,9 @@ validate:
                 [localeInfo objectForKey:NSTimeDateFormatString] timeZone:nil locale:localeInfo]
             options:0 range:NSMakeRange(0, [iPodUpdateScript length])];
         
-#ifdef IS_VERBOSE
-        NSLog(@"syncIPod: Requesting songs played after '%@'\n",
+        ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
             [iTunesLastPlayedTime descriptionWithCalendarFormat:[localeInfo objectForKey:NSTimeDateFormatString]
                 timeZone:nil locale:localeInfo]);
-#endif
         // Run script
         iuscript = [[NSAppleScript alloc] initWithSource:text];
         if ((result = [iuscript executeAndReturnError:&errInfo])) {
@@ -594,7 +577,7 @@ validate:
                     errmsg = errnum = @"UNKNOWN";
                 NS_ENDHANDLER
                     // Display dialog instead of logging?
-                    NSLog(@"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
+                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
                         errmsg, errnum);
                     goto sync_ipod_script_release;
                 }
@@ -624,13 +607,14 @@ validate:
                 en = [iqueue objectEnumerator];
                 while ((song = [en nextObject])) {
                     if (![[song postDate] isGreaterThan:iTunesLastPlayedTime]) {
-                        NSLog(@"Anachronistic post date for song '%@'. Discarding -- possible date parse error.\n\t"
+                        ScrobLog(SCROB_LOG_WARN,
+                            @"Anachronistic post date for song '%@'. Discarding -- possible date parse error.\n\t"
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, iTunesLastPlayed: %@.\n",
                             [song breif], [song postDate], [song lastPlayed], [[song duration] doubleValue],
                             iTunesLastPlayedTime);
                         continue;
                     }
-                    NSLog(@"syncIPod: Queuing '%@' with postDate '%@'\n", [song breif], [song postDate]);
+                    ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song breif], [song postDate]);
                     [[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
                 }
@@ -642,14 +626,14 @@ validate:
             }
         } else if (!result) {
             // Script error
-            NSLog(@"iPodUpdateScript execution error: %@\n", errInfo);
+            ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript execution error: %@\n", errInfo);
         }
         
 sync_ipod_script_release:
         [iuscript release];
         [text release];
     } else {
-        NSLog(@"iPodUpdateScript missing\n");
+        ScrobLog(SCROB_LOG_CRIT, @"iPodUpdateScript missing\n");
     }
 }
 
@@ -661,7 +645,7 @@ sync_ipod_script_release:
         [[media mountPoint] stringByAppendingPathComponent:@"iPod_Control"];
     BOOL isDir;
     
-    //NSLog(@"Volume '%@' (%@) mounted on '%@'.\n", [media volName], [media bsdName], [media mountPoint]);
+    ScrobTrace(@"Volume '%@' (%@) mounted on '%@'.\n", [media volName], [media bsdName], [media mountPoint]);
     
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodCtl isDirectory:&isDir]
          && isDir) {
@@ -671,7 +655,7 @@ sync_ipod_script_release:
 
 - (void)volUnmount:(NSNotification*)notification
 {
-    //NSLog(@"Volume '%@' unmounted.\n", [[notification object] bsdName]);
+    ScrobTrace(@"Volume '%@' unmounted.\n", [[notification object] bsdName]);
     
     if (iPodDisk != [notification object])
         return;
