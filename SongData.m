@@ -33,8 +33,6 @@ static float songTimeFudge;
     IncrementAtomic((SInt32*)&g_songID);
     
     // initialize some empty values
-    [self setTrackIndex:[NSNumber numberWithFloat:0.0]];
-    [self setPlaylistIndex:[NSNumber numberWithFloat:0.0]];
     [self setTitle:@""];
     [self setDuration:[NSNumber numberWithFloat:0.0]];
     [self setPosition:[NSNumber numberWithFloat:0.0]];
@@ -56,11 +54,11 @@ static float songTimeFudge;
 {
     SongData *copy = [[[self class] alloc] init];
 
+    [copy setType:[self type]];
+    [copy setiTunesDatabaseID:[self iTunesDatabaseID]];
     [copy setArtist:[self artist]];
-    [copy setTrackIndex:[self trackIndex]];
     [copy setTitle:[self title]];
     [copy setAlbum:[self album]];
-    [copy setPlaylistIndex:[self playlistIndex]];
     [copy setPosition:[self position]];
     [copy setDuration:[self duration]];
     [copy setPath:[self path]];
@@ -134,24 +132,26 @@ static float songTimeFudge;
 #define SD_KEY_POST @"Post Time"
 #define SD_KEY_LASTPLAYED @"Last Played"
 #define SD_KEY_STARTTIME @"Start Time"
+#define SD_KEY_TYPE @"Type"
+#define SD_KEY_ITUNES_DB_ID @"iTunes DB ID"
 - (NSDictionary*)songData
 {
     NSString *ptitle, *palbum, *partist, *ppath;
-    NSNumber *ptrackIndex, *pplaylistIndex, *pduration;
+    NSNumber *pduration, *ptype, *pitunesid;
     NSDate *ppostDate, *plastPlayed, *pstartTime;
     
     ptitle = [self title];
     palbum = [self album];
     partist = [self artist];
-    ptrackIndex = [self trackIndex];
-    pplaylistIndex = [self playlistIndex];
     pduration = [self duration];
     ppath = [self path];
     ppostDate = [self postDate];
     plastPlayed = [self lastPlayed];
     pstartTime = [self startTime];
+    ptype = [NSNumber numberWithInt:[self type]];
+    pitunesid = [NSNumber numberWithInt:[self iTunesDatabaseID]];
     
-    if (!ptitle || !partist || !pduration || !ppostDate) {
+    if (!ptitle || !partist || !pduration || !ppostDate || !IsTrackTypeValid([self type])) {
         ScrobLog(SCROB_LOG_WARN, @"Can't create peristent song data for '%@'\n", [self brief]);
         return (nil);
     }
@@ -166,13 +166,13 @@ static float songTimeFudge;
         ptitle, SD_KEY_TITLE,
         palbum ? palbum : @"", SD_KEY_ALBUM,
         partist, SD_KEY_ARTIST,
-        ptrackIndex ? ptrackIndex : [NSNumber numberWithInt:0], SD_KEY_INDEX,
-        pplaylistIndex ? pplaylistIndex : [NSNumber numberWithInt:0], SD_KEY_PLAYLIST,
         pduration, SD_KEY_DURATION,
         ppath ? ppath : @"", SD_KEY_PATH,
         ppostDate, SD_KEY_POST,
         plastPlayed, SD_KEY_LASTPLAYED,
         pstartTime, SD_KEY_STARTTIME,
+        ptype, SD_KEY_TYPE,
+        pitunesid, SD_KEY_ITUNES_DB_ID,
         nil];
     return (d);
 }
@@ -188,10 +188,6 @@ static float songTimeFudge;
             [self setAlbum:obj];
         if ((obj = [data objectForKey:SD_KEY_ARTIST]))
             [self setArtist:obj];
-        if ((obj = [data objectForKey:SD_KEY_INDEX]))
-            [self setTrackIndex:obj];
-        if ((obj = [data objectForKey:SD_KEY_PLAYLIST]))
-            [self setPlaylistIndex:obj];
         if ((obj = [data objectForKey:SD_KEY_DURATION]))
             [self setDuration:obj];
         if ((obj = [data objectForKey:SD_KEY_PATH]))
@@ -202,6 +198,10 @@ static float songTimeFudge;
             [self setLastPlayed:obj];
         if ((obj = [data objectForKey:SD_KEY_STARTTIME]))
             [self setStartTime:obj];
+        if ((obj = [data objectForKey:SD_KEY_TYPE]))
+            [self setType:[obj intValue]];
+        if ((obj = [data objectForKey:SD_KEY_ITUNES_DB_ID]))
+            [self setiTunesDatabaseID:[obj intValue]];
         return (YES);
     }
     
@@ -210,30 +210,15 @@ static float songTimeFudge;
 
 ////// Accessors Galore ///////
 
-// trackIndex is the number corresponding to the track within the playlist
-- (NSNumber *)trackIndex
+- (int)iTunesDatabaseID
 {
-    return trackIndex;
+    return (iTunesDatabaseID);
 }
 
-- (void)setTrackIndex:(NSNumber *)newTrackIndex
+- (void)setiTunesDatabaseID:(int)newID
 {
-    [newTrackIndex retain];
-    [trackIndex release];
-    trackIndex = newTrackIndex;
-}
-
-// playlistIndex is the number corresponding to the playlist the track is in
-- (NSNumber *)playlistIndex
-{
-    return playlistIndex;
-}
-
-- (void)setPlaylistIndex:(NSNumber *)newPlaylistIndex
-{
-    [newPlaylistIndex retain];
-    [playlistIndex release];
-    playlistIndex = newPlaylistIndex;
+    if (newID >= 0)
+        iTunesDatabaseID = newID;
 }
 
 // title is the title of the song
@@ -434,10 +419,22 @@ static float songTimeFudge;
 #endif
 }
 
+- (TrackType_t)type
+{
+    return (trackType);
+    
+}
+
+- (void)setType:(TrackType_t)newType
+{
+    if (IsTrackTypeValid(newType))
+        trackType = newType;
+    else
+        trackType = trackTypeUnknown;
+}
+
 - (void)dealloc
 {
-    [trackIndex release];
-    [playlistIndex release];
     [title release];
     [duration release];
     [position release];

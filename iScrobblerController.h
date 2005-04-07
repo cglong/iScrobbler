@@ -8,10 +8,9 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "SongData.h"
 
 @class PreferenceController;
-@class ExtFSMedia;
+@class SongData;
 
 @interface iScrobblerController : NSObject
 {
@@ -22,14 +21,15 @@
     //the menu attached to the status item
     IBOutlet NSMenu *theMenu;
 
-    //a timer which will let us check iTunes every 10 seconds
-    NSTimer *mainTimer;
-
     //the script to get information from iTunes
     NSAppleScript *script;
 
     //stores info about the songs iTunes has played
     NSMutableArray *songList;
+    
+    // Song that iTunes is currently playing (or pausing)
+    SongData *currentSong;
+    NSTimer *currentSongQueueTimer;
 
     //the preferences window controller
     PreferenceController *preferenceController;
@@ -53,9 +53,6 @@
     NSArray *iTunesPlaylists;
 }
 
-//called when mainTimer fires
--(void)mainTimer:(NSTimer *)timer;
-
 //sync songList and theMenu
 -(void)updateMenu;
 
@@ -75,7 +72,6 @@
 -(IBAction)openStatistics:(id)sender;
 -(IBAction)openTopLists:(id)sender;
 
--(IBAction)syncIPod:(id)sender;
 -(IBAction)cleanLog:(id)sender;
 
 -(NSString *)md5hash:(NSString *)input;

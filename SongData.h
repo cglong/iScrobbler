@@ -8,10 +8,20 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum {
+    trackTypeUnknown = 0,
+    trackTypeFile = 1,
+    trackTypeShared = 2,
+    trackTypeRadio = 3,
+} TrackType_t;
+static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
+{
+    return ( trackTypeFile == myType || trackTypeShared == myType );
+}
+
 @interface SongData : NSObject <NSCopying> {
     unsigned int songID; // Internal id #
-    NSNumber * trackIndex;
-    NSNumber * playlistIndex;
+    int iTunesDatabaseID; // iTunes track id
     NSString * title;
     NSNumber * duration;
     NSNumber * position;
@@ -23,6 +33,7 @@
     NSDate * postDate;
     NSDate * lastPlayed;
     NSNumber *rating;
+    TrackType_t trackType;
     BOOL hasQueued;
     BOOL hasSeeked;
 }
@@ -46,13 +57,8 @@
 
 ////// Accessors Galore ///////
 
-// trackIndex is the number corresponding to the track within the playlist
-- (NSNumber *)trackIndex;
-- (void)setTrackIndex:(NSNumber *)newTrackIndex;
-
-// playlistIndex is the number corresponding to the playlist the track is in
-- (NSNumber *)playlistIndex;
-- (void)setPlaylistIndex:(NSNumber *)newPlaylistIndex;
+- (int)iTunesDatabaseID;
+- (void)setiTunesDatabaseID:(int)newID;
 
 // title is the title of the song
 - (NSString *)title;
@@ -114,6 +120,9 @@
 // Used for persistent cache storage
 - (NSDictionary*)songData;
 - (BOOL)setSongData:(NSDictionary*)data;
+
+- (TrackType_t)type;
+- (void)setType:(TrackType_t)newType;
 
 @end
 

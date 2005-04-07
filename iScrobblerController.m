@@ -20,18 +20,21 @@
 #import "StatisticsController.h"
 #import "TopListsController.h"
 
-@interface iScrobblerController ( private )
+@interface iScrobblerController (iScrobblerControllerPrivate)
 
+- (IBAction)syncIPod:(id)sender;
 - (void) restoreITunesLastPlayedTime;
 - (void) setITunesLastPlayedTime:(NSDate*)date;
-
-- (void)showNewVersionExistsDialog;
 
 - (void) volumeDidMount:(NSNotification*)notification;
 - (void) volumeDidUnmount:(NSNotification*)notification;
 
 - (void)iTunesPlaylistUpdate:(NSTimer*)timer;
 
+@end
+
+@interface iScrobblerController (Private)
+    - (void)showNewVersionExistsDialog;
 @end
 
 // See iTunesPlayerInfoHandler: for why this is needed
@@ -42,10 +45,16 @@
 #define CLEAR_MENUITEM_TAG          1
 #define SUBMIT_IPOD_MENUITEM_TAG    4
 
-#define MAIN_TIMER_INTERVAL 10.0
-
 @interface SongData (iScrobblerControllerAdditions)
     - (SongData*)initWithiTunesResultString:(NSString*)string;
+    - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
+    - (void)updateUsingSong:(SongData*)song;
+@end
+
+@interface NSMutableArray (iScrobblerContollerLifoAdditions)
+    - (void)push:(SongData*)song;
+    - (void)pop;
+    - (SongData*)peek;
 @end
 
 @implementation iScrobblerController
@@ -74,28 +83,161 @@
     [self showBadCredentialsDialog];
 }
 
-// This method handles firing mainTimer: at the appropos time so we don't need to poll
-// iTunes constantly.
+- (BOOL)updateInfoForSong:(SongData*)song
+{
+    // Run the script to get the info not included in the dict
+    NSDictionary *errInfo;
+    NSAppleEventDescriptor *result = [script executeAndReturnError:&errInfo] ;
+    if (result) {
+        if ([result numberOfItems] > 1) {
+            TrackType_t trackType = trackTypeUnknown;
+            int trackPosition = -1, trackiTunesDatabaseID = -1, trackRating = 0;
+            NSString *trackLastPlayed = nil;
+            NSAppleEventDescriptor *desc;
+            @try {
+                // NSAppleEventDescriptor indices are 1 based
+                desc = [result descriptorAtIndex:1];
+                trackType = (TrackType_t)[desc int32Value];
+                desc = [result descriptorAtIndex:2];
+                trackiTunesDatabaseID = [desc int32Value];
+                desc = [result descriptorAtIndex:3];
+                trackPosition = [desc int32Value];
+                desc = [result descriptorAtIndex:4];
+                trackRating = [desc int32Value];
+                desc = [result descriptorAtIndex:5];
+                trackLastPlayed = [desc stringValue];
+            } @catch (NSException *exception) {
+                ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script invalid result: parsing exception %@\n.", exception);
+                return (NO);
+            }
+            
+            if (IsTrackTypeValid(trackType) && trackiTunesDatabaseID >= 0 && trackPosition >= 0) {
+                [song setType:trackType];
+                [song setiTunesDatabaseID:trackiTunesDatabaseID];
+                [song setPosition:[NSNumber numberWithInt:trackPosition]];
+                
+                if (trackRating >= 0 && trackRating <= 100) {
+                    [song setRating:[NSNumber numberWithInt:trackRating]];
+                }
+            } else {
+                ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
+                    trackType, trackiTunesDatabaseID, trackPosition);
+                return (NO);
+            }
+        } else {
+            ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script invalid result: bad item count: %d\n.", [result numberOfItems]);
+            return (NO);
+        }
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script execution error: %@\n.", errInfo);
+        return (NO);
+    }
+    
+    return (YES);
+}
+
+#define KillQueueTimer() do { \
+[currentSongQueueTimer invalidate]; \
+[currentSongQueueTimer release]; \
+currentSongQueueTimer = nil; \
+} while (0) 
+
+- (void)queueCurrentSong:(NSTimer*)timer
+{
+    SongData *song = [[SongData alloc] init];
+    
+    KillQueueTimer();
+    timer = nil;
+    
+    if (!currentSong || (currentSong && [currentSong hasQueued]) || ![self updateInfoForSong:song]) {
+        [song release];
+        return;
+    }
+    
+    if ([song iTunesDatabaseID] == [currentSong iTunesDatabaseID]) {
+        [currentSong updateUsingSong:song];
+        
+        // Try submission
+        QueueResult_t qr = [[QueueManager sharedInstance] queueSong:currentSong];
+        if (kqFailed == qr) {
+            // Fire ourself again in half of the remaining track play time.
+            // The queue can fail when playing from a network stream (or CD),
+            // and iTunes has to re-buffer. This means the elapsed track play time
+            // would be less than elapsed real-world time and the track may not be 1/2
+            // done.
+            double fireInterval = [[currentSong duration] doubleValue] -
+                [[currentSong position] doubleValue];
+            if (fireInterval > 1.0)
+                fireInterval /= 2.0;
+            if (fireInterval >= 1.0) {
+                ScrobLog(SCROB_LOG_VERBOSE,
+                    @"Track '%@' failed submission rules. "
+                    @"Trying again in %0.0lf seconds.\n", [currentSong brief], fireInterval);
+                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                                target:self
+                                selector:@selector(queueCurrentSong:)
+                                userInfo:nil
+                                repeats:NO] retain];
+            } else {
+                ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules. "
+                    @"There is not enough play time left to retry submission.\n",
+                    [currentSong brief]);
+            }
+        }
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"Lost song! current: (%@, %d), itunes: (%@, %d)\n.",
+            currentSong, [currentSong iTunesDatabaseID], song, [song iTunesDatabaseID]);
+    }
+    
+    [song release];
+}
+
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
+    BOOL wasiTunesPlaying = isiTunesPlaying;
+    isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
+    
     ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
     
-    // We received a notification, kill the current timer
-    [mainTimer invalidate];
-    [mainTimer release];
-    mainTimer = nil;
+    SongData *song = nil;
+    @try {
+        song = [[SongData alloc] initWithiTunesPlayerInfo:info];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating song: %@\n", exception);
+    }
+    if (!song)
+        goto player_info_exit;
     
-    SongData *prevSong = nil;
-    if ([songList count] > 0)
-        prevSong = [[songList objectAtIndex:0] retain]; // Retain just incase the song is removed 
+    if (![self updateInfoForSong:song])
+        goto player_info_exit;
     
-    [self mainTimer:nil]; // Update state
+    if (currentSong && [currentSong isEqualToSong:song]) {
+        // Determine if the song is being played twice (or more in a row)
+        float pos = [[song position] floatValue];
+        if (pos <  [[currentSong position] floatValue] &&
+             // The following conditions do not work with iTunes 4.7, since we are not
+             // constantly updating the song's position by polling iTunes. With 4.7 we update
+             // when the the song first plays, when it's ready for submission or if the user
+             // changes some song metadata -- that's it.
+        #if 0
+             (pos <= [SongData songTimeFudge]) &&
+             // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
+             (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
+        #endif
+             [currentSong hasQueued] &&
+             (pos <= [SongData songTimeFudge]) ) {
+            [currentSong release];
+            currentSong = nil;
+        } else {
+            [currentSong updateUsingSong:song];
+            goto player_info_exit;
+        }
+    }
     
-    SongData *curSong = nil;
-    if ([songList count] > 0)
-        curSong = [songList objectAtIndex:0];
+    // Kill the current timer
+    KillQueueTimer();
     
     /* Workaround for iTunes bug (as of 4.7):
        If the script is run at the exact moment a track switch on an Audio CD occurs,
@@ -105,42 +247,64 @@
        Note 2: It would be possible for our conditions to occur while not on a track switch if for
        instance the user changed some song meta-data. However this should be a very rare occurence.
        */
-    if (![prevSong isEqualToSong:curSong] && [[prevSong duration] isEqualToNumber:[curSong position]]) {
-        [curSong setPosition:[NSNumber numberWithUnsignedInt:0]];
+    if (currentSong && ![currentSong isEqualToSong:song] && [[currentSong duration] isEqualToNumber:[song position]]) {
+        [song setPosition:[NSNumber numberWithUnsignedInt:0]];
         // Reset the start time too, since it will be off
-        [curSong setStartTime:[NSDate date]];
+        [song setStartTime:[NSDate date]];
     }
     
-    BOOL wasiTunesPlaying = isiTunesPlaying;
-    
-    isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
-    if (isiTunesPlaying && ![curSong hasQueued]) {
+    if (isiTunesPlaying) {
         // Fire the main timer at the appropos time to get it queued.
-        double fireInterval = [curSong submitIntervalFromNow];
+        double fireInterval = [song submitIntervalFromNow];
         if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
-            ScrobLog(SCROB_LOG_TRACE, @"Firing mainTimer: in %0.2lf seconds for track '%@'.\n",
-                fireInterval, [curSong brief]);
-            // If an error occured in mainTimer:, it could have setup another timer instance,
-            // so make sure to release it.
-            [mainTimer invalidate];
-            [mainTimer release];
-            mainTimer = nil;
-            mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+            ScrobLog(SCROB_LOG_TRACE, @"Firing sub timer in %0.2lf seconds for track '%@'.\n",
+                fireInterval, [song brief]);
+            currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
                             target:self
-                            selector:@selector(mainTimer:)
+                            selector:@selector(queueCurrentSong:)
                             userInfo:nil
                             repeats:NO] retain];
         } else {
             ScrobLog(SCROB_LOG_WARN,
                 @"Invalid submit interval '%0.2lf' for track '%@'. Track will not be submitted. Duration: %@, Position: %@.\n",
-                fireInterval, [curSong brief], [curSong duration], [curSong position]);
+                fireInterval, [song brief], [song duration], [song position]);
         }
+        
+        // Update Recent Songs list
+        int i, found = 0, count = [songList count];
+        for(i = 0; i < count; ++i) {
+            if ([[songList objectAtIndex:i] isEqualToSong:song]) {
+                found = i;
+                break;
+            }
+        }
+        //ScrobTrace(@"Found = %i",j);
+
+        // If the track wasn't found anywhere in the list, we add a new item
+        if (found) {
+            // If the trackname was found elsewhere in the list, we remove the old item
+            [songList removeObjectAtIndex:found];
+        }
+        else
+            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
+        [songList push:song];
+        
+        while ([songList count] > [prefs integerForKey:@"Number of Songs to Save"])
+            [songList pop];
+        
+        [self updateMenu];
+        
+        [currentSong release];
+        currentSong = song;
+        song = nil; // Make sure it's not released
     }
     
-    [prevSong release];
+player_info_exit:
+    if (song)
+        [song release];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
+        object:(isiTunesPlaying ? currentSong : nil) userInfo:nil];
     
-    // The last played time updates in mainTimer are redundant when using iTunes 4.7
-    // We can get a Stopped notice when iTunes is Paused.
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobTrace(@"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
@@ -192,7 +356,7 @@
     // we just force the version # from the defaults into the personal prefs.
     [prefs setObject:[defaultPrefs objectForKey:@"version"] forKey:@"version"];
     
-    [SongData setSongTimeFudge:MAIN_TIMER_INTERVAL + (MAIN_TIMER_INTERVAL / 2.0)];
+    [SongData setSongTimeFudge:5.0];
 	
     // Request the password and lease it, this will force it to ask
     // permission when loading, so it doesn't annoy you halfway through
@@ -206,7 +370,7 @@
 	
 	// Set the script locations
     NSURL *url=[NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                stringByAppendingPathComponent:@"Scripts/controlscript.scpt"] ];
+                stringByAppendingPathComponent:@"Scripts/iTunesGetCurrentSongInfo.scpt"] ];
 	
     // Get our iPod update script as text
     file = [[[NSBundle mainBundle] resourcePath]
@@ -233,7 +397,7 @@
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
         
-        // Register for iTunes track change notifications (4.7 and greater)
+        // Register for iTunes track change notifications
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
             object:nil];
@@ -266,12 +430,6 @@
 - (void)awakeFromNib
 {
     songList=[[NSMutableArray alloc ]init];
-	
-    mainTimer = [[NSTimer scheduledTimerWithTimeInterval:(MAIN_TIMER_INTERVAL)
-                                                  target:self
-                                                selector:@selector(mainTimer:)
-                                                userInfo:nil
-                                                 repeats:YES] retain];
     
 // We don't need to do this right now, as the only thing that uses playlists is the prefs.
 #if 0
@@ -287,8 +445,6 @@
     if (!enableMenu && (GetCurrentKeyModifiers() & shiftKey))
         enableMenu = YES;
     [self enableStatusItemMenu:enableMenu];
-	
-    [self mainTimer:nil];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -346,6 +502,7 @@
     
 }
 
+#if 0
 -(void)mainTimer:(NSTimer *)timer
 {
     NSDictionary *errInfo = nil;
@@ -429,6 +586,8 @@
                         // This mismatched elapsed time can also occur when the user has crossfade
                         // turned on, since the new song will actually start playing while the current
                         // song is still playing.
+                        //
+                        // This can also occur spuriously if the user pauses/stops the song and then plays it again.
                         double fireInterval = [[firstSongInList duration] doubleValue] -
                             [[firstSongInList position] doubleValue];
                         if (fireInterval > 1.0)
@@ -438,7 +597,7 @@
                                 // This will only occur if we are using iTunes notifications and
                                 // in that case, iTunesPlayerInfoHandler: will release mainTimer.
                                 ScrobLog(SCROB_LOG_VERBOSE,
-                                    @"Track '%@' failed submission rules. Possilble iTunes time shift. "
+                                    @"Track '%@' failed submission rules. "
                                     @"Trying again in %0.0lf seconds.\n", [firstSongInList brief], fireInterval);
                                 mainTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
                                                 target:self
@@ -517,60 +676,26 @@ mainTimerReleaseResult:
         [self performSelector:@selector(mainTimer:) withObject:nil afterDelay:2.5];
     }
 }
-
-- (void)iTunesPlaylistUpdate:(NSTimer*)timer
-{
-    static NSAppleScript *iTunesPlaylistScript = nil;
-    
-    if (!iTunesPlaylistScript) {
-        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                    stringByAppendingPathComponent:@"Scripts/iTunesGetPlaylists.scpt"]];
-        iTunesPlaylistScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
-        if (!iTunesPlaylistScript) {
-            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetPlaylists.scpt!\n");
-            [self showApplicationIsDamagedDialog];
-        }
-    }
-    
-    NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:nil];
-    if(executionResult ) {
-        NSArray *parsedResult = [[executionResult stringValue] componentsSeparatedByString:@"$$$"];
-        NSEnumerator *en = [parsedResult objectEnumerator];
-        NSString *playlist;
-        NSMutableArray *names = [NSMutableArray arrayWithCapacity:[parsedResult count]];
-        
-        while ((playlist = [en nextObject])) {
-            NSArray *properties = [playlist componentsSeparatedByString:@"***"];
-            NSString *name = [properties objectAtIndex:0];
-            
-            if (name && [name length] > 0)
-                [names addObject:name];
-        }
-        
-        if ([names count]) {
-            [self setValue:[names sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)]
-                forKey:@"iTunesPlaylists"];
-        }
-    }
-}
+#endif
 
 -(IBAction)playSong:(id)sender{
-    SongData *songInfo;
+    SongData *song;
     NSString *scriptText;
     NSAppleScript *play;
-    int index=[[sender menu] indexOfItem:sender];
+    NSDictionary *errInfo;
+    int index = [[sender menu] indexOfItem:sender];
 	
-    songInfo = [songList objectAtIndex:index];
+    song = [songList objectAtIndex:index];
 	
+    scriptText = [NSString stringWithFormat:
+        @"tell application \"iTunes\"\ntell playlist \"Library\"\nplay (every track whose database ID is %d)\nend tell\nend tell\n",
+        [song iTunesDatabaseID]];
 	
-    scriptText=[NSString stringWithFormat: @"tell application \"iTunes\" to play track %d of playlist %d",[[songInfo trackIndex] intValue],[[songInfo playlistIndex] intValue]];
+    play = [[NSAppleScript alloc] initWithSource:scriptText];
 	
-    play=[[NSAppleScript alloc] initWithSource:scriptText];
-	
-    [play executeAndReturnError:nil];
+    (void)[play executeAndReturnError:&errInfo];
     
     [play release];
-    [self mainTimer:nil];
 }
 
 -(IBAction)clearMenu:(id)sender{
@@ -586,10 +711,7 @@ mainTimerReleaseResult:
 	
     // remove the first separator
     if ([theMenu numberOfItems] && [[theMenu itemAtIndex:0] isSeparatorItem])
-        [theMenu removeItemAtIndex:0];
-    
-	[self mainTimer:nil];
-}
+        [theMenu removeItemAtIndex:0];}
 
 -(IBAction)openPrefs:(id)sender{
     // ScrobTrace(@"opening prefs");
@@ -657,8 +779,7 @@ mainTimerReleaseResult:
 	[statusItem release];
 	[songList release];
 	[script release];
-	[mainTimer invalidate];
-	[mainTimer release];
+	KillQueueTimer();
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
@@ -735,222 +856,6 @@ mainTimerReleaseResult:
 	[NSApp terminate:self];
 }
 
-#define ONE_WEEK (3600.0 * 24.0 * 7.0)
-- (void) restoreITunesLastPlayedTime
-{
-    NSTimeInterval ti = [[prefs stringForKey:@"iTunesLastPlayedTime"] doubleValue];
-    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
-    NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
-
-    if (!ti || ti > (now + MAIN_TIMER_INTERVAL) || ti < (now - ONE_WEEK)) {
-        ScrobLog(SCROB_LOG_WARN, @"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
-            ti, now);
-        tr = [NSDate date];
-    }
-    
-    [self setITunesLastPlayedTime:tr];
-}
-
-- (void) setITunesLastPlayedTime:(NSDate*)date
-{
-    [date retain];
-    [iTunesLastPlayedTime release];
-    iTunesLastPlayedTime = date;
-    // Update prefs
-    [prefs setObject:[NSString stringWithFormat:@"%.2lf", [iTunesLastPlayedTime timeIntervalSince1970]]
-        forKey:@"iTunesLastPlayedTime"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-/*
-Validate all of the post dates. We do this, because there seems
-to be a iTunes bug that royally screws up last played times during daylight
-savings changes.
-
-Scenario: Unplug iPod on 10/30, play a lot of songs, then sync the next day (10/31 - after 0200)
-and some of the last played dates will be very bad.
-*/
-- (NSMutableArray*)validateIPodSync:(NSArray*)songs
-{
-    NSMutableArray *sorted = [[songs sortedArrayUsingSelector:@selector(compareSongPostDate:)] mutableCopy];
-    int i;
-    
-validate:
-    for (i = 1; i < [sorted count]; ++i) {
-        SongData *thisSong = [sorted objectAtIndex:i];
-        SongData *lastSong = [sorted objectAtIndex:i-1];
-        NSTimeInterval thisPost = [[thisSong postDate] timeIntervalSince1970];
-        NSTimeInterval lastPost = [[lastSong postDate] timeIntervalSince1970];
-        
-        if ((lastPost + [[lastSong duration] doubleValue]) > thisPost) {
-            ScrobLog(SCROB_LOG_WARN, @"iPodSync: Discarding '%@' because of invalid play time.\n\t'%@' = Start: %@, Duration: %@"
-                "\n\t'%@' = Start: %@, Duration: %@\n", [thisSong brief], [lastSong brief], [lastSong postDate], [lastSong duration],
-                [thisSong brief], [thisSong postDate], [thisSong duration]);
-            [sorted removeObjectAtIndex:i];
-            goto validate;
-        }
-    }
-    
-    return ([sorted autorelease]);
-}
-
-#define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
-#define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
-#define IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST @"Recently Played"
-
-- (void)syncIPod:(id)sender
-{
-    ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
-    
-    if (iPodUpdateScript && [prefs boolForKey:@"Sync iPod"]) {
-        // Copy the script
-        NSMutableString *text = [iPodUpdateScript mutableCopy];
-        NSAppleScript *iuscript;
-        NSAppleEventDescriptor *result;
-        NSDictionary *errInfo, *localeInfo;
-        NSTimeInterval now, fudge;
-        NSMutableString *formatString;
-        unsigned int added;
-        
-        // Our main timer loop is only fired every 10 seconds, so we have to
-        // make sure to adjust our time
-        fudge = [iTunesLastPlayedTime timeIntervalSince1970]+MAIN_TIMER_INTERVAL;
-        now = [[NSDate date] timeIntervalSince1970];
-        if (now > fudge) {
-            [self setITunesLastPlayedTime:[NSDate dateWithTimeIntervalSince1970:fudge]];
-        } else {
-            [self setITunesLastPlayedTime:[NSDate date]];
-        }
-        
-        // AppleScript expects the date string formated according to the users's system settings
-        localeInfo = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-        formatString = [NSMutableString stringWithString:[localeInfo objectForKey:NSTimeDateFormatString]];
-        // Remove the pesky human readable TZ specifier -- it causes AppleScript to fail for some locales
-        [formatString replaceOccurrencesOfString:@" %Z" withString:@""
-            options:0 range:NSMakeRange(0,[formatString length])];
-        
-        // Replace the date token with our last update
-        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
-            withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:formatString
-                 timeZone:nil locale:localeInfo]
-            options:0 range:NSMakeRange(0, [text length])];
-        
-        // Replace the default playlist with the user's choice
-        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST
-            withString:[prefs stringForKey:@"iPod Submission Playlist"]
-            options:0 range:NSMakeRange(0, [text length])];
-        
-        ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
-            [iTunesLastPlayedTime descriptionWithCalendarFormat:formatString
-                timeZone:nil locale:localeInfo]);
-        // Run script
-        iuscript = [[NSAppleScript alloc] initWithSource:text];
-        if ((result = [iuscript executeAndReturnError:&errInfo])) {
-            if (![[result stringValue] hasPrefix:@"INACTIVE"]) {
-                NSArray *songs = [[result stringValue]
-                    componentsSeparatedByString:IPOD_UPDATE_SCRIPT_SONG_TOKEN];
-                NSEnumerator *en = [songs objectEnumerator];
-                NSString *data;
-                SongData *song;
-                NSMutableArray *iqueue = [NSMutableArray array];
-                
-                if ([[result stringValue] hasPrefix:@"ERROR"]) {
-                    NSString *errmsg, *errnum;
-                NS_DURING
-                    errmsg = [songs objectAtIndex:1];
-                    errnum = [songs objectAtIndex:2];
-                NS_HANDLER
-                    errmsg = errnum = @"UNKNOWN";
-                NS_ENDHANDLER
-                    // Display dialog instead of logging?
-                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
-                        errmsg, errnum);
-                    goto sync_ipod_script_release;
-                }
-                
-                added = 0;
-                while ((data = [en nextObject]) && [data length] > 0) {
-                    NSTimeInterval postDate;
-                    song = [[SongData alloc] initWithiTunesResultString:data];
-                    if (song) {
-                        // Since this song was played "offline", we set the post date
-                        // in the past 
-                        postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
-                        [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
-                        // Make sure the song passes submission rules                            
-                        [song setStartTime:[NSDate dateWithTimeIntervalSince1970:postDate]];
-                        [song setPosition:[song duration]];
-                        
-                        [iqueue addObject:song];
-                        [song release];
-                    }
-                }
-                
-                iqueue = [self validateIPodSync:iqueue];
-                
-                en = [iqueue objectEnumerator];
-                while ((song = [en nextObject])) {
-                    if (![[song postDate] isGreaterThan:iTunesLastPlayedTime]) {
-                        ScrobLog(SCROB_LOG_WARN,
-                            @"Anachronistic post date for song '%@'. Discarding -- possible date parse error.\n\t"
-                            "Post Date: %@, Last Played: %@, Duration: %.0lf, iTunesLastPlayed: %@.\n",
-                            [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
-                            iTunesLastPlayedTime);
-                        continue;
-                    }
-                    ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
-                    (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
-                    ++added;
-                }
-                
-                [self setITunesLastPlayedTime:[NSDate date]];
-                if (added > 0) {
-                    [[QueueManager sharedInstance] submit];
-                }
-            }
-        } else if (!result) {
-            // Script error
-            ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript execution error: %@\n", errInfo);
-        }
-        
-sync_ipod_script_release:
-        [iuscript release];
-        [text release];
-    } else {
-        ScrobLog(SCROB_LOG_CRIT, @"iPodUpdateScript missing\n");
-    }
-}
-
-// NSWorkSpace mount notifications
-- (void)volumeDidMount:(NSNotification*)notification
-{
-    NSDictionary *info = [notification userInfo];
-	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
-    NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
-	
-    ScrobTrace(@"Volume mounted: %@", info);
-    
-    BOOL isDir = NO;
-    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
-        [self setValue:mountPath forKey:@"iPodMountPath"];
-        [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
-    }
-}
-
-- (void)volumeDidUnmount:(NSNotification*)notification
-{
-    NSDictionary *info = [notification userInfo];
-	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
-	
-    ScrobTrace(@"Volume unmounted: %@.\n", info);
-    
-    if ([iPodMountPath isEqualToString:mountPath]) {
-        [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
-        [self setValue:nil forKey:@"iPodMountPath"];
-        [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
-    }
-}
-
 @end
 
 @implementation SongData (iScrobblerControllerAdditions)
@@ -977,10 +882,12 @@ bad_song_data:
     }
     
     @try {
+#if 0
     [self setTrackIndex:[NSNumber numberWithFloat:[[data objectAtIndex:0]
         floatValue]]];
     [self setPlaylistIndex:[NSNumber numberWithFloat:[[data objectAtIndex:1]
         floatValue]]];
+#endif
     [self setTitle:[data objectAtIndex:2]];
     [self setDuration:[NSNumber numberWithFloat:[[data objectAtIndex:3] floatValue]]];
     [self setPosition:[NSNumber numberWithFloat:[[data objectAtIndex:4] floatValue]]];
@@ -1005,6 +912,87 @@ bad_song_data:
     return (self);
 }
 
+- (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict
+{
+    self = [self init];
+    
+    NSString *iname, *ialbum, *iartist, *ipath;
+    NSURL *location = nil;
+    NSNumber *irating, *iduration;
+#ifdef notyet
+    NSString *genre, *composer;
+    NSNumber *year;
+#endif
+    NSTimeInterval durationInSeconds;
+    
+    iname = [dict objectForKey:@"Name"];
+    ialbum = [dict objectForKey:@"Album"];
+    iartist = [dict objectForKey:@"Artist"];
+    ipath = [dict objectForKey:@"Location"];
+    irating = [dict objectForKey:@"Rating"];
+    iduration = [dict objectForKey:@"Total Time"];
+    
+    if (ipath)
+        location = [NSURL URLWithString:ipath];
+    
+    if (!iname || !iartist || !iduration || (location && ![location isFileURL])) {
+        if (!iname || !iartist || !iduration)
+            ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
+        [self dealloc];
+        return (nil);
+    }
+    
+    [self setTitle:iname];
+    [self setArtist:iartist];
+    durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
+    [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+    if (ialbum)
+        [self setAlbum:ialbum];
+    if (location && [location isFileURL])
+        [self setPath:[location path]];
+    if (irating)
+        [self setRating:irating];
+
+    [self setPostDate:[NSCalendarDate date]];
+    [self setHasQueued:NO];
+    
+    return (self);
+}
+
+- (void)updateUsingSong:(SongData*)song
+{
+    [self setPosition:[song position]];
+    [self setRating:[song rating]];
+}
+
+@end
+
+@implementation NSMutableArray (iScrobblerContollerLifoAdditions)
+- (void)push:(SongData*)song
+{
+    if ([self count])
+        [self insertObject:song atIndex:0];
+    else
+        [self addObject:song];
+}
+
+- (void)pop
+{
+    unsigned idx = [self count] - 1;
+    
+    if (idx >= 0)
+        [self removeObjectAtIndex:idx];
+}
+
+- (SongData*)peek
+{
+    unsigned idx = [self count] - 1;
+    
+    if (idx >= 0)
+        return ([self objectAtIndex:idx]);
+    
+    return (nil);
+}
 @end
 
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
@@ -1015,3 +1003,5 @@ void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *ho
     *minutes = ((time % 86400U) % 3600U) / 60U;
     *seconds = ((time % 86400U) % 3600U) % 60U;
 }
+
+#include "iScrobblerController+Private.m"
