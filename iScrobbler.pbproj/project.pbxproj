@@ -8,6 +8,7 @@
 		080E96DDFE201D6D7F000001 = {
 			children = (
 				F575CE9702FE0E8801A80164,
+				D39C17FA0801CF5100F3816B,
 				D3EFA9B007A9B1FA00CF9B46,
 				F575CEAA02FF7F3501A80164,
 				EB50662D03FBB239005DC01B,
@@ -54,6 +55,7 @@
 //104
 		1058C7A0FEA54F0111CA2CBB = {
 			children = (
+				D3EC73100804F73B00392110,
 				D3D4746007740A760076AA7D,
 				D3D4741F077407F50076AA7D,
 				EB5069B303FBC574005DC01B,
@@ -176,8 +178,8 @@
 				D3CB13A1077514A7009236FF,
 				D3CB130E07750960009236FF,
 				D3CB38A207A59AE5009236FF,
-				F5D8D308030C568001A80164,
 				D3EC0A740729CFA600C13782,
+				D39C15FB0800716200F3816B,
 				D3CB14FC07755151009236FF,
 				DC00A46205B21B9200674DB4,
 			);
@@ -337,6 +339,7 @@
 		};
 		D3191C9707E3A51700821D03 = {
 			buildPhases = (
+				D3EC730D0804F70F00392110,
 				D3191C9807E3A51700821D03,
 				D3191C9B07E3A51700821D03,
 				D3191CA907E3A51700821D03,
@@ -347,7 +350,8 @@
 			buildRules = (
 			);
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = "/Users/brian/Projects/iscrobbler-osx-08x";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = "Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -372,7 +376,7 @@
 			contextName = "";
 			files = (
 				D3191C9907E3A51700821D03,
-				D3191C9A07E3A51700821D03,
+				D39C15FC0800716200F3816B,
 			);
 			isSharedContext = 0;
 			isa = PBXAppleScriptBuildPhase;
@@ -380,15 +384,6 @@
 		};
 		D3191C9907E3A51700821D03 = {
 			fileRef = D3CB14FC07755151009236FF;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-					Debug,
-				);
-			};
-		};
-		D3191C9A07E3A51700821D03 = {
-			fileRef = F5D8D308030C568001A80164;
 			isa = PBXBuildFile;
 			settings = {
 				ATTRIBUTES = (
@@ -670,6 +665,7 @@
 				D3191CC407E3A51700821D03,
 				D3191CC507E3A51700821D03,
 				D3191CC607E3A51700821D03,
+				D3EC73110804F73B00392110,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -732,6 +728,31 @@
 			path = iScrobbler.app;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D39C15FB0800716200F3816B = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.applescript;
+			path = iTunesGetCurrentSongInfo.applescript;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D39C15FC0800716200F3816B = {
+			fileRef = D39C15FB0800716200F3816B;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Debug,
+				);
+			};
+		};
+		D39C17FA0801CF5100F3816B = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = "iScrobblerController+Private.m";
+			refType = 4;
+			sourceTree = "<group>";
 		};
 		D3B61DF20744151D00AF5A33 = {
 			fileEncoding = 4;
@@ -857,6 +878,35 @@
 			path = iPodUpdate.applescript;
 			refType = 4;
 			sourceTree = "<group>";
+		};
+		D3EC730D0804F70F00392110 = {
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D3EC731C0804F74600392110,
+			);
+			isa = PBXCopyFilesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3EC73100804F73B00392110 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			path = Growl.framework;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC73110804F73B00392110 = {
+			fileRef = D3EC73100804F73B00392110;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC731C0804F74600392110 = {
+			fileRef = D3EC73100804F73B00392110;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 		D3EFA9AF07A9B1FA00CF9B46 = {
 			fileEncoding = 30;
@@ -1087,14 +1137,6 @@
 			lastKnownFileType = wrapper.nib;
 			name = English;
 			path = English.lproj/Preferences.nib;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F5D8D308030C568001A80164 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.applescript;
-			path = controlscript.applescript;
 			refType = 4;
 			sourceTree = "<group>";
 		};

@@ -20,6 +20,14 @@
 #import "StatisticsController.h"
 #import "TopListsController.h"
 
+#import <Growl/Growl.h>
+
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"com.audioscrobbler.iscrobbler.track.change"
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, album, artist) \
+[NSString stringWithFormat:NSLocalizedString(@"Track: %@\nAlbum: %@\nArtist: %@", ""), \
+(track), (album), (artist)]
+
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
 - (IBAction)syncIPod:(id)sender;
@@ -297,6 +305,16 @@ currentSongQueueTimer = nil; \
         [currentSong release];
         currentSong = song;
         song = nil; // Make sure it's not released
+        
+        // Notify Growl
+        [GrowlApplicationBridge
+            notifyWithTitle:IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE
+            description:IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO([currentSong title], [currentSong album], [currentSong artist])
+            notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
+            iconData:nil
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
     }
     
 player_info_exit:
@@ -396,6 +414,9 @@ player_info_exit:
             selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+        
+        // Register with Growl
+        [GrowlApplicationBridge setGrowlDelegate:self];
         
         // Register for iTunes track change notifications
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self

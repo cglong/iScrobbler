@@ -263,3 +263,16 @@ sync_ipod_script_release:
 }
 
 @end
+
+@implementation iScrobblerController (GrowlAdditions)
+
+- (NSDictionary *) registrationDictionaryForGrowl
+{
+    NSArray *notifications = [NSArray arrayWithObject:IS_GROWL_NOTIFICATION_TRACK_CHANGE];
+    return ( [NSDictionary dictionaryWithObjectsAndKeys:
+        notifications, GROWL_NOTIFICATIONS_ALL,
+        notifications, GROWL_NOTIFICATIONS_DEFAULT,
+        nil] );
+}
+
+@end
