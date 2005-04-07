@@ -28,6 +28,41 @@ static KeyChain* defaultKeyChain = nil;
     return ( defaultKeyChain ? defaultKeyChain : (defaultKeyChain = [[KeyChain alloc] init]) );
 }
 
++ (id)allocWithZone:(NSZone *)zone
+{
+    @synchronized(self) {
+        if (defaultKeyChain == nil) {
+            return ([super allocWithZone:zone]);
+        }
+    }
+
+    return (defaultKeyChain);
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return (self);
+}
+
+- (id)retain
+{
+    return (self);
+}
+
+- (unsigned)retainCount
+{
+    return (UINT_MAX);  //denotes an object that cannot be released
+}
+
+- (void)release
+{
+}
+
+- (id)autorelease
+{
+    return (self);
+}
+
 - (id)init
 {
     return (self = [super init]);

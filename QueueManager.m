@@ -23,6 +23,41 @@ static QueueManager *g_QManager = nil;
     return (g_QManager);
 }
 
++ (id)allocWithZone:(NSZone *)zone
+{
+    @synchronized(self) {
+        if (g_QManager == nil) {
+            return ([super allocWithZone:zone]);
+        }
+    }
+
+    return (g_QManager);
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return (self);
+}
+
+- (id)retain
+{
+    return (self);
+}
+
+- (unsigned)retainCount
+{
+    return (UINT_MAX);  //denotes an object that cannot be released
+}
+
+- (void)release
+{
+}
+
+- (id)autorelease
+{
+    return (self);
+}
+
 // Queues a song and immediately tries to send it.
 - (QueueResult_t)queueSong:(SongData*)song
 {

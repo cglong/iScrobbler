@@ -62,6 +62,41 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return (g_PM);
 }
 
++ (id)allocWithZone:(NSZone *)zone
+{
+    @synchronized(self) {
+        if (g_PM == nil) {
+            return ([super allocWithZone:zone]);
+        }
+    }
+
+    return (g_PM);
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return (self);
+}
+
+- (id)retain
+{
+    return (self);
+}
+
+- (unsigned)retainCount
+{
+    return (UINT_MAX);  //denotes an object that cannot be released
+}
+
+- (void)release
+{
+}
+
+- (id)autorelease
+{
+    return (self);
+}
+
 - (void)scheduleHandshake:(NSTimer*)timer
 {
     if (hs_delay == hsState) {

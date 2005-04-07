@@ -27,6 +27,41 @@ static TopListsController *g_topLists = nil;
     return ((g_topLists = [[TopListsController alloc] initWithWindowNibName:@"TopLists"]));
 }
 
++ (id)allocWithZone:(NSZone *)zone
+{
+    @synchronized(self) {
+        if (g_topLists == nil) {
+            return ([super allocWithZone:zone]);
+        }
+    }
+
+    return (g_topLists);
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return (self);
+}
+
+- (id)retain
+{
+    return (self);
+}
+
+- (unsigned)retainCount
+{
+    return (UINT_MAX);  //denotes an object that cannot be released
+}
+
+- (void)release
+{
+}
+
+- (id)autorelease
+{
+    return (self);
+}
+
 #define PLAY_TIME_FORMAT @"%u:%02u:%02u:%02u"
 - (void)songQueuedHandler:(NSNotification*)note
 {
