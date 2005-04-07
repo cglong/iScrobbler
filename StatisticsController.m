@@ -27,6 +27,41 @@ static enum {title, album, artist} g_cycleState = title;
     return ((g_sub = [[StatisticsController alloc] initWithWindowNibName:@"StatisticsController"]));
 }
 
++ (id)allocWithZone:(NSZone *)zone
+{
+    @synchronized(self) {
+        if (g_sub == nil) {
+            return ([super allocWithZone:zone]);
+        }
+    }
+
+    return (g_sub);
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return (self);
+}
+
+- (id)retain
+{
+    return (self);
+}
+
+- (unsigned)retainCount
+{
+    return (UINT_MAX);  //denotes an object that cannot be released
+}
+
+- (void)release
+{
+}
+
+- (id)autorelease
+{
+    return (self);
+}
+
 - (void)handshakeCompleteHandler:(NSNotification*)note
 {
     [submissionProgress stopAnimation:nil];
@@ -181,7 +216,7 @@ static enum {title, album, artist} g_cycleState = title;
     [super showWindow:sender];
 
     // This will fire off a Now Playing notification
-    [[NSApp delegate] mainTimer:nil];
+    //[[NSApp delegate] mainTimer:nil];
     
     // Set current values
     [self submitCompleteHandler:nil];
@@ -221,6 +256,9 @@ static enum {title, album, artist} g_cycleState = title;
 {
     [submissionProgress setDisplayedWhenStopped:NO];
     [submissionProgress setUsesThreadedAnimation:YES];
+    [nowPlayingText setStringValue:
+        // 0x2026 == Unicode elipses
+        [NSLocalizedString(@"Waiting for track", "") stringByAppendingFormat:@"%C", 0x2026]];
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
         [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
