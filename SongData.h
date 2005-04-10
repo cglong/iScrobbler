@@ -6,7 +6,7 @@
 //  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 
 typedef enum {
     trackTypeUnknown = 0,
@@ -33,6 +33,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSDate * postDate;
     NSDate * lastPlayed;
     NSNumber *rating;
+    NSNumber *playlistID;
+    NSString *sourceName;
     TrackType_t trackType;
     BOOL hasQueued;
     BOOL hasSeeked;
@@ -123,6 +125,14 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (TrackType_t)type;
 - (void)setType:(TrackType_t)newType;
+
+- (NSNumber*)playlistID;
+- (void)setPlaylistID:(NSNumber*)newPlaylistID;
+
+- (NSString*)sourceName;
+- (void)setSourceName:(NSString*)newSourceName;
+
+- (NSImage*)artwork;
 
 @end
 

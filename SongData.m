@@ -6,8 +6,14 @@
 //  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
 //
 
+#import <sys/types.h>
+#import <sys/sysctl.h>
+
 #import "SongData.h"
 #import "ScrobLog.h"
+#import "iScrobblerController.h"
+#import "KFAppleScriptHandlerAdditionsCore.h"
+#import "KFASHandlerAdditions-TypeTranslation.h"
 
 static unsigned int g_songID = 0;
 static float songTimeFudge;
@@ -373,6 +379,10 @@ static float songTimeFudge;
 
 - (void)setRating:(NSNumber*)newRating
 {
+    int trackRating = [newRating intValue];
+    if (trackRating < 0 || trackRating > 100)
+        return;
+    
     [newRating retain];
     [rating release];
     rating = newRating;
@@ -433,6 +443,101 @@ static float songTimeFudge;
         trackType = trackTypeUnknown;
 }
 
+- (NSNumber*)playlistID
+{
+    return (playlistID);
+}
+
+- (void)setPlaylistID:(NSNumber*)newPlaylistID
+{
+    if (newPlaylistID != playlistID) {
+        (void)[newPlaylistID retain];
+        [playlistID release];
+        playlistID = newPlaylistID;
+    }
+}
+
+- (NSString*)sourceName
+{
+    return (sourceName);
+}
+
+- (void)setSourceName:(NSString*)newSourceName
+{
+    if (newSourceName != sourceName) {
+        (void)[newSourceName retain];
+        [sourceName release];
+        sourceName = newSourceName;
+    }
+}
+
+#define CXXVIII_MB 0x8000000ULL
+- (NSImage*)artwork
+{
+    static NSMutableDictionary *artworkCache = nil;
+    static NSMutableArray *artworkCacheFifo = nil;
+    static NSAppleScript *iTunesArtworkScript = nil;
+    static unsigned artworkCacheMax = 8;
+    
+    if (!artworkCache) {
+        u_int64_t mem = 0;
+        int mib[2] = {CTL_HW, HW_MEMSIZE};
+        size_t len = sizeof(mem);
+        (void)sysctl(mib, 2, &mem, &len, NULL, 0);
+        if (mem > CXXVIII_MB)
+            artworkCacheMax *= (unsigned)(mem / CXXVIII_MB);
+        
+        artworkCache = [[NSMutableDictionary alloc] initWithCapacity:artworkCacheMax];
+        artworkCacheFifo = [[NSMutableArray alloc] initWithCapacity:artworkCacheMax];
+    }
+    
+    if (!iTunesArtworkScript) {
+        NSURL *url = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
+                    stringByAppendingPathComponent:@"Scripts/iTunesGetArtworkForTrack.scpt"]];
+        iTunesArtworkScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+        if (!iTunesArtworkScript) {
+            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetArtworkForTrack.scpt!\n");
+            [[NSApp delegate] showApplicationIsDamagedDialog];
+            return (nil);
+        }
+    }
+	
+    if (![self playlistID] || ![self sourceName]) {
+        ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
+        return (nil);
+    }
+    
+    NSString *key = [[NSString stringWithFormat:@"%@_%@", [self artist], [self album]] lowercaseString];
+    NSImage *image = [artworkCache objectForKey:key];
+    if (image)
+        return (image);
+    
+    @try {
+        image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
+            [self playlistID], [NSNumber numberWithInt:[self iTunesDatabaseID]], nil];
+        if (![image isValid])
+            image  = nil;
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't get artwork for '%@' -- script error: %@.", [self brief], exception);
+    }
+    
+    if (!image)
+        return (nil);
+    
+    // Add to cache
+    unsigned count = [artworkCacheFifo count];
+    if (count == artworkCacheMax) {
+        // Remove oldest entry
+        NSString *entry = [artworkCacheFifo peek];
+        [artworkCache removeObjectForKey:entry];
+        [artworkCacheFifo pop];
+    }
+    
+    [artworkCache setObject:image forKey:key];
+    [artworkCacheFifo push:key];
+    return (image);
+}
+
 - (void)dealloc
 {
     [title release];
@@ -446,6 +551,8 @@ static float songTimeFudge;
     [postDate release];
     [lastPlayed release];
     [rating release];
+    [playlistID release];
+    [sourceName release];
     [super dealloc];
 }    
 

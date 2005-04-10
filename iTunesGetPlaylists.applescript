@@ -1,25 +1,20 @@
-global itunes_active
-set itunes_active to false
-
-tell application "System Events"
-	if (get name of every process) contains "iTunes" then set itunes_active to true
-end tell
-
-if itunes_active is true then
-	tell application "iTunes"
-		
-		set allLists to get playlists
-		set out to ""
-		
-		repeat with theList in allLists
-			set listName to name of theList
-			set listClass to class of theList
-			if (listClass is user playlist and visible of theList is true and smart of theList is true) then
-				set out to (out & listName & "$$$")
-			end if
+tell application "iTunes"
+	set allSources to (get every source whose kind is iPod) & (get every source whose kind is library)
+	set out to {}
+	with timeout of 10 seconds
+		repeat with theSource in allSources
+			tell theSource
+				set allLists to (get every user playlist whose visible is true)
+				
+				repeat with theList in allLists
+					set listName to name of theList as Unicode text
+					-- the "does not contain" constraint makes sure we don't add dup playlists (from iTunes)
+					if (smart of theList is true and out does not contain listName) then
+						set out to out & {listName}
+					end if
+				end repeat
+			end tell
 		end repeat
-		return out
-	end tell
-end if
-
-if itunes_active is false then return "INACTIVE"
+	end timeout
+	return out
+end tell

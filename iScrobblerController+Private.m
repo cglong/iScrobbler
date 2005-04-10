@@ -4,6 +4,10 @@
 //  http://iscrobbler.sourceforge.net
 //
 
+@interface SongData (iScrobblerControllerPrivateAdditions)
+    - (SongData*)initWithiPodUpdateArray:(NSArray*)data;
+@end
+
 @implementation iScrobblerController (iScrobblerControllerPrivate)
 
 - (void)iTunesPlaylistUpdate:(NSTimer*)timer
@@ -17,22 +21,35 @@
         if (!iTunesPlaylistScript) {
             ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetPlaylists.scpt!\n");
             [self showApplicationIsDamagedDialog];
+            return;
         }
     }
     
     NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:nil];
     if(executionResult ) {
-        NSArray *parsedResult = [[executionResult stringValue] componentsSeparatedByString:@"$$$"];
-        NSEnumerator *en = [parsedResult objectEnumerator];
+        NSArray *parsedResult;
+        NSEnumerator *en;
+        @try {
+            parsedResult = [executionResult objCObjectValue];
+            en = [parsedResult objectEnumerator];
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"GetPlaylists script invalid result: parsing exception %@\n.", exception);
+            return;
+        }
         NSString *playlist;
         NSMutableArray *names = [NSMutableArray arrayWithCapacity:[parsedResult count]];
         
         while ((playlist = [en nextObject])) {
+        #ifdef notyet
             NSArray *properties = [playlist componentsSeparatedByString:@"***"];
             NSString *name = [properties objectAtIndex:0];
+        #endif
+            #define name playlist
             
             if (name && [name length] > 0)
                 [names addObject:name];
+            
+            #undef name
         }
         
         if ([names count]) {
@@ -42,7 +59,17 @@
     }
 }
 
+// =========== NSAppleEventDescriptor Image conversion handler ===========
+
+- (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc
+{
+    NSImage *image = [[NSImage alloc] initWithData:[aeDesc data]];
+    return ([image autorelease]);
+}
+
 // =========== iPod Support ============
+
+#define IPOD_SYNC_VALUE_COUNT 10
 
 #define ONE_DAY 86400.0
 #define ONE_WEEK (ONE_DAY * 7.0)
@@ -104,23 +131,35 @@ validate:
     return ([sorted autorelease]);
 }
 
-#define IPOD_UPDATE_SCRIPT_DATE_TOKEN @"Thursday, January 1, 1970 12:00:00 AM"
-#define IPOD_UPDATE_SCRIPT_SONG_TOKEN @"$$$"
-#define IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST @"Recently Played"
-
 - (IBAction)syncIPod:(id)sender
 {
+    static NSAppleScript *iPodUpdateScript = nil;
     ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
-    if (iPodUpdateScript && [prefs boolForKey:@"Sync iPod"]) {
-        // Copy the script
-        NSMutableString *text = [iPodUpdateScript mutableCopy];
-        NSAppleScript *iuscript;
-        NSAppleEventDescriptor *result;
-        NSDictionary *errInfo, *localeInfo;
+    if ([prefs boolForKey:@"Sync iPod"]) {
+        NSArray *trackList, *trackData;
+        NSString *errInfo = nil, *playlist;
         NSTimeInterval now, fudge;
-        NSMutableString *formatString;
         unsigned int added;
+        
+        // Get our iPod update script
+        if (!iPodUpdateScript) {
+            #define path playlist
+            path = [[[NSBundle mainBundle] resourcePath]
+                        stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"];
+            NSURL *url = [NSURL fileURLWithPath:path];
+            iPodUpdateScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+            if (!iPodUpdateScript) {
+                ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!\n");
+                return;
+            }
+            #undef path
+        }
+        
+        if (!(playlist = [prefs stringForKey:@"iPod Submission Playlist"]) || ![playlist length]) {
+            ScrobLog(SCROB_LOG_ERR, @"iPod playlist not set, aborting sync.");
+            return;
+        }
         
         // Just a little extra fudge time
         fudge = [iTunesLastPlayedTime timeIntervalSince1970]+[SongData songTimeFudge];
@@ -131,56 +170,56 @@ validate:
             [self setITunesLastPlayedTime:[NSDate date]];
         }
         
-        // AppleScript expects the date string formated according to the users's system settings
-        localeInfo = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-        formatString = [NSMutableString stringWithString:[localeInfo objectForKey:NSTimeDateFormatString]];
-        // Remove the pesky human readable TZ specifier -- it causes AppleScript to fail for some locales
-        [formatString replaceOccurrencesOfString:@" %Z" withString:@""
-            options:0 range:NSMakeRange(0,[formatString length])];
-        
-        // Replace the date token with our last update
-        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DATE_TOKEN
-            withString:[iTunesLastPlayedTime descriptionWithCalendarFormat:formatString
-                 timeZone:nil locale:localeInfo]
-            options:0 range:NSMakeRange(0, [text length])];
-        
-        // Replace the default playlist with the user's choice
-        [text replaceOccurrencesOfString:IPOD_UPDATE_SCRIPT_DEFAULT_PLAYLIST
-            withString:[prefs stringForKey:@"iPod Submission Playlist"]
-            options:0 range:NSMakeRange(0, [text length])];
-        
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
-            [iTunesLastPlayedTime descriptionWithCalendarFormat:formatString
-                timeZone:nil locale:localeInfo]);
+            iTunesLastPlayedTime);
         // Run script
-        iuscript = [[NSAppleScript alloc] initWithSource:text];
-        if ((result = [iuscript executeAndReturnError:&errInfo])) {
-            if (![[result stringValue] hasPrefix:@"INACTIVE"]) {
-                NSArray *songs = [[result stringValue]
-                    componentsSeparatedByString:IPOD_UPDATE_SCRIPT_SONG_TOKEN];
-                NSEnumerator *en = [songs objectEnumerator];
-                NSString *data;
-                SongData *song;
-                NSMutableArray *iqueue = [NSMutableArray array];
-                
-                if ([[result stringValue] hasPrefix:@"ERROR"]) {
-                    NSString *errmsg, *errnum;
-                    @try {
-                    errmsg = [songs objectAtIndex:1];
-                    errnum = [songs objectAtIndex:2];
-                    } @catch (NSException *exception) {
-                    errmsg = errnum = @"UNKNOWN";
-                    }
-                    // Display dialog instead of logging?
-                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
-                        errmsg, errnum);
-                    goto sync_ipod_script_release;
+        trackList = nil;
+        @try {
+            trackList = [iPodUpdateScript executeHandler:@"UpdateiPod" withParameters:
+                playlist, iTunesLastPlayedTime, nil];
+        } @catch (NSException *exception) {
+            errInfo = [exception description];
+        }
+        
+        enum {
+            iTunesIsInactive = -1,
+            iTunesError = -2,
+        };
+        if (trackList) {
+            int scriptMsgCode;
+            @try {
+                trackData = [trackList objectAtIndex:0];
+                scriptMsgCode = [[trackData objectAtIndex:0] intValue];
+            } @catch (NSException *exception) {
+                ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript script invalid result: parsing exception %@\n.", exception);
+                return;
+            }
+            
+            if (iTunesError == scriptMsgCode) {
+                NSString *errmsg;
+                NSNumber *errnum;
+                @try {
+                    errmsg = [trackData objectAtIndex:1];
+                    errnum = [trackData objectAtIndex:2];
+                } @catch (NSException *exception) {
+                    errmsg = @"UNKNOWN";
+                    errnum = [NSNumber numberWithInt:-1];
                 }
+                // Display dialog instead of logging?
+                ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
+                    errmsg, errnum);
+                return;
+            }
+
+            if (iTunesIsInactive != scriptMsgCode) {
+                NSEnumerator *en = [trackList objectEnumerator];
+                SongData *song;
+                NSMutableArray *iqueue = [NSMutableArray arrayWithCapacity:[trackList count]];
                 
                 added = 0;
-                while ((data = [en nextObject]) && [data length] > 0) {
+                while ((trackData = [en nextObject])) {
                     NSTimeInterval postDate;
-                    song = [[SongData alloc] initWithiTunesResultString:data];
+                    song = [[SongData alloc] initWithiPodUpdateArray:trackData];
                     if (song) {
                         // Since this song was played "offline", we set the post date
                         // in the past 
@@ -208,7 +247,6 @@ validate:
                         continue;
                     }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
-                    [song setiTunesDatabaseID:-1]; // Placeholder val
                     ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
                     (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
@@ -219,16 +257,10 @@ validate:
                     [[QueueManager sharedInstance] submit];
                 }
             }
-        } else if (!result) {
+        } else {
             // Script error
             ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript execution error: %@\n", errInfo);
         }
-        
-sync_ipod_script_release:
-        [iuscript release];
-        [text release];
-    } else {
-        ScrobLog(SCROB_LOG_CRIT, @"iPodUpdateScript missing\n");
     }
 }
 
@@ -260,6 +292,45 @@ sync_ipod_script_release:
         [self setValue:nil forKey:@"iPodMountPath"];
         [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
     }
+}
+
+@end
+
+@implementation SongData (iScrobblerControllerPrivateAdditions)
+
+- (SongData*)initWithiPodUpdateArray:(NSArray*)data
+{
+    self = [self init];
+    ScrobLog(SCROB_LOG_TRACE, @"Song components from iPodUpdate result: %@\n", data);
+    
+    if (IPOD_SYNC_VALUE_COUNT != [data count]) {
+bad_song_data:
+        ScrobLog(SCROB_LOG_WARN, @"Bad track data received.\n");
+        [self dealloc];
+        return (nil);
+    }
+    
+    @try {
+        [self setiTunesDatabaseID:[[data objectAtIndex:0] intValue]];
+        [self setPlaylistID:[data objectAtIndex:1]];
+        [self setTitle:[data objectAtIndex:2]];
+        [self setDuration:[data objectAtIndex:3]];
+        [self setPosition:[data objectAtIndex:4]];
+        [self setArtist:[data objectAtIndex:5]];
+        [self setPath:[data objectAtIndex:6]];
+        [self setAlbum:[data objectAtIndex:7]];
+        NSDate *lastPlayedTime = [data objectAtIndex:8];
+        [self setLastPlayed:lastPlayedTime ? lastPlayedTime : [NSDate date]];
+        [self setRating:[data objectAtIndex:9]];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data.\n");
+        goto bad_song_data;
+    }    
+    [self setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[self position] doubleValue]]];
+    [self setPostDate:[NSCalendarDate date]];
+    [self setHasQueued:NO];
+    //ScrobTrace(@"SongData allocated and filled");
+    return (self);
 }
 
 @end

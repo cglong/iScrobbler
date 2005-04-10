@@ -33,9 +33,6 @@
 
     //the preferences window controller
     PreferenceController *preferenceController;
-
-    // iPod update AppleScript (as text)
-    NSString * iPodUpdateScript;
     
     // Preferences tracking object
     NSUserDefaults * prefs;
@@ -79,6 +76,12 @@
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
 
+@end
+
+@interface NSMutableArray (iScrobblerContollerFifoAdditions)
+    - (void)push:(id)obj;
+    - (void)pop;
+    - (id)peek;
 @end
 
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,

@@ -12,10 +12,10 @@
 				D3EFA9B007A9B1FA00CF9B46,
 				F575CEAA02FF7F3501A80164,
 				EB50662D03FBB239005DC01B,
-				EB607519042A747B005DC01B,
 				D312EB560735548F00A2CFD5,
 				D312EDA007359DE000A2CFD5,
 				D312EE000735A78D00A2CFD5,
+				EB607519042A747B005DC01B,
 				D3B61DF30744151D00AF5A33,
 				D3CB1314077509D3009236FF,
 				D3CB38A607A59AFE009236FF,
@@ -138,6 +138,7 @@
 				EB1639550408132E005DC01B,
 				080E96DDFE201D6D7F000001,
 				EB50663103FBB296005DC01B,
+				D3EC7C98080858F800392110,
 				29B97315FDCFA39411CA2CEA,
 				29B97317FDCFA39411CA2CEA,
 				29B97323FDCFA39411CA2CEA,
@@ -181,6 +182,8 @@
 				D3EC0A740729CFA600C13782,
 				D39C15FB0800716200F3816B,
 				D3CB14FC07755151009236FF,
+				D3EC7B8108082DED00392110,
+				D3EC7B8208082DED00392110,
 				DC00A46205B21B9200674DB4,
 			);
 			isa = PBXGroup;
@@ -250,7 +253,10 @@
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_CPU = "";
+				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OPTIMIZATION_CFLAGS = "-O0";
 				PREBINDING = NO;
@@ -265,6 +271,8 @@
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_MODEL_TUNING = G5;
 				PREBINDING = NO;
 				ZERO_LINK = NO;
 			};
@@ -350,7 +358,7 @@
 			buildRules = (
 			);
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "/Users/brian/Projects/iscrobbler-osx-08x";
+				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = "Info-iScrobbler.plist";
@@ -375,8 +383,11 @@
 			buildActionMask = 2147483647;
 			contextName = "";
 			files = (
+				D3191CB107E3A51700821D03,
 				D3191C9907E3A51700821D03,
 				D39C15FC0800716200F3816B,
+				D3EC7B8308082DED00392110,
+				D3EC7B8408082DED00392110,
 			);
 			isSharedContext = 0;
 			isa = PBXAppleScriptBuildPhase;
@@ -407,6 +418,8 @@
 				D3191CA607E3A51700821D03,
 				D3191CA707E3A51700821D03,
 				D3191CA807E3A51700821D03,
+				D3EC7C9D080858F800392110,
+				D3EC7C9F080858F800392110,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -505,7 +518,6 @@
 				D3191CAE07E3A51700821D03,
 				D3191CAF07E3A51700821D03,
 				D3191CB007E3A51700821D03,
-				D3191CB107E3A51700821D03,
 				D3191CB207E3A51700821D03,
 			);
 			isa = PBXResourcesBuildPhase;
@@ -557,6 +569,9 @@
 			fileRef = D3EC0A740729CFA600C13782;
 			isa = PBXBuildFile;
 			settings = {
+				ATTRIBUTES = (
+					Debug,
+				);
 			};
 		};
 		D3191CB207E3A51700821D03 = {
@@ -580,6 +595,8 @@
 				D3191CBD07E3A51700821D03,
 				D3191CBE07E3A51700821D03,
 				D3191CBF07E3A51700821D03,
+				D3EC7C9E080858F800392110,
+				D3EC7CA0080858F800392110,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -733,7 +750,7 @@
 			fileEncoding = 4;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.applescript;
-			path = iTunesGetCurrentSongInfo.applescript;
+			path = iTunesGetCurrentTrackInfo.applescript;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -904,6 +921,108 @@
 		};
 		D3EC731C0804F74600392110 = {
 			fileRef = D3EC73100804F73B00392110;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC7B8108082DED00392110 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.applescript;
+			path = iTunesGetArtworkForTrack.applescript;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7B8208082DED00392110 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.applescript;
+			path = iTunesPlaySpecifiedTrack.applescript;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7B8308082DED00392110 = {
+			fileRef = D3EC7B8108082DED00392110;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Debug,
+				);
+			};
+		};
+		D3EC7B8408082DED00392110 = {
+			fileRef = D3EC7B8208082DED00392110;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Debug,
+				);
+			};
+		};
+		D3EC7C98080858F800392110 = {
+			children = (
+				D3EC7C99080858F800392110,
+				D3EC7C9A080858F800392110,
+				D3EC7C9B080858F800392110,
+				D3EC7C9C080858F800392110,
+			);
+			isa = PBXGroup;
+			path = KFASAdditions;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7C99080858F800392110 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = KFAppleScriptHandlerAdditionsCore.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7C9A080858F800392110 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = KFAppleScriptHandlerAdditionsCore.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7C9B080858F800392110 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = "KFASHandlerAdditions-TypeTranslation.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7C9C080858F800392110 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = "KFASHandlerAdditions-TypeTranslation.m";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3EC7C9D080858F800392110 = {
+			fileRef = D3EC7C99080858F800392110;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC7C9E080858F800392110 = {
+			fileRef = D3EC7C9A080858F800392110;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC7C9F080858F800392110 = {
+			fileRef = D3EC7C9B080858F800392110;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3EC7CA0080858F800392110 = {
+			fileRef = D3EC7C9C080858F800392110;
 			isa = PBXBuildFile;
 			settings = {
 			};

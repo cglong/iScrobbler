@@ -1,0 +1,26 @@
+on PlayTrack(theSource, thePlaylistID, theTrackID)
+	tell application "iTunes"
+		tell source theSource
+			-- We want to try the given playlist first
+			set myPlaylist to ""
+			try
+				set myPlaylist to first item in (every playlist whose index is thePlaylistID)
+			end try
+			-- if that fails, then fall back to any master lists in the source
+			set thePlaylists to {myPlaylist} & (every library playlist)
+			repeat with pl in thePlaylists
+				tell pl
+					try
+						set theTrack to first item in (every track whose database ID is theTrackID)
+						play theTrack
+					end try
+				end tell
+			end repeat
+		end tell
+	end tell
+end PlayTrack
+
+-- for testing within script editor
+on run
+	PlayTrack("Library", 3, 3099)
+end run
