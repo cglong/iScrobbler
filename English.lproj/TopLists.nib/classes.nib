@@ -9,6 +9,7 @@
             SUPERCLASS = NSArrayController; 
         }, 
         {
+            ACTIONS = {createProfileReport = id; }; 
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {topArtistsController = id; topTracksController = id; }; 

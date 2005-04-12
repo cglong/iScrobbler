@@ -1,0 +1,662 @@
+tr.alt {background:#edf3fe;}
+td.title {
+	text-align: left;
+	width: 60%;
+	white-space:nowrap;
+}
+td.graph {
+	text-align: left;
+	width: 40%;
+	white-space:nowrap;
+}
+td.smallgraph {
+	text-align: left;
+	width: 20%;
+	white-space:nowrap;
+}
+
+
+/* This is a slightly modified copy of the audioscrobbler.com style sheet */
+td.lastdate {
+    white-space:nowrap;
+}
+
+div.breadcrumbs {
+    margin-bottom:10px;
+    margin-left:5px;
+}
+
+cite a.musicpermalink{
+    color: grey;
+    vertical-align: super;
+    font-size: 70%;
+    text-decoration:none;
+    padding-left:2px;
+    padding-right:0;
+}
+
+cite a.musicpermalink:hover {
+    color: red;
+}
+span.unknownmusic {
+    font-style: italic;
+}
+
+div.albumcover {
+	float:left;
+	border: 1px solid #f0f0f0;
+	margin-right:25px;
+}
+
+a.external {
+}
+
+.middle {
+    vertical-align:middle;
+    margin-bottom:1px;
+}
+
+.userpageavatar {
+	padding-top:20px
+}
+
+table.userinfo {
+	width:100%;
+	border: 1px solid #f0f0f0;
+}
+
+td.att {
+	font-weight:bold;
+	white-space:nowrap;
+	width:1px;
+	padding-right:10px;
+}
+
+
+div#userpagead {
+	padding-left:10px;
+	width:250px;
+}
+
+div#bio {
+	padding-top:10px;
+}
+
+hr {
+    color:gray;
+    background-color:gray;
+    border:0px;
+    width:80%;
+    height:1px;
+}
+
+div.intro {
+    width: 96%;
+    clear:left;
+    border: 1px dotted gray;
+    padding:15px;
+    background-color:lightyellow;
+}
+.staff_symbol{
+    color:#900;
+}
+.automod_symbol{
+    color:#FF3300;/*#FF0033;*/
+}
+
+.moderator_symbol {
+    color:#FF3300;
+}
+.subscriber_symbol{
+    color: blue; 
+}
+.normaluser_symbol{
+    color: gray;
+}
+.forumclass{
+    color: green;
+}
+.matchingstuff{
+    font-weight: bold;
+}
+.NetworkItem table { font-size: 70%; }
+.NetworkItem {
+    float:left;
+    text-align:left;
+    margin:3px;
+    padding:6px;
+    line-height:12pt;
+    height:160px;
+    width:340px;
+    background-color:#f0f0f0;
+}
+
+.NetworkItemPicture {
+    float:left;
+    text-align:center;
+    width:150px;
+    margin-right:10px;
+    margin-bottom:0;
+    line-height:12pt;
+}
+
+.NetworkItemIcons {
+    margin-right:1px;
+    margin-top:3px;
+}
+
+.xmlbutton {
+    border:1px solid;
+    border-color:#FC9 #630 #330 #F96;
+    padding:0 3px;
+    font:bold 10px verdana,sans-serif;
+    color:#FFF;
+    background:#F60;
+    text-decoration:none;
+    margin:0;
+}
+
+table.pagelink td {
+    border: 1px solid gray;
+    background-color:#daeefb;
+    padding:2px;
+}
+
+table.pagelink td.selected {
+    background-color:#FFF;
+    font-weight:bold;
+}
+
+table.pagelink td:hover {
+    background-color:#f0f0f0;
+}
+
+table.pagelink td.selected:hover {
+    background-color:#FFF;
+}
+
+table.pagelink td.pagen:hover {
+    background-color:#daeefb;
+}
+
+td.forum {
+    border: 1px solid white; 
+    padding-left:5px;
+    vertical-align:middle; 
+}
+
+span.quote {
+    display:block;
+    background-color: white;
+    border: 1px solid black;
+    font-style: italic;
+    padding: 10px;        
+    font-size:90%;
+    margin:0px 0px 0px 15px;
+}
+
+table.forum {
+    font-size:9pt;
+    width:100%;
+    border: solid 1px #f0f0f0;
+    clear:both;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+table.forum td {
+    padding: 0px 3px 0px 3px;
+}
+
+table.forum th {
+    font-weight:bold; 
+    padding: 5px;
+    vertical-align:middle; 
+    background-color:#daeefb;
+}
+
+div.forumthread {
+    width:100%;
+    clear:both;
+    padding-top:10px;
+    padding-bottom:10px;
+}
+
+div.forummessage {
+    width:100%;
+    padding:4px;
+    border: 1px solid #f0f0f0;
+}
+
+div.forummessage.alt {
+    background-color:#f0f0f0;
+}
+
+div.forummessage div.mtitle {
+    font-weight:bold;
+    font-size:105%;
+    margin-bottom:10px;
+}
+
+div.body {
+    height:100%;
+    margin-left:120px;
+    padding-left:5px;
+    border-left:1px solid #f0f0f0;
+}
+
+div.forummessage div.text {
+    min-height:80px;
+}
+
+div.forummessage.alt div.body {
+    border-left:1px solid white;
+}
+
+div.forummessage div.sig {
+    padding-top: 15px;
+}
+
+div.forummessage div.edit {
+    padding-top: 15px;
+    font-size:80%;
+    font-style:italic;
+}
+
+div.forummessage div.userinfo {
+    display:block;
+    float:left;
+    height:100%;
+    width:100px;
+    font-size:70%;
+}
+
+div.forummessage span.username {
+    font-size:120%;
+}
+
+div.forummessage div.buttons {
+    border-top: 1px solid #f0f0f0;
+}
+
+div.forummessage.alt div.buttons {
+    border-top: 1px solid white;
+}
+
+tr.forumh1_small {
+    font-weight:bold; 
+    height:20px; 
+    vertical-align:middle; 
+    background-color:#daeefb;
+}
+
+tr.forumh2 {
+    background-color:white; 
+    vertical-align:middle; 
+}
+
+body, :root {
+	font-family: verdana, sans-serif;
+	font-size:10pt;
+	margin: 5px;
+	margin-top:0px;
+    	padding: 0px;
+    	border: 0px;
+	background-color: white;
+}
+
+table {
+	font-size:10pt;
+}
+
+div.article {
+    font-family: verdana, sans-serif;
+}
+
+#sidebar {
+    	position:absolute;
+	left: 5px;
+	top: 62px;
+	width: 140px;
+}
+
+#sidebar a {
+	color: #000;
+}
+
+div.sidebox {
+	margin-bottom: 10px;
+	padding: 12px;
+	line-height: 140%;
+	color: #000000;
+	background: #f0f0f0;
+}
+
+div.sidebox h2 {
+    font-weight:bold;
+    margin-bottom:3px;
+    color:black;
+}
+
+th {
+    font-weight:bold; 
+    vertical-align:middle;
+}
+
+.gossip {
+	color: #000000;
+	background: #f0f0f0;
+}
+
+#links, #stats, #dev {
+	padding: 12px;
+	background: #daeefb; /* url('bg2.gif');*/
+	line-height: 140%;
+}
+
+#links a, #stats a, #dev a {
+	font-weight: bold;
+	text-decoration: none;
+}
+
+#links a:hover, #stats a:hover, #dev a:hover {
+	text-decoration: underline;
+}
+
+
+.dotline {
+	height: 12px;
+}
+
+img {
+	border: 0;
+}
+
+a {
+	color: #000033;
+}
+h1 {
+	margin: 0;
+        margin-bottom:8pt;
+	font-size: 155%;
+	color: #900;
+}
+
+h2 {
+	margin: 0;
+    margin-bottom:5pt;
+	font-size: 120%;
+	color: #900;
+}
+h3 {
+	margin: 0;
+    margin-bottom:5pt;
+	font-size: 112%;
+	color: #900;
+}
+
+h4 {
+	margin: 0;
+	font-size: 107%;
+	color: #900;
+}
+h5 {
+    margin: 0;
+    color:gray;
+    font-size:90%;
+}
+
+div.content p {
+    padding-left:10px;
+}
+div.content pre {
+    border:1px solid grey;
+    background-color:#f0f0f0;
+    padding:10px;
+    padding-left:5px;
+}
+fieldset, form {
+	display: inline;
+	border-color: transparent;
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+}
+
+form input, form select {
+	font-family: verdana, sans-serif;
+	background: #fff;
+        color: #000;
+}
+
+#searchbutton, #tbutton {
+	padding: 0;
+	vertical-align: top;
+	margin-left: 4px;
+}
+
+#main {
+	position: absolute;
+	left: 155px;
+	top: 62px;
+	right: 5px;
+	margin-right: 5px;
+}
+
+
+
+div.content {
+    margin-bottom: 20px;
+    width: 100%;
+    clear:left;
+}
+
+div.suberror {
+    margin:5px;
+    width:90%;
+    padding:5px;
+    background-color:#f0f0f0;/*#F99;*/
+}
+
+
+div.newsitem.info {
+	margin-bottom: 1em;
+	color: #000;
+}
+
+div.newsitem.info a {
+	color: #000;
+}
+
+div.newsitem.more {
+	position: relative;
+	top: -18px;
+	text-align: right;
+}
+
+div.intro {
+	margin: 0;
+}
+
+div.intro h2 {
+	color: #000;
+}
+
+div.intro a {
+	color: #000;
+}
+
+
+input#textbox2 {
+	width: 90px;
+}
+
+table.topn {
+    	width: 100%;
+	font-size: 10pt;
+	border: 1px solid #f0f0f0;
+}
+
+table.topn td.position {
+    width:30px;
+    text-align:center;
+    color:grey;
+}
+
+table#recenttracks td.date {
+	text-align:right;
+}
+
+tr.nowplaying {
+	background-color: #daeefb;
+}
+
+td {
+	overflow: hidden;
+	padding: 0px;
+	margin: 0px;
+}
+
+tr.padded td{
+    padding: 5px;
+}
+
+td.shortgraph {
+	text-align: left;
+	width: 10%;
+}
+/*
+td.graph {
+	text-align: left;
+	width: 35%;
+}*/
+
+div.bar {
+	height: 100%;
+	background: #97D1F4;
+	color: black;
+	text-align: right;
+	white-space:nowrap;
+}
+
+#footer {
+    clear: left;
+	padding: 12px;
+	font-size: 80%;
+	color: #999;
+	margin-bottom: 20px;
+}
+
+#footer a {
+	color: #999;
+}
+
+#tlogin, #tpassword {
+        width:80px;
+}
+
+#login .divider {
+	float: left;
+	padding-left: 10px;
+}
+
+#topbar {
+	margin-top: 15px;
+	height:100px;
+}
+#topads {
+    position: absolute;
+    top:2px;
+    right: 2px;
+    height: 65px;
+}
+
+ul {
+	padding-left: 2em;
+}
+
+.rising {
+    color:green;
+    padding-right:10px;
+}       
+
+.falling {
+    color:red;
+    padding-right:10px;
+}
+
+.newcomer {
+    color:blue;
+    padding-right:10px;
+}
+
+.nonmover {
+    color:#F7941C;
+    padding-right:10px;
+}
+
+/*tr.alt {
+    background-color:#f0f0f0;
+}*/
+
+table.submenu {
+    width:100%;
+    margin-bottom:10px;
+}
+
+table.submenu tr td {
+    background-color:#f0f0f0;
+}
+
+table.submenu a {
+    color:black;
+    font-weight: bold;
+    text-decoration: none;
+}
+table.submenu a:hover {
+    color:#900;
+}
+
+ul.hmenu {
+    display:inline;
+    margin:0px;
+    padding:0px;
+    vertical-align:baseline;
+    line-height:20px;
+}
+
+ul.menu {
+    list-style: none;
+    margin:0px;
+    padding:0px;
+}
+
+#linkbar, #usermenu {
+    float:right;
+}
+
+#linkbar li {
+    padding:0pxef;}
+
+ul.hmenu li {
+    display: inline;  
+    padding:2px 5px 2px 5px;
+} 
+
+ul.hmenu li.selected, ul.hmenu li.selected a{
+    background: #900;
+    color: #FFF;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.ItemHeader {
+    border: 1px solid #f0f0f0;
+    padding:5px;
+    height:40px;
+}
+
+.mozillasucks {
+   height:1px; 
+   clear:both;
+}
+

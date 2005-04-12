@@ -9,6 +9,7 @@
 			children = (
 				F575CE9702FE0E8801A80164,
 				D39C17FA0801CF5100F3816B,
+				D3D7BB050809AC26005EF5CA,
 				D3EFA9B007A9B1FA00CF9B46,
 				F575CEAA02FF7F3501A80164,
 				EB50662D03FBB239005DC01B,
@@ -55,6 +56,7 @@
 //104
 		1058C7A0FEA54F0111CA2CBB = {
 			children = (
+				D3D7BB1B0809AD09005EF5CA,
 				D3EC73100804F73B00392110,
 				D3D4746007740A760076AA7D,
 				D3D4741F077407F50076AA7D,
@@ -179,12 +181,15 @@
 				D3CB13A1077514A7009236FF,
 				D3CB130E07750960009236FF,
 				D3CB38A207A59AE5009236FF,
+				D3D7BAFF0809A806005EF5CA,
+				D3D7BB4A0809B09D005EF5CA,
 				D3EC0A740729CFA600C13782,
 				D39C15FB0800716200F3816B,
 				D3CB14FC07755151009236FF,
 				D3EC7B8108082DED00392110,
 				D3EC7B8208082DED00392110,
 				DC00A46205B21B9200674DB4,
+				D3D7BD9F080A1643005EF5CA,
 			);
 			isa = PBXGroup;
 			name = Resources;
@@ -259,6 +264,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
 				ZERO_LINK = NO;
 			};
@@ -420,6 +426,7 @@
 				D3191CA807E3A51700821D03,
 				D3EC7C9D080858F800392110,
 				D3EC7C9F080858F800392110,
+				D3D7BB060809AC26005EF5CA,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -511,14 +518,17 @@
 		D3191CA907E3A51700821D03 = {
 			buildActionMask = 2147483647;
 			files = (
+				D3191CAD07E3A51700821D03,
 				D3191CAA07E3A51700821D03,
 				D3191CAB07E3A51700821D03,
 				D3191CAC07E3A51700821D03,
-				D3191CAD07E3A51700821D03,
 				D3191CAE07E3A51700821D03,
+				D3191CB207E3A51700821D03,
+				D3D7BE04080A209E005EF5CA,
 				D3191CAF07E3A51700821D03,
 				D3191CB007E3A51700821D03,
-				D3191CB207E3A51700821D03,
+				D3D7BDBA080A17B1005EF5CA,
+				D3D7BB560809B0EC005EF5CA,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -597,6 +607,7 @@
 				D3191CBF07E3A51700821D03,
 				D3EC7C9E080858F800392110,
 				D3EC7CA0080858F800392110,
+				D3D7BB070809AC26005EF5CA,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -683,6 +694,7 @@
 				D3191CC507E3A51700821D03,
 				D3191CC607E3A51700821D03,
 				D3EC73110804F73B00392110,
+				D3D7BB1C0809AD09005EF5CA,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -888,6 +900,117 @@
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
+		D3D7BAFF0809A806005EF5CA = {
+			children = (
+				D3D7BB000809A806005EF5CA,
+			);
+			isa = PBXVariantGroup;
+			name = ISProfileReport.nib;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7BB000809A806005EF5CA = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.nib;
+			name = English;
+			path = English.lproj/ISProfileReport.nib;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7BB010809A806005EF5CA = {
+			fileRef = D3D7BAFF0809A806005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BB040809AC26005EF5CA = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = ISProfileDocumentController.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7BB050809AC26005EF5CA = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = ISProfileDocumentController.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7BB060809AC26005EF5CA = {
+			fileRef = D3D7BB040809AC26005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BB070809AC26005EF5CA = {
+			fileRef = D3D7BB050809AC26005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BB1B0809AD09005EF5CA = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = WebKit.framework;
+			path = /System/Library/Frameworks/WebKit.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		D3D7BB1C0809AD09005EF5CA = {
+			fileRef = D3D7BB1B0809AD09005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BB4A0809B09D005EF5CA = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = ProfileReport.css;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7BB4B0809B09D005EF5CA = {
+			fileRef = D3D7BB4A0809B09D005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BB560809B0EC005EF5CA = {
+			fileRef = D3D7BB4A0809B09D005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BD9F080A1643005EF5CA = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.png;
+			path = CD.png;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7BDA0080A1643005EF5CA = {
+			fileRef = D3D7BD9F080A1643005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BDBA080A17B1005EF5CA = {
+			fileRef = D3D7BD9F080A1643005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		D3D7BE04080A209E005EF5CA = {
+			fileRef = D3D7BAFF0809A806005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		D3EC0A740729CFA600C13782 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -902,6 +1025,9 @@
 			dstSubfolderSpec = 10;
 			files = (
 				D3EC731C0804F74600392110,
+				D3D7BB010809A806005EF5CA,
+				D3D7BB4B0809B09D005EF5CA,
+				D3D7BDA0080A1643005EF5CA,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1121,6 +1247,7 @@
 		EB50663103FBB296005DC01B = {
 			children = (
 				F575CE9802FE0E8801A80164,
+				D3D7BB040809AC26005EF5CA,
 				D3EFA9AF07A9B1FA00CF9B46,
 				F575CEAB02FF7F3501A80164,
 				EB50662F03FBB284005DC01B,

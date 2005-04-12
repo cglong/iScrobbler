@@ -18,6 +18,15 @@
 
 + (TopListsController*) sharedInstance;
 
+
+@end
+
+@interface TopListsController (ISProfileReportAdditions)
+
+- (IBAction)createProfileReport:(id)sender;
+
+- (NSData*)generateHTMLReportWithCSSURL:(NSURL*)cssURL withTitle:(NSString*)profileTitle;
+
 @end
 
 #define OPEN_TOPLISTS_WINDOW_AT_LAUNCH @"TopLists Window Open"
