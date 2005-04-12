@@ -87,4 +87,13 @@
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds);
 
+#ifdef ISDEBUG
+#define ISASSERT(condition,msg) do { \
+if (0 == (condition)) { \
+    asm volatile("trap"); \
+} } while(0)
+#else
+#define ISASSERT(condition,msg) {}
+#endif
+
 #import "ScrobLog.h"
