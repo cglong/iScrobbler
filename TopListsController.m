@@ -23,7 +23,11 @@ static NSMutableDictionary *topAlbums = nil;
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
 
 @interface NSString (ISHTMLConversion)
-    - (NSString *)stringByConvertingCharactersToHTMLEntities;
+- (NSString *)stringByConvertingCharactersToHTMLEntities;
+@end
+
+@interface NSMutableDictionary (ISMerge)
+- (void)mergePlayCountsUsingCaseInsensitiveCompare;
 @end
 
 @implementation TopListsController
@@ -306,7 +310,7 @@ static inline NSString* TDEntry(NSString *type, id obj)
 static inline NSString* DIVEntry(NSString *type, float width, NSString *title, id obj)
 {
     return ( [NSString stringWithFormat:@"<div class=\"%@\" %@style=\"width:%u%%;\">%@</div>",
-       type,  (title ? [NSString stringWithFormat:@" title=\"%@\"", title] : @""),
+       type,  (title ? [NSString stringWithFormat:@"title=\"%@\" ", title] : @""),
        (unsigned)width, obj] );
 }
 
@@ -353,8 +357,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     NSDictionary *entry;
     NSString *artist, *track, *tmp;
     NSNumber *playCount;
-    unsigned position = 1;
-    float width = 100.0, percentage,
+    unsigned position = 1; // ranking
+    float width = 100.0 /* bar width */, percentage,
     basePlayCount = [[artists valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue],
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
     while ((entry = [en nextObject])) {
@@ -366,10 +370,12 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         HAdd(d, TDEntry(TDTITLE, artist));
+        // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
         percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
+        // Total time bar
         width = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / basePlayTime) * 100.0);
         percentage = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0);
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -401,7 +407,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         tmp = [NSString stringWithFormat:@"%@ - %@", track, artist];
         HAdd(d, TDEntry(TDTITLE, tmp));
-        HAdd(d, TDEntry(TDGRAPH, time));
+        HAdd(d, TDEntry(TDGRAPH, time)); // Last play time
+        // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
         percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -413,19 +420,21 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     HAdd(d, TBLCLOSE @"</div>");
     [pool release];
-    
+
     if (topAlbums) {
         pool = [[NSAutoreleasePool alloc] init];
+        [topAlbums mergePlayCountsUsingCaseInsensitiveCompare];
+        
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
         HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
         HAdd(d, TRCLOSE);
     
         NSArray *keys = [topAlbums keysSortedByValueUsingSelector:@selector(compare:)];
-        en = [keys reverseObjectEnumerator];
+        en = [keys reverseObjectEnumerator]; // Largest to smallest
         position = 1;
         // The keys are ordered from smallest to largest, therefore we want the last one
         basePlayCount = [[topAlbums objectForKey:[keys objectAtIndex:[keys count]-1]] floatValue];
-        while ((tmp = [en nextObject])) {
+        while ((tmp = [en nextObject])) { // tmp is our key into the topAlbums dict
             NSArray *items = [tmp componentsSeparatedByString:TOP_ALBUMS_KEY_TOKEN];
             if (items && 2 == [items count]) {
                 artist = [[items objectAtIndex:0] stringByConvertingCharactersToHTMLEntities];
@@ -437,6 +446,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
                 tmp = [NSString stringWithFormat:@"%@ - %@", album, artist];
                 HAdd(d, TDEntry(TDTITLE, tmp));
+                // Total Plays bar
                 width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
                 percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -480,6 +490,37 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     [s replaceOccurrencesOfString:@"\xa0" withString:@"&nbsp;" options:0 range:r];
 #endif
     return ([s autorelease]);
+}
+
+@end
+
+@implementation NSMutableDictionary (ISMerge)
+
+- (void)mergePlayCountsUsingCaseInsensitiveCompare
+{
+    NSMutableArray *keys = [[self allKeys] mutableCopy];
+    unsigned i, j, count, playCount;
+    
+    count = [keys count];
+    for (i=0; i < count; ++i) {
+        NSString *key = [keys objectAtIndex:i], *key2 = nil;
+        for (j = i+1; [key length] > 0 && j < count; ++j) {
+            key2 = [keys objectAtIndex:j];
+            if (NSOrderedSame == [key caseInsensitiveCompare:key2]) {
+                (void)[key2 retain];
+                [keys replaceObjectAtIndex:j withObject:@""];
+                
+                // Merge the play count with key 1
+                playCount = [[self objectForKey:key] unsignedIntValue] + [[self objectForKey:key2] unsignedIntValue];
+                [self setObject:[NSNumber numberWithUnsignedInt:playCount] forKey:key];
+                // Remove the second key
+                [self removeObjectForKey:key2];
+                [key2 release];
+                // Can't break since there may be another alt. spelling
+            }
+        }
+    }
+    [keys release];
 }
 
 @end
