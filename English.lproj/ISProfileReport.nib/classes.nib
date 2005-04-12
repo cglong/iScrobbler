@@ -4,7 +4,7 @@
         {
             CLASS = ISProfileDocumentController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {myWebView = WebView; }; 
+            OUTLETS = {bindingsController = NSObjectController; myWebView = WebView; }; 
             SUPERCLASS = NSWindowController; 
         }
     ); 

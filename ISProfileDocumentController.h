@@ -14,10 +14,11 @@
 @interface ISProfileDocumentController : NSWindowController
 {
     IBOutlet WebView *myWebView;
+    // Workaround for stupid binding bug
+    // http://theocacao.com/document.page/18
+    IBOutlet NSObjectController *bindingsController;
     NSURL *myURLPath;
 }
-
-- (BOOL)isInProgress;
 
 - (void)showWindowWithHTMLData:(NSData*)data withWindowTitle:(NSString*)title;
 

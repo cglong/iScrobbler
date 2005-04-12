@@ -20,11 +20,6 @@
 
 @implementation ISProfileDocumentController
 
-- (BOOL)isInProgress
-{
-    return ([myWebView estimatedProgress] > 0.0 && [myWebView estimatedProgress] < 1.0);
-}
-
 - (void)showWindowWithHTMLData:(NSData*)data withWindowTitle:(NSString*)title
 {
     // Save data to temp file
@@ -86,17 +81,20 @@
 
 - (void)awakeFromNib
 {
+    [bindingsController setContent:[NSMutableDictionary dictionaryWithCapacity:1]];
+    [[bindingsController selection] setValue:myWebView forKey:@"myWebView"];
+    
     [myWebView setCustomUserAgent:[[ProtocolManager sharedInstance] userAgent]];
 }
 
 - (void)windowWillClose:(NSNotification*)note
-{
-    //[myWebView release];
-    //myWebView = nil;
+{ 
     if (myURLPath)
         [[NSFileManager defaultManager] removeFileAtPath:[myURLPath path] handler:nil];
     [myURLPath release];
     myURLPath = nil;
+    // Make sure the bindings are released
+    [bindingsController setContent:nil];
     [self autorelease];
 }
 
@@ -119,6 +117,20 @@
 - (NSString*)stringValue
 {
     return ([self absoluteString]);
+}
+
+@end
+
+@implementation WebView (ISProfileAdditions)
+
+- (BOOL)isInProgress
+{
+    return ([self estimatedProgress] > 0.0 && [self estimatedProgress] < 1.0);
+}
+
+- (id)valueForUndefinedKey:(NSString*)key
+{
+    return (nil);
 }
 
 @end
