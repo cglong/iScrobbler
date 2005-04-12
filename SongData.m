@@ -523,6 +523,7 @@ static float songTimeFudge;
         if (!genericImage) {
             genericImage = [[NSImage alloc] initWithContentsOfFile:
                 [[NSBundle mainBundle] pathForResource:@"CD" ofType:@"png"]];
+            [genericImage setName:@"generic"];
         }
         image = genericImage;
         cache = NO; // Don't cache because the user could update the image later.
