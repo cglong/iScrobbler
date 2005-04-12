@@ -512,29 +512,38 @@ static float songTimeFudge;
     if (image)
         return (image);
     
+    BOOL cache = YES;
     @try {
         image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
             [self playlistID], [NSNumber numberWithInt:[self iTunesDatabaseID]], nil];
-        if (![image isValid])
-            image  = nil;
+        (void)[image isValid];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't get artwork for '%@' -- script error: %@.", [self brief], exception);
+        static NSImage *genericImage = nil;
+        if (!genericImage) {
+            genericImage = [[NSImage alloc] initWithContentsOfFile:
+                [[NSBundle mainBundle] pathForResource:@"CD" ofType:@"png"]];
+        }
+        image = genericImage;
+        cache = NO; // Don't cache because the user could update the image later.
     }
     
     if (!image)
         return (nil);
     
-    // Add to cache
-    unsigned count = [artworkCacheFifo count];
-    if (count == artworkCacheMax) {
-        // Remove oldest entry
-        NSString *entry = [artworkCacheFifo peek];
-        [artworkCache removeObjectForKey:entry];
-        [artworkCacheFifo pop];
+    if (cache) {
+        // Add to cache
+        unsigned count = [artworkCacheFifo count];
+        if (count == artworkCacheMax) {
+            // Remove oldest entry
+            NSString *entry = [artworkCacheFifo peek];
+            [artworkCache removeObjectForKey:entry];
+            [artworkCacheFifo pop];
+        }
+        
+        [artworkCache setObject:image forKey:key];
+        [artworkCacheFifo push:key];
     }
-    
-    [artworkCache setObject:image forKey:key];
-    [artworkCacheFifo push:key];
     return (image);
 }
 
