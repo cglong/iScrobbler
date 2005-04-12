@@ -73,6 +73,8 @@
 
 -(NSString *)md5hash:(NSString *)input;
 
+-(SongData*)nowPlaying;
+
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
 

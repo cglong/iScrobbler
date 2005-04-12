@@ -692,6 +692,11 @@ player_info_exit:
     return hashString;
 }
 
+-(SongData*)nowPlaying
+{
+    return (currentSong);
+}
+
 -(IBAction)cleanLog:(id)sender
 {
     ScrobLogTruncate();
