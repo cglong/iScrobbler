@@ -134,15 +134,12 @@
 		};
 		29B97314FDCFA39411CA2CEA = {
 			children = (
-				EB45285C040A8D11005DC01B,
-				EB24D529040AECC8005DC01B,
-				EB16394A04080C51005DC01B,
-				EB1639550408132E005DC01B,
 				080E96DDFE201D6D7F000001,
 				EB50663103FBB296005DC01B,
 				D3EC7C98080858F800392110,
 				29B97315FDCFA39411CA2CEA,
 				29B97317FDCFA39411CA2CEA,
+				D3D7C26F080B99ED005EF5CA,
 				29B97323FDCFA39411CA2CEA,
 				19C28FACFE9D520D11CA2CBB,
 			);
@@ -1011,6 +1008,44 @@
 			settings = {
 			};
 		};
+		D3D7C26F080B99ED005EF5CA = {
+			children = (
+				D3D7C299080B9A5B005EF5CA,
+				EB45285C040A8D11005DC01B,
+				EB24D529040AECC8005DC01B,
+				EB16394A04080C51005DC01B,
+				EB1639550408132E005DC01B,
+			);
+			includeInIndex = 0;
+			isa = PBXGroup;
+			name = Documentation;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7C299080B9A5B005EF5CA = {
+			children = (
+				D3D7C29A080B9A5B005EF5CA,
+			);
+			isa = PBXVariantGroup;
+			name = iPodLimitations.rtf;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7C29A080B9A5B005EF5CA = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.rtf;
+			name = English;
+			path = English.lproj/iPodLimitations.rtf;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3D7C29B080B9A5B005EF5CA = {
+			fileRef = D3D7C299080B9A5B005EF5CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		D3EC0A740729CFA600C13782 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1028,6 +1063,7 @@
 				D3D7BB010809A806005EF5CA,
 				D3D7BB4B0809B09D005EF5CA,
 				D3D7BDA0080A1643005EF5CA,
+				D3D7C29B080B9A5B005EF5CA,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
