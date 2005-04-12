@@ -6,6 +6,7 @@
             CLASS = StatisticsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                artworkImage = NSImageView; 
                 detailsDisclosure = id; 
                 detailsText = id; 
                 detailsView = id; 

@@ -176,6 +176,14 @@ static enum {title, album, artist} g_cycleState = title;
                 // 0x2026 == Unicode elipses
                 [NSLocalizedString(@"Waiting for track", "") stringByAppendingFormat:@"%C", 0x2026]];
         }
+        
+        // Set the ablum art image
+        NSImage *art = [song artwork];
+        if (![@"generic" isEqualToString:[art name]]) {
+            [artworkImage setImage:art];
+        } else {
+            [artworkImage setImage:[NSApp applicationIconImage]];
+        }
     }
 }
 
@@ -213,10 +221,14 @@ static enum {title, album, artist} g_cycleState = title;
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
+    [artworkImage setImage:[NSApp applicationIconImage]];
     [super showWindow:sender];
 
-    // This will fire off a Now Playing notification
-    //[[NSApp delegate] mainTimer:nil];
+    SongData *song;
+    if ((song = [[NSApp delegate] nowPlaying])) {
+        NSNotification *note = [NSNotification notificationWithName:@"" object:song];
+        [self nowPlaying:note];
+    }
     
     // Set current values
     [self submitCompleteHandler:nil];
