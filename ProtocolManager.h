@@ -59,6 +59,8 @@
 
 - (NSString*)userName;
 
+- (NSString*)userAgent;
+
 - (SongData*)lastSongSubmitted;
 
 - (NSString *)lastHandshakeResult;

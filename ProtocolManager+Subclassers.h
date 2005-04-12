@@ -40,7 +40,7 @@
 
 - (NSString*)clientID;
 
-- (NSString*)userAgent;
+//- (NSString*)userAgent;
 
 - (float)minPercentagePlayed;
 
