@@ -24,7 +24,7 @@
 
 #import <Growl/Growl.h>
 
-#define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"com.audioscrobbler.iscrobbler.track.change"
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, album, artist) \
 [NSString stringWithFormat:NSLocalizedString(@"Track: %@\nAlbum: %@\nArtist: %@", ""), \
@@ -60,6 +60,7 @@
 @interface SongData (iScrobblerControllerAdditions)
     - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
     - (void)updateUsingSong:(SongData*)song;
+    - (double)resubmitInterval;
 @end
 
 @implementation iScrobblerController
@@ -175,10 +176,7 @@ currentSongQueueTimer = nil; \
             // and iTunes has to re-buffer. This means the elapsed track play time
             // would be less than elapsed real-world time and the track may not be 1/2
             // done.
-            double fireInterval = [[currentSong duration] doubleValue] -
-                [[currentSong position] doubleValue];
-            if (fireInterval > 1.0)
-                fireInterval /= 2.0;
+            double fireInterval = [currentSong resubmitInterval];
             if (fireInterval >= 1.0) {
                 ScrobLog(SCROB_LOG_VERBOSE,
                     @"Track '%@' failed submission rules. "
@@ -205,6 +203,7 @@ queue_exit:
 
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
+    double fireInterval;
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
     BOOL wasiTunesPlaying = isiTunesPlaying;
@@ -229,7 +228,7 @@ queue_exit:
     }
     
     if (currentSong && [currentSong isEqualToSong:song]) {
-        // Determine if the song is being played twice (or more in a row)
+        // Try to determine if the song is being played twice (or more in a row)
         float pos = [[song position] floatValue];
         if (pos <  [[currentSong position] floatValue] &&
              // The following conditions do not work with iTunes 4.7, since we are not
@@ -247,6 +246,23 @@ queue_exit:
             currentSong = nil;
         } else {
             [currentSong updateUsingSong:song];
+            
+            // Handle a pause
+            if (!isiTunesPlaying && ![currentSong hasQueued]) {
+                KillQueueTimer();
+                ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
+            } else  if (isiTunesPlaying && !wasiTunesPlaying && ![currentSong hasQueued]) {
+                // Reschedule timer
+                ISASSERT(!currentSongQueueTimer, "Timer is active!");
+                fireInterval = [currentSong resubmitInterval];
+                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                                target:self
+                                selector:@selector(queueCurrentSong:)
+                                userInfo:nil
+                                repeats:NO] retain];
+                ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed -- sub in %.1lfs", [currentSong brief], fireInterval);
+            }
+            
             goto player_info_exit;
         }
     }
@@ -270,7 +286,7 @@ queue_exit:
     
     if (isiTunesPlaying) {
         // Fire the main timer at the appropos time to get it queued.
-        double fireInterval = [song submitIntervalFromNow];
+        fireInterval = [song submitIntervalFromNow];
         if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
             ScrobLog(SCROB_LOG_TRACE, @"Firing sub timer in %0.2lf seconds for track '%@'.\n",
                 fireInterval, [song brief]);
@@ -361,9 +377,7 @@ player_info_exit:
 -(id)init
 {
     // Read in a defaults.plist preferences file
-    NSString * file = [[NSBundle mainBundle]
-        pathForResource:@"defaults" ofType:@"plist"];
-	
+    NSString * file = [[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"];
     NSDictionary * defaultPrefs = [NSDictionary dictionaryWithContentsOfFile:file];
 	
     prefs = [[NSUserDefaults standardUserDefaults] retain];
@@ -787,6 +801,14 @@ player_info_exit:
 {
     [self setPosition:[song position]];
     [self setRating:[song rating]];
+}
+
+- (double)resubmitInterval
+{
+    double interval =  [[self duration] doubleValue] - [[self position] doubleValue];
+    if (interval > 1.0)
+        interval /= 2.0;
+    return (interval);
 }
 
 @end
