@@ -8,12 +8,21 @@ CHANGE HISTORY:
 (Releases/comments tagged as RAB are by Rod Begbie)
 (BDB is Brian Bergstrand)
 (ECS is Eric Seidel)
+(Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
+(Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
-v1.0.2 (BDB)
+v1.1 (BDB)
+- iTunes 4.7 + is required.
+- Add profile report generation (for local stats only) to the Top Lists.
+- The stats window now displays the artwork for the currently playing song.
+- Added Growl support for track changes.
+- iPod syncing is now supported for Manual mode (thanks to j-a-x).
 - The total time played text in the stats window can now be copied.
-- Fixed a mem. leak that could occur if a track failed to queue.
+- iPod sync no longer uses date strings. This should make syncing much more robust.
 - Fixed crasher when "Number of Recent Tracks" was set to "None" (thanks to squidinc).
 - Fixed songs not being submitted when "Number of Recent Tracks" was set to "None". Of course the crash was hiding this problem.
+- Fixed a problem where an artist/track could appear twice in the local Top Lists (because string compares were case-sensitive) -- the track was not submitted twice.
+- Fixed problems with track names containing * and $ characters. Any character the iTunes supports, iScrobbler now supports.
 
 v1.0.1 (BDB)
 - The Top Artists list now includes the total time played for each artist.
