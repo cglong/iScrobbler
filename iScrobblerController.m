@@ -193,7 +193,7 @@ currentSongQueueTimer = nil; \
             }
         }
     } else {
-        ScrobLog(SCROB_LOG_ERR, @"Lost song! current: (%@, %d), itunes: (%@, %d)\n.",
+        ScrobLog(SCROB_LOG_ERR, @"Lost track! current: (%@, %d), itunes: (%@, %d)\n.",
             currentSong, [currentSong iTunesDatabaseID], song, [song iTunesDatabaseID]);
     }
     
@@ -213,9 +213,10 @@ queue_exit:
     
     SongData *song = nil;
     @try {
-        song = [[SongData alloc] initWithiTunesPlayerInfo:info];
+        if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]])
+            song = [[SongData alloc] initWithiTunesPlayerInfo:info];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception creating song: %@\n", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating track: %@\n", exception);
     }
     if (!song)
         goto player_info_exit;
