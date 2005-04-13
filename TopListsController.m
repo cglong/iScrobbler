@@ -19,6 +19,8 @@ void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned in
 
 static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topAlbums = nil;
+static NSCountedSet *topRatings = nil;
+
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
 
@@ -163,7 +165,7 @@ static NSMutableDictionary *topAlbums = nil;
         [topTracksController setContent:contents];
     }
     
-    // Album info -- currently only used for Profile generation
+    // The following are currently only used for Profile generation
     NSString *album;
     if ((album = [song album]) && [album length] > 0) {
         if (!topAlbums)
@@ -178,6 +180,14 @@ static NSMutableDictionary *topAlbums = nil;
             [topAlbums setObject:count forKey:key];
         }
     }
+    
+    NSNumber *rating;
+    if (!topRatings) {
+        // 0 - 5 stars == 6 items
+        topRatings = [[NSCountedSet alloc] initWithCapacity:6];
+    }
+    rating = [song rating] ? [song rating] : [NSNumber numberWithInt:0];
+    [topRatings addObject:rating];
 }
 
 - (id)initWithWindowNibName:(NSString *)windowNibName
@@ -350,7 +360,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topartists\">\n" TR);
-    HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
+    HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
     HAdd(d, TRCLOSE);
     
     NSEnumerator *en = [artists objectEnumerator];
@@ -390,7 +400,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     pool = [[NSAutoreleasePool alloc] init];
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"toptracks\">\n" TR);
-    HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
+    HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
     HAdd(d, TRCLOSE);
     
     en = [tracks objectEnumerator];
@@ -421,15 +431,16 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TBLCLOSE @"</div>");
     [pool release];
 
+    NSArray *keys;
     if (topAlbums) {
         pool = [[NSAutoreleasePool alloc] init];
         [topAlbums mergePlayCountsUsingCaseInsensitiveCompare];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
-        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
+        HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
         HAdd(d, TRCLOSE);
     
-        NSArray *keys = [topAlbums keysSortedByValueUsingSelector:@selector(compare:)];
+        keys = [topAlbums keysSortedByValueUsingSelector:@selector(compare:)];
         en = [keys reverseObjectEnumerator]; // Largest to smallest
         position = 1;
         // The keys are ordered from smallest to largest, therefore we want the last one
@@ -456,6 +467,55 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 ++position;
             }
         }
+        
+        HAdd(d, TBLCLOSE @"</div>");
+        [pool release];
+    }
+    
+    if (topRatings) {
+        pool = [[NSAutoreleasePool alloc] init];
+        
+        HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topratings\">\n" TR);
+        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Ratings", ""))));
+        HAdd(d, TRCLOSE);
+        
+        NSNumber *rating;
+        // Determine max count
+        unsigned maxCount = 0;
+        en = [topRatings objectEnumerator];
+        while ((rating = [en nextObject])) {
+            if ([topRatings countForObject:rating] > maxCount)
+                maxCount = [topRatings countForObject:rating];
+        }
+        basePlayCount = (float)maxCount;
+        keys = [topRatings allObjects];
+        position = 1;
+        en = [[keys sortedArrayUsingSelector:@selector(compare:)] reverseObjectEnumerator];
+        SongData *dummy = [[SongData alloc] init];
+        while ((rating = [en nextObject])) {
+            HAdd(d, (position & 0x0000001) ? TR : TRALT);
+            
+            //HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
+            // Get the rating string to display
+            if ([rating intValue] > 0) {
+                [dummy setRating:rating];
+                tmp = [dummy starRating];
+            } else {
+                tmp = @"Not Rated";
+            }
+            HAdd(d, TDEntry(TDTITLE, tmp));
+            // Total Plays bar
+            float ratingCount = (float)[topRatings countForObject:rating];
+            width = rintf((ratingCount / basePlayCount) * 100.0);
+            percentage = rintf((ratingCount / [totalPlays floatValue]) * 100.0);
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            playCount = [NSNumber numberWithFloat:ratingCount];
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
+            
+            HAdd(d, TRCLOSE);
+            ++position;
+        }
+        [dummy release];
         
         HAdd(d, TBLCLOSE @"</div>");
         [pool release];
