@@ -28,8 +28,10 @@ static NSCountedSet *topRatings = nil;
 - (NSString *)stringByConvertingCharactersToHTMLEntities;
 @end
 
-@interface NSMutableDictionary (ISMerge)
-- (void)mergePlayCountsUsingCaseInsensitiveCompare;
+@interface NSMutableDictionary (ISTopListsAdditions)
+- (void)mergeValuesUsingCaseInsensitiveCompare;
+- (NSComparisonResult)sortByPlayCount:(NSDictionary*)entry;
+- (NSComparisonResult)sortByDuration:(NSDictionary*)entry;
 @end
 
 @implementation TopListsController
@@ -172,12 +174,19 @@ static NSCountedSet *topRatings = nil;
             topAlbums = [[NSMutableDictionary alloc] init];
         NSString *key = [NSString stringWithFormat:@"%@" TOP_ALBUMS_KEY_TOKEN @"%@",
             artist, album];
-        if ((count = [topAlbums objectForKey:key])) {
+        if ((entry = [topAlbums objectForKey:key])) {
+            time = [[song duration] unsignedIntValue] + [[entry objectForKey:@"Total Duration"] unsignedIntValue];
+            count = [entry objectForKey:@"Play Count"];
             count = [NSNumber numberWithUnsignedInt:[count unsignedIntValue] + 1];
-            [topAlbums setObject:count forKey:key];
+            [entry setObject:count forKey:@"Play Count"];
+            [entry setObject:[NSNumber numberWithUnsignedInt:time] forKey:@"Total Duration"];
         } else {
             count = [NSNumber numberWithUnsignedInt:1];
-            [topAlbums setObject:count forKey:key];
+            entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                        count, @"Play Count",
+                        [song duration], @"Total Duration",
+                        nil];
+            [topAlbums setObject:entry forKey:key];
         }
     }
     
@@ -251,6 +260,7 @@ static NSCountedSet *topRatings = nil;
 
 @end
 
+#define PROFILE_DATE_FORMAT @"%Y-%m-%d %I:%M:%S %p"
 @implementation TopListsController (ISProfileReportAdditions)
 
 - (IBAction)createProfileReport:(id)sender
@@ -261,7 +271,7 @@ static NSCountedSet *topRatings = nil;
         cssPath = [[NSBundle mainBundle] pathForResource:@"ProfileReport" ofType:@"css"];
     
     NSString *title = [NSString stringWithFormat:@"%@'s iScrobbler Profile (%@)",
-        NSFullUserName(), [NSDate date]];
+        NSFullUserName(), [[NSDate date] descriptionWithCalendarFormat:PROFILE_DATE_FORMAT timeZone:nil locale:nil]];
     
     NSData *data = nil;
     @try {
@@ -409,7 +419,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
-        time = [entry objectForKey:@"Last Played"];
+        time = [[entry objectForKey:@"Last Played"]
+            descriptionWithCalendarFormat:PROFILE_DATE_FORMAT timeZone:nil locale:nil];
         track = [[entry objectForKey:@"Track"] stringByConvertingCharactersToHTMLEntities];
         
         HAdd(d, (position & 0x0000001) ? TR : TRALT);
@@ -434,23 +445,30 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     NSArray *keys;
     if (topAlbums) {
         pool = [[NSAutoreleasePool alloc] init];
-        [topAlbums mergePlayCountsUsingCaseInsensitiveCompare];
+        [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
-        HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
+        HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
         HAdd(d, TRCLOSE);
-    
-        keys = [topAlbums keysSortedByValueUsingSelector:@selector(compare:)];
+        
+        keys = [topAlbums keysSortedByValueUsingSelector:@selector(sortByDuration:)];
+        // The keys are ordered from smallest to largest, therefore we want the last one
+        tmp = [keys objectAtIndex:[keys count]-1];
+        playCount = [[topAlbums objectForKey:tmp] objectForKey:@"Total Duration"];
+        basePlayTime = [playCount floatValue];
+        
+        keys = [topAlbums keysSortedByValueUsingSelector:@selector(sortByPlayCount:)];
+        tmp = [keys objectAtIndex:[keys count]-1];
+        playCount = [[topAlbums objectForKey:tmp] objectForKey:@"Play Count"];
+        basePlayCount = [playCount floatValue];
         en = [keys reverseObjectEnumerator]; // Largest to smallest
         position = 1;
-        // The keys are ordered from smallest to largest, therefore we want the last one
-        basePlayCount = [[topAlbums objectForKey:[keys objectAtIndex:[keys count]-1]] floatValue];
         while ((tmp = [en nextObject])) { // tmp is our key into the topAlbums dict
             NSArray *items = [tmp componentsSeparatedByString:TOP_ALBUMS_KEY_TOKEN];
             if (items && 2 == [items count]) {
                 artist = [[items objectAtIndex:0] stringByConvertingCharactersToHTMLEntities];
                 NSString *album = [[items objectAtIndex:1] stringByConvertingCharactersToHTMLEntities];
-                playCount = [topAlbums objectForKey:tmp];
+                entry = [topAlbums objectForKey:tmp];
                 
                 HAdd(d, (position & 0x0000001) ? TR : TRALT);
                 
@@ -458,10 +476,19 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 tmp = [NSString stringWithFormat:@"%@ - %@", album, artist];
                 HAdd(d, TDEntry(TDTITLE, tmp));
                 // Total Plays bar
+                playCount = [entry objectForKey:@"Play Count"];
                 width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
                 percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
-                HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
+                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
+                // Total time bar
+                playCount = [entry objectForKey:@"Total Duration"];
+                width = rintf(([playCount floatValue] / basePlayTime) * 100.0);
+                percentage = rintf(([playCount floatValue] / [totalTime floatValue]) * 100.0);
+                tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+                ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
+                time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
                 
                 HAdd(d, TRCLOSE);
                 ++position;
@@ -497,12 +524,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             
             //HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
             // Get the rating string to display
-            if ([rating intValue] > 0) {
-                [dummy setRating:rating];
-                tmp = [dummy starRating];
-            } else {
-                tmp = @"Not Rated";
-            }
+            [dummy setRating:rating];
+            tmp = [dummy fullStarRating];
+            
             HAdd(d, TDEntry(TDTITLE, tmp));
             // Total Plays bar
             float ratingCount = (float)[topRatings countForObject:rating];
@@ -537,16 +561,16 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     // This has to be the most inefficient way to do this, but it works
     
     // Replace all ampersands (must be first!)
-    r = NSMakeRange(0, [s length]-1);
+    r = NSMakeRange(0, [s length]);
     [s replaceOccurrencesOfString:@"&" withString:@"&amp;" options:0 range:r];
-    r = NSMakeRange(0, [s length]-1);
+    r = NSMakeRange(0, [s length]);
     [s replaceOccurrencesOfString:@">" withString:@"&gt;" options:0 range:r];
-    r = NSMakeRange(0, [s length]-1);
+    r = NSMakeRange(0, [s length]);
     [s replaceOccurrencesOfString:@"<" withString:@"&lt;" options:0 range:r];
-    r = NSMakeRange(0, [s length]-1);
+    r = NSMakeRange(0, [s length]);
     [s replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:0 range:r];
 #ifdef notyet
-    r = NSMakeRange(0, [s length]-1);
+    r = NSMakeRange(0, [s length]);
     [s replaceOccurrencesOfString:@"\xa0" withString:@"&nbsp;" options:0 range:r];
 #endif
     return ([s autorelease]);
@@ -554,25 +578,32 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
 
 @end
 
-@implementation NSMutableDictionary (ISMerge)
+@implementation NSMutableDictionary (ISTopListsAdditions)
 
-- (void)mergePlayCountsUsingCaseInsensitiveCompare
+- (void)mergeValuesUsingCaseInsensitiveCompare
 {
     NSMutableArray *keys = [[self allKeys] mutableCopy];
-    unsigned i, j, count, playCount;
+    unsigned i, j, count, value;
     
     count = [keys count];
     for (i=0; i < count; ++i) {
         NSString *key = [keys objectAtIndex:i], *key2 = nil;
+        NSMutableDictionary *entry, *entry2;
         for (j = i+1; [key length] > 0 && j < count; ++j) {
             key2 = [keys objectAtIndex:j];
             if (NSOrderedSame == [key caseInsensitiveCompare:key2]) {
                 (void)[key2 retain];
                 [keys replaceObjectAtIndex:j withObject:@""];
                 
-                // Merge the play count with key 1
-                playCount = [[self objectForKey:key] unsignedIntValue] + [[self objectForKey:key2] unsignedIntValue];
-                [self setObject:[NSNumber numberWithUnsignedInt:playCount] forKey:key];
+                entry = [self objectForKey:key];
+                entry2 = [self objectForKey:key2];
+                // Merge the counts with key 1
+                value = [[entry objectForKey:@"Play Count"] unsignedIntValue] +
+                    [[entry2 objectForKey:@"Play Count"] unsignedIntValue];
+                [entry setObject:[NSNumber numberWithUnsignedInt:value] forKey:@"Play Count"];
+                value = [[entry objectForKey:@"Total Duration"] unsignedIntValue] +
+                    [[entry2 objectForKey:@"Total Duration"] unsignedIntValue];
+                [entry setObject:[NSNumber numberWithUnsignedInt:value] forKey:@"Total Duration"];
                 // Remove the second key
                 [self removeObjectForKey:key2];
                 [key2 release];
@@ -581,6 +612,16 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         }
     }
     [keys release];
+}
+
+- (NSComparisonResult)sortByPlayCount:(NSDictionary*)entry
+{
+    return ( [(NSNumber*)[self objectForKey:@"Play Count"] compare:(NSNumber*)[entry objectForKey:@"Play Count"]] );
+}
+
+- (NSComparisonResult)sortByDuration:(NSDictionary*)entry
+{
+    return ( [(NSNumber*)[self objectForKey:@"Total Duration"] compare:(NSNumber*)[entry objectForKey:@"Total Duration"]] );
 }
 
 @end
