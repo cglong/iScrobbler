@@ -50,10 +50,7 @@
 
     if (NSOKButton == returnCode && file) {
         BOOL good = [[NSFileManager defaultManager] copyPath:[myURLPath path] toPath:file handler:nil];
-        if (good) {
-            [[NSUserDefaults standardUserDefaults] setObject:[sheet directory]
-                forKey:@"Last Save Directory"];
-        } else {
+        if (!good) {
             NSRunAlertPanel(NSLocalizedString(@"File Creation Error", ""),
                 [NSString stringWithFormat:
                     NSLocalizedString(@"Failed to create file %@.", ""),
@@ -67,16 +64,12 @@
     NSSavePanel *panel = [NSSavePanel savePanel];
     [panel setMessage:NSLocalizedString(@"Save iScrobbler Profile", "")];
     [panel setCanSelectHiddenExtension:YES];
-    [panel setExtensionHidden:YES];
+    [panel setExtensionHidden:NO];
     
-    NSString *dir = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Save Directory"];
-    if (!dir || ![dir length])
-        dir = [@"~/Documents/" stringByExpandingTildeInPath];
-    [panel beginSheetForDirectory:dir
+    [panel beginSheetForDirectory:nil
         file:[[[self window] title] stringByAppendingPathExtension:@"html"]
         modalForWindow:[self window] modalDelegate:self
         didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
-    
 }
 
 - (void)awakeFromNib
