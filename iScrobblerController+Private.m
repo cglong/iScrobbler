@@ -25,31 +25,26 @@
         }
     }
     
-    NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:nil];
-    if(executionResult ) {
+    NSDictionary *errInfo = nil;
+    NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:&errInfo];
+    if (executionResult) {
         NSArray *parsedResult;
         NSEnumerator *en;
+        
         @try {
             parsedResult = [executionResult objCObjectValue];
             en = [parsedResult objectEnumerator];
         } @catch (NSException *exception) {
             ScrobLog(SCROB_LOG_ERR, @"GetPlaylists script invalid result: parsing exception %@\n.", exception);
+            [self setValue:[NSArray arrayWithObject:@"Recently Played"] forKey:@"iTunesPlaylists"];
             return;
         }
+        
         NSString *playlist;
         NSMutableArray *names = [NSMutableArray arrayWithCapacity:[parsedResult count]];
-        
         while ((playlist = [en nextObject])) {
-        #ifdef notyet
-            NSArray *properties = [playlist componentsSeparatedByString:@"***"];
-            NSString *name = [properties objectAtIndex:0];
-        #endif
-            #define name playlist
-            
-            if (name && [name length] > 0)
-                [names addObject:name];
-            
-            #undef name
+            if ([playlist length] > 0)
+                [names addObject:playlist];
         }
         
         if ([names count]) {
