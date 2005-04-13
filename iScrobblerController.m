@@ -515,7 +515,10 @@ player_info_exit:
     if (0 == [[prefs stringForKey:@"username"] length] || 0 == 
         [[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
             account:[prefs stringForKey:@"username"]] length]) {
-        [self openPrefs:nil];
+        // No clue why, but calling this method directly here causes the status item
+        // to permantly stop functioning. Maybe something to do with the run-loop
+        // not having run yet?
+        [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
     }
 }
 
@@ -607,12 +610,12 @@ player_info_exit:
 -(IBAction)openPrefs:(id)sender{
     // ScrobTrace(@"opening prefs");
     
+    if(!preferenceController)
+        preferenceController=[[PreferenceController alloc] init];
+    
     // Update iTunes playlists
     [self iTunesPlaylistUpdate:nil];
     
-    if(!preferenceController)
-        preferenceController=[[PreferenceController alloc] init];
-	
     [NSApp activateIgnoringOtherApps:YES];
     [preferenceController showPreferencesWindow];
 }
@@ -716,7 +719,7 @@ player_info_exit:
 								nil); // NSLocalizedString(@"Ignore", nil)
 	
 	if (result == NSAlertDefaultReturn)
-		[self openPrefs:self];
+		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
 	else if (result == NSAlertAlternateReturn)
 		[self openScrobblerHomepage:self];
 	//else
