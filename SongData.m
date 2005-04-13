@@ -478,6 +478,7 @@ static float songTimeFudge;
     static NSMutableArray *artworkCacheFifo = nil;
     static NSAppleScript *iTunesArtworkScript = nil;
     static unsigned artworkCacheMax = 8;
+    static float artworkCacheLookups = 0.0, artworkCacheHits = 0.0;
     
     if (!artworkCache) {
         u_int64_t mem = 0;
@@ -509,8 +510,13 @@ static float songTimeFudge;
     
     NSString *key = [[NSString stringWithFormat:@"%@_%@", [self artist], [self album]] lowercaseString];
     NSImage *image = [artworkCache objectForKey:key];
-    if (image)
+    artworkCacheLookups += 1.0;
+    if (image) {
+        artworkCacheHits += 1.0;
+        ScrobLog(SCROB_LOG_TRACE, @"Track artwork cache hit. Lookups: %.0f, Hits: %.0f (%.02f%%)",
+            artworkCacheLookups, artworkCacheHits, (artworkCacheHits / artworkCacheLookups) * 100.0);
         return (image);
+    }
     
     BOOL cache = YES;
     @try {
@@ -533,6 +539,10 @@ static float songTimeFudge;
         return (nil);
     
     if (cache) {
+        float misses = artworkCacheLookups - artworkCacheHits;
+        ScrobLog(SCROB_LOG_TRACE, @"Track artwork cache miss. Lookups: %.0f, Misses: %.0f (%.02f%%)",
+            artworkCacheLookups, misses, (misses / artworkCacheLookups) * 100.0);
+        
         // Add to cache
         unsigned count = [artworkCacheFifo count];
         if (count == artworkCacheMax) {
