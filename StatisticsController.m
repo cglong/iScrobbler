@@ -179,7 +179,7 @@ static enum {title, album, artist} g_cycleState = title;
         
         // Set the ablum art image
         NSImage *art = [song artwork];
-        if (![@"generic" isEqualToString:[art name]]) {
+        if (g_nowPlaying && ![@"generic" isEqualToString:[art name]]) {
             [artworkImage setImage:art];
         } else {
             [artworkImage setImage:[NSApp applicationIconImage]];
