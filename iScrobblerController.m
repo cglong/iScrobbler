@@ -26,9 +26,9 @@
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
-#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, album, artist) \
-[NSString stringWithFormat:NSLocalizedString(@"Track: %@\nAlbum: %@\nArtist: %@", ""), \
-(track), (album), (artist)]
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, rating, album, artist) \
+[NSString stringWithFormat:NSLocalizedString(@"Track: %@ (%@)\nAlbum: %@\nArtist: %@", ""), \
+(track), (rating), (album), (artist)]
 
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
@@ -336,7 +336,8 @@ queue_exit:
             artwork = [[currentSong artwork] TIFFRepresentation];
         [GrowlApplicationBridge
             notifyWithTitle:IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE
-            description:IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO([currentSong title], [currentSong album], [currentSong artist])
+            description:IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO([currentSong title], [currentSong fullStarRating],
+                [currentSong album], [currentSong artist])
             notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
             iconData:artwork
             priority:0.0
