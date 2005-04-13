@@ -17,6 +17,7 @@
 
 static unsigned int g_songID = 0;
 static float songTimeFudge;
+static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
 
 @implementation SongData
 
@@ -28,6 +29,14 @@ static float songTimeFudge;
 + (void)setSongTimeFudge:(float)fudge
 {
     songTimeFudge = fudge;
+}
+
++ (NSString *)notRatedString
+{
+    static NSString *empty = nil;
+    if (!empty)
+        empty = [[NSString alloc] initWithCharacters:noRating length:5];
+    return (empty);
 }
 
 - (id)init
@@ -390,7 +399,8 @@ static float songTimeFudge;
 
 - (NSNumber*)scaledRating
 {
-    return  ([NSNumber numberWithInt:[rating intValue] / 20]);
+    int scaled = rating ? [rating intValue] / 20 : 0;
+    return  ([NSNumber numberWithInt:scaled]);
 }
 
 - (NSString*)starRating
@@ -404,6 +414,16 @@ static float songTimeFudge;
     }
     
     return (stars);
+}
+
+- (NSString*)fullStarRating
+{
+    NSMutableString *stars = [[SongData notRatedString] mutableCopy];
+    NSString *fill = [self starRating];
+    if ([fill length])
+        [stars replaceCharactersInRange:NSMakeRange(0,[fill length]) withString:fill];
+    
+    return ([stars autorelease]);
 }
 
 - (NSNumber*)songID

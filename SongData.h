@@ -44,6 +44,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 + (float)songTimeFudge;
 + (void)setSongTimeFudge:(float)fudge;
 
++ (NSString *)notRatedString;
+
 // returns a float value between 0 and 100 indicating how much of the song
 // has been played as a percent
 - (NSNumber *)percentPlayed;
@@ -113,6 +115,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (NSNumber*)scaledRating;
 // String of stars representing the scaled rating
 - (NSString*)starRating;
+// Same as starRating, but empty stars are provide for ratings less than 5
+- (NSString*)fullStarRating;
 
 - (NSNumber*)songID;
 
