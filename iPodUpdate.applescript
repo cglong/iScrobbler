@@ -11,7 +11,7 @@ on UpdateiPod(thePlaylistName, theDate)
 	set errMsg to {iTunesIsInactive, "", 0}
 	if itunes_active is true then
 		set out to {}
-		set errMsg to {iTunesError, "No Matching Tracks" as Unicode text, 0}
+		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
 			-- try the iPod source first, if that fails we'll fall back to the main library
 			set allSources to (get every source whose kind is iPod) & (get every source whose kind is library)
@@ -19,6 +19,7 @@ on UpdateiPod(thePlaylistName, theDate)
 				repeat with theSource in allSources
 					tell theSource
 						set mytracks to {}
+						set errMsg to {iTunesError, "No Matching Tracks" as Unicode text, 0}
 						
 						try
 							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
