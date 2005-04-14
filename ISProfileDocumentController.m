@@ -72,6 +72,14 @@
         didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
 }
 
+- (id)initWithWindowNibName:(NSString *)windowNibName
+{
+    if ((self = [super initWithWindowNibName:windowNibName])) {
+        [super setWindowFrameAutosaveName:@"Profile Report"];
+    }
+    return (self);
+}
+
 - (void)awakeFromNib
 {
     [bindingsController setContent:[NSMutableDictionary dictionaryWithCapacity:1]];
