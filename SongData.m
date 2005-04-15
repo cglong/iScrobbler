@@ -544,7 +544,10 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             [self playlistID], [NSNumber numberWithInt:[self iTunesDatabaseID]], nil];
         (void)[image isValid];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't get artwork for '%@' -- script error: %@.", [self brief], exception);
+        if (!([image isEqual:[NSNull null]])) {
+            ScrobLog(SCROB_LOG_ERR, @"Can't get artwork for '%@' -- script error: %@.",
+                [self brief], exception);
+        }
         static NSImage *genericImage = nil;
         if (!genericImage) {
             genericImage = [[NSImage alloc] initWithContentsOfFile:
