@@ -7,6 +7,7 @@
 //  http://iscrobbler.sourceforge.net
 //
 
+#import "iScrobblerController.h"
 #import "TopListsController.h"
 #import "QueueManager.h"
 #import "SongData.h"
@@ -232,6 +233,48 @@ static NSCountedSet *topRatings = nil;
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
 }
 
+- (void)handleDoubleClick:(NSTableView*)sender
+{
+    NSIndexSet *indices;
+    if ([sender respondsToSelector:@selector(selectedRowIndexes)])
+        indices = [sender selectedRowIndexes];
+    else
+        return;
+    
+    if (indices) {
+        NSArray *data;
+        
+        @try {
+            data = [[sender dataSource] arrangedObjects];
+        } @catch (NSException *exception) {
+            return;
+        }
+        
+        NSURL *url;
+        NSMutableArray *urls = [NSMutableArray arrayWithCapacity:[indices count]];
+        unsigned idx = [indices firstIndex];
+        for (; NSNotFound != idx; idx = [indices indexGreaterThanIndex:idx]) {
+            @try {
+                NSDictionary *entry = [data objectAtIndex:idx];
+                NSString *artist = [entry objectForKey:@"Artist"];
+                NSString *track  = [entry objectForKey:@"Track"];
+                if (!artist)
+                    continue;
+                
+                url = [[NSApp delegate] audioScrobblerURLWithArtist:artist trackTitle:track];
+                [urls addObject:url]; 
+            } @catch (NSException *exception) {
+                ScrobLog (SCROB_LOG_TRACE, @"Exception generating URL: %@", exception);
+            }
+        } // for
+        
+        NSEnumerator *en = [urls objectEnumerator];
+        while ((url = [en nextObject])) {
+            [[NSWorkspace sharedWorkspace] openURL:url];
+        }
+    }
+}
+
 - (void)awakeFromNib
 {
     // Seems NSArrayController adds an empty object for us, remove it
@@ -256,6 +299,11 @@ static NSCountedSet *topRatings = nil;
     [artistSort release];
     [playTimeSort release];
     [trackSort release];
+    
+    [topArtistsTable setTarget:self];
+    [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
+    [topTracksTable setTarget:self];
+    [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
 }
 
 @end

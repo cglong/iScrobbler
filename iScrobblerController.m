@@ -702,6 +702,36 @@ player_info_exit:
     return (currentSong);
 }
 
+-(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
+{
+    static NSString *baseURL = nil;
+    static NSString *artistTitlePathSeparator = nil;
+    
+    if (!artist)
+        return (nil);
+    
+    if (!baseURL) {
+        baseURL = [[NSUserDefaults standardUserDefaults]
+            objectForKey:@"AS Artist Root URL"];
+        if (!baseURL)
+            baseURL = @"http://www.audioscrobbler.com/music/";
+        artistTitlePathSeparator = [[NSUserDefaults standardUserDefaults]
+            objectForKey:@"AS Artist-Track Path Separator"];
+        if (!artistTitlePathSeparator)
+            artistTitlePathSeparator = @"/_/";
+    }
+    
+    NSMutableString *url = [NSMutableString stringWithString:baseURL];
+    if (!title)
+        [url appendString:artist];
+    else
+        [url appendFormat:@"%@%@%@", artist, artistTitlePathSeparator, title];
+    // Replace spaces with + (why doesn't AS use %20)?
+    [url replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [url length])];
+    url = (id)[url stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
+}
+
 -(IBAction)cleanLog:(id)sender
 {
     ScrobLogTruncate();

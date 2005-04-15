@@ -12,7 +12,12 @@
             ACTIONS = {createProfileReport = id; }; 
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {topArtistsController = id; topTracksController = id; }; 
+            OUTLETS = {
+                topArtistsController = id; 
+                topArtistsTable = NSTableView; 
+                topTracksController = id; 
+                topTracksTable = NSTableView; 
+            }; 
             SUPERCLASS = NSWindowController; 
         }
     ); 

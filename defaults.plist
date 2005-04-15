@@ -2,7 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-
+    <key>AS Artist Root URL</key>
+    <string>http://www.audioscrobbler.com/music/</string>
+    
+    <key>AS Artist-Track Path Separator</key>
+    <string>/_/</string>
+    
 	<key>Number of Songs to Save</key>
 	<integer>5</integer>
     

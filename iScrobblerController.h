@@ -75,6 +75,8 @@
 
 -(SongData*)nowPlaying;
 
+-(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
+
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
 

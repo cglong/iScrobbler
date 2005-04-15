@@ -13,6 +13,8 @@
 {
     IBOutlet id topArtistsController;
     IBOutlet id topTracksController;
+    IBOutlet NSTableView *topArtistsTable;
+    IBOutlet NSTableView *topTracksTable;
     NSDate *startDate;
 }
 
