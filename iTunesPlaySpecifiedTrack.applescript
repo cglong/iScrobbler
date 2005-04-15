@@ -9,12 +9,13 @@ on PlayTrack(theSource, thePlaylistID, theTrackID)
 			-- if that fails, then fall back to any master lists in the source
 			set thePlaylists to {myPlaylist} & (every library playlist)
 			repeat with pl in thePlaylists
-				tell pl
-					try
+				try
+					tell pl
 						set theTrack to first item in (every track whose database ID is theTrackID)
 						play theTrack
-					end try
-				end tell
+						return
+					end tell
+				end try
 			end repeat
 		end tell
 	end tell
