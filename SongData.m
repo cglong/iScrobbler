@@ -533,8 +533,9 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     artworkCacheLookups += 1.0;
     if (image) {
         artworkCacheHits += 1.0;
-        ScrobLog(SCROB_LOG_TRACE, @"Track artwork cache hit. Lookups: %.0f, Hits: %.0f (%.02f%%)",
-            artworkCacheLookups, artworkCacheHits, (artworkCacheHits / artworkCacheLookups) * 100.0);
+        ScrobLog(SCROB_LOG_TRACE, @"Track artwork cache hit. Lookups: %.0f (%u/%u), Hits: %.0f (%.02f%%)",
+            artworkCacheLookups, [artworkCacheFifo count], artworkCacheMax, artworkCacheHits,
+            (artworkCacheHits / artworkCacheLookups) * 100.0);
         return (image);
     }
     
