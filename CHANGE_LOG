@@ -17,6 +17,7 @@ v1.1 (BDB)
 - The stats window now displays the artwork for the currently playing song.
 - Added Growl support for track changes.
 - iPod syncing is now supported for Manual mode (thanks to j-a-x).
+- Double clicking on an item in the Top Lists tables will open the corresponding Artist/Track page on AS.
 - The total time played text in the stats window can now be copied.
 - iPod sync no longer uses date strings. This should make syncing much more robust.
 - Fixed crasher when "Number of Recent Tracks" was set to "None" (thanks to squidinc).
