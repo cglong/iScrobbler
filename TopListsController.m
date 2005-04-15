@@ -440,12 +440,12 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDTITLE, artist));
         // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
-        percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
+        percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
         // Total time bar
         width = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / basePlayTime) * 100.0);
-        percentage = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0);
+        percentage = ([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
         
@@ -479,7 +479,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDGRAPH, time)); // Last play time
         // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
-        percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
+        percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
         
@@ -526,13 +526,13 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 // Total Plays bar
                 playCount = [entry objectForKey:@"Play Count"];
                 width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
-                percentage = rintf(([playCount floatValue] / [totalPlays floatValue]) * 100.0);
+                percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
                 HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
                 // Total time bar
                 playCount = [entry objectForKey:@"Total Duration"];
                 width = rintf(([playCount floatValue] / basePlayTime) * 100.0);
-                percentage = rintf(([playCount floatValue] / [totalTime floatValue]) * 100.0);
+                percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
                 ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
                 time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
@@ -579,7 +579,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             // Total Plays bar
             float ratingCount = (float)[topRatings countForObject:rating];
             width = rintf((ratingCount / basePlayCount) * 100.0);
-            percentage = rintf((ratingCount / [totalPlays floatValue]) * 100.0);
+            percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             playCount = [NSNumber numberWithFloat:ratingCount];
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
