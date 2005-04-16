@@ -23,7 +23,7 @@ v1.1 (BDB)
 - Fixed crasher when "Number of Recent Tracks" was set to "None" (thanks to squidinc).
 - Fixed songs not being submitted when "Number of Recent Tracks" was set to "None". Of course the crash was hiding this problem.
 - Fixed a problem where an artist/track could appear twice in the local Top Lists (because string compares were case-sensitive) -- the track was not submitted twice.
-- Fixed problems with track names containing * and $ characters. Any character the iTunes supports, iScrobbler now supports.
+- Fixed problems with track names containing * and $ characters. Any character that iTunes supports, iScrobbler now supports.
 
 v1.0.1 (BDB)
 - The Top Artists list now includes the total time played for each artist.
