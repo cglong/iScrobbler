@@ -242,7 +242,7 @@ validate:
                         continue;
                     }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
-                    ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
+                    ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
                     (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
                 }
