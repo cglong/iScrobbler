@@ -10,6 +10,7 @@
                 openStatistics = id; 
                 openTopLists = id; 
                 openUserHomepage = id; 
+                performFindPanelAction = id; 
                 playSong = id; 
                 syncIPod = id; 
             }; 

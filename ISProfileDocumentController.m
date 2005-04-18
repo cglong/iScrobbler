@@ -20,6 +20,28 @@
 
 @implementation ISProfileDocumentController
 
+- (IBAction)search:(id)sender
+{
+    [searchText release];
+    searchText = [[sender stringValue] retain];
+    (void)[myWebView searchFor:searchText direction:YES caseSensitive:NO wrap:YES];
+}
+
+- (void)performFindPanelAction:(id)sender
+{
+    int tag = [sender tag];
+    switch (tag) {
+        case NSFindPanelActionNext:
+             (void)[myWebView searchFor:searchText direction:YES caseSensitive:NO wrap:YES];
+        break;
+        case NSFindPanelActionPrevious:
+             (void)[myWebView searchFor:searchText direction:NO caseSensitive:NO wrap:YES];
+        break;
+        default:
+        break;
+    }
+}
+
 - (void)showWindowWithHTMLData:(NSData*)data withWindowTitle:(NSString*)title
 {
     // Save data to temp file
@@ -96,6 +118,8 @@
     myURLPath = nil;
     // Make sure the bindings are released
     [bindingsController setContent:nil];
+    [searchText release];
+    searchText = nil;
     [self autorelease];
 }
 

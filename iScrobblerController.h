@@ -71,6 +71,8 @@
 
 -(IBAction)cleanLog:(id)sender;
 
+-(IBAction)performFindPanelAction:(id)sender;
+
 -(NSString *)md5hash:(NSString *)input;
 
 -(SongData*)nowPlaying;

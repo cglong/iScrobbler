@@ -18,7 +18,10 @@
     // http://theocacao.com/document.page/18
     IBOutlet NSObjectController *bindingsController;
     NSURL *myURLPath;
+    NSString *searchText;
 }
+
+- (IBAction)search:(id)sender;
 
 - (void)showWindowWithHTMLData:(NSData*)data withWindowTitle:(NSString*)title;
 

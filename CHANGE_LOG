@@ -15,6 +15,7 @@ v1.1 (BDB)
 - iTunes 4.7 + is required.
 - Add profile report generation (for local stats only) to the Top Lists.
 - The stats window now displays the artwork for the currently playing song.
+- Enlarged stats window icon to 96x96 (for artwork).
 - Added Growl support for track changes.
 - iPod syncing is now supported for Manual mode (thanks to j-a-x).
 - Double clicking on an item in the Top Lists tables will open the corresponding Artist/Track page on AS.

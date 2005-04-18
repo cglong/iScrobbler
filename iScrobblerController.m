@@ -737,6 +737,15 @@ player_info_exit:
     ScrobLogTruncate();
 }
 
+-(IBAction)performFindPanelAction:(id)sender
+{
+    NSWindow *w = [NSApp keyWindow];
+    if (w && [[w windowController] respondsToSelector:@selector(performFindPanelAction:)])
+        [[w windowController] performFindPanelAction:sender];
+    else
+        NSBeep();
+}
+
 - (void)showBadCredentialsDialog
 {	
 	[NSApp activateIgnoringOtherApps:YES];
