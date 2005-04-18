@@ -596,7 +596,8 @@ didFinishLoadingExit:
 }
 
 #define IsNetworkUp(flags) \
-(((flags) & kSCNetworkFlagsReachable) && 0 == ((flags) & (kSCNetworkFlagsConnectionRequired|kSCNetworkFlagsConnectionAutomatic)))
+( ((flags) & kSCNetworkFlagsReachable) && (0 == ((flags) & kSCNetworkFlagsConnectionRequired) || \
+  ((flags) & kSCNetworkFlagsConnectionAutomatic)) )
 
 - (id)init
 {
