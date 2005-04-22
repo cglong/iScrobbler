@@ -266,6 +266,10 @@ static enum {title, album, artist} g_cycleState = title;
 
 - (void)windowDidLoad
 {
+    NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
+        [[NSUserDefaults standardUserDefaults] objectForKey:@"version"]];
+    [[self window] setTitle:title];
+    
     [submissionProgress setDisplayedWhenStopped:NO];
     [submissionProgress setUsesThreadedAnimation:YES];
     [nowPlayingText setStringValue:

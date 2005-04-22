@@ -277,6 +277,10 @@ static NSCountedSet *topRatings = nil;
 
 - (void)awakeFromNib
 {
+    NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
+        [[NSUserDefaults standardUserDefaults] objectForKey:@"version"]];
+    [[self window] setTitle:title];
+    
     // Seems NSArrayController adds an empty object for us, remove it
     if ([[topArtistsController content] count])
         [topArtistsController removeObjects:[topArtistsController content]];
