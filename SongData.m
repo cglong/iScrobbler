@@ -491,6 +491,14 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     }
 }
 
+- (NSNumber*)elapsedTime
+{
+    NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
+    if (elapsed > 0.0) // We should never have a future value
+        return ([NSNumber numberWithDouble:0.0]);
+    return ([NSNumber numberWithDouble:floor(fabs(elapsed))]);
+}
+
 #define CXXVIII_MB 0x8000000ULL
 - (NSImage*)artwork
 {
@@ -540,23 +548,30 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     }
     
     BOOL cache = YES;
+    static NSImage *genericImage = nil;
+    if (!genericImage) {
+        genericImage = [[NSImage alloc] initWithContentsOfFile:
+            [[NSBundle mainBundle] pathForResource:@"CD" ofType:@"png"]];
+        [genericImage setName:@"generic"];
+    }
     @try {
-        image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
-            [self playlistID], [NSNumber numberWithInt:[self iTunesDatabaseID]], nil];
-        (void)[image isValid];
-    } @catch (NSException *exception) {
-        if (!([image isEqual:[NSNull null]])) {
-            ScrobLog(SCROB_LOG_ERR, @"Can't get artwork for '%@' -- script error: %@.",
-                [self brief], exception);
-        }
-        static NSImage *genericImage = nil;
-        if (!genericImage) {
-            genericImage = [[NSImage alloc] initWithContentsOfFile:
-                [[NSBundle mainBundle] pathForResource:@"CD" ofType:@"png"]];
-            [genericImage setName:@"generic"];
-        }
         image = genericImage;
-        cache = NO; // Don't cache because the user could update the image later.
+        cache = NO; // Don't cache the generic image because the user could update the image later.
+        if (trackTypeFile == [self type]) {
+            // Only query local files, since iTunes (as of 4.7.1) does not support artwork over Shared sources
+            image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
+                [self playlistID], [NSNumber numberWithInt:[self iTunesDatabaseID]], nil];
+            if (!([image isEqual:[NSNull null]])) {
+                if ([image isValid])
+                    cache = YES;
+            } else
+                image = genericImage;
+        }
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't get artwork for '%@' -- script error: %@.",
+            [self brief], exception);
+        image = genericImage;
+        cache = NO;
     }
     
     if (!image)
