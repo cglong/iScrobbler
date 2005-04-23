@@ -136,6 +136,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (NSString*)sourceName;
 - (void)setSourceName:(NSString*)newSourceName;
 
+- (NSNumber*)elapsedTime;
+
 - (NSImage*)artwork;
 
 @end
