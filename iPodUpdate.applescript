@@ -20,6 +20,10 @@ on UpdateiPod(thePlaylistName, theDate)
 					tell theSource
 						set mytracks to {}
 						set errMsg to {iTunesError, "No Matching Tracks" as Unicode text, 0}
+						set theSourceName to ("Unknown Source" as Unicode text)
+						try
+							set theSourceName to (name of theSource as Unicode text)
+						end try
 						
 						try
 							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
@@ -28,14 +32,14 @@ on UpdateiPod(thePlaylistName, theDate)
 									try
 										set mytracks to get (every track whose played date is greater than theDate)
 									on error errDescription number errnum
-										set errMsg to {iTunesError, ("(" & name of theSource & ", " & name of thePlaylist & ") " & errDescription) as Unicode text, errnum}
+										set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
 									end try
 								end tell
 							else
 								set errMsg to {iTunesError, ("Playlist: " & thePlaylistName & "cannot be used") as Unicode text, 0}
 							end if
 						on error errDescription number errnum
-							set errMsg to {iTunesError, ("(" & name of theSource & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
+							set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
 						end try
 						
 						repeat with theTrack in mytracks
@@ -80,6 +84,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Saturday, April 9, 2005 9:00:00 PM"
-	UpdateiPod("Top Artists", when)
+	set when to date "Saturday, April 23, 2005 4:30:00 PM"
+	UpdateiPod("Recently Played" as Unicode text, when)
 end run
