@@ -682,7 +682,7 @@ didFinishLoadingExit:
             good = NO;
             [self setHasQueued:YES]; // Make sure the song is not submitted
             ScrobLog(SCROB_LOG_TRACE, @"'%@' will not be submitted -- forward seek detected (e=%.0lf,p=%@,d=%@)",
-                [self brief], elapsed, [song position], [song duration]);
+                [self brief], elapsed, [self position], [self duration]);
         }
     }
     
