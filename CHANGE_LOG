@@ -14,7 +14,7 @@ CHANGE HISTORY:
 v1.1 (BDB)
 - iTunes 4.7 + is required.
 - Add profile report generation (for local stats only) to the Top Lists.
-- The stats window now displays the artwork for the currently playing song.
+- The stats window now displays the artwork for the currently playing song. Note: iTunes does not support artwork for Shared sources, so neither does iScrobbler.
 - Enlarged stats window icon to 96x96 (for artwork).
 - Added Growl support for track changes.
 - iPod syncing is now supported for Manual mode (thanks to j-a-x).
