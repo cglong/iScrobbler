@@ -674,6 +674,17 @@ didFinishLoadingExit:
     BOOL good = ( [[self duration] floatValue] >= 30.0 &&
         ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self position] floatValue] > [pm minTimePlayed]) );
+    if (good) {
+        // Make sure there was no forward seek (allowing for a little fudge time)
+        // This is not perfect, so some "illegal" tracks may slip through.
+        NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + [SongData songTimeFudge];
+        if (elapsed < [[self position] doubleValue]) {
+            good = NO;
+            [self setHasQueued:YES]; // Make sure the song is not submitted
+            ScrobLog(SCROB_LOG_TRACE, @"'%@' will not be submitted -- forward seek detected (e=%.0lf,p=%@,d=%@)",
+                [self brief], elapsed, [song position], [song duration]);
+        }
+    }
     
     if ([[self artist] length] > 0 && [[self title] length] > 0)
         return (good);
@@ -688,7 +699,7 @@ didFinishLoadingExit:
     double trackTime = [[self duration] doubleValue];
     double minTime = [[ProtocolManager sharedInstance] minTimePlayed];
     
-    trackTime = ceil(trackTime / (100.0 / [[ProtocolManager sharedInstance] minPercentagePlayed]));
+    trackTime = rint(trackTime / (100.0 / [[ProtocolManager sharedInstance] minPercentagePlayed]));
     if (trackTime > minTime)
         trackTime = minTime;
     trackTime -= [[self position] doubleValue]; // Adjust for elapsed time.
