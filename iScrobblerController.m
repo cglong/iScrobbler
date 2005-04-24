@@ -215,6 +215,10 @@ queue_exit:
     @try {
         if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]])
             song = [[SongData alloc] initWithiTunesPlayerInfo:info];
+        else {
+            [currentSong release];
+            currentSong = nil;
+        }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track: %@\n", exception);
     }
