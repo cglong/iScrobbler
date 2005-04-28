@@ -13,8 +13,8 @@ on UpdateiPod(thePlaylistName, theDate)
 		set out to {}
 		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
-			-- try the iPod source first, if that fails we'll fall back to the main library
-			set allSources to (get every source whose kind is iPod) & (get every source whose kind is library)
+			-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
+			set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 			with timeout of 60 seconds
 				repeat with theSource in allSources
 					tell theSource
@@ -26,47 +26,43 @@ on UpdateiPod(thePlaylistName, theDate)
 						end try
 						
 						try
-							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
-							if the visible of thePlaylist is true and the smart of thePlaylist is true then
-								tell thePlaylist
-									try
-										set mytracks to get (every track whose played date is greater than theDate)
-									on error errDescription number errnum
-										set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
-									end try
-								end tell
-							else
-								set errMsg to {iTunesError, ("Playlist: " & thePlaylistName & "cannot be used") as Unicode text, 0}
-							end if
+							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
+							tell thePlaylist
+								try
+									(*The "whose played date" clause will cause a -10001 "type mismatch" error if
+										any track in the chosen playlist has not been played yet. This is because iTunes
+										apparently can't handle comparing a date type to a missing value internally.*)
+									set mytracks to get (every file track whose played date is greater than theDate)
+								on error errDescription number errnum
+									set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
+								end try
+							end tell
 						on error errDescription number errnum
 							set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
 						end try
 						
 						repeat with theTrack in mytracks
-							set trackClass to (get class of theTrack)
-							if trackClass is file track then
-								set trackID to database ID of theTrack
-								set playlistID to index of the container of theTrack
-								set songTitle to name of theTrack as Unicode text
-								set songLength to duration of theTrack
-								set songPosition to 0 -- the song has already played, so player pos will not be returned 
-								set songArtist to artist of theTrack as Unicode text
-								try
+							set trackID to database ID of theTrack
+							set playlistID to index of the container of theTrack
+							set songTitle to name of theTrack as Unicode text
+							set songLength to duration of theTrack
+							set songPosition to 0 -- the song has already played, so player pos will not be returned 
+							set songArtist to artist of theTrack as Unicode text
+							set songLocation to ""
+							try
+								if location of theTrack is not missing value then
 									set songLocation to POSIX path of ((location of theTrack) as Unicode text)
-								on error
-									set songLocation to ""
-								end try
-								set songAlbum to album of theTrack as Unicode text
-								set songLastPlayed to played date of theTrack
-								set songRating to rating of theTrack
-								set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating}
-								set out to out & {trackInfo}
-							end if
+								end if
+							end try
+							set songAlbum to album of theTrack as Unicode text
+							set songLastPlayed to played date of theTrack
+							set songRating to rating of theTrack
+							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating}
+							set out to out & {trackInfo}
 						end repeat
 						
 						if out is not {} then
-							-- we retrieved some songs from the playlist, no need to check alternate sources
-							return out
+							exit repeat -- we retrieved some songs from the playlist, no need to check alternate sources
 						end if
 					end tell
 				end repeat
@@ -84,6 +80,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Saturday, April 23, 2005 4:30:00 PM"
+	set when to date "Wednesday, April 27, 2005 11:50:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run
