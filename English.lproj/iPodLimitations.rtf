@@ -1,7 +1,6 @@
 {\rtf1\mac\ansicpg10000\cocoartf102
 {\fonttbl\f0\fswiss\fcharset77 Helvetica-Bold;\f1\fswiss\fcharset77 Helvetica;}
 {\colortbl;\red255\green255\blue255;}
-\vieww14800\viewh9860\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\qc
 
 \f0\b\fs34 \cf0 iPod Submission Limitations
@@ -13,16 +12,21 @@
 \
 \'a5 
 \f0\b The iPod Shuffle is not supported!
-\f1\b0  AudioScrobbler requires valid timestamps for all submitted songs. The iPod Shuffle does not contain an internal clock, and therefore will not update the Last Played time when a song is played. iScrobbler uses Last Played to determine the play time to send to the server. If you want this to change, send a polite request to feedback@apple.com asking them change the Shuffle so it updates Last Played times.\
+\f1\b0  AudioScrobbler requires valid timestamps for all submitted tracks. The iPod Shuffle does not contain an internal clock, and therefore will not update the Last Played time when a track is played. iScrobbler uses Last Played to determine the play time to send to the server. If you want this to change, send a polite request to feedback@apple.com asking them change the Shuffle so it updates Last Played times.\
 \
-\'a5 The iTunes playlist you choose for iPod submissions must be setup to track recently played songs. The iTunes default -- Recently Played -- is setup to include any song played in the last two weeks in this playlist, however iScrobbler's internal limit is one week. For users who use Manual mode, this playlist must exist on the iPod. Please note that if you select a playlist which is not setup correctly the update will fail (most likely with a "type mismatch" error).\
+\'a5 The iTunes playlist you choose for iPod submissions must be setup to track recently played tracks. The iTunes default playlist -- Recently Played -- is setup to include any track played in the last two weeks (iScrobbler's internal limit is one week though). Please note that if you select a playlist which is not setup correctly (for instance it includes tracks that have not been played) the update will fail (most likely with a "type mismatch" error). \
 \
-\'a5 While the iPod is being updated in iTunes, iTunes cannot be playing. When the update is done, and the iPod ejected, you can begin playing songs in iTunes again.\
+There are some further restrictions for those who have chosen to manually sync their iPods:\
 \
-\'a5 If another person uses your computer while you are away, and plays a song with iTunes, any songs played before and during that time on the iPod will be discarded. To share your computer with others, it is recommended that you create a separate Mac OS X user account for each person. Each person will also need their own AudioScrobbler account, or the server will likely discard songs with similar play times as SPAM.\
+1) The selected playlist must exist on the iPod.\
 \
-\'a5 If you have disk mode enabled on your iPod, you must manually inform iScrobbler that your iPod has been updated by using the "Update iPod" item in the control menu, or ejecting your iPod. This must be done before playing any songs in iTunes.\
+2) It is imperative that the selected playlist not have a dependency on any other playlist, as the iPod will not update the chosen playlist as tracks are played.\
 \
-\'a5 If you fast forward a song on the iPod, it will not be sent to the AudioScrobbler server.\
+\'a5 While the iPod is being updated in iTunes, iTunes cannot be playing. When the update is done, and the iPod ejected, you can begin playing tracks in iTunes again.\
 \
+\'a5 If another person uses your computer while you are away, and plays a track with iTunes, any tracks played before and during that time on the iPod will be discarded. To share your computer with others, it is recommended that you create a separate Mac OS X user account for each person. Each person will also need their own AudioScrobbler account, or the server will discard tracks with similar play times as SPAM.\
+\
+\'a5 If you have disk mode enabled on your iPod, you must manually inform iScrobbler that your iPod has been updated by using the "Update iPod" item in the control menu, or ejecting your iPod. This must be done before playing any tracks in iTunes.\
+\
+\'a5 If you fast forward a track on the iPod, it will not be sent to the AudioScrobbler server.\
 }
