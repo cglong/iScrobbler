@@ -313,6 +313,7 @@ static QueueManager *g_QManager = nil;
 {
     [queuePath release];
     [songQueue release];
+    [super dealloc];
 }
 
 @end

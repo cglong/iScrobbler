@@ -52,7 +52,7 @@
 {
     NSString *oldUserName = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
     
-    [[NSUserDefaultsController sharedUserDefaultsController] save:self];
+    [(NSUserDefaultsController*)[NSUserDefaultsController sharedUserDefaultsController] save:self];
 	
 	NSString *username = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
     

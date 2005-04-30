@@ -662,6 +662,7 @@ didFinishLoadingExit:
     [hsResult release];
     [submitResult release];
     [myKeyChain release];
+    [super dealloc];
 }
 
 @end

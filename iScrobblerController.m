@@ -686,7 +686,7 @@ player_info_exit:
 
 - (NSString *)md5hash:(NSString *)input
 {
-	unsigned char *hash = MD5([input cString], [input cStringLength], NULL);
+	unsigned char *hash = MD5((unsigned char*)[input cString], [input cStringLength], NULL);
 	int i;
     
 	NSMutableString *hashString = [NSMutableString string];
