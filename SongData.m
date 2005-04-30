@@ -19,6 +19,10 @@ static unsigned int g_songID = 0;
 static float songTimeFudge;
 static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
 
+@interface NSMutableDictionary (SongDataAdditions)
+- (NSComparisonResult)compareLastHitDate:(NSMutableDictionary*)entry;
+@end
+
 @implementation SongData
 
 + (float)songTimeFudge
@@ -500,24 +504,27 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
 }
 
 #define CXXVIII_MB 0x8000000ULL
+#define KEY_LAST_HIT @"last hit"
+#define KEY_IMAGE @"image"
 - (NSImage*)artwork
 {
     static NSMutableDictionary *artworkCache = nil;
-    static NSMutableArray *artworkCacheFifo = nil;
     static NSAppleScript *iTunesArtworkScript = nil;
-    static unsigned artworkCacheMax = 8;
+    static int artworkCacheMax;
     static float artworkCacheLookups = 0.0, artworkCacheHits = 0.0;
     
     if (!artworkCache) {
-        u_int64_t mem = 0;
-        int mib[2] = {CTL_HW, HW_MEMSIZE};
-        size_t len = sizeof(mem);
-        (void)sysctl(mib, 2, &mem, &len, NULL, 0);
-        if (mem > CXXVIII_MB)
-            artworkCacheMax *= (unsigned)(mem / CXXVIII_MB);
+        if ((artworkCacheMax = [[NSUserDefaults standardUserDefaults] integerForKey:@"Artwork Cache Size"]) < 8) {
+            u_int64_t mem = 0;
+            int mib[2] = {CTL_HW, HW_MEMSIZE};
+            size_t len = sizeof(mem);
+            (void)sysctl(mib, 2, &mem, &len, NULL, 0);
+            artworkCacheMax = 8;
+            if (mem > CXXVIII_MB)
+                artworkCacheMax *= (unsigned)(mem / CXXVIII_MB);
+        }
         
         artworkCache = [[NSMutableDictionary alloc] initWithCapacity:artworkCacheMax];
-        artworkCacheFifo = [[NSMutableArray alloc] initWithCapacity:artworkCacheMax];
     }
     
     if (!iTunesArtworkScript) {
@@ -536,13 +543,16 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
         return (nil);
     }
     
-    NSString *key = [[NSString stringWithFormat:@"%@_%@", [self artist], [self album]] lowercaseString];
-    NSImage *image = [artworkCache objectForKey:key];
+    NSString* const key = [[NSString stringWithFormat:@"%@_%@", [self artist], [self album]] lowercaseString];
+    NSMutableDictionary *entry = [artworkCache objectForKey:key];
+    NSImage *image;
     artworkCacheLookups += 1.0;
-    if (image) {
+    if (entry) {
         artworkCacheHits += 1.0;
-        ScrobLog(SCROB_LOG_TRACE, @"Track artwork cache hit. Lookups: %.0f (%u/%u), Hits: %.0f (%.02f%%)",
-            artworkCacheLookups, [artworkCacheFifo count], artworkCacheMax, artworkCacheHits,
+        image = [entry objectForKey:KEY_IMAGE];
+        [entry setObject:[NSDate date] forKey:KEY_LAST_HIT];
+        ScrobLog(SCROB_LOG_TRACE, @"Artwork cache hit. Lookups: %.0f (%u/%u), Hits: %.0f (%.02f%%)",
+            artworkCacheLookups, [artworkCache count], artworkCacheMax, artworkCacheHits,
             (artworkCacheHits / artworkCacheLookups) * 100.0);
         return (image);
     }
@@ -579,20 +589,22 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     
     if (cache) {
         float misses = artworkCacheLookups - artworkCacheHits;
-        ScrobLog(SCROB_LOG_TRACE, @"Track artwork cache miss. Lookups: %.0f, Misses: %.0f (%.02f%%)",
+        ScrobLog(SCROB_LOG_TRACE, @"Artwork cache miss. Lookups: %.0f, Misses: %.0f (%.02f%%)",
             artworkCacheLookups, misses, (misses / artworkCacheLookups) * 100.0);
         
         // Add to cache
-        unsigned count = [artworkCacheFifo count];
+        unsigned count = [artworkCache count];
         if (count == artworkCacheMax) {
             // Remove oldest entry
-            NSString *entry = [artworkCacheFifo peek];
-            [artworkCache removeObjectForKey:entry];
-            [artworkCacheFifo pop];
+            NSString *remKey = [[artworkCache keysSortedByValueUsingSelector:@selector(compareLastHitDate:)]
+                objectAtIndex:0];
+            [artworkCache removeObjectForKey:remKey];
+            ScrobLog(SCROB_LOG_TRACE, @"Artwork '%@' removed from cache.", remKey);
         }
         
-        [artworkCache setObject:image forKey:key];
-        [artworkCacheFifo push:key];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:image, KEY_IMAGE,
+            [NSDate date], KEY_LAST_HIT, nil];
+        [artworkCache setObject:entry forKey:key];
     }
     return (image);
 }
@@ -625,6 +637,15 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
              // And make sure the duration is valid
              [[song startTime] timeIntervalSince1970] >
              ([[self startTime] timeIntervalSince1970] + [[song duration] doubleValue]) );
+}
+
+@end
+
+@implementation NSMutableDictionary (SongDataAdditions)
+
+- (NSComparisonResult)compareLastHitDate:(NSMutableDictionary*)entry
+{
+    return ( [(NSDate*)[self objectForKey:KEY_LAST_HIT] compare:(NSDate*)[entry objectForKey:KEY_LAST_HIT]] );
 }
 
 @end
