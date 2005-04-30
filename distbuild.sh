@@ -21,7 +21,7 @@ cp -pR ./build/iScrobbler.app "/Volumes/${VOLUME}/"
 cp ./English.lproj/iPodLimitations.rtf "/Volumes/${VOLUME}/"
 cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
 ditto -rsrc How\ to\ install\ iScrobbler\ \(OSX\)\ properly\!.webloc "/Volumes/${VOLUME}/"
-mkdir "/Volumes/${VOLUME}/REQUIRES 10.3 +"
+mkdir "/Volumes/${VOLUME}/REQUIRES 10.3.9.9.9.9.9.9.9.9.9 +"
 mkdir "/Volumes/${VOLUME}/REQUIRES iTunes 4.7 +"
 cp ./gpl.txt "/Volumes/${VOLUME}/LICENSE"
 
