@@ -672,7 +672,7 @@ didFinishLoadingExit:
 - (BOOL)canSubmit
 {
     ProtocolManager *pm = [ProtocolManager sharedInstance];
-    BOOL good = ( [[self duration] floatValue] >= 30.0 &&
+    BOOL good = ( IsTrackTypeValid([self type]) && [[self duration] floatValue] >= 30.0 &&
         ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self position] floatValue] > [pm minTimePlayed]) );
     if (good) {
