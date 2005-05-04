@@ -360,6 +360,7 @@
 				D3191CC707E3A51700821D03,
 			);
 			buildRules = (
+				D3B2742D0826BC5800B8E08B,
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
@@ -781,6 +782,21 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
+		D3B2736A0824429600B8E08B = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.xcclassmodel;
+			path = iScrobbler.xcclassmodel;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		D3B2742D0826BC5800B8E08B = {
+			compilerSpec = com.apple.compilers.gcc.4_0;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
 		D3B61DF20744151D00AF5A33 = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -1011,6 +1027,7 @@
 		};
 		D3D7C26F080B99ED005EF5CA = {
 			children = (
+				D3B2736A0824429600B8E08B,
 				D3D7C299080B9A5B005EF5CA,
 				EB45285C040A8D11005DC01B,
 				EB24D529040AECC8005DC01B,
