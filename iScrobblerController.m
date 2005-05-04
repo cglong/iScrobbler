@@ -47,6 +47,7 @@
 
 @interface iScrobblerController (Private)
     - (void)showNewVersionExistsDialog;
+    - (void)retryInfoHandler:(NSTimer*)timer;
 @end
 
 // See iTunesPlayerInfoHandler: for why this is needed
@@ -124,14 +125,14 @@
                     [song setLastPlayed:trackLastPlayed];
                 return (YES);
             } else {
-                ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
+                ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
                     trackType, trackiTunesDatabaseID, trackPosition);
             }
         } else {
-            ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script invalid result: bad item count: %d\n.", [result numberOfItems]);
+            ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad item count: %d\n.", [result numberOfItems]);
         }
     } else {
-        ScrobLog(SCROB_LOG_ERR, @"GetSongInfo script execution error: %@\n.", errInfo);
+        ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script execution error: %@\n.", errInfo);
     }
     
     return (NO);
@@ -203,6 +204,10 @@ queue_exit:
 
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
+    // Invalidate any possible outstanding error handler
+    [getTrackInfoTimer invalidate];
+    getTrackInfoTimer = nil;
+    
     double fireInterval;
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
@@ -213,24 +218,33 @@ queue_exit:
     
     SongData *song = nil;
     @try {
-        if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]])
+        if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
             song = [[SongData alloc] initWithiTunesPlayerInfo:info];
-        else {
+            if (!song)
+                ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
+        } else {
             [currentSong release];
             currentSong = nil;
         }
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception creating track: %@\n", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
     if (!song)
         goto player_info_exit;
     
     if (![self updateInfoForSong:song]) {
+        getTrackInfoTimer = [NSTimer scheduledTimerWithTimeInterval:2.5
+                                target:self
+                                selector:@selector(retryInfoHandler:)
+                                userInfo:note
+                                repeats:NO];
         ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error. Trying again in %0.1f seconds.",
             2.5);
-        [self performSelector:@selector(iTunesPlayerInfoHandler:) withObject:note afterDelay:2.5];
         goto player_info_exit;
     }
+    
+    ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,P,D) = (%@,%@,%@,%@,%@)",
+        [song title], [song album], [song artist], [song position], [song duration]);
     
     if (currentSong && [currentSong isEqualToSong:song]) {
         // Try to determine if the song is being played twice (or more in a row)
@@ -283,7 +297,9 @@ queue_exit:
        Note 2: It would be possible for our conditions to occur while not on a track switch if for
        instance the user changed some song meta-data. However this should be a very rare occurence.
        */
-    if (currentSong && ![currentSong isEqualToSong:song] && [[currentSong duration] isEqualToNumber:[song position]]) {
+    if (currentSong && ![currentSong isEqualToSong:song] &&
+            ([[currentSong duration] isEqualToNumber:[song position]] ||
+            [[song position] isGreaterThan:[song duration]])) {
         [song setPosition:[NSNumber numberWithUnsignedInt:0]];
         // Reset the start time too, since it will be off
         [song setStartTime:[NSDate date]];
@@ -360,6 +376,12 @@ player_info_exit:
     ScrobTrace(@"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
 }
 
+- (void)retryInfoHandler:(NSTimer*)timer
+{
+    getTrackInfoTimer = nil;
+    [self iTunesPlayerInfoHandler:[timer userInfo]];
+}
+
 - (void)enableStatusItemMenu:(BOOL)enable
 {
     if (enable) {
@@ -390,7 +412,7 @@ player_info_exit:
     [prefs registerDefaults:defaultPrefs];
     
     // This sucks. We added new columns to the Top Artists and Top Tracks lists in 1.0.1. But,
-    // if the saved Column/Sort orderings don't match then the new column is won't show.
+    // if the saved Column/Sort orderings don't match then the new column won't show.
     // So here, we delete the saved settings from version 1.0.0.
     if ([@"1.0.0" isEqualToString:[prefs objectForKey:@"version"]]) {
         [prefs removeObjectForKey:@"NSTableView Columns Top Artists"];
@@ -402,6 +424,7 @@ player_info_exit:
     // One user has reported the version # showing up in his personal prefs.
     // I don't know how this is happening, but I've never seen it myself. So here,
     // we just force the version # from the defaults into the personal prefs.
+    // This came in very handy above -- what foresight!
     [prefs setObject:[defaultPrefs objectForKey:@"version"] forKey:@"version"];
     
     [SongData setSongTimeFudge:5.0];

@@ -35,18 +35,19 @@
     PreferenceController *preferenceController;
     
     // Preferences tracking object
-    NSUserDefaults * prefs;
+    NSUserDefaults *prefs;
 
     NSNotificationCenter *nc;
     
     BOOL haveShownUpdateNowDialog;
     
-    NSString *iPodMountPath;
-    BOOL isIPodMounted;
+    // GetTrackInfo error timer
+    NSTimer *getTrackInfoTimer;
     
     // iPod sync management
+    NSString *iPodMountPath;
+    BOOL isIPodMounted;
     NSDate *iTunesLastPlayedTime;
-    
     NSArray *iTunesPlaylists;
 }
 
