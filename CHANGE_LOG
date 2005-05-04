@@ -18,7 +18,7 @@ v1.1 (BDB)
 - Enlarged stats window icon to 96x96 (for artwork).
 - Added Growl support for track changes.
 - iPod syncing is now supported for Manual mode (thanks to j-a-x).
-- Double clicking on an item in the Top Lists tables will open the corresponding Artist/Track page on AS.
+- Double clicking on an item in the Top Lists tables will open the corresponding Artist/Track page on AS -- this works for most names, but some will fail.
 - The total time played text in the stats window can now be copied.
 - Network detection should work better for some DSL users.
 - iPod sync no longer uses date strings. This should make syncing much more robust.
