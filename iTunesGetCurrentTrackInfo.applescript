@@ -15,34 +15,35 @@ set trackLastPlayed to current date
 
 
 tell application "iTunes"
-	--try
-	set theTrack to get current track
-	
-	set trackClass to (get class of theTrack)
-	if trackClass is file track or trackClass is audio CD track then
-		set trackType to trackTypeFile
-	else
-		-- device track is for a portable player (iPod) -- we treat it as a shared track since
-		-- the file will not usually be directly accessible
-		if trackClass is shared track or trackClass is device track then
-			set trackType to trackTypeShared
+	try
+		set theTrack to get current track
+		
+		set trackClass to (get class of theTrack)
+		if trackClass is file track or trackClass is audio CD track then
+			set trackType to trackTypeFile
 		else
-			if trackClass is URL track then
-				set trackType to trackTypeRadio
+			-- device track is for a portable player (iPod) -- we treat it as a shared track since
+			-- the file will not usually be directly accessible
+			if trackClass is shared track or trackClass is device track then
+				set trackType to trackTypeShared
+			else
+				if trackClass is URL track then
+					set trackType to trackTypeRadio
+				end if
 			end if
 		end if
-	end if
-	
-	set trackID to database ID of theTrack
-	set trackPostion to player position
-	try
-		set trackRating to rating of theTrack
+		
+		set trackID to database ID of theTrack
+		set trackPostion to player position
+		try
+			set trackRating to rating of theTrack
+		end try
+		try
+			set trackLastPlayed to played date
+		end try
+		set trackPlaylistID to index of the container of theTrack
+		set trackSource to name of the container of the container of theTrack as Unicode text
 	end try
-	try
-		set trackLastPlayed to played date
-	end try
-	set trackPlaylistID to index of the container of theTrack
-	set trackSource to name of the container of the container of theTrack as Unicode text
 	
 end tell
 
