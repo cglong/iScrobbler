@@ -548,6 +548,18 @@ player_info_exit:
         // not having run yet?
         [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
     }
+    
+    if (!iPodMountPath) {
+        // Simulate mount events for current mounts so that any mounted iPod is found
+        NSEnumerator *en = [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
+        NSString *path;
+        while ((path = [en nextObject])) {
+            NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
+            [[[NSWorkspace sharedWorkspace] notificationCenter]
+                postNotificationName:NSWorkspaceDidMountNotification
+                object:[NSWorkspace sharedWorkspace] userInfo:dict];
+        }
+    }
 }
 
 - (void)updateMenu
