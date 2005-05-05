@@ -555,9 +555,9 @@ player_info_exit:
         NSString *path;
         while ((path = [en nextObject])) {
             NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
-            [[[NSWorkspace sharedWorkspace] notificationCenter]
-                postNotificationName:NSWorkspaceDidMountNotification
+            NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidMountNotification
                 object:[NSWorkspace sharedWorkspace] userInfo:dict];
+            [self volumeDidMount:note];
         }
     }
 }
