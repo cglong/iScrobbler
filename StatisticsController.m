@@ -240,7 +240,7 @@ static enum {title, album, artist} g_cycleState = title;
 - (void)windowWillClose:(NSNotification *)aNotification
 {
     // We don't simply call [[NSNotificationCenter defaultCenter] removeObserver:self] because
-    // that seems to destroy our delegate link to the window (etDelegate: must register us as
+    // that seems to destroy our delegate link to the window (setDelegate: must register us as
     // an observer for window notifications instead of calling windowWillClose: directly).
     [[NSNotificationCenter defaultCenter] removeObserver:self
         name:PM_NOTIFICATION_HANDSHAKE_START object:nil];
