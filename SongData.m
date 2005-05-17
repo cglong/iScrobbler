@@ -219,6 +219,8 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             [self setStartTime:obj];
         if ((obj = [data objectForKey:SD_KEY_TYPE]))
             [self setType:[obj intValue]];
+        else
+            [self setType:trackTypeFile]; // If missing, then we are upgrading from a pre-1.1 version
         if ((obj = [data objectForKey:SD_KEY_ITUNES_DB_ID]))
             [self setiTunesDatabaseID:[obj intValue]];
         return (YES);
