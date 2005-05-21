@@ -64,7 +64,44 @@
     - (double)resubmitInterval;
 @end
 
+static NSTimer *updateStatusTimer = nil;
 @implementation iScrobblerController
+
+- (void)updateStatusOperation:(BOOL)opBegin withStatus:(BOOL)opSuccess
+{
+    if (updateStatusTimer) {
+        [updateStatusTimer invalidate];
+        updateStatusTimer = nil;
+    }
+    if (statusItem) {
+        NSString *title = [statusItem title];
+        NSColor *color;
+        if (opBegin)
+            color = [NSColor greenColor];
+        else {
+            if (opSuccess)
+                color = [NSColor blackColor];
+            else {
+                color = [NSColor redColor];
+                [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
+                    selector:@selector(clearStatus:) userInfo:nil repeats:NO];
+            }
+        }
+        
+        NSAttributedString *newTitle = [[NSAttributedString alloc] initWithString:title
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName, nil]];
+        [statusItem setAttributedTitle:newTitle];
+        [newTitle release];
+    }
+}
+
+- (void)clearStatus:(NSTimer*)timer
+{
+    updateStatusTimer = nil;
+    [self updateStatusOperation:NO withStatus:YES];
+}
+
+// PM notifications
 
 - (void)handshakeCompleteHandler:(NSNotification*)note
 {
@@ -74,12 +111,38 @@
         [self showNewVersionExistsDialog];
     else if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
         [self showBadCredentialsDialog];
+    
+    BOOL status = NO;
+    if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK])
+        status = YES;
+    [self updateStatusOperation:NO withStatus:status];
 }
 
 - (void)badAuthHandler:(NSNotification*)note
 {
     [self showBadCredentialsDialog];
 }
+
+- (void)handshakeStartHandler:(NSNotification*)note
+{
+    [self updateStatusOperation:YES withStatus:YES];
+}
+
+- (void)submitCompleteHandler:(NSNotification*)note
+{
+    BOOL status = NO;
+    ProtocolManager *pm = [note object];
+    if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK])
+        status = YES;
+    [self updateStatusOperation:NO withStatus:status];
+}
+
+- (void)submitStartHandler:(NSNotification*)note
+{
+    [self updateStatusOperation:YES withStatus:YES];
+}
+
+// End PM Notifications
 
 - (BOOL)updateInfoForSong:(SongData*)song
 {
@@ -491,6 +554,18 @@ player_info_exit:
         [nc addObserver:self
                 selector:@selector(badAuthHandler:)
                 name:PM_NOTIFICATION_BADAUTH
+                object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                selector:@selector(handshakeStartHandler:)
+                name:PM_NOTIFICATION_HANDSHAKE_START
+                object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                selector:@selector(submitCompleteHandler:)
+                name:PM_NOTIFICATION_SUBMIT_COMPLETE
+                object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                selector:@selector(submitStartHandler:)
+                name:PM_NOTIFICATION_SUBMIT_START
                 object:nil];
         
         // Create queue mgr
