@@ -14,7 +14,9 @@ CHANGE HISTORY:
 
 v1.1.1 (BDB)
 - IMPORTANT CHANGE: The log file is now automatically truncated during launch if it's larger than 2 MiB.
+- The Note menu now changes colors to indicate submission activity -- black for no activity, green for in progress and red for failure.
 - If your iPod contains an accessible volume icon, it will be displayed in the Stats window while a sync is in progress.
+- Removed the "Clear Menu" and "Clean Log" menu items in a simplification effort.
 - Fixed bug that caused the persistent cache to be lost w/o submission when upgrading from a pre-1.1 version.
 
 v1.1 (BDB)
