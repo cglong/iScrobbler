@@ -12,6 +12,11 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v1.1.1 (BDB)
+- IMPORTANT CHANGE: The log file is now automatically truncated during launch if it's larger than 2 MiB.
+- If your iPod contains an accessible volume icon, it will be displayed in the Stats window while a sync is in progress.
+- Fixed bug that caused the persistent cache to be lost w/o submission when upgrading from a pre-1.1 version.
+
 v1.1 (BDB)
 - OS X 10.3.9 + and iTunes 4.7 + are required.
 - Added profile report generation (for local stats only) to the Top Lists.
