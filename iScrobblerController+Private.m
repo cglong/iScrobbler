@@ -74,7 +74,7 @@
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
 
-    if (!ti || ti > (now + [SongData songTimeFudge]) || ti < (now - (ONE_WEEK + ONE_DAY))) {
+    if (!ti || ti > (now + [SongData songTimeFudge]) || ti < (now - (ONE_WEEK * 2))) {
         ScrobLog(SCROB_LOG_WARN, @"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
             ti, now);
         tr = [NSDate date];
@@ -156,6 +156,11 @@ validate:
             return;
         }
         
+        [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_BEGIN
+            object:nil
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:iPodMountPath, IPOD_SYNC_KEY_PATH,
+                iPodIcon, IPOD_SYNC_KEY_ICON, nil]];
+        
         // Just a little extra fudge time
         fudge = [iTunesLastPlayedTime timeIntervalSince1970]+[SongData songTimeFudge];
         now = [[NSDate date] timeIntervalSince1970];
@@ -187,7 +192,7 @@ validate:
                 scriptMsgCode = [[trackData objectAtIndex:0] intValue];
             } @catch (NSException *exception) {
                 ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript script invalid result: parsing exception %@\n.", exception);
-                return;
+                goto sync_exit_with_note;
             }
             
             if (iTunesError == scriptMsgCode) {
@@ -203,7 +208,7 @@ validate:
                 // Display dialog instead of logging?
                 ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
                     errmsg, errnum);
-                return;
+                goto sync_exit_with_note;
             }
 
             if (iTunesIsInactive != scriptMsgCode) {
@@ -242,6 +247,7 @@ validate:
                         continue;
                     }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
+                    [song setReconstituted:YES];
                     ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
                     (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
@@ -256,7 +262,13 @@ validate:
             // Script error
             ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript execution error: %@\n", errInfo);
         }
-    }
+
+sync_exit_with_note:
+        [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_END
+            object:nil
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:iPodMountPath, IPOD_SYNC_KEY_PATH, nil]];
+        
+    } // if ("Sync iPod")
 }
 
 // NSWorkSpace mount notifications
@@ -271,6 +283,13 @@ validate:
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
         [self setValue:mountPath forKey:@"iPodMountPath"];
+        ISASSERT(iPodIcon == nil, "iPodIcon exists!");
+        if ([[NSFileManager defaultManager] fileExistsAtPath:
+            [iPodMountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
+            iPodIcon = [[NSImage alloc] initWithContentsOfFile:
+                [iPodMountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
+            [iPodIcon setName:IPOD_ICON_NAME];
+        }
         [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
     }
 }
@@ -285,6 +304,8 @@ validate:
     if ([iPodMountPath isEqualToString:mountPath]) {
         [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
         [self setValue:nil forKey:@"iPodMountPath"];
+        [iPodIcon release];
+        iPodIcon = nil;
         [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
     }
 }
