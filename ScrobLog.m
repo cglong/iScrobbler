@@ -5,6 +5,7 @@
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //
+#import <sys/stat.h>
 #import "ScrobLog.h"
 
 static NSFileHandle *scrobLogFile = nil;
@@ -79,6 +80,17 @@ static void ScrobLogCreate(void)
         scrobLogFile = [[NSFileHandle fileHandleForWritingAtPath:path] retain];
         if (!scrobLogFile)
             return;
+        
+        int fd = [scrobLogFile fileDescriptor];
+        struct stat sb;
+        if (0 == fstat(fd, &sb)) {
+            int maxSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
+            if (maxSize <= 0)
+                maxSize = 0x200000 /* 2 MiB */;
+            if (sb.st_size > maxSize) {
+                ScrobLogTruncate();
+            }
+        }
         
         [scrobLogFile seekToEndOfFile];
 
