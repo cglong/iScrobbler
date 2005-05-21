@@ -128,6 +128,27 @@ static enum {title, album, artist} g_cycleState = title;
         forKey:@"Tracks Queued"];
 }
 
+static NSImage *prevIcon = nil;
+- (void)iPodSyncBeginHandler:(NSNotification*)note
+{
+    NSImage *icon = [[note userInfo] objectForKey:IPOD_SYNC_KEY_ICON];
+    if (icon) {
+        prevIcon = [[artworkImage image] retain];
+        [artworkImage setImage:icon];
+    }
+}
+
+- (void)iPodSyncEndHandler:(NSNotification*)note
+{
+    NSImage *icon = [artworkImage image];
+    if ([[icon name] isEqualToString:IPOD_ICON_NAME] && prevIcon) {
+        // Restore the saved icon
+        [artworkImage setImage:prevIcon];
+    }
+    [prevIcon release];
+    prevIcon = nil;
+}
+
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
     NSString *msg = nil, *rating;
@@ -217,6 +238,16 @@ static enum {title, album, artist} g_cycleState = title;
             name:@"Now Playing"
             object:nil];
     
+    // iPod notes
+    [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iPodSyncBeginHandler:)
+            name:IPOD_SYNC_BEGIN
+            object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iPodSyncEndHandler:)
+            name:IPOD_SYNC_END
+            object:nil];
+    
     [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
@@ -254,6 +285,10 @@ static enum {title, album, artist} g_cycleState = title;
         name:QM_NOTIFICATION_SONG_QUEUED object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self
         name:@"Now Playing" object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:IPOD_SYNC_BEGIN object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:IPOD_SYNC_END object:nil];
     
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     ScrobTrace(@"received\n");

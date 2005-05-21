@@ -46,6 +46,7 @@
     
     // iPod sync management
     NSString *iPodMountPath;
+    NSImage *iPodIcon;
     BOOL isIPodMounted;
     NSDate *iTunesLastPlayedTime;
     NSArray *iTunesPlaylists;
@@ -102,5 +103,11 @@ if (0 == (condition)) { \
 #else
 #define ISASSERT(condition,msg) {}
 #endif
+
+#define IPOD_SYNC_BEGIN @"com.audioscrobbler.ipod.sync.begin"
+#define IPOD_SYNC_END @"com.audioscrobbler.ipod.sync.end"
+#define IPOD_SYNC_KEY_PATH @"Path"
+#define IPOD_SYNC_KEY_ICON @"Icon"
+#define IPOD_ICON_NAME @"iPod Icon"
 
 #import "ScrobLog.h"
