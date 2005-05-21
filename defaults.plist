@@ -45,13 +45,13 @@
 	<string>1.1</string>
         
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; PPC Mac OS X; compatible) iScrobbler/1.1</string>
+	<string>Mozilla/5.0 (Macintosh; U; PPC Mac OS X; compatible) iScrobbler/1.1.1</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>1.1</string>
+	<string>1.1.1</string>
         
 </dict>
 </plist>
