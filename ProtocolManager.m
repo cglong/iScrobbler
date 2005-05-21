@@ -99,6 +99,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 
 - (void)scheduleHandshake:(NSTimer*)timer
 {
+    handshakeTimer = NULL;
     if (hs_delay == hsState) {
         hsState = hs_needed;
         ScrobLog(SCROB_LOG_VERBOSE, @"Re-trying handshake after delay...\n");
@@ -163,7 +164,7 @@ NS_ENDHANDLER
             handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
         } else {
             hsState = hs_delay;
-            [NSTimer scheduledTimerWithTimeInterval:handshakeDelay target:self
+            handshakeTimer = [NSTimer scheduledTimerWithTimeInterval:handshakeDelay target:self
                 selector:@selector(scheduleHandshake:) userInfo:nil repeats:NO];
             handshakeDelay *= 2.0;
             if (handshakeDelay > [self handshakeMaxDelay])
@@ -186,7 +187,8 @@ NS_ENDHANDLER
         return;
     }
     if (hs_delay == hsState) {
-        ScrobLog(SCROB_LOG_VERBOSE, @"Handshake delayed...\n");
+        ScrobLog(SCROB_LOG_VERBOSE, @"Handshake delayed. Next attempt in %0.lf seconds.\n",
+            [[handshakeTimer fireDate] timeIntervalSinceNow]);
         return;
     }
     
@@ -675,7 +677,7 @@ didFinishLoadingExit:
     BOOL good = ( IsTrackTypeValid([self type]) && [[self duration] floatValue] >= 30.0 &&
         ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self position] floatValue] > [pm minTimePlayed]) );
-    if (good) {
+    if (good && !reconstituted) {
         // Make sure there was no forward seek (allowing for a little fudge time)
         // This is not perfect, so some "illegal" tracks may slip through.
         NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + [SongData songTimeFudge];
