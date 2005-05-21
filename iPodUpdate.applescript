@@ -26,17 +26,19 @@ on UpdateiPod(thePlaylistName, theDate)
 						end try
 						
 						try
-							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
-							tell thePlaylist
-								try
-									(*The "whose played date" clause will cause a -10001 "type mismatch" error if
+							if the name of every user playlist contains thePlaylistName then
+								set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
+								tell thePlaylist
+									try
+										(*The "whose played date" clause will cause a -10001 "type mismatch" error if
 										any track in the chosen playlist has not been played yet. This is because iTunes
 										apparently can't handle comparing a date type to a missing value internally.*)
-									set mytracks to get (every file track whose played date is greater than theDate)
-								on error errDescription number errnum
-									set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
-								end try
-							end tell
+										set mytracks to get (every file track whose played date is greater than theDate)
+									on error errDescription number errnum
+										set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
+									end try
+								end tell
+							end if
 						on error errDescription number errnum
 							set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
 						end try
@@ -80,6 +82,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Wednesday, April 27, 2005 11:50:00 PM"
+	set when to date "Saturday, May 14, 2005 11:30:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run
