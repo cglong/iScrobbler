@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
-//  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2003,2005 __MyCompanyName__. All rights reserved.
 //
 
 #import <sys/types.h>
@@ -223,6 +223,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             [self setType:trackTypeFile]; // If missing, then we are upgrading from a pre-1.1 version
         if ((obj = [data objectForKey:SD_KEY_ITUNES_DB_ID]))
             [self setiTunesDatabaseID:[obj intValue]];
+        reconstituted = YES;
         return (YES);
     }
     
@@ -495,6 +496,16 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
         [sourceName release];
         sourceName = newSourceName;
     }
+}
+
+- (BOOL)reconstituted
+{
+    return (reconstituted);
+}
+
+- (void)setReconstituted:(BOOL)newValue
+{
+    reconstituted = newValue;
 }
 
 - (NSNumber*)elapsedTime

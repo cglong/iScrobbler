@@ -38,6 +38,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     TrackType_t trackType;
     BOOL hasQueued;
     BOOL hasSeeked;
+    BOOL reconstituted;
 }
 
 // Value to pad time calculations with
@@ -135,6 +136,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (NSString*)sourceName;
 - (void)setSourceName:(NSString*)newSourceName;
+
+- (BOOL)reconstituted;
+- (void)setReconstituted:(BOOL)newValue;
 
 - (NSNumber*)elapsedTime;
 
