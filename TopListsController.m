@@ -135,6 +135,12 @@ static NSCountedSet *topRatings = nil;
     
     // Top Tracks
     id lastPlayedDate = [[song startTime] addTimeInterval:[[song duration] doubleValue]];
+    
+    if ([startDate isGreaterThan:lastPlayedDate]) {
+        // This can occur when iScrobbler is launched after the last played date of tracks on an iPod
+        [self setValue:lastPlayedDate forKey:@"startDate"];
+    }
+    
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
         if (NSOrderedSame == [artist caseInsensitiveCompare:[entry objectForKey:@"Artist"]] &&
