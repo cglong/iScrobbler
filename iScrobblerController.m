@@ -834,6 +834,11 @@ player_info_exit:
 	[NSApp terminate:self];
 }
 
+- (BOOL)application:(NSApplication *)sender delegateHandlesKey:(NSString *)key
+{
+    return (NO);
+}
+
 @end
 
 @implementation SongData (iScrobblerControllerAdditions)
