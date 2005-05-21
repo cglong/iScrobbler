@@ -30,8 +30,8 @@
     id submitResult;
     // Timer to kill "stuck" handshake
     NSTimer *killTimer;
-    // Resubmission timer
     NSTimer *resubmitTimer;
+    NSTimer *handshakeTimer;
     KeyChain *myKeyChain;
     // The  object that will do the data transmission
     NSURLConnection *myConnection;
@@ -39,7 +39,7 @@
     NSMutableData *myData;
     // Handshake state
     enum {hs_needed, hs_inprogress, hs_delay, hs_valid} hsState;
-    // Dealy time until next Handshake attempt
+    // Delay interval until next Handshake attempt
     float handshakeDelay;
     // Re-submission time
     float nextResubmission;
