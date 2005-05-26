@@ -526,6 +526,9 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     static int artworkCacheMax;
     static float artworkCacheLookups = 0.0, artworkCacheHits = 0.0;
     
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"])
+        return (nil);
+    
     if (!artworkCache) {
         if ((artworkCacheMax = [[NSUserDefaults standardUserDefaults] integerForKey:@"Artwork Cache Size"]) < 8) {
             u_int64_t mem = 0;
