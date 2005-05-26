@@ -64,15 +64,19 @@
     - (double)resubmitInterval;
 @end
 
+#if 0
 static NSTimer *updateStatusTimer = nil;
+#endif
 @implementation iScrobblerController
 
 - (void)updateStatusOperation:(BOOL)opBegin withStatus:(BOOL)opSuccess
 {
+#if 0
     if (updateStatusTimer) {
         [updateStatusTimer invalidate];
         updateStatusTimer = nil;
     }
+#endif
     if (statusItem) {
         NSString *title = [statusItem title];
         NSColor *color;
@@ -83,23 +87,29 @@ static NSTimer *updateStatusTimer = nil;
                 color = [NSColor blackColor];
             else {
                 color = [NSColor redColor];
-                [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
-                    selector:@selector(clearStatus:) userInfo:nil repeats:NO];
+            #if 0
+                updateStatusTimer = [NSTimer scheduledTimerWithTimeInterval:30.0 target:self
+                    selector:@selector(clearStatusOperation:) userInfo:nil repeats:NO];
+            #endif
             }
         }
         
         NSAttributedString *newTitle = [[NSAttributedString alloc] initWithString:title
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName, nil]];
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
+            // If we don't speficy this it defaults to Helvitica 12
+            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
         [statusItem setAttributedTitle:newTitle];
         [newTitle release];
     }
 }
 
-- (void)clearStatus:(NSTimer*)timer
+#if 0
+- (void)clearStatusOperation:(NSTimer*)timer
 {
     updateStatusTimer = nil;
     [self updateStatusOperation:NO withStatus:YES];
 }
+#endif
 
 // PM notifications
 
