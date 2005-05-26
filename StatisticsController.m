@@ -200,7 +200,7 @@ static NSImage *prevIcon = nil;
         
         // Set the ablum art image
         NSImage *art = [song artwork];
-        if (g_nowPlaying && ![@"generic" isEqualToString:[art name]]) {
+        if (art && g_nowPlaying && ![@"generic" isEqualToString:[art name]]) {
             [artworkImage setImage:art];
         } else {
             [artworkImage setImage:[NSApp applicationIconImage]];
