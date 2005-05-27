@@ -101,8 +101,9 @@ static enum {title, album, artist} g_cycleState = title;
     unsigned int time = [[qm totalSubmissionsPlayTimeInSeconds] unsignedIntValue];
     unsigned int days, hours, minutes, seconds;
     ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
-    NSString *timeString = [NSString stringWithFormat:@"%u %s, %u:%02u:%02u",
-        days, (1 == days ? "day" : "days"), hours, minutes, seconds];
+    NSString *timeString = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
+        days, (1 == days ? NSLocalizedString(@"day", "") : NSLocalizedString(@"days", "")),
+        hours, minutes, seconds];
     [selection setValue:timeString forKey:@"Tracks Submitted Play Time"];
     [selection setValue:[pm lastSubmissionMessage] forKey:@"Server Response"];
     [selection setValue:[[pm lastSongSubmitted] brief] forKey:@"Last Track Submission"];

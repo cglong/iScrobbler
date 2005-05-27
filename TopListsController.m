@@ -328,7 +328,7 @@ static NSCountedSet *topRatings = nil;
     if (![[NSFileManager defaultManager] fileExistsAtPath:cssPath])
         cssPath = [[NSBundle mainBundle] pathForResource:@"ProfileReport" ofType:@"css"];
     
-    NSString *title = [NSString stringWithFormat:@"%@'s iScrobbler Profile (%@)",
+    NSString *title = [NSString stringWithFormat:NSLocalizedString(@"%@'s iScrobbler Profile (%@)", ""),
         NSFullUserName(), [[NSDate date] descriptionWithCalendarFormat:PROFILE_DATE_FORMAT timeZone:nil locale:nil]];
     
     NSData *data = nil;
@@ -409,8 +409,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     unsigned int days, hours, minutes, seconds;
     ISDurationsFromTime([totalTime unsignedIntValue], &days, &hours, &minutes, &seconds);
-    NSString *time = [NSString stringWithFormat:@"%u %s, %u:%02u:%02u",
-        days, (1 == days ? "day" : "days"), hours, minutes, seconds];
+    NSString *time = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
+        days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
+        hours, minutes, seconds];
     
     HAdd(d, @"<table style=\"width:100%; border:0; margin:0; padding:0;\">\n<tr><td valign=\"top\">\n");
     
