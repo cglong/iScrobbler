@@ -15,24 +15,27 @@
 	<string>VERB</string>
     
     <key>Sync iPod</key>
-    <true/>
+    <true />
     
     <key>iPod Submission Playlist</key>
     <string>Recently Played</string>
     
     <key>Disable Update Notification</key>
-    <false/>
+    <false />
     
     <key>Use Batch Submission</key>
-    <true/>
+    <true />
     
     <key>Shared Music Submission</key>
-    <true/>
+    <true />
     
     <key>Display Control Menu</key>
     <true/>
     
     <key>IgnoreNetworkMonitor</key>
+    <false />
+    
+    <key>IgnoreArtwork</key>
     <false />
     
 	<key>url</key>
