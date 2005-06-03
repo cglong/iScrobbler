@@ -3,6 +3,7 @@ KNOWN ISSUES:
 - If you are burning a CD in iTunes, or editing a song's information, then iTunes cannot process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
 - The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
 - There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu itmes may appear locked.
+- If iTunes hangs every time a track change occurs with iScrobbler running, turn off "Enable Track Artwork" in the preferences.
 
 CHANGE HISTORY:
 
@@ -12,6 +13,13 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v1.1.2 (BDB)
+- The note menu font no longer shrinks when changing colors.
+- On a failure, the menu color will stay red until the next submission attempt.
+- German localization is now included thanks to Damrod.
+- New pref "Enable Track Artwork". This is on by default -- if you experince problems with iTunes hanging, turn this off.
+- Updated Growl framework to .7.
+
 v1.1.1 (BDB)
 - IMPORTANT CHANGE: The log file is now automatically truncated during launch if it's larger than 2 MiB.
 - The Note menu now changes colors to indicate submission activity -- black for no activity, green for in progress and red for failure.
@@ -20,7 +28,7 @@ v1.1.1 (BDB)
 - Fixed bug that caused the persistent cache to be lost w/o submission when upgrading from a pre-1.1 version.
 
 v1.1 (BDB)
-- OS X 10.3.9 + and iTunes 4.7 + are required.
+- OS X 10.3.9 + and iTunes 4.7.1 + are required.
 - Added profile report generation (for local stats only) to the Top Lists.
 - The stats window now displays the artwork for the currently playing song. Note: iTunes does not support artwork for Shared sources, so neither does iScrobbler.
 - Enlarged stats window icon to 96x96 (for artwork).
