@@ -2,7 +2,7 @@ KNOWN ISSUES:
 
 - If you are burning a CD in iTunes, or editing a song's information, then iTunes cannot process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
 - The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
-- There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu itmes may appear locked.
+- There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu items may appear locked.
 - If iTunes hangs every time a track change occurs with iScrobbler running, turn off "Enable Track Artwork" in the preferences.
 
 CHANGE HISTORY:
@@ -17,7 +17,7 @@ v1.1.2 (BDB)
 - The note menu font no longer shrinks when changing colors.
 - On a failure, the menu color will stay red until the next submission attempt.
 - German localization is now included thanks to Damrod.
-- New pref "Enable Track Artwork". This is on by default -- if you experince problems with iTunes hanging, turn this off.
+- New pref "Enable Track Artwork". This is on by default -- if you experience problems with iTunes hanging, turn this off.
 - Updated Growl framework to .7.
 
 v1.1.1 (BDB)
