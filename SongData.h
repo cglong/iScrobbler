@@ -35,10 +35,12 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSNumber *rating;
     NSNumber *playlistID;
     NSString *sourceName;
+    NSString *genre;
     TrackType_t trackType;
     BOOL hasQueued;
     BOOL hasSeeked;
     BOOL reconstituted;
+    BOOL passedFilters;
 }
 
 // Value to pad time calculations with
@@ -140,9 +142,14 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (BOOL)reconstituted;
 - (void)setReconstituted:(BOOL)newValue;
 
+- (NSString*)genre;
+- (void)setGenre:(NSString*)newGenre;
+
 - (NSNumber*)elapsedTime;
 
 - (NSImage*)artwork;
+
+- (BOOL)ignore;
 
 @end
 

@@ -508,6 +508,20 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     reconstituted = newValue;
 }
 
+- (NSString*)genre
+{
+    return (genre);
+}
+
+- (void)setGenre:(NSString*)newGenre
+{
+    if (newGenre != genre) {
+        (void)[newGenre retain];
+        [genre release];
+        genre = newGenre;
+    }
+}
+
 - (NSNumber*)elapsedTime
 {
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
@@ -625,6 +639,46 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     return (image);
 }
 
+- (BOOL)ignore
+{
+    static NSSet *filters = nil;
+    static BOOL load = YES;
+    
+    if (passedFilters)
+        return (NO);
+    
+    if (!filters && load) {
+        filters = [[NSSet alloc] initWithArray:
+            [[NSUserDefaults standardUserDefaults] arrayForKey:@"Track Filters"]];
+        load = NO;
+    }
+    
+    BOOL ignoreMe = NO;
+    if (filters) {
+        NSString *tmp = [self genre], *match;
+        if ((match = [filters member:[self artist]]) || (tmp && [tmp length] && (match = [filters member:tmp]))) {
+            ignoreMe = YES;
+        } else if ((tmp = [self path]) && [tmp length] && '/' == [tmp characterAtIndex:0]) {
+            // Path matching
+            do {
+                if ((match = [filters member:tmp])) {
+                    ignoreMe = YES;
+                    break;
+                }
+                // Get the parent dir and try again
+                tmp = [tmp stringByDeletingLastPathComponent];
+            } while (![tmp isEqualToString:@"/"]);
+        }
+        
+        if (!ignoreMe)
+            passedFilters = YES; // No need to test again if this song passes once.
+        else
+            ScrobLog(SCROB_LOG_TRACE, @"Song '%@' matched filter '%@'.\n", [self brief], match);
+    }
+    
+    return (ignoreMe);
+}
+
 - (void)dealloc
 {
     [title release];
@@ -640,6 +694,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     [rating release];
     [playlistID release];
     [sourceName release];
+    [genre release];
     [super dealloc];
 }    
 
