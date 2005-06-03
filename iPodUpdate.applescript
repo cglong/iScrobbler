@@ -59,7 +59,11 @@ on UpdateiPod(thePlaylistName, theDate)
 							set songAlbum to album of theTrack as Unicode text
 							set songLastPlayed to played date of theTrack
 							set songRating to rating of theTrack
-							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating}
+							set songGenre to ""
+							if genre of theTrack is not missing value then
+								set songGenre to genre of theTrack as Unicode text
+							end if
+							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre}
 							set out to out & {trackInfo}
 						end repeat
 						
@@ -82,6 +86,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Saturday, May 14, 2005 11:30:00 PM"
+	set when to date "Thursday, June 2, 2005 1:30:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run
