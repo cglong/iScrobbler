@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 # Created by Brian Bergstrand for the iScrobbler project.
 # Licensed under the GPL. See gpl.txt for the terms.
 
@@ -22,7 +22,7 @@ cp ./English.lproj/iPodLimitations.rtf "/Volumes/${VOLUME}/"
 cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
 ditto -rsrc How\ to\ install\ iScrobbler\ \(OSX\)\ properly\!.webloc "/Volumes/${VOLUME}/"
 mkdir "/Volumes/${VOLUME}/REQUIRES 10.3.9 +"
-mkdir "/Volumes/${VOLUME}/REQUIRES iTunes 4.7 +"
+mkdir "/Volumes/${VOLUME}/REQUIRES iTunes 4.7.1 +"
 cp ./gpl.txt "/Volumes/${VOLUME}/LICENSE"
 
 hdiutil eject ${DEVICE}
