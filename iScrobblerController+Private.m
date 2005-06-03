@@ -221,6 +221,12 @@ validate:
                     NSTimeInterval postDate;
                     song = [[SongData alloc] initWithiPodUpdateArray:trackData];
                     if (song) {
+                        if ([song ignore]) {
+                            ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
+                            [song release];
+                            song = nil;
+                            continue;
+                        }
                         // Since this song was played "offline", we set the post date
                         // in the past 
                         postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
@@ -338,6 +344,7 @@ bad_song_data:
         NSDate *lastPlayedTime = [data objectAtIndex:8];
         [self setLastPlayed:lastPlayedTime ? lastPlayedTime : [NSDate date]];
         [self setRating:[data objectAtIndex:9]];
+        [self setGenre:[data objectAtIndex:10]];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data.\n");
         goto bad_song_data;

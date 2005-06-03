@@ -293,14 +293,23 @@ queue_exit:
     @try {
         if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
             song = [[SongData alloc] initWithiTunesPlayerInfo:info];
-            if (!song)
+            if (song) {
+                if ([song ignore]) {
+                    ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
+                    [song release];
+                    song = nil;
+                    [currentSong release];
+                    currentSong = nil;
+                }
+            } else {
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
+            }
         } else {
             [currentSong release];
             currentSong = nil;
         }
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating/filtering track (%@): %@\n", info, exception);
     }
     if (!song)
         goto player_info_exit;
@@ -932,11 +941,11 @@ player_info_exit:
 {
     self = [self init];
     
-    NSString *iname, *ialbum, *iartist, *ipath;
+    NSString *iname, *ialbum, *iartist, *ipath, *igenre;
     NSURL *location = nil;
     NSNumber *irating, *iduration;
 #ifdef notyet
-    NSString *genre, *composer;
+    NSString *composer;
     NSNumber *year;
 #endif
     NSTimeInterval durationInSeconds;
@@ -947,6 +956,7 @@ player_info_exit:
     ipath = [dict objectForKey:@"Location"];
     irating = [dict objectForKey:@"Rating"];
     iduration = [dict objectForKey:@"Total Time"];
+    igenre = [dict objectForKey:@"Genre"];
     
     if (ipath)
         location = [NSURL URLWithString:ipath];
@@ -968,6 +978,8 @@ player_info_exit:
         [self setPath:[location path]];
     if (irating)
         [self setRating:irating];
+    if (igenre)
+        [self setGenre:igenre];
 
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
