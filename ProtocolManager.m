@@ -688,6 +688,11 @@ didFinishLoadingExit:
                 [self brief], elapsed, [self position], [self duration]);
         }
     }
+    if (good && [self ignore]) {
+        // Song should be ignored, but slipped through the upper layers
+        [self setHasQueued:YES];
+        good = NO;
+    }
     
     if ([[self artist] length] > 0 && [[self title] length] > 0)
         return (good);
