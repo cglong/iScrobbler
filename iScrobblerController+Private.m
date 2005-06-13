@@ -64,7 +64,7 @@
 
 // =========== iPod Support ============
 
-#define IPOD_SYNC_VALUE_COUNT 10
+#define IPOD_SYNC_VALUE_COUNT 11
 
 #define ONE_DAY 86400.0
 #define ONE_WEEK (ONE_DAY * 7.0)
@@ -215,6 +215,7 @@ validate:
                 NSEnumerator *en = [trackList objectEnumerator];
                 SongData *song;
                 NSMutableArray *iqueue = [NSMutableArray arrayWithCapacity:[trackList count]];
+                NSDate *currentDate = [NSDate date];
                 
                 added = 0;
                 while ((trackData = [en nextObject])) {
@@ -224,7 +225,6 @@ validate:
                         if ([song ignore]) {
                             ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
                             [song release];
-                            song = nil;
                             continue;
                         }
                         // Since this song was played "offline", we set the post date
@@ -234,6 +234,15 @@ validate:
                         // Make sure the song passes submission rules                            
                         [song setStartTime:[NSDate dateWithTimeIntervalSince1970:postDate]];
                         [song setPosition:[song duration]];
+                        
+                        if ([[song postDate] isGreaterThan:currentDate]) {
+                            ScrobLog(SCROB_LOG_WARN,
+                                @"Discarding '%@': future post date.\n\t"
+                                "Current Date: %@, Post Date: %@, iTunesLastPlayed: %@.\n",
+                                [song brief], currentDate, [song postDate], iTunesLastPlayedTime);
+                            [song release];
+                            continue;
+                        }
                         
                         [iqueue addObject:song];
                         [song release];
@@ -246,7 +255,7 @@ validate:
                 while ((song = [en nextObject])) {
                     if (![[song postDate] isGreaterThan:iTunesLastPlayedTime]) {
                         ScrobLog(SCROB_LOG_WARN,
-                            @"Anachronistic post date for song '%@'. Discarding -- possible date parse error.\n\t"
+                            @"Discarding '%@': anachronistic post date.\n\t"
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, iTunesLastPlayed: %@.\n",
                             [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
                             iTunesLastPlayedTime);
@@ -346,7 +355,7 @@ bad_song_data:
         [self setRating:[data objectAtIndex:9]];
         [self setGenre:[data objectAtIndex:10]];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data.\n");
+        ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data: %@\n", exception);
         goto bad_song_data;
     }    
     [self setStartTime:[NSDate dateWithTimeIntervalSinceNow:-[[self position] doubleValue]]];
