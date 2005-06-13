@@ -705,9 +705,15 @@ didFinishLoadingExit:
 - (NSTimeInterval)submitIntervalFromNow
 {
     double trackTime = [[self duration] doubleValue];
-    double minTime = [[ProtocolManager sharedInstance] minTimePlayed];
+    static double minTime = -1.0;
+    static double quotient;
     
-    trackTime = rint(trackTime / (100.0 / [[ProtocolManager sharedInstance] minPercentagePlayed]));
+    if (minTime < 0.0) {
+        minTime = [[ProtocolManager sharedInstance] minTimePlayed];
+        quotient = ([[ProtocolManager sharedInstance] minPercentagePlayed] / 100.0);
+    }
+    
+    trackTime = rint(trackTime * quotient);
     if (trackTime > minTime)
         trackTime = minTime;
     trackTime -= [[self position] doubleValue]; // Adjust for elapsed time.
