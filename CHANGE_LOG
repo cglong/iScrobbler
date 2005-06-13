@@ -19,6 +19,7 @@ v1.1.2 (BDB)
 - German localization is now included thanks to Damrod.
 - New pref "Enable Track Artwork". This is on by default -- if you experience problems with iTunes hanging, turn this off.
 - Updated Growl framework to .7.
+- iPod tracks with a play date in the future (relative to the local system time) will now be discarded.
 
 v1.1.1 (BDB)
 - IMPORTANT CHANGE: The log file is now automatically truncated during launch if it's larger than 2 MiB.
