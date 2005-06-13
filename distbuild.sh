@@ -4,9 +4,28 @@
 
 PATH="/usr/bin:/bin:"
 
-if [ ! -d ./build/iScrobbler.app ]; then
+if [ ! -d ./build ]; then
 	echo "Invalid working directory"
 	exit 1
+fi
+
+BIN=./build/Release # XCode 2.1 default
+if [ ! -d ${BIN} ]; then
+	BIN=./build/Deployment
+	if [ ! -d ${BIN} ]; then
+		BIN=./build
+	fi
+fi
+
+if [ ! -d ${BIN} ]; then
+	exit 1
+fi
+
+echo "Using ${BIN}/iScrobbler.app, continue?"
+read ANS
+
+if [ ${ANS} != 'y' ] && [ ${ANS} != 'Y' ]; then
+	exit 2
 fi
 
 echo "Enter the iScrobbler version number:"
@@ -17,7 +36,7 @@ VOLUME="iScrobbler ${VER}"
 hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
-cp -pR ./build/iScrobbler.app "/Volumes/${VOLUME}/"
+cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
 cp ./English.lproj/iPodLimitations.rtf "/Volumes/${VOLUME}/"
 cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
 ditto -rsrc How\ to\ install\ iScrobbler\ \(OSX\)\ properly\!.webloc "/Volumes/${VOLUME}/"
