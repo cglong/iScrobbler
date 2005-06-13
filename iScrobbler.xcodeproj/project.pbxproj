@@ -1,0 +1,762 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXAppleScriptBuildPhase section */
+		D3191C9807E3A51700821D03 /* AppleScript */ = {
+			isa = PBXAppleScriptBuildPhase;
+			buildActionMask = 2147483647;
+			contextName = "";
+			files = (
+				D3191CB107E3A51700821D03 /* iPodUpdate.applescript in AppleScript */,
+				D3191C9907E3A51700821D03 /* iTunesGetPlaylists.applescript in AppleScript */,
+				D39C15FC0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript in AppleScript */,
+				D3EC7B8308082DED00392110 /* iTunesGetArtworkForTrack.applescript in AppleScript */,
+				D3EC7B8408082DED00392110 /* iTunesPlaySpecifiedTrack.applescript in AppleScript */,
+			);
+			isSharedContext = 0;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXAppleScriptBuildPhase section */
+
+/* Begin PBXBuildFile section */
+		D3191C9907E3A51700821D03 /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3191C9C07E3A51700821D03 /* keychain.h in Headers */ = {isa = PBXBuildFile; fileRef = EB50662F03FBB284005DC01B /* keychain.h */; settings = {ATTRIBUTES = (); }; };
+		D3191C9D07E3A51700821D03 /* iScrobblerController.h in Headers */ = {isa = PBXBuildFile; fileRef = F575CE9802FE0E8801A80164 /* iScrobblerController.h */; settings = {ATTRIBUTES = (); }; };
+		D3191C9E07E3A51700821D03 /* PreferenceController.h in Headers */ = {isa = PBXBuildFile; fileRef = F575CEAB02FF7F3501A80164 /* PreferenceController.h */; settings = {ATTRIBUTES = (); }; };
+		D3191C9F07E3A51700821D03 /* PreferenceControllerStrings.h in Headers */ = {isa = PBXBuildFile; fileRef = EBDF4CE6040094E5005DC01B /* PreferenceControllerStrings.h */; };
+		D3191CA007E3A51700821D03 /* SongData.h in Headers */ = {isa = PBXBuildFile; fileRef = EB607518042A747B005DC01B /* SongData.h */; };
+		D3191CA107E3A51700821D03 /* QueueManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D312EB550735548F00A2CFD5 /* QueueManager.h */; };
+		D3191CA207E3A51700821D03 /* ProtocolManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */; };
+		D3191CA307E3A51700821D03 /* ProtocolManager+Subclassers.h in Headers */ = {isa = PBXBuildFile; fileRef = D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */; };
+		D3191CA407E3A51700821D03 /* ProtocolManager_v11.h in Headers */ = {isa = PBXBuildFile; fileRef = D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */; };
+		D3191CA507E3A51700821D03 /* ScrobLog.h in Headers */ = {isa = PBXBuildFile; fileRef = D3B61DF20744151D00AF5A33 /* ScrobLog.h */; };
+		D3191CA607E3A51700821D03 /* StatisticsController.h in Headers */ = {isa = PBXBuildFile; fileRef = D3CB1313077509D3009236FF /* StatisticsController.h */; };
+		D3191CA707E3A51700821D03 /* TopListsController.h in Headers */ = {isa = PBXBuildFile; fileRef = D3CB38A507A59AFE009236FF /* TopListsController.h */; };
+		D3191CA807E3A51700821D03 /* ISSearchArrayController.h in Headers */ = {isa = PBXBuildFile; fileRef = D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */; };
+		D3191CAA07E3A51700821D03 /* defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = EBBB2F1E03F7C3F2005DC01B /* defaults.plist */; };
+		D3191CAB07E3A51700821D03 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
+		D3191CAC07E3A51700821D03 /* StatisticsController.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB130E07750960009236FF /* StatisticsController.nib */; };
+		D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */ = {isa = PBXBuildFile; fileRef = DC00A46205B21B9200674DB4 /* iscrobbler.icns */; };
+		D3191CAE07E3A51700821D03 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB13A1077514A7009236FF /* Preferences.nib */; };
+		D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
+		D3191CB107E3A51700821D03 /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3191CB207E3A51700821D03 /* TopLists.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB38A207A59AE5009236FF /* TopLists.nib */; };
+		D3191CB407E3A51700821D03 /* keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = EB50662D03FBB239005DC01B /* keychain.m */; };
+		D3191CB507E3A51700821D03 /* iScrobblerController.m in Sources */ = {isa = PBXBuildFile; fileRef = F575CE9702FE0E8801A80164 /* iScrobblerController.m */; };
+		D3191CB607E3A51700821D03 /* PreferenceController.m in Sources */ = {isa = PBXBuildFile; fileRef = F575CEAA02FF7F3501A80164 /* PreferenceController.m */; };
+		D3191CB707E3A51700821D03 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
+		D3191CB807E3A51700821D03 /* SongData.m in Sources */ = {isa = PBXBuildFile; fileRef = EB607519042A747B005DC01B /* SongData.m */; };
+		D3191CB907E3A51700821D03 /* QueueManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EB560735548F00A2CFD5 /* QueueManager.m */; };
+		D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EDA007359DE000A2CFD5 /* ProtocolManager.m */; };
+		D3191CBB07E3A51700821D03 /* ProtocolManager_v11.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */; };
+		D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B61DF30744151D00AF5A33 /* ScrobLog.m */; };
+		D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB1314077509D3009236FF /* StatisticsController.m */; };
+		D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB38A607A59AFE009236FF /* TopListsController.m */; };
+		D3191CBF07E3A51700821D03 /* ISSearchArrayController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */; };
+		D3191CC107E3A51700821D03 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		D3191CC207E3A51700821D03 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069A903FBC43A005DC01B /* Security.framework */; };
+		D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B303FBC574005DC01B /* Carbon.framework */; };
+		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
+		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
+		D3191CC607E3A51700821D03 /* libcrypto.0.9.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */; };
+		D39C15FC0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
+		D3D7BB010809A806005EF5CA /* ISProfileReport.nib in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */; };
+		D3D7BB060809AC26005EF5CA /* ISProfileDocumentController.h in Headers */ = {isa = PBXBuildFile; fileRef = D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */; };
+		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
+		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
+		D3D7BB4B0809B09D005EF5CA /* ProfileReport.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
+		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
+		D3D7BDA0080A1643005EF5CA /* CD.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D7BD9F080A1643005EF5CA /* CD.png */; };
+		D3D7BDBA080A17B1005EF5CA /* CD.png in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BD9F080A1643005EF5CA /* CD.png */; };
+		D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */; };
+		D3D7C29B080B9A5B005EF5CA /* iPodLimitations.rtf in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D7C299080B9A5B005EF5CA /* iPodLimitations.rtf */; };
+		D3EC73110804F73B00392110 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
+		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
+		D3EC7B8308082DED00392110 /* iTunesGetArtworkForTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3EC7B8408082DED00392110 /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3EC7C9D080858F800392110 /* KFAppleScriptHandlerAdditionsCore.h in Headers */ = {isa = PBXBuildFile; fileRef = D3EC7C99080858F800392110 /* KFAppleScriptHandlerAdditionsCore.h */; };
+		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
+		D3EC7C9F080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h in Headers */ = {isa = PBXBuildFile; fileRef = D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */; };
+		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildRule section */
+		D3B2742D0826BC5800B8E08B /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.gcc.4_0;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			outputFiles = (
+			);
+		};
+/* End PBXBuildRule section */
+
+/* Begin PBXBuildStyle section */
+		4A9504CCFFE6A4B311CA0CBA /* Development */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_CPU = "";
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "-DISDEBUG";
+				PREBINDING = NO;
+				ZERO_LINK = NO;
+			};
+			name = Development;
+		};
+		4A9504CDFFE6A4B311CA0CBA /* Deployment */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_MODEL_TUNING = G5;
+				PREBINDING = NO;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D3EC730D0804F70F00392110 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */,
+				D3D7BB010809A806005EF5CA /* ISProfileReport.nib in CopyFiles */,
+				D3D7BB4B0809B09D005EF5CA /* ProfileReport.css in CopyFiles */,
+				D3D7BDA0080A1643005EF5CA /* CD.png in CopyFiles */,
+				D3D7C29B080B9A5B005EF5CA /* iPodLimitations.rtf in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
+		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		D312EB550735548F00A2CFD5 /* QueueManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = QueueManager.h; sourceTree = "<group>"; };
+		D312EB560735548F00A2CFD5 /* QueueManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = QueueManager.m; sourceTree = "<group>"; };
+		D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager.h; sourceTree = "<group>"; };
+		D312EDA007359DE000A2CFD5 /* ProtocolManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager.m; sourceTree = "<group>"; };
+		D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtocolManager+Subclassers.h"; sourceTree = "<group>"; };
+		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
+		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
+		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
+		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
+		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
+		D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcclassmodel; path = iScrobbler.xcclassmodel; sourceTree = "<group>"; };
+		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrobLog.h; sourceTree = "<group>"; };
+		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScrobLog.m; sourceTree = "<group>"; };
+		D3C1125808456573000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/MainMenu.nib; sourceTree = "<group>"; };
+		D3C11260084565A5000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/Preferences.nib; sourceTree = "<group>"; };
+		D3C11263084565AF000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/StatisticsController.nib; sourceTree = "<group>"; };
+		D3C11266084565BA000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/TopLists.nib; sourceTree = "<group>"; };
+		D3C11269084565C2000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
+		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D3CB130F07750960009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StatisticsController.nib; sourceTree = "<group>"; };
+		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
+		D3CB1314077509D3009236FF /* StatisticsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = StatisticsController.m; sourceTree = "<group>"; };
+		D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iTunesGetPlaylists.applescript; sourceTree = "<group>"; };
+		D3CB38A307A59AE5009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/TopLists.nib; sourceTree = "<group>"; };
+		D3CB38A507A59AFE009236FF /* TopListsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TopListsController.h; sourceTree = "<group>"; };
+		D3CB38A607A59AFE009236FF /* TopListsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = TopListsController.m; sourceTree = "<group>"; };
+		D3D4741F077407F50076AA7D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
+		D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.0.9.7.dylib; path = /usr/lib/libcrypto.0.9.7.dylib; sourceTree = "<absolute>"; };
+		D3D7BB000809A806005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
+		D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISProfileDocumentController.h; sourceTree = "<group>"; };
+		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISProfileDocumentController.m; sourceTree = "<group>"; };
+		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
+		D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ProfileReport.css; sourceTree = "<group>"; };
+		D3D7BD9F080A1643005EF5CA /* CD.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CD.png; sourceTree = "<group>"; };
+		D3D7C29A080B9A5B005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/iPodLimitations.rtf; sourceTree = "<group>"; };
+		D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iPodUpdate.applescript; sourceTree = "<group>"; };
+		D3EC73100804F73B00392110 /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Growl.framework; sourceTree = "<group>"; };
+		D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetArtworkForTrack.applescript; sourceTree = "<group>"; };
+		D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlaySpecifiedTrack.applescript; sourceTree = "<group>"; };
+		D3EC7C99080858F800392110 /* KFAppleScriptHandlerAdditionsCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KFAppleScriptHandlerAdditionsCore.h; sourceTree = "<group>"; };
+		D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KFAppleScriptHandlerAdditionsCore.m; sourceTree = "<group>"; };
+		D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "KFASHandlerAdditions-TypeTranslation.h"; sourceTree = "<group>"; };
+		D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "KFASHandlerAdditions-TypeTranslation.m"; sourceTree = "<group>"; };
+		D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ISSearchArrayController.h; sourceTree = "<group>"; };
+		D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ISSearchArrayController.m; sourceTree = "<group>"; };
+		DC00A46205B21B9200674DB4 /* iscrobbler.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = iscrobbler.icns; sourceTree = "<group>"; };
+		EB16394A04080C51005DC01B /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		EB1639550408132E005DC01B /* INSTALL */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = INSTALL; sourceTree = "<group>"; };
+		EB24D529040AECC8005DC01B /* CHANGE_LOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGE_LOG; sourceTree = "<group>"; };
+		EB45285C040A8D11005DC01B /* KNOWN_ISSUES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = KNOWN_ISSUES; sourceTree = "<group>"; };
+		EB50662D03FBB239005DC01B /* keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = keychain.m; sourceTree = "<group>"; };
+		EB50662F03FBB284005DC01B /* keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keychain.h; sourceTree = "<group>"; };
+		EB5069A903FBC43A005DC01B /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
+		EB5069B303FBC574005DC01B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		EB5069B403FBC574005DC01B /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
+		EB607518042A747B005DC01B /* SongData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; path = SongData.h; sourceTree = "<group>"; };
+		EB607519042A747B005DC01B /* SongData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = SongData.m; sourceTree = "<group>"; };
+		EBBB2F1E03F7C3F2005DC01B /* defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; lineEnding = 0; path = defaults.plist; sourceTree = "<group>"; };
+		EBDF4CE6040094E5005DC01B /* PreferenceControllerStrings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferenceControllerStrings.h; sourceTree = "<group>"; };
+		F575CE9702FE0E8801A80164 /* iScrobblerController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = iScrobblerController.m; sourceTree = "<group>"; };
+		F575CE9802FE0E8801A80164 /* iScrobblerController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = iScrobblerController.h; sourceTree = "<group>"; };
+		F575CEAA02FF7F3501A80164 /* PreferenceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = PreferenceController.m; sourceTree = "<group>"; };
+		F575CEAB02FF7F3501A80164 /* PreferenceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PreferenceController.h; sourceTree = "<group>"; };
+		F575CEAE02FF7FB901A80164 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D3191CC007E3A51700821D03 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3191CC107E3A51700821D03 /* Cocoa.framework in Frameworks */,
+				D3191CC207E3A51700821D03 /* Security.framework in Frameworks */,
+				D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */,
+				D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */,
+				D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */,
+				D3191CC607E3A51700821D03 /* libcrypto.0.9.7.dylib in Frameworks */,
+				D3EC73110804F73B00392110 /* Growl.framework in Frameworks */,
+				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		080E96DDFE201D6D7F000001 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				F575CE9702FE0E8801A80164 /* iScrobblerController.m */,
+				D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */,
+				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
+				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
+				F575CEAA02FF7F3501A80164 /* PreferenceController.m */,
+				EB50662D03FBB239005DC01B /* keychain.m */,
+				D312EB560735548F00A2CFD5 /* QueueManager.m */,
+				D312EDA007359DE000A2CFD5 /* ProtocolManager.m */,
+				D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */,
+				EB607519042A747B005DC01B /* SongData.m */,
+				D3B61DF30744151D00AF5A33 /* ScrobLog.m */,
+				D3CB1314077509D3009236FF /* StatisticsController.m */,
+				D3CB38A607A59AFE009236FF /* TopListsController.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D3D7BB1B0809AD09005EF5CA /* WebKit.framework */,
+				D3EC73100804F73B00392110 /* Growl.framework */,
+				D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */,
+				D3D4741F077407F50076AA7D /* SystemConfiguration.framework */,
+				EB5069B303FBC574005DC01B /* Carbon.framework */,
+				EB5069B403FBC574005DC01B /* CoreFoundation.framework */,
+				EB5069A903FBC43A005DC01B /* Security.framework */,
+				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
+				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		19C28FACFE9D520D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D3191CC907E3A51700821D03 /* iScrobbler.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		29B97314FDCFA39411CA2CEA /* Recent Tunes */ = {
+			isa = PBXGroup;
+			children = (
+				080E96DDFE201D6D7F000001 /* Classes */,
+				EB50663103FBB296005DC01B /* Headers */,
+				D3EC7C98080858F800392110 /* KFASAdditions */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				D3D7C26F080B99ED005EF5CA /* Documentation */,
+				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				19C28FACFE9D520D11CA2CBB /* Products */,
+			);
+			name = "Recent Tunes";
+			sourceTree = "<group>";
+		};
+		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				EBDF4CE6040094E5005DC01B /* PreferenceControllerStrings.h */,
+				29B97316FDCFA39411CA2CEA /* main.m */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D3C1126C084565DF000AA2BC /* Localizable.strings */,
+				D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */,
+				EBBB2F1E03F7C3F2005DC01B /* defaults.plist */,
+				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
+				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
+				D3CB13A1077514A7009236FF /* Preferences.nib */,
+				D3CB130E07750960009236FF /* StatisticsController.nib */,
+				D3CB38A207A59AE5009236FF /* TopLists.nib */,
+				D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */,
+				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
+				D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */,
+				D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */,
+				D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */,
+				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
+				D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */,
+				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
+				D3D7BD9F080A1643005EF5CA /* CD.png */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
+				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D3D7C26F080B99ED005EF5CA /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */,
+				D3D7C299080B9A5B005EF5CA /* iPodLimitations.rtf */,
+				EB45285C040A8D11005DC01B /* KNOWN_ISSUES */,
+				EB24D529040AECC8005DC01B /* CHANGE_LOG */,
+				EB16394A04080C51005DC01B /* README */,
+				EB1639550408132E005DC01B /* INSTALL */,
+			);
+			includeInIndex = 0;
+			name = Documentation;
+			sourceTree = "<group>";
+		};
+		D3EC7C98080858F800392110 /* KFASAdditions */ = {
+			isa = PBXGroup;
+			children = (
+				D3EC7C99080858F800392110 /* KFAppleScriptHandlerAdditionsCore.h */,
+				D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */,
+				D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */,
+				D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */,
+			);
+			path = KFASAdditions;
+			sourceTree = "<group>";
+		};
+		EB50663103FBB296005DC01B /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
+				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
+				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
+				EB50662F03FBB284005DC01B /* keychain.h */,
+				EB607518042A747B005DC01B /* SongData.h */,
+				D312EB550735548F00A2CFD5 /* QueueManager.h */,
+				D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */,
+				D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */,
+				D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */,
+				D3B61DF20744151D00AF5A33 /* ScrobLog.h */,
+				D3CB1313077509D3009236FF /* StatisticsController.h */,
+				D3CB38A507A59AFE009236FF /* TopListsController.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D3191C9B07E3A51700821D03 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3191C9C07E3A51700821D03 /* keychain.h in Headers */,
+				D3191C9D07E3A51700821D03 /* iScrobblerController.h in Headers */,
+				D3191C9E07E3A51700821D03 /* PreferenceController.h in Headers */,
+				D3191C9F07E3A51700821D03 /* PreferenceControllerStrings.h in Headers */,
+				D3191CA007E3A51700821D03 /* SongData.h in Headers */,
+				D3191CA107E3A51700821D03 /* QueueManager.h in Headers */,
+				D3191CA207E3A51700821D03 /* ProtocolManager.h in Headers */,
+				D3191CA307E3A51700821D03 /* ProtocolManager+Subclassers.h in Headers */,
+				D3191CA407E3A51700821D03 /* ProtocolManager_v11.h in Headers */,
+				D3191CA507E3A51700821D03 /* ScrobLog.h in Headers */,
+				D3191CA607E3A51700821D03 /* StatisticsController.h in Headers */,
+				D3191CA707E3A51700821D03 /* TopListsController.h in Headers */,
+				D3191CA807E3A51700821D03 /* ISSearchArrayController.h in Headers */,
+				D3EC7C9D080858F800392110 /* KFAppleScriptHandlerAdditionsCore.h in Headers */,
+				D3EC7C9F080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h in Headers */,
+				D3D7BB060809AC26005EF5CA /* ISProfileDocumentController.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D3191C9707E3A51700821D03 /* iScrobbler */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D328477E08566B30009B4D14 /* Build configuration list for PBXNativeTarget "iScrobbler" */;
+			buildPhases = (
+				D3EC730D0804F70F00392110 /* CopyFiles */,
+				D3191C9807E3A51700821D03 /* AppleScript */,
+				D3191C9B07E3A51700821D03 /* Headers */,
+				D3191CA907E3A51700821D03 /* Resources */,
+				D3191CB307E3A51700821D03 /* Sources */,
+				D3191CC007E3A51700821D03 /* Frameworks */,
+				D3191CC707E3A51700821D03 /* Rez */,
+			);
+			buildRules = (
+				D3B2742D0826BC5800B8E08B /* PBXBuildRule */,
+			);
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = "Info-iScrobbler.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_FLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobbler;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+			};
+			dependencies = (
+			);
+			name = iScrobbler;
+			productInstallPath = "$(HOME)/Applications";
+			productName = iScrobbler;
+			productReference = D3191CC907E3A51700821D03 /* iScrobbler.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				4A9504CCFFE6A4B311CA0CBA /* Development */,
+				4A9504CDFFE6A4B311CA0CBA /* Deployment */,
+			);
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+				de,
+			);
+			mainGroup = 29B97314FDCFA39411CA2CEA /* Recent Tunes */;
+			projectDirPath = "";
+			targets = (
+				D3191C9707E3A51700821D03 /* iScrobbler */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D3191CA907E3A51700821D03 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */,
+				D3191CAA07E3A51700821D03 /* defaults.plist in Resources */,
+				D3191CAB07E3A51700821D03 /* MainMenu.nib in Resources */,
+				D3191CAC07E3A51700821D03 /* StatisticsController.nib in Resources */,
+				D3191CAE07E3A51700821D03 /* Preferences.nib in Resources */,
+				D3191CB207E3A51700821D03 /* TopLists.nib in Resources */,
+				D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */,
+				D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */,
+				D3D7BDBA080A17B1005EF5CA /* CD.png in Resources */,
+				D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */,
+				D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXRezBuildPhase section */
+		D3191CC707E3A51700821D03 /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXRezBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D3191CB307E3A51700821D03 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3191CB407E3A51700821D03 /* keychain.m in Sources */,
+				D3191CB507E3A51700821D03 /* iScrobblerController.m in Sources */,
+				D3191CB607E3A51700821D03 /* PreferenceController.m in Sources */,
+				D3191CB707E3A51700821D03 /* main.m in Sources */,
+				D3191CB807E3A51700821D03 /* SongData.m in Sources */,
+				D3191CB907E3A51700821D03 /* QueueManager.m in Sources */,
+				D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */,
+				D3191CBB07E3A51700821D03 /* ProtocolManager_v11.m in Sources */,
+				D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */,
+				D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */,
+				D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */,
+				D3191CBF07E3A51700821D03 /* ISSearchArrayController.m in Sources */,
+				D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */,
+				D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */,
+				D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C165DFE840E0CC02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		29B97318FDCFA39411CA2CEA /* MainMenu.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				29B97319FDCFA39411CA2CEA /* English */,
+				D3C1125808456573000AA2BC /* de */,
+			);
+			name = MainMenu.nib;
+			sourceTree = "<group>";
+		};
+		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3C1126D084565DF000AA2BC /* de */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		D3CB130E07750960009236FF /* StatisticsController.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3CB130F07750960009236FF /* English */,
+				D3C11263084565AF000AA2BC /* de */,
+			);
+			name = StatisticsController.nib;
+			sourceTree = "<group>";
+		};
+		D3CB13A1077514A7009236FF /* Preferences.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F575CEAE02FF7FB901A80164 /* English */,
+				D3C11260084565A5000AA2BC /* de */,
+			);
+			name = Preferences.nib;
+			sourceTree = "<group>";
+		};
+		D3CB38A207A59AE5009236FF /* TopLists.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3CB38A307A59AE5009236FF /* English */,
+				D3C11266084565BA000AA2BC /* de */,
+			);
+			name = TopLists.nib;
+			sourceTree = "<group>";
+		};
+		D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3D7BB000809A806005EF5CA /* English */,
+				D3C11269084565C2000AA2BC /* de */,
+			);
+			name = ISProfileReport.nib;
+			sourceTree = "<group>";
+		};
+		D3D7C299080B9A5B005EF5CA /* iPodLimitations.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3D7C29A080B9A5B005EF5CA /* English */,
+			);
+			name = iPodLimitations.rtf;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		D328477F08566B30009B4D14 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_CPU = "";
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = "Info-iScrobbler.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_FLAGS = "";
+				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "-DISDEBUG";
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobbler;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = NO;
+			};
+			name = Development;
+		};
+		D328478008566B30009B4D14 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_MODEL_TUNING = G5;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = "Info-iScrobbler.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_FLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobbler;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+		D328478108566B30009B4D14 /* Default */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = "Info-iScrobbler.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_FLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobbler;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+			};
+			name = Default;
+		};
+		D328478308566B30009B4D14 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_MODEL_TUNING = G5;
+				PREBINDING = NO;
+			};
+			name = Development;
+		};
+		D328478408566B30009B4D14 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_MODEL_TUNING = G5;
+				PREBINDING = NO;
+			};
+			name = Deployment;
+		};
+		D328478508566B30009B4D14 /* Default */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_MODEL_TUNING = G5;
+				PREBINDING = NO;
+			};
+			name = Default;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D328477E08566B30009B4D14 /* Build configuration list for PBXNativeTarget "iScrobbler" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D328477F08566B30009B4D14 /* Development */,
+				D328478008566B30009B4D14 /* Deployment */,
+				D328478108566B30009B4D14 /* Default */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
+		};
+		D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D328478308566B30009B4D14 /* Development */,
+				D328478408566B30009B4D14 /* Deployment */,
+				D328478508566B30009B4D14 /* Default */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}
