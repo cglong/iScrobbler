@@ -137,27 +137,26 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         result = [NSMutableString stringWithString:@"FAILED\nConnection failed"];
 	}
     
-NS_DURING
-    [self setHandshakeResult:[self handshakeResponse:result]];
-NS_HANDLER
-    result = [NSMutableString stringWithString:@"FAILED\nInternal exception caused by bad server response."];
-    [self setHandshakeResult:[NSDictionary dictionaryWithObjectsAndKeys:
-        HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
-        result, HS_RESPONSE_KEY_RESULT_MSG,
-        @"", HS_RESPONSE_KEY_MD5,
-        @"", HS_RESPONSE_KEY_SUBMIT_URL,
-        @"", HS_RESPONSE_KEY_UPDATE_URL,
-        @"", HS_RESPONSE_KEY_INTERVAL,
-        nil]];
-NS_ENDHANDLER
+    @try {
+        [self setHandshakeResult:[self handshakeResponse:result]];
+    } @catch (NSException *exception) {
+        result = [NSMutableString stringWithString:
+            @"FAILED\nInternal exception caused by bad server response."];
+        [self setHandshakeResult:[NSDictionary dictionaryWithObjectsAndKeys:
+            HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
+            result, HS_RESPONSE_KEY_RESULT_MSG,
+            @"", HS_RESPONSE_KEY_MD5,
+            @"", HS_RESPONSE_KEY_SUBMIT_URL,
+            @"", HS_RESPONSE_KEY_UPDATE_URL,
+            @"", HS_RESPONSE_KEY_INTERVAL,
+            nil]];
+    }
 	
-	if ([self validHandshake]) {
+	BOOL success;
+    if ((success = [self validHandshake])) {
         hsState = hs_valid;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
         lastAttemptBadAuth = NO; // Reset now that we have a new session.
-        
-        if ([[QueueManager sharedInstance] count])
-            [self submit:nil];
 	} else {
         if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
             hsState = hs_needed;
@@ -173,6 +172,9 @@ NS_ENDHANDLER
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
+    
+    if (success && [[QueueManager sharedInstance] count])
+        [self submit:nil];
 }
 
 - (void)handshake
@@ -391,7 +393,7 @@ NS_ENDHANDLER
     
     int i;
     NSMutableString *result = [[[NSMutableString alloc] initWithData:myData encoding:NSUTF8StringEncoding] autorelease];
-    // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade
+    // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade)
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
     //[self changeLastResult:result];
