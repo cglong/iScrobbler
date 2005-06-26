@@ -134,14 +134,14 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 	ScrobLog(SCROB_LOG_VERBOSE, @"Handshake result: %@\n", result);
 	if ([result length] == 0) {
 		ScrobLog(SCROB_LOG_WARN, @"Handshake connection failed.\n");
-        result = [NSMutableString stringWithString:@"FAILED\nConnection failed"];
+        result = [NSMutableString stringWithString:@"FAILED Connection failed"];
 	}
     
     @try {
         [self setHandshakeResult:[self handshakeResponse:result]];
     } @catch (NSException *exception) {
         result = [NSMutableString stringWithString:
-            @"FAILED\nInternal exception caused by bad server response."];
+            @"FAILED Internal exception caused by bad server response."];
         [self setHandshakeResult:[NSDictionary dictionaryWithObjectsAndKeys:
             HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
             result, HS_RESPONSE_KEY_RESULT_MSG,
@@ -460,7 +460,7 @@ didFinishLoadingExit:
     
     if (hs_inprogress == hsState) {
         // Emulate a server error
-        NSData *response = [[@"FAILED\nConnection failed - " stringByAppendingString:[reason localizedDescription]]
+        NSData *response = [[@"FAILED Connection failed - " stringByAppendingString:[reason localizedDescription]]
             dataUsingEncoding:NSUTF8StringEncoding];
         [self completeHandshake:response];
         return;
