@@ -64,19 +64,10 @@
     - (double)resubmitInterval;
 @end
 
-#if 0
-static NSTimer *updateStatusTimer = nil;
-#endif
 @implementation iScrobblerController
 
-- (void)updateStatusOperation:(BOOL)opBegin withStatus:(BOOL)opSuccess
+- (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:msg
 {
-#if 0
-    if (updateStatusTimer) {
-        [updateStatusTimer invalidate];
-        updateStatusTimer = nil;
-    }
-#endif
     if (statusItem) {
         NSString *title = [statusItem title];
         NSColor *color;
@@ -87,29 +78,25 @@ static NSTimer *updateStatusTimer = nil;
                 color = [NSColor blackColor];
             else {
                 color = [NSColor redColor];
-            #if 0
-                updateStatusTimer = [NSTimer scheduledTimerWithTimeInterval:30.0 target:self
-                    selector:@selector(clearStatusOperation:) userInfo:nil repeats:NO];
-            #endif
             }
         }
         
         NSAttributedString *newTitle = [[NSAttributedString alloc] initWithString:title
             attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
-            // If we don't speficy this it defaults to Helvitica 12
+            // If we don't specify this, the font defaults to Helvitica 12
             [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
         [statusItem setAttributedTitle:newTitle];
         [newTitle release];
     }
+    
+    if (msg) {
+        // Get rid of extraneous protocol information
+        NSArray *items = [msg componentsSeparatedByString:@"\n"];
+        if (items && [items count] > 0)
+            msg = [items objectAtIndex:0];
+    }
+    [statusItem setToolTip:msg];
 }
-
-#if 0
-- (void)clearStatusOperation:(NSTimer*)timer
-{
-    updateStatusTimer = nil;
-    [self updateStatusOperation:NO withStatus:YES];
-}
-#endif
 
 // PM notifications
 
@@ -123,9 +110,13 @@ static NSTimer *updateStatusTimer = nil;
         [self showBadCredentialsDialog];
     
     BOOL status = NO;
-    if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK])
+    NSString *msg = nil;
+    if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
-    [self updateStatusOperation:NO withStatus:status];
+    } else {
+        msg = [pm lastHandshakeMessage];
+    }
+    [self updateStatus:status withOperation:NO withMsg:msg];
 }
 
 - (void)badAuthHandler:(NSNotification*)note
@@ -135,21 +126,25 @@ static NSTimer *updateStatusTimer = nil;
 
 - (void)handshakeStartHandler:(NSNotification*)note
 {
-    [self updateStatusOperation:YES withStatus:YES];
+    [self updateStatus:YES withOperation:YES withMsg:nil];
 }
 
 - (void)submitCompleteHandler:(NSNotification*)note
 {
     BOOL status = NO;
     ProtocolManager *pm = [note object];
-    if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK])
+    NSString *msg = nil;
+    if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
-    [self updateStatusOperation:NO withStatus:status];
+    } else {
+        msg = [pm lastSubmissionMessage];
+    }
+    [self updateStatus:status withOperation:NO withMsg:msg];
 }
 
 - (void)submitStartHandler:(NSNotification*)note
 {
-    [self updateStatusOperation:YES withStatus:YES];
+    [self updateStatus:YES withOperation:YES withMsg:nil];
 }
 
 // End PM Notifications
