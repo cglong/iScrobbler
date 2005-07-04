@@ -38,6 +38,9 @@
     <key>IgnoreArtwork</key>
     <false />
     
+    <key>IgnorePodcasts</key>
+    <false />
+    
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
         

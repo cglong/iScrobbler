@@ -43,9 +43,15 @@ tell application "iTunes"
 		end try
 		set trackPlaylistID to index of the container of theTrack
 		set trackSource to name of the container of the container of theTrack as Unicode text
+		set trackPodcast to 0
+		try
+			if podcast of theTrack is true then
+				set trackPodcast to 1
+			end if
+		end try
 	end try
 	
 end tell
 
-set trackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource}
+set trackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource, trackPodcast}
 return trackInfo

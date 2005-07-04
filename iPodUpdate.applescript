@@ -63,8 +63,14 @@ on UpdateiPod(thePlaylistName, theDate)
 							if genre of theTrack is not missing value then
 								set songGenre to genre of theTrack as Unicode text
 							end if
+							set trackPodcast to 0
+							try
+								if podcast of theTrack is true then
+									set trackPodcast to 1
+								end if
+							end try
 							-- if you add/remove members, make sure to update IPOD_SYNC_VALUE_COUNT in iScrobblerController+Private.m
-                        set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre}
+							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast}
 							set out to out & {trackInfo}
 						end repeat
 						

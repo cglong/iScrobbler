@@ -639,6 +639,16 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     return (image);
 }
 
+- (BOOL)isPodcast
+{
+    return (isPodcast);
+}
+
+- (void)setIsPodcast:(BOOL)podcast
+{
+    isPodcast = podcast;
+}
+
 - (BOOL)ignore
 {
     static NSSet *filters = nil;
@@ -646,6 +656,11 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     
     if (passedFilters)
         return (NO);
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnorePodcasts"] &&
+            [self isPodcast]) {
+        return (YES);
+    }
     
     if (!filters && load) {
         filters = [[NSSet alloc] initWithArray:

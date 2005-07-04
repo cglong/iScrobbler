@@ -37,6 +37,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSString *sourceName;
     NSString *genre;
     TrackType_t trackType;
+    BOOL isPodcast;
     BOOL hasQueued;
     BOOL hasSeeked;
     BOOL reconstituted;
@@ -148,6 +149,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (NSNumber*)elapsedTime;
 
 - (NSImage*)artwork;
+
+- (BOOL)isPodcast;
+- (void)setIsPodcast:(BOOL)podcast;
 
 - (BOOL)ignore;
 

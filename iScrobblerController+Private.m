@@ -64,7 +64,7 @@
 
 // =========== iPod Support ============
 
-#define IPOD_SYNC_VALUE_COUNT 11
+#define IPOD_SYNC_VALUE_COUNT 12
 
 #define ONE_DAY 86400.0
 #define ONE_WEEK (ONE_DAY * 7.0)
@@ -354,6 +354,9 @@ bad_song_data:
         [self setLastPlayed:lastPlayedTime ? lastPlayedTime : [NSDate date]];
         [self setRating:[data objectAtIndex:9]];
         [self setGenre:[data objectAtIndex:10]];
+        NSNumber *trackPodcast = [data objectAtIndex:11];
+        if (trackPodcast && [trackPodcast intValue] > 0)
+            [self setIsPodcast:YES];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data: %@\n", exception);
         goto bad_song_data;
