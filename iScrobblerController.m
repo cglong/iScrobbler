@@ -432,8 +432,12 @@ queue_exit:
         
         // Notify Growl
         NSData *artwork = nil;
-        if ([GrowlApplicationBridge isGrowlRunning])
+        if ([GrowlApplicationBridge isGrowlRunning]) {
+            @try {
             artwork = [[currentSong artwork] TIFFRepresentation];
+            } @catch (NSException*) {
+            }
+        }
         [GrowlApplicationBridge
             notifyWithTitle:IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE
             description:IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO([currentSong title], [currentSong fullStarRating],
