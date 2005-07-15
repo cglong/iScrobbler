@@ -24,7 +24,7 @@ fi
 echo "Using ${BIN}/iScrobbler.app, continue?"
 read ANS
 
-if [ ${ANS} != 'y' ] && [ ${ANS} != 'Y' ]; then
+if [ ! -z ${ANS} ] && [ ${ANS} != 'y' ] && [ ${ANS} != 'Y' ]; then
 	exit 2
 fi
 
