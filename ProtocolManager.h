@@ -96,6 +96,8 @@
 #define PM_NOTIFICATION_BADAUTH @"PMBadAuth"
 #define PM_NOTIFICATION_SUBMIT_COMPLETE @"PMSubmitComplete"
 #define PM_NOTIFICATION_SUBMIT_START @"PMSubmitStart"
+#define PM_NOTIFICATION_NETWORK_STATUS @"PMNetworkStatus"
+#define PM_NOTIFICATION_NETWORK_STATUS_KEY @"PMNetworkStatusKey" 
 
 // Handshake and Submission result values
 #define HS_RESULT_OK @"OK"

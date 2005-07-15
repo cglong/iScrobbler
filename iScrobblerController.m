@@ -66,28 +66,15 @@
 
 @implementation iScrobblerController
 
-- (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:msg
+- (void)updateStatusWithColor:(NSColor*)color withMsg:msg
 {
-    if (statusItem) {
-        NSString *title = [statusItem title];
-        NSColor *color;
-        if (opBegin)
-            color = [NSColor greenColor];
-        else {
-            if (opSuccess)
-                color = [NSColor blackColor];
-            else {
-                color = [NSColor redColor];
-            }
-        }
-        
-        NSAttributedString *newTitle = [[NSAttributedString alloc] initWithString:title
+    NSAttributedString *newTitle =
+        [[NSAttributedString alloc] initWithString:[statusItem title]
             attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
             // If we don't specify this, the font defaults to Helvitica 12
             [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-        [statusItem setAttributedTitle:newTitle];
-        [newTitle release];
-    }
+    [statusItem setAttributedTitle:newTitle];
+    [newTitle release];
     
     if (msg) {
         // Get rid of extraneous protocol information
@@ -96,6 +83,22 @@
             msg = [items objectAtIndex:0];
     }
     [statusItem setToolTip:msg];
+}
+
+- (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:msg
+{
+    NSColor *color;
+    if (opBegin)
+        color = [NSColor greenColor];
+    else {
+        if (opSuccess)
+            color = [NSColor blackColor];
+        else {
+            color = [NSColor redColor];
+        }
+    }
+    
+    [self updateStatusWithColor:color withMsg:msg];
 }
 
 // PM notifications
@@ -145,6 +148,38 @@
 - (void)submitStartHandler:(NSNotification*)note
 {
     [self updateStatus:YES withOperation:YES withMsg:nil];
+}
+
+- (void)networkStatusHandler:(id)obj // NSNotification OR NSTimer
+{
+    static NSTimer *netStatusTimer = nil;
+    static BOOL createTimer = YES;
+    
+    NSNumber *available = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_STATUS_KEY];
+    
+    if (netStatusTimer) {
+        [netStatusTimer invalidate];
+        netStatusTimer = nil;
+        createTimer = NO; // Only try the timer once
+    }
+    
+    if (statusItem) {
+        if (available && ![available boolValue]) {
+            [self updateStatusWithColor:[NSColor orangeColor] withMsg:
+                NSLocalizedString(@"Network is not available.", "")];
+        } else {
+            [self updateStatusWithColor:[NSColor blackColor] withMsg:nil];
+        }
+    } else if (createTimer) {
+        // At launch, the status item will be nil when the Protocol Mgr is initialized,
+        // so we create a timer to deal with this.
+        // 10 seconds should be plenty of time for launch to finish
+        netStatusTimer = [NSTimer scheduledTimerWithTimeInterval:10.0
+                                target:self
+                                selector:@selector(networkStatusHandler:)
+                                userInfo:[obj userInfo]
+                                repeats:NO];
+    }
 }
 
 // End PM Notifications
@@ -564,7 +599,13 @@ player_info_exit:
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
             object:nil];
         
-        // Create protocol mgr
+        // Create protocol mgr -- register the up/down notification before, because
+        // PM init can send it
+        [nc addObserver:self
+                selector:@selector(networkStatusHandler:)
+                name:PM_NOTIFICATION_NETWORK_STATUS
+                object:nil];
+        
         (void)[ProtocolManager sharedInstance];
         
         // Register for PM notifications

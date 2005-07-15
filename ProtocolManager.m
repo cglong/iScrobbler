@@ -597,6 +597,10 @@ didFinishLoadingExit:
         handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
     ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is available? \"%@\".\n",
         isNetworkAvailable ? @"Yes" : @"No");
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_NETWORK_STATUS
+        object:self userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:available]
+            forKey:PM_NOTIFICATION_NETWORK_STATUS_KEY]];
 }
 
 #define IsNetworkUp(flags) \
@@ -615,8 +619,11 @@ didFinishLoadingExit:
         // Get the current state
         SCNetworkConnectionFlags connectionFlags;
         if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
-             IsNetworkUp(connectionFlags))
-            isNetworkAvailable = YES;
+             IsNetworkUp(connectionFlags)) {
+            [self setIsNetworkAvailable:YES];
+        } else {
+            [self setIsNetworkAvailable:NO];
+        }
         // Install a callback to get notified of iface up/down events
         SCNetworkReachabilityContext reachContext = {0};
         reachContext.info = self;
@@ -754,6 +761,6 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     
     ScrobTrace(@"Connection flags: %x.\n", flags);
     [pm setIsNetworkAvailable:up];
-    if (up)
+    if (up && [[QueueManager sharedInstance] count])
         [pm submit:nil];
 }
