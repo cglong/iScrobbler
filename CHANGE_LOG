@@ -14,13 +14,13 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.1.2 (BDB)
-- The note menu font no longer shrinks when changing colors.
-- On a failure, the menu color will stay red until the next submission attempt and a tooltip will be available with the error message.
-- German localization is now included thanks to Damrod.
-- New pref "Enable Podcast Submissions". This is off by default. If you turn this on with iTunes 4.9 or higher, any track iTunes labels as a podcast will not be submitted.
+- If a network connection is not available, the Note menu will change its color to orange.
+- If a submission failure occurs, the menu color will stay red until the next submission attempt and a tooltip will be available with the error message.
 - New pref "Enable Track Artwork". This is on by default -- if you experience problems with iTunes hanging, turn this off.
+- German localization is now included thanks to Damrod.
 - Updated Growl framework to .7.
 - iPod tracks with a play date in the future (relative to the local system time) will now be discarded.
+- Fixed: The note menu font no longer shrinks when changing colors.
 
 v1.1.1 (BDB)
 - IMPORTANT CHANGE: The log file is now automatically truncated during launch if it's larger than 2 MiB.
