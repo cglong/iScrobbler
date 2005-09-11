@@ -568,7 +568,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
         }
     }
 	
-    if (![self playlistID] || ![self sourceName]) {
+    if (![self sourceName]) {
         ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
         return (nil);
     }
@@ -600,7 +600,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
         if (trackTypeFile == [self type]) {
             // Only query local files, since iTunes (as of 4.7.1) does not support artwork over Shared sources
             image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
-                [self playlistID], [NSNumber numberWithInt:[self iTunesDatabaseID]], nil];
+                [self artist], [self album], nil];
             if (!([image isEqual:[NSNull null]])) {
                 if ([image isValid])
                     cache = YES;
