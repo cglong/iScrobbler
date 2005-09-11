@@ -11,6 +11,7 @@ set trackRating to 0
 set trackPlaylistID to -1
 set trackSource to ""
 set trackLastPlayed to current date
+set trackPodcast to 0
 --set emtpyTrackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource}
 
 
@@ -43,7 +44,6 @@ tell application "iTunes"
 		end try
 		set trackPlaylistID to index of the container of theTrack
 		set trackSource to name of the container of the container of theTrack as Unicode text
-		set trackPodcast to 0
 		try
 			if podcast of theTrack is true then
 				set trackPodcast to 1
