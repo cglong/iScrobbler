@@ -50,6 +50,9 @@
     BOOL isIPodMounted;
     NSDate *iTunesLastPlayedTime;
     NSArray *iTunesPlaylists;
+    
+    // Temporarily disable submissions
+    BOOL submissionsDisabled;
 }
 
 //sync songList and theMenu
@@ -74,6 +77,8 @@
 -(IBAction)cleanLog:(id)sender;
 
 -(IBAction)performFindPanelAction:(id)sender;
+
+-(IBAction)enableDisableSubmissions:(id)sender;
 
 -(NSString *)md5hash:(NSString *)input;
 

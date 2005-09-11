@@ -5,6 +5,7 @@
             ACTIONS = {
                 cleanLog = id; 
                 clearMenu = id; 
+                enableDisableSubmissions = id; 
                 openPrefs = id; 
                 openScrobblerHomepage = id; 
                 openStatistics = id; 

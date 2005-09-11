@@ -30,6 +30,11 @@
 [NSString stringWithFormat:NSLocalizedString(@"Track: %@ (%@)\nAlbum: %@\nArtist: %@", ""), \
 (track), (rating), (album), (artist)]
 
+// UTF16 barred eigth notes
+#define MENU_TITLE_CHAR 0x266B
+// UTF16 sharp note 
+#define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
+
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
 - (IBAction)syncIPod:(id)sender;
@@ -314,6 +319,9 @@ queue_exit:
     [getTrackInfoTimer invalidate];
     getTrackInfoTimer = nil;
     
+    if (submissionsDisabled)
+        return;
+    
     double fireInterval;
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
@@ -507,8 +515,7 @@ player_info_exit:
         if (!statusItem) {
             statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
             
-            // 0x266B == UTF8 barred eigth notes
-            [statusItem setTitle:[NSString stringWithFormat:@"%C",0x266B]];
+            [statusItem setTitle:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]];
             [statusItem setHighlightMode:YES];
             [statusItem setMenu:theMenu];
             [statusItem setEnabled:YES];
@@ -697,6 +704,31 @@ player_info_exit:
             [self volumeDidMount:note];
         }
     }
+}
+
+-(IBAction)enableDisableSubmissions:(id)sender
+{
+    unichar ch;
+    if (!submissionsDisabled) {
+        submissionsDisabled = YES;
+        ch = MENU_TITLE_SUB_DISABLED_CHAR;
+        [sender setTitle:NSLocalizedString(@"Resume Submissions", "")];
+    } else {
+        submissionsDisabled = NO;
+        ch = MENU_TITLE_CHAR;
+        [sender setTitle:NSLocalizedString(@"Pause Submissions", "")];
+    }
+    NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
+    if (!color)
+        color = [NSColor blackColor];
+    
+    NSAttributedString *newTitle =
+        [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1]
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
+            // If we don't specify this, the font defaults to Helvitica 12
+            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
+    [statusItem setAttributedTitle:newTitle];
+    [newTitle release];
 }
 
 - (void)updateMenu
