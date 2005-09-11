@@ -486,6 +486,11 @@ didFinishLoadingExit:
     ScrobLog(SCROB_LOG_INFO, @"Connection error -- tracks in queue: %u", [[QueueManager sharedInstance] count]);
 }
 
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
+{
+    return (nil); // we don't want to store any cached data on disk
+}
+
 - (void)resubmit:(NSTimer*)timer
 {
     resubmitTimer = nil;
