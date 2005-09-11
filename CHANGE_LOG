@@ -13,6 +13,12 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v1.1.3 (BDB)
+- Updated to Growl framework .7.2.
+- New Pause/Resume Submissions menu (by request). When paused, the note menu will change to a sharp. iPod tracks are not affected by this, and will always be submitted.
+- The Artwork script has been optimized, there should be no more iTunes hangs even with the pref enabled.
+- Fixed a possible "The variable trackPodcast is not defined." script error when playing some types of tracks.
+
 v1.1.2 (BDB)
 - If a network connection is not available, the Note menu will change its color to orange.
 - If a submission failure occurs, the menu color will stay red until the next submission attempt and a tooltip will be available with the error message.
