@@ -131,7 +131,7 @@ validate:
     static NSAppleScript *iPodUpdateScript = nil;
     ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
-    if ([prefs boolForKey:@"Sync iPod"]) {
+    if ([prefs boolForKey:@"Sync iPod"] && !submissionsDisabled) {
         NSArray *trackList, *trackData;
         NSString *errInfo = nil, *playlist;
         NSTimeInterval now, fudge;
@@ -169,14 +169,39 @@ validate:
         } else {
             [self setITunesLastPlayedTime:[NSDate date]];
         }
+        // There's a bug here: if the user pauses submissions, then turns them back on
+        // and plugs in the iPod, the last q'd/sub'd date will be used and most/all
+        // of the tracks played during the pause will be picked up (in auto-sync mode).
+        // I really can't think of a way to catch this case w/o all kinds of hackery
+        // in the Q/Protocol mgr's, so I'm just going to let it stand.
+        SongData *lastSubmission;
+        NSArray *queuedSongs = [[[QueueManager sharedInstance] songs]
+            sortedArrayUsingSelector:@selector(compareSongPostDate:)];
+        if (queuedSongs && [queuedSongs count] > 0)
+            lastSubmission = [queuedSongs lastObject];
+        else
+            lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
+        NSDate *requestDate;
+        if (lastSubmission) {
+            requestDate = [NSDate dateWithTimeIntervalSince1970:
+                [[lastSubmission startTime] timeIntervalSince1970] +
+                [[lastSubmission duration] doubleValue]];
+            // If the song was paused the following will be true.
+            if ([[lastSubmission lastPlayed] isGreaterThan:requestDate])
+                requestDate = [lastSubmission lastPlayed];
+            
+            requestDate = [NSDate dateWithTimeIntervalSince1970:
+                [requestDate timeIntervalSince1970] + [SongData songTimeFudge]];
+        } else
+            requestDate = iTunesLastPlayedTime;
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
-            iTunesLastPlayedTime);
+            requestDate);
         // Run script
         trackList = nil;
         @try {
             trackList = [iPodUpdateScript executeHandler:@"UpdateiPod" withParameters:
-                playlist, iTunesLastPlayedTime, nil];
+                playlist, requestDate, nil];
         } @catch (NSException *exception) {
             errInfo = [exception description];
         }
@@ -238,8 +263,8 @@ validate:
                         if ([[song postDate] isGreaterThan:currentDate]) {
                             ScrobLog(SCROB_LOG_WARN,
                                 @"Discarding '%@': future post date.\n\t"
-                                "Current Date: %@, Post Date: %@, iTunesLastPlayed: %@.\n",
-                                [song brief], currentDate, [song postDate], iTunesLastPlayedTime);
+                                "Current Date: %@, Post Date: %@, requestDate: %@.\n",
+                                [song brief], currentDate, [song postDate], requestDate);
                             [song release];
                             continue;
                         }
@@ -253,12 +278,12 @@ validate:
                 
                 en = [iqueue objectEnumerator];
                 while ((song = [en nextObject])) {
-                    if (![[song postDate] isGreaterThan:iTunesLastPlayedTime]) {
+                    if (![[song postDate] isGreaterThan:requestDate]) {
                         ScrobLog(SCROB_LOG_WARN,
                             @"Discarding '%@': anachronistic post date.\n\t"
-                            "Post Date: %@, Last Played: %@, Duration: %.0lf, iTunesLastPlayed: %@.\n",
+                            "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@.\n",
                             [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
-                            iTunesLastPlayedTime);
+                            requestDate);
                         continue;
                     }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod

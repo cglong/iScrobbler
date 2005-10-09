@@ -308,6 +308,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     (void)[song retain];
     [lastSongSubmitted release];
     lastSongSubmitted = song;
+    
+    NSDictionary *d = [lastSongSubmitted songData];
+    if (d)
+        [prefs setObject:d forKey:@"LastSongSubmitted"];
 }
 
 - (NSString*)md5Challenge
@@ -612,11 +616,46 @@ didFinishLoadingExit:
 ( ((flags) & kSCNetworkFlagsReachable) && (0 == ((flags) & kSCNetworkFlagsConnectionRequired) || \
   ((flags) & kSCNetworkFlagsConnectionAutomatic)) )
 
+- (void)didWake:(NSNotification*)note
+{
+    static BOOL fire = NO;
+    
+    if (!fire) {
+        fire = YES;
+        // network may not quite be ready yet.
+        [self performSelector:@selector(didWake:) withObject:note afterDelay:5.0];
+    }
+    fire = NO;
+    
+    SCNetworkConnectionFlags connectionFlags;
+    if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
+         IsNetworkUp(connectionFlags)) {
+        [self setIsNetworkAvailable:YES];
+    } else {
+        [self setIsNetworkAvailable:NO];
+    }
+}
+
 - (id)init
 {
     self = [super init];
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
+    
+    // We keep track of this for iPod support which used lastSubmitted to
+    // determine the timestamp used in played song detection.
+    NSDictionary *d = [prefs objectForKey:@"LastSongSubmitted"];
+    if (d) {
+        SongData *song = [[SongData alloc] init];
+        if ([song setSongData:d]) {
+            ScrobLog(SCROB_LOG_TRACE, @"Restored '%@' as last submitted song.\n", [song brief]);
+            [song setStartTime:[song postDate]];
+            [song setPosition:[song duration]];
+            [self setLastSongSubmitted:song];
+        } else
+            ScrobLog(SCROB_LOG_ERR, @"Failed to restore last submitted song: %@\n", d);
+        [song release];
+    }
     
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
         g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
@@ -639,6 +678,10 @@ didFinishLoadingExit:
             ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor - assuming network is always available.\n");
             isNetworkAvailable = YES;
         }
+        
+        // There's some bug in Tiger that cause notification events to not be sent (sometimes) on wake.
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     } else { // @"IgnoreNetworkMonitor"
         ScrobLog(SCROB_LOG_INFO, @"Ignoring network status monitor - assuming network is always available.\n");
         isNetworkAvailable = YES;
@@ -694,7 +737,7 @@ didFinishLoadingExit:
     if (good && !reconstituted) {
         // Make sure there was no forward seek (allowing for a little fudge time)
         // This is not perfect, so some "illegal" tracks may slip through.
-        NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + [SongData songTimeFudge];
+        NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + ([SongData songTimeFudge] * 2);
         if (elapsed < [[self position] doubleValue]) {
             good = NO;
             [self setHasQueued:YES]; // Make sure the song is not submitted

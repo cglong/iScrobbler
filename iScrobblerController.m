@@ -3,6 +3,7 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Feb 14, 2003.
+//  Completely re-written by Brian Bergstrand sometime in Feb 2005.
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net/
 
@@ -313,14 +314,17 @@ queue_exit:
     [song release];
 }
 
+#define ReleaseCurrentSong() do { \
+[currentSong setLastPlayed:[NSDate date]]; \
+[currentSong release]; \
+currentSong = nil; \
+} while(0)
+
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
     // Invalidate any possible outstanding error handler
     [getTrackInfoTimer invalidate];
     getTrackInfoTimer = nil;
-    
-    if (submissionsDisabled)
-        return;
     
     double fireInterval;
     NSDictionary *info = [note userInfo];
@@ -330,7 +334,15 @@ queue_exit:
     
     ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
     
+    // Eve if subs are disabled, we still have to update the iTunes play time, as the user
+    // could enable subs, plug-in the ipod, and then we'd pick up everything that was supposed to
+    // have been ignored in iTunes (because the play time had not been updated).
     SongData *song = nil;
+    if (submissionsDisabled) {
+        ReleaseCurrentSong();
+        goto player_info_exit;
+    }
+    
     @try {
         if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
             song = [[SongData alloc] initWithiTunesPlayerInfo:info];
@@ -339,15 +351,13 @@ queue_exit:
                     ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
                     [song release];
                     song = nil;
-                    [currentSong release];
-                    currentSong = nil;
+                    ReleaseCurrentSong();
                 }
             } else {
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
             }
         } else {
-            [currentSong release];
-            currentSong = nil;
+            ReleaseCurrentSong();
         }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating/filtering track (%@): %@\n", info, exception);
@@ -384,8 +394,7 @@ queue_exit:
         #endif
              [currentSong hasQueued] &&
              (pos <= [SongData songTimeFudge]) ) {
-            [currentSong release];
-            currentSong = nil;
+            ReleaseCurrentSong();
         } else {
             [currentSong updateUsingSong:song];
             
@@ -469,7 +478,7 @@ queue_exit:
         
         [self updateMenu];
         
-        [currentSong release];
+        ReleaseCurrentSong();
         currentSong = song;
         song = nil; // Make sure it's not released
         
