@@ -600,16 +600,45 @@ didFinishLoadingExit:
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
 }
 
+- (NSString*)netDiagnostic
+{
+    NSString *msg = nil;
+    if (CFNetDiagnosticCreateWithURL) { // 10.4 only
+        CFNetDiagnosticRef diag = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault,
+            (CFURLRef)[NSURL URLWithString:[self handshakeURL]]);
+        if (diag) {
+            (void)CFNetDiagnosticCopyNetworkStatusPassively(diag, (CFStringRef*)&msg);
+            CFRelease(diag);
+        }
+    }
+    
+    if (msg)
+        (void)[msg autorelease];
+    else
+        msg = @"";
+    return (msg);
+}
+
 - (void)setIsNetworkAvailable:(BOOL)available
 {
-    if ((isNetworkAvailable = available))
-        handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
-    ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is available? \"%@\".\n",
-        isNetworkAvailable ? @"Yes" : @"No");
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_NETWORK_STATUS
-        object:self userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:available]
-            forKey:PM_NOTIFICATION_NETWORK_STATUS_KEY]];
+    if (isNetworkAvailable != available) {
+        NSString *msg = @"", *logmsg = @"";
+        if ((isNetworkAvailable = available))
+            handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
+        else {
+            msg = [self netDiagnostic];
+            logmsg = [NSString stringWithFormat:@" (%@)", msg];
+        }
+        ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is available? \"%@\".%@\n",
+            isNetworkAvailable ? @"Yes" : @"No", logmsg);
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_NETWORK_STATUS
+            object:self userInfo:
+                [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithBool:available], PM_NOTIFICATION_NETWORK_STATUS_KEY,
+                    msg, PM_NOTIFICATION_NETWORK_MSG_KEY,
+                    nil]];
+    }
 }
 
 #define IsNetworkUp(flags) \
@@ -621,9 +650,11 @@ didFinishLoadingExit:
     static BOOL fire = NO;
     
     if (!fire) {
+        ScrobLog(SCROB_LOG_TRACE, @"Got wake event.\n");
         fire = YES;
         // network may not quite be ready yet.
         [self performSelector:@selector(didWake:) withObject:note afterDelay:5.0];
+        return;
     }
     fire = NO;
     
@@ -642,8 +673,8 @@ didFinishLoadingExit:
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     
-    // We keep track of this for iPod support which used lastSubmitted to
-    // determine the timestamp used in played song detection.
+    // We keep track of this for iPod support which uses lastSubmitted to
+    // determine the timestamp used in played songs detection.
     NSDictionary *d = [prefs objectForKey:@"LastSongSubmitted"];
     if (d) {
         SongData *song = [[SongData alloc] init];

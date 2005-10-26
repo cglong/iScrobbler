@@ -172,7 +172,8 @@
     if (statusItem) {
         if (available && ![available boolValue]) {
             [self updateStatusWithColor:[NSColor orangeColor] withMsg:
-                NSLocalizedString(@"Network is not available.", "")];
+                [NSLocalizedString(@"Network is not available: ", "")
+                    stringByAppendingString:[[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY]]];
         } else {
             [self updateStatusWithColor:[NSColor blackColor] withMsg:nil];
         }
@@ -832,7 +833,8 @@ player_info_exit:
         preferenceController=[[PreferenceController alloc] init];
     
     // Update iTunes playlists
-    [self iTunesPlaylistUpdate:nil];
+    if ([prefs boolForKey:@"Sync iPod"])
+        [self iTunesPlaylistUpdate:nil];
     
     [NSApp activateIgnoringOtherApps:YES];
     [preferenceController showPreferencesWindow];
