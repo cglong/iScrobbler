@@ -170,12 +170,16 @@
     }
     
     if (statusItem) {
+        static BOOL isOrange = NO;
         if (available && ![available boolValue]) {
-            [self updateStatusWithColor:[NSColor orangeColor] withMsg:
-                [NSLocalizedString(@"Network is not available: ", "")
-                    stringByAppendingString:[[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY]]];
-        } else {
+            NSString *msg = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY];
+            if (!msg || 0 == [msg length])
+                msg = NSLocalizedString(@"Network is not available.", "");
+            [self updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
+            isOrange = YES;
+        } else if (isOrange) {
             [self updateStatusWithColor:[NSColor blackColor] withMsg:nil];
+            isOrange = NO;
         }
     } else if (createTimer) {
         // At launch, the status item will be nil when the Protocol Mgr is initialized,
