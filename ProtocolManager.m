@@ -653,7 +653,7 @@ didFinishLoadingExit:
         ScrobLog(SCROB_LOG_TRACE, @"Got wake event.\n");
         fire = YES;
         // network may not quite be ready yet.
-        [self performSelector:@selector(didWake:) withObject:note afterDelay:5.0];
+        [self performSelector:@selector(didWake:) withObject:note afterDelay:7.5];
         return;
     }
     fire = NO;
