@@ -601,7 +601,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             // Only query local files, since iTunes (as of 4.7.1) does not support artwork over Shared sources
             image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
                 [self artist], [self album], nil];
-            if (!([image isEqual:[NSNull null]])) {
+            if (image && !([image isEqual:[NSNull null]])) {
                 if ([image isValid])
                     cache = YES;
             } else
