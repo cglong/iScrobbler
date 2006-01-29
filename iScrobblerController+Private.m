@@ -114,7 +114,8 @@ validate:
         NSTimeInterval thisPost = [[thisSong postDate] timeIntervalSince1970];
         NSTimeInterval lastPost = [[lastSong postDate] timeIntervalSince1970];
         
-        if ((lastPost + [[lastSong duration] doubleValue]) > thisPost) {
+        // 2 seconds of fudge.
+        if ((lastPost + ([[lastSong duration] doubleValue] - 2.0)) > thisPost) {
             ScrobLog(SCROB_LOG_WARN, @"iPodSync: Discarding '%@' because of invalid play time.\n\t'%@' = Start: %@, Duration: %@"
                 "\n\t'%@' = Start: %@, Duration: %@\n", [thisSong brief], [lastSong brief], [lastSong postDate], [lastSong duration],
                 [thisSong brief], [thisSong postDate], [thisSong duration]);
