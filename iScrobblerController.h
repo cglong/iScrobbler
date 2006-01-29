@@ -8,11 +8,12 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import <Growl/Growl.h>
 
 @class PreferenceController;
 @class SongData;
 
-@interface iScrobblerController : NSObject
+@interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate>
 {
 
     //the status item that will be added to the system status bar

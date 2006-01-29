@@ -23,8 +23,6 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 
-#import <Growl/Growl.h>
-
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, rating, album, artist) \
