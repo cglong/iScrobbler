@@ -477,9 +477,27 @@ didFinishLoadingExit:
     [myData release];
     myData = nil;
     
+    // Apparently the system failure descriptions are too hard to comprehend, as every time subs go down,
+    // the forum is inundated with "why did iScrobbler break?".
+    NSString *why;
+    switch ([reason code]) {
+        case NSURLErrorTimedOut:
+            why = NSLocalizedString(@"The last.fm submission server failed to respond in time.", "");
+        break;
+        case NSURLErrorNotConnectedToInternet:
+            why = NSLocalizedString(@"Your computer does not appear to be connected to the Internet.", "");
+        break;
+        //NSURLErrorCannotFindHost
+        //NSURLErrorCannotConnectToHost
+        //NSURLErrorNetworkConnectionLost
+        default:
+            why = NSLocalizedString(@"The last.fm submission server failed to respond.", "");
+        break;
+    }
+    
     if (hs_inprogress == hsState) {
         // Emulate a server error
-        NSData *response = [[@"FAILED Connection failed - " stringByAppendingString:[reason localizedDescription]]
+        NSData *response = [[@"FAILED Connection failed - " stringByAppendingString:why]
             dataUsingEncoding:NSUTF8StringEncoding];
         [self completeHandshake:response];
         return;
@@ -488,7 +506,7 @@ didFinishLoadingExit:
     [self setSubmitResult:
         [NSDictionary dictionaryWithObjectsAndKeys:
         HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
-        [reason localizedDescription], HS_RESPONSE_KEY_RESULT_MSG,
+        why, HS_RESPONSE_KEY_RESULT_MSG,
         nil]];
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
@@ -502,7 +520,8 @@ didFinishLoadingExit:
     // Kick off resubmit timer
     [self scheduleResubmit];
     
-    ScrobLog(SCROB_LOG_INFO, @"Connection error -- tracks in queue: %u", [[QueueManager sharedInstance] count]);
+    ScrobLog(SCROB_LOG_INFO, @"Connection error: '%@'. Tracks in queue: %u.\n",
+        [reason localizedDescription], [[QueueManager sharedInstance] count]);
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
