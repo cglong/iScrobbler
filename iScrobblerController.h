@@ -100,10 +100,18 @@
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds);
 
+#ifdef __ppc__
+#define trap() asm volatile("trap")
+#elif __i386__
+#define trap() asm volatile("int $3")
+#else
+#error unknown arch
+#endif
+
 #ifdef ISDEBUG
 #define ISASSERT(condition,msg) do { \
 if (0 == (condition)) { \
-    asm volatile("trap"); \
+    trap(); \
 } } while(0)
 #else
 #define ISASSERT(condition,msg) {}

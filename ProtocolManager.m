@@ -332,7 +332,22 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 
 - (NSString*)userAgent
 {
-    return ([prefs stringForKey:@"useragent"]);
+    static id agent = nil;
+    if (agent)
+        return (agent);
+    
+    agent = [[prefs stringForKey:@"useragent"] mutableCopy];
+    
+#ifdef __ppc__
+    NSString *arch = @"ppc";
+#elif defined(__i386__)
+    NSString *arch = @"i386";
+#else
+#error unknown arch
+#endif
+    
+    [agent replaceOccurrencesOfString:@"-arch-" withString:arch options:0 range:NSMakeRange(0, [agent length])];
+    return (agent);
 }
 
 - (float)minPercentagePlayed
