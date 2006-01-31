@@ -1,9 +1,8 @@
 KNOWN ISSUES:
 
-- If you are burning a CD in iTunes, or editing a song's information, then iTunes cannot process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
+- If you are burning a CD or editing a song's information or your computer is very busy, then iTunes may not be able to process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
 - The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
 - There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu items may be unusable.
-- If iTunes hangs every time a track change occurs with iScrobbler running, turn off "Enable Track Artwork" in the preferences.
 - If you have submissions paused, then un-pause them and sync your iPod, all songs played in iTunes and on the iPod while paused will be submitted.
 
 CHANGE HISTORY:
@@ -15,12 +14,13 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.1.3 (BDB)
-- Updated to Growl framework .7.2.
+- iScrobbler is a Universal app (for PPC and Intel).
+- Updated to Growl framework .7.4.
 - New Pause/Resume Submissions menu (by request). When paused, the note menu will change to a sharp. Plays from iTunes and iPod will both be ignored.
 - The Artwork script has been optimized, there should be no more iTunes hangs even with the pref enabled.
 - For iPod submissions, the last submission date will now be used as the epoch if it's availble -- if not, then the last iTunes play time is used.
 - Fixed a possible "The variable trackPodcast is not defined." script error when playing some types of tracks.
-- Workaround for a Tiger bug that causes iScrobbler not to recognize an active network connection on wake.
+- Workaround for a Tiger bug (fixed in 10.4.3) that causes iScrobbler not to recognize an active network connection on wake.
 
 v1.1.2 (BDB)
 - If a network connection is not available, the Note menu will change its color to orange.
