@@ -53,6 +53,7 @@
 		D3191CC607E3A51700821D03 /* libcrypto.0.9.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */; };
 		D39C15FC0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
+		D3D38AF409B8F1FA004E215A /* TopListsController+ISArtistDetails.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D38AF309B8F1FA004E215A /* TopListsController+ISArtistDetails.m */; };
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
 		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
@@ -160,6 +161,7 @@
 		D3CB38A307A59AE5009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/TopLists.nib; sourceTree = "<group>"; };
 		D3CB38A507A59AFE009236FF /* TopListsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TopListsController.h; sourceTree = "<group>"; };
 		D3CB38A607A59AFE009236FF /* TopListsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = TopListsController.m; sourceTree = "<group>"; };
+		D3D38AF309B8F1FA004E215A /* TopListsController+ISArtistDetails.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "TopListsController+ISArtistDetails.m"; sourceTree = "<group>"; };
 		D3D4741F077407F50076AA7D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 		D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.0.9.7.dylib; path = /usr/lib/libcrypto.0.9.7.dylib; sourceTree = "<absolute>"; };
 		D3D7BB000809A806005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
@@ -235,6 +237,7 @@
 				D3B61DF30744151D00AF5A33 /* ScrobLog.m */,
 				D3CB1314077509D3009236FF /* StatisticsController.m */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
+				D3D38AF309B8F1FA004E215A /* TopListsController+ISArtistDetails.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -494,6 +497,7 @@
 				D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */,
 				D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */,
 				D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */,
+				D3D38AF409B8F1FA004E215A /* TopListsController+ISArtistDetails.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
