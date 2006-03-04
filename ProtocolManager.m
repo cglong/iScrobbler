@@ -653,6 +653,11 @@ didFinishLoadingExit:
     return (msg);
 }
 
+- (BOOL)isNetworkAvailable
+{
+    return (isNetworkAvailable);
+}
+
 - (void)setIsNetworkAvailable:(BOOL)available
 {
     if (isNetworkAvailable != available) {

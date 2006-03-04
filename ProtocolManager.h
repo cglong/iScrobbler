@@ -53,6 +53,8 @@
 
 + (ProtocolManager*)sharedInstance;
 
+- (BOOL)isNetworkAvailable;
+
 - (void)submit:(id)sender;
 
 - (NSString*)clientVersion;
