@@ -314,6 +314,26 @@ static NSCountedSet *topRatings = nil;
     [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
     [topTracksTable setTarget:self];
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
+    
+    Class nsLevel;
+    if ((nsLevel = NSClassFromString(@"NSLevelIndicatorCell"))) {
+        // 10.4 and up only (because NSXMLDocument is only available there)
+    
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(artistSelectionDidChange:)
+            name:NSTableViewSelectionDidChangeNotification object:topArtistsTable];
+        
+        [detailsProgress setUsesThreadedAnimation:YES];
+        [detailsSimilarArtists setTarget:self];
+        [detailsSimilarArtists setDoubleAction:@selector(handleSimilarDoubleClick:)];
+        
+        [self setDetails:nil];
+        
+        id obj = [nsLevel new];
+        [obj setMaxValue:100.0];
+        [obj setMinValue:0.0]; 
+        [obj setLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
+        [[detailsSimilarArtists tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
+    }
 }
 
 @end
