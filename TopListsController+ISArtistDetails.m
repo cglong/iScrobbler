@@ -37,7 +37,7 @@
     }
 }
 
-#if 1
+#if 0
 #define dbgprint printf
 #else
 #define dbgprint(fmt, ...)
@@ -73,9 +73,9 @@
     NSURL *url;
     NSMutableURLRequest *request;
     
-    MakeRequest(detailsProfile, @"user/%@/profile.xml", @"Damaged"/*[[ProtocolManager sharedInstance] userName]*/);
+    MakeRequest(detailsProfile, @"user/%@/profile.xml", [[ProtocolManager sharedInstance] userName]);
     
-    MakeRequest(detailsTopArtists, @"user/%@/topartists.xml", @"Damaged"/*[[ProtocolManager sharedInstance] userName]*/);
+    MakeRequest(detailsTopArtists, @"user/%@/topartists.xml", [[ProtocolManager sharedInstance] userName]);
     
     MakeRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
     
