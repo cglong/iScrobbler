@@ -13,6 +13,12 @@
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                detailsController = id; 
+                detailsDrawer = NSDrawer; 
+                detailsImage = NSImageView; 
+                detailsProgress = NSProgressIndicator; 
+                detailsSimilarArtists = NSTableView; 
+                detailsSimilarController = id; 
                 topArtistsController = id; 
                 topArtistsTable = NSTableView; 
                 topTracksController = id; 
