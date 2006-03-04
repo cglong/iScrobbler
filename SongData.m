@@ -412,13 +412,17 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
 
 - (NSString*)starRating
 {
-    int r = [[self scaledRating] intValue];
+    int r = [[self rating] intValue];
+    int partial = r % 20;
+    r /= 20;
     NSMutableString *stars = [NSMutableString string];
     
     int i;
     for (i = 0; i < r; ++i) {
         [stars appendFormat:@"%C", 0x2605 /* unicode star */];
     }
+    if (10 == partial)
+        [stars appendFormat:@"%C", 0x00bd /* unicode 1/2 */];
     
     return (stars);
 }
