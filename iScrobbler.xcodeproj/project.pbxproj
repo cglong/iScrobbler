@@ -162,6 +162,7 @@
 		D3CB38A507A59AFE009236FF /* TopListsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TopListsController.h; sourceTree = "<group>"; };
 		D3CB38A607A59AFE009236FF /* TopListsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = TopListsController.m; sourceTree = "<group>"; };
 		D3D38AF309B8F1FA004E215A /* TopListsController+ISArtistDetails.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "TopListsController+ISArtistDetails.m"; sourceTree = "<group>"; };
+		D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSWorkspace+ISAdditions.m"; sourceTree = "<group>"; };
 		D3D4741F077407F50076AA7D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 		D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.0.9.7.dylib; path = /usr/lib/libcrypto.0.9.7.dylib; sourceTree = "<absolute>"; };
 		D3D7BB000809A806005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
@@ -238,6 +239,7 @@
 				D3CB1314077509D3009236FF /* StatisticsController.m */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
 				D3D38AF309B8F1FA004E215A /* TopListsController+ISArtistDetails.m */,
+				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
