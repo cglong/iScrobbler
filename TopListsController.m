@@ -321,6 +321,8 @@ static NSCountedSet *topRatings = nil;
     
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(artistSelectionDidChange:)
             name:NSTableViewSelectionDidChangeNotification object:topArtistsTable];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(artistSelectionDidChange:)
+            name:NSTableViewSelectionDidChangeNotification object:topTracksTable];
         
         [detailsProgress setUsesThreadedAnimation:YES];
         [detailsSimilarArtists setTarget:self];

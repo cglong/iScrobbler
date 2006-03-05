@@ -264,8 +264,8 @@ loadDetailsExit:
 
 - (void)artistSelectionDidChange:(NSNotification*)note
 {
-    NSString *artist = [topArtistsController valueForKeyPath:@"selection.Artist"];
-    if (NO == [artist isKindOfClass:[NSString class]]
+    NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
+    if (!artist || NO == [artist isKindOfClass:[NSString class]]
         || NO == [[ProtocolManager sharedInstance] isNetworkAvailable]) {
         // Assume it's some kind of place holder indicating no selection, multiple selection, etc
         [detailsDrawer close];
