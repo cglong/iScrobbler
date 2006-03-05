@@ -13,12 +13,13 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
-v1.1.3 (BDB)
+v1.2 (BDB)
+- New Artist details. When you select an artist in the Local Top Lists window, a drawer will open displaying a band image, fan data, and similar artists (all gathered from Audioscrobbler's web services). This feature is Tiger only.
 - iScrobbler is a Universal app (for PPC and Intel).
-- Updated to Growl framework .7.4.
 - New Pause/Resume Submissions menu (by request). When paused, the note menu will change to a sharp. Plays from iTunes and iPod will both be ignored.
 - The Artwork script has been optimized, there should be no more iTunes hangs even with the pref enabled.
 - For iPod submissions, the last submission date will now be used as the epoch if it's availble -- if not, then the last iTunes play time is used.
+- Updated to Growl framework .7.4.
 - Fixed a possible "The variable trackPodcast is not defined." script error when playing some types of tracks.
 - Workaround for a Tiger bug (fixed in 10.4.3) that causes iScrobbler not to recognize an active network connection on wake.
 
