@@ -23,6 +23,8 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 
+#import "NSWorkspace+ISAdditions.m"
+
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, rating, album, artist) \
@@ -658,6 +660,17 @@ player_info_exit:
         // We do this after creating the QM so that queued subs are not counted.
         (void)[TopListsController sharedInstance];
     }
+    
+    // Install ourself in the Login Items
+    NSWorkspace *ws = [NSWorkspace sharedWorkspace];
+    NSString *pathToSelf = [[NSBundle mainBundle] bundlePath];
+    if (![ws isLoginItem:pathToSelf]) {
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"Added to Login"]) {
+            if ([ws addLoginItem:pathToSelf hidden:NO])
+                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Added to Login"];
+        }
+    }
+    
     return self;
 }
 
