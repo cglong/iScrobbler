@@ -59,6 +59,7 @@
 - (void)loadDetails:(NSString*)artist
 {
     [self cancelDetails];
+    [[detailsController selection] setValue:artist forKeyPath:@"Artist"];
     
     [detailsProgress startAnimation:nil];
     
@@ -284,6 +285,7 @@ loadDetailsExit:
         details = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             unk, @"FanRating",
             unk, @"TopFan",
+            @"", @"Artist",
             nil];
         if ([[detailsSimilarController content] count])
             [detailsSimilarController removeObjects:[detailsSimilarController content]];
