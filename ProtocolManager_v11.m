@@ -117,7 +117,7 @@
     [dict setObject:[song duration] forKey:[NSString stringWithFormat:@"l[%i]", submissionNumber]];
     [dict setObject:escapedartist forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
     [dict setObject:escapedalbum forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
-    [dict setObject:@"" forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
+    [dict setObject:[song mbid] forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
     [dict setObject:escapedDate forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
 
     // return and autorelease

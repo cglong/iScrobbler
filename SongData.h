@@ -36,6 +36,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSNumber *playlistID;
     NSString *sourceName;
     NSString *genre;
+    NSString *comment;
+    NSString *mbid;
     TrackType_t trackType;
     BOOL isPodcast;
     BOOL hasQueued;
@@ -152,6 +154,11 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (BOOL)isPodcast;
 - (void)setIsPodcast:(BOOL)podcast;
+
+- (NSString*)comment;
+- (void)setComment:(NSString*)comment;
+
+- (NSString*)mbid;
 
 - (BOOL)ignore;
 

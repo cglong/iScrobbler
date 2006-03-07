@@ -653,6 +653,39 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     isPodcast = podcast;
 }
 
+- (NSString*)comment
+{
+    return (comment);
+}
+
+- (void)setComment:(NSString*)commentArg
+{
+    if (commentArg != comment) {
+        [comment release];
+        comment = [commentArg retain];
+    }
+}
+
+- (NSString*)mbid
+{
+    if (!mbid) {
+        // Since there is no OS X MB tagger that alters the file, search comments for our own MBID format
+        NSString *str = [self comment];
+        if (str) {
+            NSRange start = [str rangeOfString:@"[MBID]" options:NSCaseInsensitiveSearch]; 
+            NSRange end = [str rangeOfString:@"[/MBID]" options:NSCaseInsensitiveSearch];
+            if (NSNotFound != start.location && NSNotFound != end.location) {
+                start.location += 6; // length of [MBID]
+                start.length = end.location - 6;
+                mbid = [str substringWithRange:start];
+            }
+        }
+    }
+    return (mbid ? mbid : @"");
+    
+    // todo: search file
+}
+
 - (BOOL)ignore
 {
     static NSSet *filters = nil;

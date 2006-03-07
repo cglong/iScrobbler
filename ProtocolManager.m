@@ -801,8 +801,9 @@ didFinishLoadingExit:
 - (BOOL)canSubmit
 {
     ProtocolManager *pm = [ProtocolManager sharedInstance];
-    BOOL good = ( IsTrackTypeValid([self type]) && [[self duration] floatValue] >= 30.0 &&
-        ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
+    BOOL good = ( IsTrackTypeValid([self type])
+        && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
+        && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self position] floatValue] > [pm minTimePlayed]) );
     if (good && !reconstituted) {
         // Make sure there was no forward seek (allowing for a little fudge time)

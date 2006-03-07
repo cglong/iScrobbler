@@ -12,6 +12,7 @@ set trackPlaylistID to -1
 set trackSource to ""
 set trackLastPlayed to current date
 set trackPodcast to 0
+set trackComment to ""
 --set emtpyTrackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource}
 
 
@@ -49,9 +50,12 @@ tell application "iTunes"
 				set trackPodcast to 1
 			end if
 		end try
+		try
+			set trackComment to comment of theTrack
+		end try
 	end try
 	
 end tell
 
-set trackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource, trackPodcast}
+set trackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource, trackPodcast, trackComment}
 return trackInfo
