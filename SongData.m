@@ -677,7 +677,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             if (NSNotFound != start.location && NSNotFound != end.location) {
                 start.location += 6; // length of [MBID]
                 start.length = end.location - 6;
-                mbid = [str substringWithRange:start];
+                mbid = [[str substringWithRange:start] retain];
             }
         }
     }
@@ -747,6 +747,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     [playlistID release];
     [sourceName release];
     [genre release];
+    [mbid release];
     [super dealloc];
 }    
 
