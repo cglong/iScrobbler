@@ -18,6 +18,8 @@
     IBOutlet id detailsDisclosure;
     IBOutlet id submissionProgress;
     IBOutlet NSImageView *artworkImage;
+    
+    id artistDetails;
 }
 
 + (StatisticsController*) sharedInstance;

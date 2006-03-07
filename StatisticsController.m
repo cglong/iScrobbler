@@ -11,6 +11,7 @@
 #import "ProtocolManager.h"
 #import "QueueManager.h"
 #import "iScrobblerController.h"
+#import "ISArtistDetailsController.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -205,6 +206,14 @@ static NSImage *prevIcon = nil;
             [artworkImage setImage:art];
         } else {
             [artworkImage setImage:[NSApp applicationIconImage]];
+        }
+        
+        // This will probably put a good amount of strain on the servers, so it's disabled by defauilt
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Now Playing Detail"]) {
+            if (!artistDetails && [ISArtistDetailsController canLoad])
+                artistDetails = [[ISArtistDetailsController artistDetailsWithDelegate:self] retain];
+            if (artistDetails)
+                [artistDetails setArtist:[g_nowPlaying artist]];
         }
     }
 }
