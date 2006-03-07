@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {closeDetails = id; handleActionClick = id; openDetails = id; }; 
+            CLASS = ISArtistDetailsController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                artistController = id; 
+                artistImage = NSImageView; 
+                detailsDrawer = NSDrawer; 
+                detailsProgress = NSProgressIndicator; 
+                similarArtistsController = id; 
+                similarArtistsTable = NSTableView; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
