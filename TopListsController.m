@@ -14,6 +14,7 @@
 #import "ISSearchArrayController.h"
 #import "ISProfileDocumentController.h"
 #import "ScrobLog.h"
+#import "ISArtistDetailsController.h"
 
 // From iScrobblerController.m
 void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
@@ -227,16 +228,54 @@ static NSCountedSet *topRatings = nil;
     return (self);
 }
 
+- (void)selectionDidChange:(NSNotification*)note
+{
+    NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
+    [artistDetails setArtist:artist];
+}
+
+#if 0
+- (BOOL)detailsOpen
+{
+    return ([[artistDetails valueForKey:@"detailsOpen"] boolValue]);
+}
+#endif
+
+- (IBAction)hideDetails:(id)sender
+{
+    [topArtistsTable deselectAll:nil];
+    [topTracksTable deselectAll:nil];
+}
+
+- (void)loadDetails
+{
+    if ([ISArtistDetailsController canLoad]) {
+        id details;
+        if ((details = [[ISArtistDetailsController artistDetailsWithDelegate:self] retain])) {
+            [self setValue:details forKey:@"artistDetails"];
+            ISASSERT(nil != artistDetails, "setValue failed!");
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(selectionDidChange:)
+                name:NSTableViewSelectionDidChangeNotification object:topArtistsTable];
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(selectionDidChange:)
+                name:NSTableViewSelectionDidChangeNotification object:topTracksTable];
+        }
+    }
+}
+
 - (IBAction)showWindow:(id)sender
 {
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     
     [super showWindow:sender];
+    
+    if (!artistDetails)
+        [self loadDetails];
 }
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
+    [artistDetails closeDetails:nil];
 }
 
 - (void)handleDoubleClick:(NSTableView*)sender
@@ -314,28 +353,6 @@ static NSCountedSet *topRatings = nil;
     [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
     [topTracksTable setTarget:self];
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
-    
-    Class nsLevel;
-    if ((nsLevel = NSClassFromString(@"NSLevelIndicatorCell"))) {
-        // 10.4 and up only (because NSXMLDocument is only available there)
-    
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(artistSelectionDidChange:)
-            name:NSTableViewSelectionDidChangeNotification object:topArtistsTable];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(artistSelectionDidChange:)
-            name:NSTableViewSelectionDidChangeNotification object:topTracksTable];
-        
-        [detailsProgress setUsesThreadedAnimation:YES];
-        [detailsSimilarArtists setTarget:self];
-        [detailsSimilarArtists setDoubleAction:@selector(handleSimilarDoubleClick:)];
-        
-        [self setDetails:nil];
-        
-        id obj = [nsLevel new];
-        [obj setMaxValue:100.0];
-        [obj setMinValue:0.0]; 
-        [obj setLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
-        [[detailsSimilarArtists tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
-    }
 }
 
 @end

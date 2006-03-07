@@ -17,21 +17,10 @@
     IBOutlet NSTableView *topTracksTable;
     
     NSDate *startDate;
-    
-    IBOutlet NSDrawer *detailsDrawer;
-    IBOutlet NSTableView *detailsSimilarArtists;
-    IBOutlet NSProgressIndicator *detailsProgress;
-    IBOutlet id detailsController, detailsSimilarController;
-    IBOutlet NSImageView *detailsImage;
-    NSURLConnection *detailsProfile, *detailsTopArtists, *detailsTopFans, *detailsSimArtists;
-    NSMutableDictionary *detailsData;
-    NSURLDownload *imageRequest;
-    NSString *imagePath;
-    int detailsToLoad, detailsLoaded;
+    id artistDetails;
 }
 
 + (TopListsController*) sharedInstance;
-
 
 @end
 
@@ -47,6 +36,8 @@
 
 - (void)artistSelectionDidChange:(NSNotification*)note;
 
+- (IBAction)openDetails:(id)sender;
+- (IBAction)closeDetails:(id)sender;
 - (void)setDetails:(NSMutableDictionary*)details;
 
 @end
