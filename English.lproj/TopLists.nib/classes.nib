@@ -9,16 +9,10 @@
             SUPERCLASS = NSArrayController; 
         }, 
         {
-            ACTIONS = {createProfileReport = id; }; 
+            ACTIONS = {createProfileReport = id; hideDetails = id; showDetails = id; }; 
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                detailsController = id; 
-                detailsDrawer = NSDrawer; 
-                detailsImage = NSImageView; 
-                detailsProgress = NSProgressIndicator; 
-                detailsSimilarArtists = NSTableView; 
-                detailsSimilarController = id; 
                 topArtistsController = id; 
                 topArtistsTable = NSTableView; 
                 topTracksController = id; 
