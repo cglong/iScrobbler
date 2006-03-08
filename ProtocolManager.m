@@ -835,17 +835,20 @@ didFinishLoadingExit:
     double trackTime = [[self duration] doubleValue];
     static double minTime = -1.0;
     static double quotient;
+    double fudge = 4.0;
     
     if (minTime < 0.0) {
         minTime = [[ProtocolManager sharedInstance] minTimePlayed];
         quotient = ([[ProtocolManager sharedInstance] minPercentagePlayed] / 100.0);
     }
     
-    trackTime = rint(trackTime * quotient);
+    if ((trackTime = rint(trackTime * quotient)) <= (fudge * (fudge * quotient)))
+        fudge = 0.0;
     if (trackTime > minTime)
         trackTime = minTime;
     trackTime -= [[self position] doubleValue]; // Adjust for elapsed time.
-    trackTime += 4.0; // Add some fudge to make sure the track gets submitted when the timer fires.
+    
+    trackTime += fudge; // Add some fudge to make sure the track gets submitted when the timer fires.
     return (trackTime);
 }
 
