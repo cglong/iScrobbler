@@ -2,7 +2,7 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {closeDetails = id; handleActionClick = id; openDetails = id; }; 
+            ACTIONS = {closeDetails = id; openDetails = id; }; 
             CLASS = ISArtistDetailsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
