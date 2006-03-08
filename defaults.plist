@@ -14,6 +14,9 @@
     <key>Log Level</key>
 	<string>VERB</string>
     
+    <key>Artist Detail</key>
+    <true />
+    
     <key>Sync iPod</key>
     <true />
     
