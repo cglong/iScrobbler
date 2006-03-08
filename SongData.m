@@ -677,8 +677,10 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             if (NSNotFound != start.location && NSNotFound != end.location) {
                 start.location += 6; // length of [MBID]
                 start.length = end.location - 6;
-                if ((mbid = [[str substringWithRange:start] retain]))
+                if ((mbid = [[str substringWithRange:start] retain])) {
+                    ScrobLog(SCROB_LOG_TRACE, @"MBID <%@> found for %@.\n", mbid, [self brief]);
                     [self setComment:nil]; // we no longer need the comment
+                }
             }
         }
     }
