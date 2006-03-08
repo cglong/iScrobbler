@@ -69,8 +69,12 @@ on UpdateiPod(thePlaylistName, theDate)
 									set trackPodcast to 1
 								end if
 							end try
+							set trackComment to ""
+							try
+								set trackComment to comment of theTrack
+							end try
 							-- if you add/remove members, make sure to update IPOD_SYNC_VALUE_COUNT in iScrobblerController+Private.m
-							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast}
+							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast, trackComment}
 							set out to out & {trackInfo}
 						end repeat
 						
