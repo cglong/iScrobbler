@@ -32,7 +32,14 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     [super init];
     delegate = obj;
     
-    if (NO == [NSBundle loadNibNamed:@"ArtistDetails" owner:self]) {
+    BOOL loaded = NO;
+    
+    @try {
+        loaded = [NSBundle loadNibNamed:@"ArtistDetails" owner:self];
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_CRIT, @"Exception while loading ArtistDetails.nib! (%@)\n", e);
+    }
+    if (NO == loaded) {
         ScrobLog(SCROB_LOG_CRIT, @"Failed to to load ArtistDetails.nib!\n");
         [self autorelease];
         return (nil);
@@ -61,10 +68,18 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
 {
     if (!details) {
         NSString *unk = NSLocalizedString(@"Unknown", "");
+        NSFont *font = [NSFont systemFontOfSize:[NSFont systemFontSize]];
+        NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:
+            font, NSFontAttributeName,
+            nil];
+        NSAttributedString *topFan = [[[NSAttributedString alloc] initWithString:unk
+            attributes:attrs] autorelease];
+        
         details = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             unk, @"FanRating",
-            unk, @"TopFan",
-            @"", @"Artist",
+            topFan, @"TopFan",
+            [[[NSAttributedString alloc] initWithString:@""] autorelease], @"Artist",
+            font, @"Font",
             nil];
         if ([[similarArtistsController content] count])
             [similarArtistsController removeObjects:[similarArtistsController content]];
@@ -106,19 +121,16 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
 }
 
-#ifdef notyet
-- (IBAction)handleActionClick:(id)sender
+- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)link atIndex:(unsigned)charIndex
 {
-    if ([sender respondsToSelector:@selector(attributedStringValue)]) {
-        id str = [sender attributedStringValue];
-        if (str && [str length] > 0) {
-            if ((str = [str attribute:NSLinkAttributeName atIndex:0 effectiveRange:nil])
-                && [str length] > 0)
-                [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:str]];
-        }
+    BOOL handled = NO;
+    @try {
+        handled = [[NSWorkspace sharedWorkspace] openURL:link];
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception while trying to open: %@. (%@)\n", link, e);
     }
+    return (handled);
 }
-#endif
 
 - (void)cancelDetails
 {
@@ -238,26 +250,44 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
         if ((all = [e elementsForName:@"weight"]) && [all count] > 0) {
             NSString *rating = [[all objectAtIndex:0] stringValue];
             if (rating) {
-                id value;
-                #ifdef notyet /* As of 10.4.x does not work with bindings */
+                id value = nil;
+                NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+                [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+                NSFont *font = [[artistController selection] valueForKey:@"Font"];
                 if ((all = [e elementsForName:@"url"]) && [all count] > 0) {
                     NSString *urlStr = [[all objectAtIndex:0] stringValue];
-                    if (urlStr && [urlStr length] > 0) {
-                        value = [[[NSAttributedString alloc] initWithString:user
-                            attributes:[NSDictionary dictionaryWithObjectsAndKeys:
-                            urlStr, NSLinkAttributeName,
-                            [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
-                            [NSColor blueColor], NSForegroundColorAttributeName,
+                    NSURL *url = nil;
+                    @try {
+                        url = [NSURL URLWithString:urlStr];
+                    } @catch (NSException *e) { }
+                    
+                    if (url) {
+                        value = [[[NSMutableAttributedString alloc] initWithString:user attributes:
+                            [NSDictionary dictionaryWithObjectsAndKeys:
+                                url, NSLinkAttributeName,
+                                [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
+                                [NSColor blueColor], NSForegroundColorAttributeName,
                             nil]] autorelease];
-                        value = [[[[NSMutableAttributedString alloc] initWithString:
-                            [NSString stringWithFormat:@"%@ - ", rating]] autorelease]
-                            appendAttributedString:value];
+                         
+                        [value appendAttributedString:[[[NSAttributedString alloc]
+                            initWithString:[NSString stringWithFormat:@" - %@", rating]]
+                            autorelease]];
+                        [value addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
+                            font, NSFontAttributeName,
+                            style, NSParagraphStyleAttributeName,
+                            nil]
+                            range:NSMakeRange(0, [value length])];
                     }
                 } else
-                #endif
-                    value = [NSString stringWithFormat:@"%@ - %@", rating, user];
+                    value = [[[NSAttributedString alloc] initWithString:
+                        [NSString stringWithFormat:@"%@ - %@", user, rating]
+                        attributes:[NSDictionary dictionaryWithObjectsAndKeys:
+                            style, NSParagraphStyleAttributeName,
+                            font, NSFontAttributeName,
+                            nil]] autorelease];
                 
-                [[artistController selection] setValue:value forKeyPath:@"TopFan"];
+                if (value)
+                    [[artistController selection] setValue:value forKeyPath:@"TopFan"];
             }
         }
     }
@@ -266,6 +296,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     NSString *unk = NSLocalizedString(@"Unknown", "");
     if ([unk isEqualToString:[[artistController selection] valueForKey:@"FanRating"]]) {
         NSString *curUser = [[ProtocolManager sharedInstance] userName];
+        all = [[xml rootElement] elementsForName:@"user"];
         NSEnumerator *en = [all objectEnumerator];
         while ((e = [en nextObject])) {
             if ((user = [[[e attributeForName:@"username"] stringValue]
@@ -359,11 +390,30 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
 
 - (void)loadDetails:(NSString*)artist
 {
-    if (NSOrderedSame == [artist caseInsensitiveCompare:[[artistController selection] valueForKey:@"Artist"]])
+    if (NSOrderedSame == [artist caseInsensitiveCompare:
+        [[[artistController selection] valueForKey:@"Artist"] string]])
         return;
     
     [self cancelDetails];
-    [[artistController selection] setValue:artist forKeyPath:@"Artist"];
+    
+    NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+    [style setAlignment:NSCenterTextAlignment];
+    [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+    
+    NSURL *url = [[NSApp delegate] audioScrobblerURLWithArtist:artist trackTitle:nil];
+    NSFont *font = [[artistController selection] valueForKey:@"Font"];
+    NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:
+        style, NSParagraphStyleAttributeName,
+        // If url is nil, style will be the only pair in the dict
+        url, NSLinkAttributeName,
+        [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
+        [NSColor blueColor], NSForegroundColorAttributeName,
+        font, NSFontAttributeName,
+        nil];
+    
+    [[artistController selection] setValue:
+        [[[NSAttributedString alloc] initWithString:artist attributes:attrs] autorelease]
+        forKeyPath:@"Artist"];
     
     [detailsProgress startAnimation:nil];
     
@@ -375,7 +425,6 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     NSString *urlBase = [[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"];
     
     NSMutableString *urlStr;
-    NSURL *url;
     NSMutableURLRequest *request;
     // According to the webservices wiki, we are not supposed to make more than 1 req/sec
     NSTimeInterval delay = 0.0;
