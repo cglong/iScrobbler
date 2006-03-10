@@ -222,8 +222,6 @@ static NSCountedSet *topRatings = nil;
                 selector:@selector(songQueuedHandler:)
                 name:QM_NOTIFICATION_SONG_QUEUED
                 object:nil];
-        
-        [super setWindowFrameAutosaveName:@"Top Lists"];
     }
     return (self);
 }
@@ -322,6 +320,8 @@ static NSCountedSet *topRatings = nil;
 
 - (void)awakeFromNib
 {
+    [super setWindowFrameAutosaveName:@"Top Lists"];
+    
     NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
         [[NSUserDefaults standardUserDefaults] objectForKey:@"version"]];
     [[self window] setTitle:title];

@@ -258,8 +258,6 @@ static NSImage *prevIcon = nil;
             name:IPOD_SYNC_END
             object:nil];
     
-    [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
-    
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
     [artworkImage setImage:[NSApp applicationIconImage]];
@@ -311,6 +309,8 @@ static NSImage *prevIcon = nil;
 
 - (void)windowDidLoad
 {
+    [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
+    
     NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
         [[NSUserDefaults standardUserDefaults] objectForKey:@"version"]];
     [[self window] setTitle:title];
