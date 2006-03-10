@@ -330,6 +330,7 @@ currentSong = nil; \
 
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
+    static int retryCount = 0;
     // Invalidate any possible outstanding error handler
     [getTrackInfoTimer invalidate];
     getTrackInfoTimer = nil;
@@ -374,15 +375,25 @@ currentSong = nil; \
         goto player_info_exit;
     
     if (![self updateInfoForSong:song]) {
-        getTrackInfoTimer = [NSTimer scheduledTimerWithTimeInterval:2.5
-                                target:self
-                                selector:@selector(retryInfoHandler:)
-                                userInfo:note
-                                repeats:NO];
-        ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error. Trying again in %0.1f seconds.",
-            2.5);
+        if (retryCount < 3) {
+            retryCount++;
+            [getTrackInfoTimer invalidate];
+            getTrackInfoTimer = [NSTimer scheduledTimerWithTimeInterval:2.5
+                                    target:self
+                                    selector:@selector(retryInfoHandler:)
+                                    userInfo:note
+                                    repeats:NO];
+            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error (%d). Trying again in %0.1f seconds.",
+                retryCount, 2.5);
+        } else {
+            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error after %d retries. Giving up.\n", retryCount);
+            retryCount = 0;
+            isiTunesPlaying = NO;
+            ReleaseCurrentSong();
+        }
         goto player_info_exit;
     }
+    retryCount = 0;
     
     ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,P,D) = (%@,%@,%@,%@,%@)",
         [song title], [song album], [song artist], [song position], [song duration]);
@@ -517,7 +528,7 @@ player_info_exit:
     
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
-    ScrobTrace(@"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
+    ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
 }
 
 - (void)retryInfoHandler:(NSTimer*)timer
