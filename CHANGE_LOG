@@ -15,11 +15,14 @@ CHANGE HISTORY:
 
 v1.2 (BDB)
 - New Artist details. When you select an artist in the Local Top Lists window, a drawer will open displaying a band image, fan data, and similar artists (all gathered from Audioscrobbler's web services). This feature is Tiger only.
+- Redesigned Top Lists window to minimize vertical space use.
+- Rudimentary support for MusicBrainz ID's. If the track comments contain an MBID, it will be submitted to the server. The format is: [MBID]<ID>[/MBID] where <ID> is replaced by the actual MBID. This is really just a stop gap measure to allow any songs that fail the Last.FM Artist/Track filters or songs less than 30 seconds.
 - iScrobbler is a Universal app (for PPC and Intel).
 - New Pause/Resume Submissions menu (by request). When paused, the note menu will change to a sharp. Plays from iTunes and iPod will both be ignored.
 - The Artwork script has been optimized, there should be no more iTunes hangs even with the pref enabled.
 - For iPod submissions, the last submission date will now be used as the epoch if it's availble -- if not, then the last iTunes play time is used.
 - Updated to Growl framework .7.4.
+- iScrobbler will now install itself in the Login Items. If iScrobbler is later removed from Login Items it will not auto-install again.
 - Fixed a possible "The variable trackPodcast is not defined." script error when playing some types of tracks.
 - Workaround for a Tiger bug (fixed in 10.4.3) that causes iScrobbler not to recognize an active network connection on wake.
 
