@@ -59,11 +59,6 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     return ([[[ISArtistDetailsController alloc] initWithDelegate:obj] autorelease]);
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-}
-
 - (void)setDetails:(NSMutableDictionary*)details
 {
     if (!details) {
@@ -104,6 +99,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     [obj setMinValue:0.0]; 
     [obj setLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
     [[similarArtistsTable tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
+    [similarArtistsTable setAutosaveName:[[delegate windowFrameAutosaveName] stringByAppendingString:@"Artist Details"]];
     
     [self setDetails:nil];
 }
@@ -325,7 +321,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
             NSMutableURLRequest *request = request = [NSMutableURLRequest requestWithURL:url
                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                     timeoutInterval:60.0];
-            if ((imageRequest = [[[NSURLDownload alloc] initWithRequest:request delegate:self] retain]))
+            if ((imageRequest = [[NSURLDownload alloc] initWithRequest:request delegate:self]))
                 detailsToLoad++;
         }
     }
@@ -459,7 +455,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
 {
     NSValue *key = [NSValue valueWithPointer:obj];
     NSData  *data = [detailsData objectForKey:key];
-    if (!data || [data isEqualTo:[NSNull null]] || 0 == [data length])
+    if (!data || 0 == [data length])
         goto loadDetailsExit;
     
     NSError *err;
@@ -533,6 +529,12 @@ loadDetailsExit:
     }
 }
 
+- (void)dealloc
+{
+    [self cancelDetails];
+    [super dealloc];
+}
+
 // URLConnection callbacks
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
@@ -558,6 +560,7 @@ loadDetailsExit:
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
 {
     //dbgprint("Failed loading for %p\n", connection);
+    ScrobLog(SCROB_LOG_TRACE, @"Connection failure: %@\n", reason);
     NSValue *key = [NSValue valueWithPointer:connection];
     [detailsData removeObjectForKey:key];
     [self connectionDidFinishLoading:connection];
@@ -591,6 +594,7 @@ loadDetailsExit:
             dbgprint("ISSetImage set image\n");
             [artistImage setImage:pic];
         }
+        [[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
     }
     ++detailsLoaded;
     [imagePath release];
@@ -600,7 +604,7 @@ loadDetailsExit:
 
 - (void)download:(NSURLDownload *)download didFailWithError:(NSError *)error
 {
-    dbgprint("ISSetImage did fail with %s\n", [[error description] UTF8String]);
+    ScrobLog(SCROB_LOG_TRACE, @"%@ download failed with: %@\n", [[download request] URL], error);
     [imagePath release];
     imagePath = nil;
     [self downloadDidFinish:download];
