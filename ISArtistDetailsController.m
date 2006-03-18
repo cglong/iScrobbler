@@ -263,6 +263,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
                                 url, NSLinkAttributeName,
                                 [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
                                 [NSColor blueColor], NSForegroundColorAttributeName,
+                                [NSCursor pointingHandCursor], NSCursorAttributeName,
                             nil]] autorelease];
                          
                         [value appendAttributedString:[[[NSAttributedString alloc]
@@ -405,6 +406,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
         [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
         [NSColor blueColor], NSForegroundColorAttributeName,
         font, NSFontAttributeName,
+        [NSCursor pointingHandCursor], NSCursorAttributeName,
         nil];
     
     [[artistController selection] setValue:
