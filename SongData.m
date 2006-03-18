@@ -153,9 +153,10 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
 #define SD_KEY_STARTTIME @"Start Time"
 #define SD_KEY_TYPE @"Type"
 #define SD_KEY_ITUNES_DB_ID @"iTunes DB ID"
+#define SD_KEY_MBID @"MBID"
 - (NSDictionary*)songData
 {
-    NSString *ptitle, *palbum, *partist, *ppath;
+    NSString *ptitle, *palbum, *partist, *ppath, *pmbid;
     NSNumber *pduration, *ptype, *pitunesid;
     NSDate *ppostDate, *plastPlayed, *pstartTime;
     
@@ -169,6 +170,12 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     pstartTime = [self startTime];
     ptype = [NSNumber numberWithInt:[self type]];
     pitunesid = [NSNumber numberWithInt:[self iTunesDatabaseID]];
+    @try {
+        if ((pmbid = [self mbid]) && [pmbid length] == 0)
+            pmbid = nil;
+    } @catch (NSException *e) {
+        pmbid = nil;
+    }
     
     if (!ptitle || !partist || !pduration || !ppostDate || !IsTrackTypeValid([self type])) {
         ScrobLog(SCROB_LOG_WARN, @"Can't create peristent song data for '%@'\n", [self brief]);
@@ -192,6 +199,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
         pstartTime, SD_KEY_STARTTIME,
         ptype, SD_KEY_TYPE,
         pitunesid, SD_KEY_ITUNES_DB_ID,
+        pmbid, SD_KEY_MBID,
         nil];
     return (d);
 }
@@ -223,6 +231,8 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             [self setType:trackTypeFile]; // If missing, then we are upgrading from a pre-1.1 version
         if ((obj = [data objectForKey:SD_KEY_ITUNES_DB_ID]))
             [self setiTunesDatabaseID:[obj intValue]];
+        if ((obj = [data objectForKey:SD_KEY_MBID]))
+            [self setMbid:obj];
         reconstituted = YES;
         return (YES);
     }
@@ -676,17 +686,27 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
             NSRange end = [str rangeOfString:@"[/MBID]" options:NSCaseInsensitiveSearch];
             if (NSNotFound != start.location && NSNotFound != end.location) {
                 start.location += 6; // length of [MBID]
-                start.length = end.location - 6;
-                if ((mbid = [[str substringWithRange:start] retain])) {
+                if (36 == (start.length = end.location - start.location)
+                    && (mbid = [[str substringWithRange:start] retain])) {
                     ScrobLog(SCROB_LOG_TRACE, @"MBID <%@> found for %@.\n", mbid, [self brief]);
                     [self setComment:nil]; // we no longer need the comment
-                }
+                } else
+                    ScrobLog(SCROB_LOG_WARN, @"Comment '%@' for '%@' contains an invalid MBID defintion of length %d.\n",
+                        str, [self brief], start.length);
             }
         }
     }
     return (mbid ? mbid : @"");
     
     // todo: search file
+}
+
+- (void)setMbid:(NSString*)newMBID
+{
+    if (newMBID != mbid && 36 == [newMBID length]) {
+        [mbid release];
+        mbid = [newMBID retain];
+    }
 }
 
 - (BOOL)ignore
