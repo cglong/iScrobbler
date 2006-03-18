@@ -591,6 +591,7 @@ didFinishLoadingExit:
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
             NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) 	autorelease];
     
+    @try {
     [dict setObject:escapedusername forKey:@"u"];
     
     //retrieve the password from the keychain, and hash it for sending
@@ -626,12 +627,18 @@ didFinishLoadingExit:
     // Set the user-agent to something Mozilla-compatible
     [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
-    [dict release];
-    
     ++submissionAttempts;
     myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
+        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+        [inFlight release];
+        inFlight = nil;
+    } @finally {
+        [dict release];
+    }
 }
 
 - (NSString*)netDiagnostic
