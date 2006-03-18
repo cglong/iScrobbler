@@ -37,11 +37,12 @@ hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
 cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
-cp ./English.lproj/iPodLimitations.rtf "/Volumes/${VOLUME}/"
+#cp ./English.lproj/iPodLimitations.rtf "/Volumes/${VOLUME}/"
 cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
-ditto -rsrc How\ to\ install\ iScrobbler\ \(OSX\)\ properly\!.webloc "/Volumes/${VOLUME}/"
-mkdir "/Volumes/${VOLUME}/REQUIRES 10.3.9 +"
-mkdir "/Volumes/${VOLUME}/REQUIRES iTunes 4.7.1 +"
+#ditto -rsrc How\ to\ install\ iScrobbler\ \(OSX\)\ properly\!.webloc "/Volumes/${VOLUME}/"
+cp English.lproj/Readme.webarchive "/Volumes/${VOLUME}/"
+#mkdir "/Volumes/${VOLUME}/REQUIRES 10.3.9 +"
+#mkdir "/Volumes/${VOLUME}/REQUIRES iTunes 4.7.1 +"
 cp ./gpl.txt "/Volumes/${VOLUME}/LICENSE"
 
 hdiutil eject ${DEVICE}
