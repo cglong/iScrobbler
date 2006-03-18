@@ -159,6 +159,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (void)setComment:(NSString*)comment;
 
 - (NSString*)mbid;
+- (void)setMbid:(NSString*)newMBID;
 
 - (BOOL)ignore;
 
