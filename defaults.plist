@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>AS Artist Root URL</key>
-    <string>http://www.audioscrobbler.com/music/</string>
+    <string>http://www.last.fm/music/</string>
     
     <key>AS Artist-Track Path Separator</key>
     <string>/_/</string>

@@ -871,18 +871,18 @@ player_info_exit:
 
 -(IBAction)openScrobblerHomepage:(id)sender
 {
-    NSURL *url = [NSURL URLWithString:@"http://www.audioscrobbler.com"];
+    NSURL *url = [NSURL URLWithString:@"http://www.last.fm"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
 - (IBAction)openiScrobblerDownloadPage:(id)sender {
 	//NSLog(@"openiScrobblerDownloadPage");
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.audioscrobbler.com/download.php"]];
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.last.fm/downloads.php"]];
 }
 
 -(IBAction)openUserHomepage:(id)sender
 {
-    NSString *prefix = @"http://www.audioscrobbler.com/user/";
+    NSString *prefix = @"http://www.last.fm/user/";
     NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
