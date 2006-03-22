@@ -131,23 +131,38 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
 - (void)cancelDetails
 {
     [self setDetails:nil];
+    
+    [detailsProfile cancel];
+    detailsProfile = nil;
+    [detailsTopArtists cancel];
+    detailsTopArtists = nil;
+    [detailsTopFans cancel];
+    detailsTopFans = nil;
+    [detailsSimArtists cancel];
+    detailsSimArtists = nil;
+    
+    [imageRequest cancel];
+    [imageRequest release];
+    imageRequest = nil;
+    
     if (detailsData) {
-        [detailsProfile cancel];
-        detailsProfile = nil;
-        [detailsTopArtists cancel];
-        detailsTopArtists = nil;
-        [detailsTopFans cancel];
-        detailsTopFans = nil;
-        [detailsSimArtists cancel];
-        detailsSimArtists = nil;
         [detailsData release];
         detailsData = nil;
         
-        [imageRequest cancel];
-        [imageRequest release];
-        imageRequest = nil;
-        
         [detailsProgress stopAnimation:nil];
+    }
+}
+
+- (void)releaseConnection:(id)conn
+{
+    if (conn == detailsProfile) {
+        detailsProfile = nil;
+    } else if (conn == detailsTopArtists) {
+        detailsTopArtists = nil;
+    } else if (conn == detailsTopFans) {
+        detailsTopFans = nil;
+    } else if (conn == detailsSimArtists) {
+        detailsSimArtists = nil;
     }
 }
 
@@ -368,8 +383,8 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     NSMutableURLRequest *request = [args objectAtIndex:0];
     NSURLConnection **p = [[args objectAtIndex:1] pointerValue];
     
-    ScrobLog(SCROB_LOG_TRACE, @"Requesting %@", [[request URL] absoluteString]);
-    *p = [NSURLConnection connectionWithRequest:request delegate:self]; \
+    *p = [NSURLConnection connectionWithRequest:request delegate:self];
+    ScrobLog(SCROB_LOG_TRACE, @"Requesting %@ (%p)", [[request URL] absoluteString], *p);
 }
 
 #define MakeRequest(req, to, res) do { \
@@ -475,16 +490,12 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     
     if (obj == detailsProfile) {
         [self loadProfileData:xml];
-        detailsProfile = nil;
     } else if (obj == detailsTopArtists) {
         [self loadTopArtistsData:xml artist:[detailsData objectForKey:@"artist"]];
-        detailsTopArtists = nil;
     } else if (obj == detailsTopFans) {
         [self loadTopFansData:xml];
-        detailsTopFans = nil;
     } else if (obj == detailsSimArtists) {
         [self loadSimilarArtistsData:xml];
-        detailsSimArtists = nil;
     }
     
     } @catch (NSException *e) {
@@ -494,6 +505,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     [xml release];
 
 loadDetailsExit:
+    [self releaseConnection:obj];
     if (detailsLoaded >= detailsToLoad) {
         [detailsData release];
         detailsData = nil;
@@ -541,15 +553,21 @@ loadDetailsExit:
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    //dbgprint("Received data for %p\n", connection);
-    NSMutableData *recvdData;
-    NSValue *key = [NSValue valueWithPointer:connection];
-    if (!(recvdData = [detailsData objectForKey:key])) {
-        recvdData = [[NSMutableData alloc] init];
-        [detailsData setObject:recvdData forKey:key];
-        [recvdData release];
+    if (detailsData) {
+        //dbgprint("Received data for %p\n", connection);
+        NSMutableData *recvdData;
+        NSValue *key = [NSValue valueWithPointer:connection];
+        if (!(recvdData = [detailsData objectForKey:key])) {
+            recvdData = [[NSMutableData alloc] init];
+            [detailsData setObject:recvdData forKey:key];
+            ISASSERT(2 == [recvdData retainCount], "recvdData is bad!");
+            [recvdData release];
+        }
+        [recvdData appendData:data];
+    } else {
+        [self releaseConnection:connection];
+        [connection cancel];
     }
-    [recvdData appendData:data];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
