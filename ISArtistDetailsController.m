@@ -75,6 +75,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
             topFan, @"TopFan",
             [[[NSAttributedString alloc] initWithString:@""] autorelease], @"Artist",
             font, @"Font",
+            @"", @"Description",
             nil];
         if ([[similarArtistsController content] count])
             [similarArtistsController removeObjects:[similarArtistsController content]];
@@ -140,6 +141,8 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     detailsTopFans = nil;
     [detailsSimArtists cancel];
     detailsSimArtists = nil;
+    [detailsArtistData cancel];
+    detailsArtistData = nil; 
     
     [imageRequest cancel];
     [imageRequest release];
@@ -163,6 +166,8 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
         detailsTopFans = nil;
     } else if (conn == detailsSimArtists) {
         detailsSimArtists = nil;
+    } else if (conn == detailsArtistData) {
+        detailsArtistData = nil;
     }
 }
 
@@ -378,6 +383,76 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     }
 }
 
+- (void)loadArtistData:(NSData*)data
+{
+    // Response Format:
+    // "Artist"\t"Similar Artists"\t"Wiki Description"\t"Artist Image URL"
+    
+    NSMutableString *response = [[[NSMutableString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+    // strip CFLF
+    NSRange r = NSMakeRange(0, [response length]);
+    (void)[response replaceOccurrencesOfString:@"\r\n" withString:@"" options:0 range:r];
+    NSArray *elements = [response componentsSeparatedByString:@"\t"];
+    if (elements && [elements count] > 3) {
+        NSMutableString *description = [[[elements objectAtIndex:2] mutableCopy] autorelease];
+        
+        // strip any pre/post garbage (and the quotes)
+        int i = 0, len = [description length];
+        for (; i < len && [description characterAtIndex:i] != (unichar)'\"'; ++i) /* no work */ ;
+        
+        r.location = 0;
+        r.length = i+1;
+        [description deleteCharactersInRange:r];
+        
+        len = [description length];
+        i = len - 1;
+        for (; i >= 0 && [description characterAtIndex:i] != (unichar)'\"'; --i) /* no work */ ;
+        
+        r.length = len - i;
+        r.location = len - r.length;
+        [description deleteCharactersInRange:r];
+        
+        // Strip last.fm BBCode tags
+        r.location = 0;
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[artist]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[/artist]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[tag]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[/tag]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[place]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[/place]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[url]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[/url]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[b]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[/b]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[i]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"[/i]" withString:@"" options:NSCaseInsensitiveSearch range:r];
+        
+        // Replace double quotes
+        r.length = [description length];
+        (void)[description replaceOccurrencesOfString:@"\"\"" withString:@"\"" options:NSCaseInsensitiveSearch range:r];
+        
+        // Finally, set the tooltip.
+        if ([description length] > 0) {
+            [[artistController selection] setValue:description forKey:@"Description"];
+            return;
+        }
+    }
+    
+    [[artistController selection] setValue:@"" forKey:@"Description"];
+}
+
 - (void)openConnection:(NSArray*)args
 {
     NSMutableURLRequest *request = [args objectAtIndex:0];
@@ -431,7 +506,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     [detailsProgress startAnimation:nil];
     
     detailsLoaded = 0;
-    detailsToLoad = 4;
+    detailsToLoad = 5;
     detailsData = [[NSMutableDictionary alloc] initWithCapacity:detailsToLoad+1];
     [detailsData setObject:artist forKey:@"artist"];
     
@@ -466,6 +541,11 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     
     delay += 1.0;
     MakeRequest(detailsSimArtists, @"artist/%@/similar.xml", artist);
+    
+    delay += 0.5;
+    // ASS is currently only availble on the dev server
+    urlBase = @"http://wsdev.audioscrobbler.com/";
+    MakeRequest(detailsArtistData, @"ass/artistmetadata.php?artist=%@", artist);
 }
 
 - (void)loadDetailsDidFinish:(id)obj
@@ -481,10 +561,16 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
             error:&err];
     
-    [detailsData removeObjectForKey:key];
-    
-    if (!xml)
+    if (!xml) {
+        if (obj == detailsArtistData) {
+            @try {
+                [self loadArtistData:data];
+            } @catch (NSException *e) {
+                ScrobLog(SCROB_LOG_ERR, @"Exception while loading artist meta data: %@\n", e);
+            }
+        }
         goto loadDetailsExit;
+    }
     
     @try {
     
@@ -499,12 +585,13 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     }
     
     } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while loading artist data from %@\n", [xml URI]);
+        ScrobLog(SCROB_LOG_ERR, @"Exception while loading artist data from %@: %@\n", [xml URI], e);
     }
     
     [xml release];
 
 loadDetailsExit:
+    [detailsData removeObjectForKey:key];
     [self releaseConnection:obj];
     if (detailsLoaded >= detailsToLoad) {
         [detailsData release];
