@@ -123,7 +123,9 @@
     if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
     } else {
-        msg = [pm lastHandshakeMessage];
+        msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %u)",
+            NSLocalizedString(@"Tracks Queued", ""),
+            [[QueueManager sharedInstance] count]];
     }
     [self updateStatus:status withOperation:NO withMsg:msg];
 }
@@ -146,7 +148,9 @@
     if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
     } else {
-        msg = [pm lastSubmissionMessage];
+        msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %u)",
+            NSLocalizedString(@"Tracks Queued", ""),
+            [[QueueManager sharedInstance] count]];;
     }
     [self updateStatus:status withOperation:NO withMsg:msg];
 }
@@ -523,8 +527,11 @@ currentSong = nil; \
 player_info_exit:
     if (song)
         [song release];
+    NSDictionary *userInfo = nil;
+    if (isiTunesPlaying && currentSongQueueTimer)
+        userInfo = [NSDictionary dictionaryWithObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
-        object:(isiTunesPlaying ? currentSong : nil) userInfo:nil];
+        object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
     
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
