@@ -16,7 +16,8 @@
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
 static NSTimer *g_cycleTimer = nil;
-static enum {title, album, artist} g_cycleState = title;
+static NSDate *g_subDate = nil;
+static enum {title, album, artist, subdate} g_cycleState = title;
 
 @implementation StatisticsController
 
@@ -154,6 +155,15 @@ static NSImage *prevIcon = nil;
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
     NSString *msg = nil, *rating;
+    NSDate *now = [NSDate date];
+    
+    if (g_subDate && [g_subDate isLessThanOrEqualTo:now]) {
+        [g_subDate release];
+        g_subDate = nil;
+        if (subdate == g_cycleState)
+            g_cycleState = title;
+    }
+    
     switch (g_cycleState) {
         case title:
             rating = [g_nowPlaying starRating];
@@ -169,8 +179,14 @@ static NSImage *prevIcon = nil;
             break;
         case artist:
             msg = [g_nowPlaying artist];
-            g_cycleState = title;
+            g_cycleState = g_subDate ? subdate : title;
             break;
+        case subdate: {
+            NSTimeInterval i = [g_subDate timeIntervalSince1970] - [now timeIntervalSince1970];
+            msg = [NSString stringWithFormat:@"%@ %u:%02u",
+                NSLocalizedString(@"Submitting in", ""), ((unsigned)i / 60), ((unsigned)i % 60)];
+            g_cycleState = title;
+        };
     }
     
     // It would be cool if we could do some text alpha fading when the msg changes,
@@ -189,9 +205,11 @@ static NSImage *prevIcon = nil;
         
         [g_cycleTimer invalidate];
         g_cycleTimer = nil;
+        [g_subDate release];
+        g_subDate = [[[note userInfo] objectForKey:@"sub date"] retain]; 
         if (g_nowPlaying) {
             // Create the timer
-            g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
+            g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:8.0 target:self
                 selector:@selector(cycleNowPlaying:) userInfo:nil repeats:YES];
             [g_cycleTimer fire];
         } else {
@@ -301,10 +319,15 @@ static NSImage *prevIcon = nil;
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     ScrobTrace(@"received\n");
     
+    // Close details drawer
+    [artistDetails setArtist:nil];
+    
     [g_cycleTimer invalidate];
     g_cycleTimer = nil;
     [g_nowPlaying release];
     g_nowPlaying = nil;
+    [g_subDate release];
+    g_subDate = nil;
 }
 
 - (void)windowDidLoad
