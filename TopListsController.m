@@ -273,7 +273,7 @@ static NSCountedSet *topRatings = nil;
 - (void)windowWillClose:(NSNotification *)aNotification
 {
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
-    [artistDetails closeDetails:nil];
+    [self hideDetails:nil];
 }
 
 - (void)handleDoubleClick:(NSTableView*)sender
