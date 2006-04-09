@@ -969,21 +969,27 @@ player_info_exit:
         baseURL = [[NSUserDefaults standardUserDefaults]
             objectForKey:@"AS Artist Root URL"];
         if (!baseURL)
-            baseURL = @"http://www.audioscrobbler.com/music/";
+            baseURL = @"http://www.last.fm/music/";
         artistTitlePathSeparator = [[NSUserDefaults standardUserDefaults]
             objectForKey:@"AS Artist-Track Path Separator"];
         if (!artistTitlePathSeparator)
             artistTitlePathSeparator = @"/_/";
     }
     
-    NSMutableString *url = [NSMutableString stringWithString:baseURL];
+    NSMutableString *url = [NSMutableString stringWithString:
+        [baseURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    
+    artist = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+            (CFStringRef)artist, CFSTR(" "), CFSTR("/?:"), kCFStringEncodingUTF8) autorelease];
     if (!title)
         [url appendString:artist];
-    else
+    else {
+        title = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+            (CFStringRef)title, CFSTR(" "), CFSTR("/?"), kCFStringEncodingUTF8) autorelease];
         [url appendFormat:@"%@%@%@", artist, artistTitlePathSeparator, title];
+    }
     // Replace spaces with + (why doesn't AS use %20)?
     [url replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [url length])];
-    url = (id)[url stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
 }
 

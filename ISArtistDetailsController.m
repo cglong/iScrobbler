@@ -466,9 +466,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     urlStr = [[[urlBase stringByAppendingFormat:(to), (res)] mutableCopy] autorelease]; \
     /* Last.fm uses '+' instead of %20 */ \
     [urlStr replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [urlStr length])]; \
-    urlStr = [[urlStr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] mutableCopy]; \
     url = [NSURL URLWithString:urlStr]; \
-    [urlStr release]; \
     request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0]; \
     [request setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"]; \
     NSArray *args = [NSArray arrayWithObjects:request, [NSValue valueWithPointer:(&(req))], nil]; \
@@ -519,8 +517,14 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     
     NSDate *now = [NSDate date];
     
+    artist = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+            (CFStringRef)artist, CFSTR(" "), CFSTR("/?:"), kCFStringEncodingUTF8) autorelease];
+    
+    NSString *user = [[[ProtocolManager sharedInstance] userName]
+        stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    
     if (!profileCache || !profileNextUpdate || [profileNextUpdate isLessThan:now]) {
-        MakeRequest(detailsProfile, @"user/%@/profile.xml", [[ProtocolManager sharedInstance] userName]);
+        MakeRequest(detailsProfile, @"user/%@/profile.xml", user);
         delay = 0.5;
     } else {
         ++detailsLoaded;
@@ -529,7 +533,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     }
     
     if (!topArtistsCache || !topArtistsNextUpdate || [topArtistsNextUpdate isLessThan:now]) {
-        MakeRequest(detailsTopArtists, @"user/%@/topartists.xml", [[ProtocolManager sharedInstance] userName]);
+        MakeRequest(detailsTopArtists, @"user/%@/topartists.xml", user);
         delay += 0.5;
     } else {
         ++detailsLoaded;
