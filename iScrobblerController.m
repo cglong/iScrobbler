@@ -957,6 +957,19 @@ player_info_exit:
     return (currentSong);
 }
 
+#define URI_RESERVED_CHARS_TO_ESCAPE CFSTR(";/+?:@&=$,")
+- (NSString*)stringByEncodingURIChars:(NSString*)str
+{
+    // last.fm double encodes everything for URLs
+    // i.e. '/' is %2F but last.fm enocodes the '%' char too so
+    // the final form is %252f
+    str = (NSString*)CFURLCreateStringByAddingPercentEscapes(
+        kCFAllocatorDefault, (CFStringRef)str, CFSTR(" "), URI_RESERVED_CHARS_TO_ESCAPE, kCFStringEncodingUTF8);
+    str = (NSString*)CFURLCreateStringByAddingPercentEscapes(
+        kCFAllocatorDefault, (CFStringRef)str, CFSTR(" "), NULL, kCFStringEncodingUTF8);
+    return (str);
+}
+
 -(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
 {
     static NSString *baseURL = nil;
@@ -979,13 +992,11 @@ player_info_exit:
     NSMutableString *url = [NSMutableString stringWithString:
         [baseURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     
-    artist = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-            (CFStringRef)artist, CFSTR(" "), CFSTR("/?:"), kCFStringEncodingUTF8) autorelease];
+    artist = [self stringByEncodingURIChars:artist];
     if (!title)
         [url appendString:artist];
     else {
-        title = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-            (CFStringRef)title, CFSTR(" "), CFSTR("/?"), kCFStringEncodingUTF8) autorelease];
+        title = [self stringByEncodingURIChars:title];
         [url appendFormat:@"%@%@%@", artist, artistTitlePathSeparator, title];
     }
     // Replace spaces with + (why doesn't AS use %20)?
