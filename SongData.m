@@ -604,8 +604,7 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     BOOL cache = YES;
     static NSImage *genericImage = nil;
     if (!genericImage) {
-        genericImage = [[NSImage alloc] initWithContentsOfFile:
-            [[NSBundle mainBundle] pathForResource:@"CD" ofType:@"png"]];
+        genericImage = [[NSImage imageNamed:@"no_album"] retain];
         [genericImage setName:@"generic"];
     }
     @try {
