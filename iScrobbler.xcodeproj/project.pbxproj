@@ -24,6 +24,8 @@
 /* End PBXAppleScriptBuildPhase section */
 
 /* Begin PBXBuildFile section */
+		D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306F89009EC34F80011CEE1 /* no_artist.tiff */; };
+		D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306FC7909EF550C0011CEE1 /* no_album.tiff */; };
 		D3191C9907E3A51700821D03 /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3191CAA07E3A51700821D03 /* defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = EBBB2F1E03F7C3F2005DC01B /* defaults.plist */; };
 		D3191CAB07E3A51700821D03 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
@@ -59,7 +61,6 @@
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
 		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
-		D3D7BDBA080A17B1005EF5CA /* CD.png in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BD9F080A1643005EF5CA /* CD.png */; };
 		D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */; };
 		D3EC73110804F73B00392110 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
@@ -137,6 +138,8 @@
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		D306F89009EC34F80011CEE1 /* no_artist.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = no_artist.tiff; sourceTree = "<group>"; };
+		D306FC7909EF550C0011CEE1 /* no_album.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = no_album.tiff; sourceTree = "<group>"; };
 		D312EB550735548F00A2CFD5 /* QueueManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = QueueManager.h; sourceTree = "<group>"; };
 		D312EB560735548F00A2CFD5 /* QueueManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = QueueManager.m; sourceTree = "<group>"; };
 		D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager.h; sourceTree = "<group>"; };
@@ -145,7 +148,7 @@
 		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
 		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
-		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
 		D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcclassmodel; path = iScrobbler.xcclassmodel; sourceTree = "<group>"; };
@@ -175,7 +178,6 @@
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISProfileDocumentController.m; sourceTree = "<group>"; };
 		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ProfileReport.css; sourceTree = "<group>"; };
-		D3D7BD9F080A1643005EF5CA /* CD.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CD.png; sourceTree = "<group>"; };
 		D3D7C29A080B9A5B005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/iPodLimitations.rtf; sourceTree = "<group>"; };
 		D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iPodUpdate.applescript; sourceTree = "<group>"; };
 		D3EC73100804F73B00392110 /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Growl.framework; sourceTree = "<group>"; };
@@ -325,7 +327,8 @@
 				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
 				D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
-				D3D7BD9F080A1643005EF5CA /* CD.png */,
+				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
+				D306FC7909EF550C0011CEE1 /* no_album.tiff */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -468,10 +471,11 @@
 				D3191CB207E3A51700821D03 /* TopLists.nib in Resources */,
 				D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */,
 				D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */,
-				D3D7BDBA080A17B1005EF5CA /* CD.png in Resources */,
 				D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */,
 				D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */,
 				D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */,
+				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
+				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
