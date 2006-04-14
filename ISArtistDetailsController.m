@@ -18,7 +18,7 @@ static NSDate *profileNextUpdate = nil;
 static NSXMLDocument *topArtistsCache = nil;
 static NSDate *topArtistsNextUpdate = nil;
 static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
-
+static NSImage *artistImgPlaceholder = nil;
 #if 0
 #define dbgprint printf
 #else
@@ -79,13 +79,17 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
             nil];
         if ([[similarArtistsController content] count])
             [similarArtistsController removeObjects:[similarArtistsController content]];
-        [artistImage setImage:[NSImage imageNamed:@"NSApplicationIcon"]];
+        [artistImage setImage:artistImgPlaceholder];
     }
     [artistController addObject:details];
 }
 
 - (void)awakeFromNib
 {
+    if (nil ==  artistImgPlaceholder) {
+        artistImgPlaceholder = [[NSImage imageNamed:@"no_artist"] retain];
+    }
+    
     [detailsDrawer setParentWindow:[delegate window]];
     
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
@@ -517,8 +521,7 @@ static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
     
     NSDate *now = [NSDate date];
     
-    artist = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-            (CFStringRef)artist, CFSTR(" "), CFSTR("/?:"), kCFStringEncodingUTF8) autorelease];
+    artist = [[NSApp delegate] stringByEncodingURIChars:artist];
     
     NSString *user = [[[ProtocolManager sharedInstance] userName]
         stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
