@@ -550,9 +550,8 @@ static NSImage *artistImgPlaceholder = nil;
     MakeRequest(detailsSimArtists, @"artist/%@/similar.xml", artist);
     
     delay += 0.5;
-    // ASS is currently only availble on the dev server
-    urlBase = @"http://wsdev.audioscrobbler.com/";
-    MakeRequest(detailsArtistData, @"ass/artistmetadata.php?artist=%@", artist);
+    urlBase = [[NSUserDefaults standardUserDefaults] stringForKey:@"ASS URL"];
+    MakeRequest(detailsArtistData, @"artistmetadata.php?artist=%@", artist);
 }
 
 - (void)loadDetailsDidFinish:(id)obj
