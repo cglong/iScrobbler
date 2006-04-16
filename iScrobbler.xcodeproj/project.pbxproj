@@ -148,7 +148,7 @@
 		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
 		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
-		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
 		D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcclassmodel; path = iScrobbler.xcclassmodel; sourceTree = "<group>"; };
