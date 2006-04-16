@@ -202,7 +202,6 @@
 		EB607518042A747B005DC01B /* SongData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; path = SongData.h; sourceTree = "<group>"; };
 		EB607519042A747B005DC01B /* SongData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = SongData.m; sourceTree = "<group>"; };
 		EBBB2F1E03F7C3F2005DC01B /* defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; lineEnding = 0; path = defaults.plist; sourceTree = "<group>"; };
-		EBDF4CE6040094E5005DC01B /* PreferenceControllerStrings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferenceControllerStrings.h; sourceTree = "<group>"; };
 		F575CE9702FE0E8801A80164 /* iScrobblerController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = iScrobblerController.m; sourceTree = "<group>"; };
 		F575CE9802FE0E8801A80164 /* iScrobblerController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = iScrobblerController.h; sourceTree = "<group>"; };
 		F575CEAA02FF7F3501A80164 /* PreferenceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = PreferenceController.m; sourceTree = "<group>"; };
@@ -301,7 +300,6 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				EBDF4CE6040094E5005DC01B /* PreferenceControllerStrings.h */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
 			name = "Other Sources";
