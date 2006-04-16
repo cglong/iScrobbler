@@ -989,8 +989,7 @@ player_info_exit:
             artistTitlePathSeparator = @"/_/";
     }
     
-    NSMutableString *url = [NSMutableString stringWithString:
-        [baseURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    NSMutableString *url = [[baseURL mutableCopy] autorelease];
     
     artist = [self stringByEncodingURIChars:artist];
     if (!title)
