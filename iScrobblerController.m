@@ -963,11 +963,11 @@ player_info_exit:
     // last.fm double encodes everything for URLs
     // i.e. '/' is %2F but last.fm enocodes the '%' char too so
     // the final form is %252f
-    str = (NSString*)CFURLCreateStringByAddingPercentEscapes(
-        kCFAllocatorDefault, (CFStringRef)str, CFSTR(" "), URI_RESERVED_CHARS_TO_ESCAPE, kCFStringEncodingUTF8);
-    str = (NSString*)CFURLCreateStringByAddingPercentEscapes(
-        kCFAllocatorDefault, (CFStringRef)str, CFSTR(" "), NULL, kCFStringEncodingUTF8);
-    return (str);
+    str = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+        (CFStringRef)str, CFSTR(" "), URI_RESERVED_CHARS_TO_ESCAPE, kCFStringEncodingUTF8) autorelease];
+    str = (NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+        (CFStringRef)str, CFSTR(" "), NULL, kCFStringEncodingUTF8);
+    return ([str autorelease]);
 }
 
 -(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
