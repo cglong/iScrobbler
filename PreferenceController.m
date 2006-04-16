@@ -3,6 +3,9 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Feb 14, 2003.
+//  Re-written in late 2004 by Eric Seidel.
+//  Copyright 2004 Eric Seidel.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //

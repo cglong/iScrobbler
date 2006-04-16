@@ -2,6 +2,8 @@
 //  ProtocolManager_v11.h
 //  iScrobbler
 //
+//  Copyright 2004 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //

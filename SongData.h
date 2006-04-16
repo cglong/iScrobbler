@@ -3,7 +3,8 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
-//  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2003 Sam Ley. All rights reserved.
+//  Copyright 2004-2006 Brian Bergstrand.
 //
 
 #import <Cocoa/Cocoa.h>

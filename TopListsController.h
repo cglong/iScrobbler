@@ -2,7 +2,9 @@
 //  TopListsController.h
 //  iScrobbler
 //
-//  Created by Brian Bergstrand on 1/23/04.
+//  Created by Brian Bergstrand on 1/23/05.
+//  Copyright 2005 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //

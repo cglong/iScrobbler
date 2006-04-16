@@ -6,7 +6,7 @@
 //  Copyright (c) 2002 Colter Reed. All rights reserved.
 //  Released under GPL.  You know how to get a copy.
 //
-//  Modified for use in iScrobbler by Sam Ley.
+//  Modified for use in iScrobbler by Sam Ley and Brian Bergstrand.
 //  http://iscrobbler.sourceforge.net
 
 #import <Security/SecKeychain.h>

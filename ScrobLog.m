@@ -2,6 +2,8 @@
 //  ScrobLog.m
 //  iScrobbler
 //
+//  Copyright 2005,2006 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //

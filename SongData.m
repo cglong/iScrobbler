@@ -3,7 +3,11 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
-//  Copyright (c) 2003,2005 __MyCompanyName__. All rights reserved.
+//  Major re-write in 2005 by Brian Bergstrand.
+//  Copyright (c) 2005,2006 Brian Bergstrand. All rights reserved.
+//
+//  Released under the GPL, license details available at
+//  http://iscrobbler.sourceforge.net
 //
 
 #import <sys/types.h>

@@ -4,6 +4,8 @@
 //
 //  Created by Sam Ley on Feb 14, 2003.
 //  Completely re-written by Brian Bergstrand sometime in Feb 2005.
+//  Copyright 2005,2006 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net/
 

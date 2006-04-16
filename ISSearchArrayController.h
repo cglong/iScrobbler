@@ -3,6 +3,8 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 1/27/2005.
+//  Copyright 2005 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //

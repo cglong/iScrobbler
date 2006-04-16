@@ -2,7 +2,9 @@
 //  ISArtistDetailsController.m
 //  iScrobbler
 //
-//  Created by Brian Bergstrand on 3/5/04.
+//  Created by Brian Bergstrand on 3/5/06.
+//  Copyright 2006 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //

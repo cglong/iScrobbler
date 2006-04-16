@@ -2,6 +2,8 @@
 //  ScrobLog.h
 //  iScrobbler
 //
+//  Copyright 2004,2005 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
 //
