@@ -245,6 +245,7 @@ static NSImage *artistImgPlaceholder = nil;
                     [self setCurrentRating];
                 }
             }
+            break;
         }
     }
     
@@ -525,7 +526,7 @@ static NSImage *artistImgPlaceholder = nil;
     
     artist = [[NSApp delegate] stringByEncodingURIChars:artist];
     
-    NSString *user = [[[ProtocolManager sharedInstance] userName]
+    NSString *user = [@"Damaged" //[[[ProtocolManager sharedInstance] userName]
         stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     if (!profileCache || !profileNextUpdate || [profileNextUpdate isLessThan:now]) {
@@ -543,7 +544,8 @@ static NSImage *artistImgPlaceholder = nil;
     } else {
         ++detailsLoaded;
         ScrobLog(SCROB_LOG_TRACE, @"Loading top artists from cache. Next load from net: %@.\n", topArtistsNextUpdate);
-        [self loadTopArtistsData:topArtistsCache artist:artist];
+        // Use unescaped artist name
+        [self loadTopArtistsData:topArtistsCache artist:[detailsData objectForKey:@"artist"]];
     }
     
     MakeRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
