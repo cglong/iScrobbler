@@ -619,15 +619,13 @@ player_info_exit:
     
     [self restoreITunesLastPlayedTime];
     
-    if(self=[super init])
-    {
+    if ((self = [super init])) {
         [NSApp setDelegate:self];
-        
         
         nc=[NSNotificationCenter defaultCenter];
         [nc addObserver:self selector:@selector(handlePrefsChanged:)
-                   name:SCROB_PREFS_CHANGED
-                 object:nil];
+            name:SCROB_PREFS_CHANGED
+            object:nil];
         
         // Register for mounts and unmounts (iPod support)
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
@@ -661,15 +659,15 @@ player_info_exit:
                 selector:@selector(badAuthHandler:)
                 name:PM_NOTIFICATION_BADAUTH
                 object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self
+        [nc addObserver:self
                 selector:@selector(handshakeStartHandler:)
                 name:PM_NOTIFICATION_HANDSHAKE_START
                 object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self
+        [nc addObserver:self
                 selector:@selector(submitCompleteHandler:)
                 name:PM_NOTIFICATION_SUBMIT_COMPLETE
                 object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self
+        [nc addObserver:self
                 selector:@selector(submitStartHandler:)
                 name:PM_NOTIFICATION_SUBMIT_START
                 object:nil];
@@ -937,9 +935,14 @@ player_info_exit:
 	[super dealloc];
 }
 
-- (NSString *)md5hash:(NSString *)input
+- (NSString *)md5hash:(id)input
 {
-	unsigned char *hash = MD5((unsigned char*)[input cString], [input cStringLength], NULL);
+	if ([input isKindOfClass:[NSString class]])
+        input = [input dataUsingEncoding:NSUTF8StringEncoding];
+    else if (nil == input || NO == [input isKindOfClass:[NSData class]])
+        return (nil);
+    
+    unsigned char *hash = MD5((unsigned char*)[input bytes], [input length], NULL);
 	int i;
     
 	NSMutableString *hashString = [NSMutableString string];

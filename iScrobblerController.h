@@ -81,7 +81,7 @@
 
 -(IBAction)enableDisableSubmissions:(id)sender;
 
--(NSString *)md5hash:(NSString *)input;
+-(NSString *)md5hash:(id)input;
 
 -(SongData*)nowPlaying;
 
