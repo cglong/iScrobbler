@@ -321,7 +321,7 @@ sync_exit_with_note:
 	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
     NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
 	
-    ScrobTrace(@"Volume mounted: %@", info);
+    ScrobLog(SCROB_LOG_TRACE, @"Volume mounted: %@", info);
     
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
@@ -342,7 +342,7 @@ sync_exit_with_note:
     NSDictionary *info = [notification userInfo];
 	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
 	
-    ScrobTrace(@"Volume unmounted: %@.\n", info);
+    ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.\n", info);
     
     if ([iPodMountPath isEqualToString:mountPath]) {
         [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
