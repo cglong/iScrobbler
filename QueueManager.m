@@ -209,9 +209,11 @@ static QueueManager *g_QManager = nil;
     return ([[ProtocolManager sharedInstance] successfulSubmissionsCount]);
 }
 
+#define CACHE_SIG_KEY @"Persistent Cache Sig"
+
 - (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomic
 {
-    NSMutableArray *data = [NSMutableArray array];
+    NSMutableArray *songs = [NSMutableArray array];
     NSDictionary *songData;
     SongData *song;
     NSEnumerator *en = [songQueue objectEnumerator];
@@ -221,33 +223,58 @@ static QueueManager *g_QManager = nil;
     
     while ((song = [en nextObject])) {
         if ((songData = [song songData]))
-            [data addObject:songData];
+            [songs addObject:songData];
         else
             ScrobLog(SCROB_LOG_ERR, @"Failed to add '%@' to persitent store.\n", [song brief]);
     }
     
-    return ([data writeToFile:path atomically:atomic]);
-}
-
-#define CACHE_SIG_KEY @"Persistent Cache Sig"
-
-- (void)syncQueue:(id)sender
-{
-    BOOL good;
-    if ((good = [self writeToFile:queuePath atomically:YES])) {
-        NSString *data = [NSString stringWithContentsOfFile:queuePath];
-        if (!data || 0 == [data length]) {
-            ScrobLog(SCROB_LOG_ERR, @"Failed to read queue file: %@! Queue (%u entries) not saved.\n",
-                queuePath, [songQueue count]);
-            return;
-        }
+    NSData *data = [NSPropertyListSerialization dataFromPropertyList:songs
+        format:NSPropertyListBinaryFormat_v1_0
+        errorDescription:nil];
+    if (data) {
         NSString *md5 = [[NSApp delegate] md5hash:data];
         [[NSUserDefaults standardUserDefaults] setObject:md5 forKey:CACHE_SIG_KEY];
         [[NSUserDefaults standardUserDefaults] synchronize];
-    } else if (0 == [songQueue count]) {
+        return ([data writeToFile:path atomically:atomic]);
+    }
+    
+    return (NO);
+}
+
+- (NSArray*)restoreQueueWithPath:(NSString*)path
+{
+    NSString *md51, *md52;
+    NSData *data;
+    NSArray *pCache = nil;
+    
+    //data = [NSString stringWithContentsOfFile:queuePath];
+    data = [NSData dataWithContentsOfFile:queuePath];
+    md51 = [[NSUserDefaults standardUserDefaults] stringForKey:CACHE_SIG_KEY];
+    md52 = data ? [[NSApp delegate] md5hash:data] : @"";
+    if (data && [md51 isEqualToString:md52]) {
+        NSPropertyListFormat format;
+        pCache = [NSPropertyListSerialization propertyListFromData:data
+            mutabilityOption:NSPropertyListImmutable
+            format:&format
+            errorDescription:nil];
+        if (NO == [pCache isKindOfClass:[NSArray class]])
+            pCache = nil;
+    } else if (data) {
+        ScrobLog(SCROB_LOG_WARN, @"Ignoring persistent cache: it's corrupted.");
+        // This will remove the file, since the queue is 0
+    #ifdef notyet
+        [self syncQueue:nil];
+    #endif
+    }
+    return (pCache);
+}
+
+- (void)syncQueue:(id)sender
+{
+    if (0 == [songQueue count]) {
         [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:CACHE_SIG_KEY];
         [[NSFileManager defaultManager] removeFileAtPath:queuePath handler:nil];
-    } else {
+    } else if (NO == [self writeToFile:queuePath atomically:YES]) {
         ScrobLog(SCROB_LOG_ERR, @"Failed to create queue file: %@!\n", queuePath);
     }
 }
@@ -271,37 +298,24 @@ static QueueManager *g_QManager = nil;
         
         // Read in the persistent cache
         if (queuePath) {
-            NSString *md51, *md52, *data;
-            
-            data = [NSString stringWithContentsOfFile:queuePath];
-            md51 = [[NSUserDefaults standardUserDefaults] stringForKey:CACHE_SIG_KEY];
-            md52 = data ? [[NSApp delegate] md5hash:data] : @"";
-            if (data && [md51 isEqualToString:md52]) {
-                NSArray *pCache = [NSArray arrayWithContentsOfFile:queuePath];
-                if ([pCache count]) {
-                    NSEnumerator *en = [pCache objectEnumerator];
-                    SongData *song;
-                    NSDictionary *data;
-                    while ((data = [en nextObject])) {
-                        song = [[SongData alloc] init];
-                        if ([song setSongData:data]) {
-                            ScrobLog(SCROB_LOG_VERBOSE, @"Restoring '%@' from persistent store.\n", [song brief]);
-                            // Make sure the song passes submission rules
-                            [song setStartTime:[song postDate]];
-                            [song setPosition:[song duration]];
-                            (void)[self queueSong:song submit:NO]; 
-                        } else {
-                            ScrobLog(SCROB_LOG_ERR, @"Failed to restore song from persistent store: %@\n", data); 
-                        }
-                        [song release];
+            NSArray *pCache = [self restoreQueueWithPath:queuePath];
+            if ([pCache count]) {
+                NSEnumerator *en = [pCache objectEnumerator];
+                SongData *song;
+                NSDictionary *data;
+                while ((data = [en nextObject])) {
+                    song = [[SongData alloc] init];
+                    if ([song setSongData:data]) {
+                        ScrobLog(SCROB_LOG_VERBOSE, @"Restoring '%@' from persistent store.\n", [song brief]);
+                        // Make sure the song passes submission rules
+                        [song setStartTime:[song postDate]];
+                        [song setPosition:[song duration]];
+                        (void)[self queueSong:song submit:NO]; 
+                    } else {
+                        ScrobLog(SCROB_LOG_ERR, @"Failed to restore song from persistent store: %@\n", data); 
                     }
+                    [song release];
                 }
-            } else if (data) {
-                ScrobLog(SCROB_LOG_WARN, @"Ignoring persistent cache: it's corrupted.");
-                // This will remove the file, since the queue is 0
-            #ifdef notyet
-                [self syncQueue:nil];
-            #endif
             }
         } else {
             ScrobLog(SCROB_LOG_ERR, @"Persistent cache disabled: could not find path.");
