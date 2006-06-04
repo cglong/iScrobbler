@@ -18,6 +18,7 @@
 #import "iScrobblerController.h"
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
+#import "MBID.h"
 
 static unsigned int g_songID = 0;
 static float songTimeFudge;
@@ -691,17 +692,27 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
                 start.location += 6; // length of [MBID]
                 if (36 == (start.length = end.location - start.location)
                     && (mbid = [[str substringWithRange:start] retain])) {
-                    ScrobLog(SCROB_LOG_TRACE, @"MBID <%@> found for %@.\n", mbid, [self brief]);
                     [self setComment:nil]; // we no longer need the comment
                 } else
                     ScrobLog(SCROB_LOG_WARN, @"Comment '%@' for '%@' contains an invalid MBID defintion of length %d.\n",
                         str, [self brief], start.length);
             }
         }
+        
+        NSString *fpath = [self path];
+        if (fpath && [fpath length] > 0 && !mbid
+            && [[NSUserDefaults standardUserDefaults] boolForKey:@"CheckForFileMBIDs"]) {
+            char data[MBID_BUFFER_SIZE];
+            if (0 == getMBID([fpath fileSystemRepresentation], data)) {
+                mbid = [[NSString alloc] initWithUTF8String:data];
+            }
+        }
+        
+        if (mbid)
+            ScrobLog(SCROB_LOG_TRACE, @"MBID <%@> found for %@.\n", mbid, [self brief]);
+        
     }
     return (mbid ? mbid : @"");
-    
-    // todo: search file
 }
 
 - (void)setMbid:(NSString*)newMBID
