@@ -50,7 +50,7 @@
     // Is the network available?
     BOOL isNetworkAvailable;
     // Counters
-    unsigned submissionAttempts, successfulSubmissions;
+    unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount;
 }
 
 + (ProtocolManager*)sharedInstance;
@@ -110,3 +110,5 @@
 #define HS_RESULT_FAILED @"Failed"
 #define HS_RESULT_BADAUTH @"Bad Auth"
 #define HS_RESULT_UNKNOWN @"Unknown"
+// This error is usually the result of a proxy truncating our POST submisssion
+#define HS_RESULT_FAILED_MISSING_VARS @"Failed: Missing vars"

@@ -77,9 +77,12 @@
     
     if ([result hasPrefix:@"OK"])
         hresult = HS_RESULT_OK;
-    else if ([result hasPrefix:@"FAILED"])
-        hresult = HS_RESULT_FAILED;
-    else if ([result hasPrefix:@"BADAUTH"])
+    else if ([result hasPrefix:@"FAILED"]) {
+        if (0 == [result rangeOfString:@"Not all request variables are set" options:NSCaseInsensitiveSearch].length)
+            hresult = HS_RESULT_FAILED;
+        else
+            hresult = HS_RESULT_FAILED_MISSING_VARS;
+    } else if ([result hasPrefix:@"BADAUTH"])
         hresult = HS_RESULT_BADAUTH;
     else
         hresult = HS_RESULT_UNKNOWN;

@@ -436,6 +436,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
         
         ++successfulSubmissions;
+        missingVarErrorCount = 0;
         
         // See if there are any more entries in the queue
         if ([[QueueManager sharedInstance] count]) {
@@ -455,6 +456,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 			}
 		} else {
 			lastAttemptBadAuth = NO;
+            
+            if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_FAILED_MISSING_VARS]) {
+                ++missingVarErrorCount;
+            } else
+                missingVarErrorCount = 0;
 		}
         
         // Kick off resubmit timer
@@ -572,14 +578,26 @@ didFinishLoadingExit:
     
     if (submissionCount > 1 && ![self useBatchSubmission]) {
         submissionCount = 1;
-        inFlight = [NSArray arrayWithObject:[inFlight objectAtIndex:0]];
     } else if (submissionCount > 100) {
         /* From IRC:
            Russ​​: ...The server cuts any submission off at 1000,
            I personally recommend you don't go over 50 or 100 in a single submission */
         submissionCount = 100;
-        inFlight = [inFlight subarrayWithRange:NSMakeRange(0,100)];
     }
+    
+    // Check if a proxy is causing problems...
+    if (submissionCount > 1 && missingVarErrorCount > 1) {
+        if (0 == (submissionCount /= missingVarErrorCount))
+            submissionCount = 1;
+            
+        ScrobLog(SCROB_LOG_VERBOSE, @"Possible proxy corruption detected (%u). Batch sub reduced to %u.\n",
+            missingVarErrorCount, submissionCount);
+            
+        ISASSERT(submissionCount <= [inFlight count], "Adjusted sub count out of range!");
+    }
+    
+    if (submissionCount != [inFlight count])
+        inFlight = [inFlight subarrayWithRange:NSMakeRange(0,submissionCount)];
     
     [resubmitTimer invalidate];
     resubmitTimer = nil;
