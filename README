@@ -1,20 +1,6 @@
-iScrobbler is an application for OS X that interfaces with iTunes in order to make
-submissions to the AudioScrobbler.com project. Audioscrobbler takes data sent to it
-by the plugins and generates similarity data for artists, and suggests new artists
-that you might like, based on other people's listening habits.
+iScrobbler is an application for OS X that interfaces with iTunes in order to make submissions to the AudioScrobbler.com project. Audioscrobbler takes data sent to it by the plugins and generates similarity data for artists, and suggests new artists that you might like, based on other people's listening habits.
 
-To build iScrobbler, you'll need Jaguar and the Development Tools installed. You
-will also need to build and install CURLHandle.framework and mHashMacOSX.framework.
-CURLHandle is under active development, and so won't be included here. mHashMacOSX
-is not under active development, and can actually be a bit tricky to find a copy of,
-so it is included as a module in the SourceForge CVS for iScrobbler. Visit the project
-page (http://iscrobbler.sourceforge.net) for more details on accessing the CVS.
-mHashMacOSX.framework is licensed under the GPL.
-
-CURLHandle can be found at http://curlhandle.sourceforge.net, and is licensed under
-the public domain.
-
-If you are using iScrobbler for testing, you will need to change the URL that it
-sends POST queries to by editing 'defaults.plist' with the correct URL.
+To build iScrobbler, you'll need Tiger, iTunes 4.7.1 +, and XCode 2.1 installed. You will also need a copy of the Growl framework from:
+http://growl.info/documentation/developer/
 
 Installation after building is trivial. Just drag 'n' drop.

@@ -3,14 +3,26 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
-//  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2003 Sam Ley. All rights reserved.
+//  Copyright 2004-2006 Brian Bergstrand.
 //
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
+
+typedef enum {
+    trackTypeUnknown = 0,
+    trackTypeFile = 1,
+    trackTypeShared = 2,
+    trackTypeRadio = 3,
+} TrackType_t;
+static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
+{
+    return ( trackTypeFile == myType || trackTypeShared == myType );
+}
 
 @interface SongData : NSObject <NSCopying> {
-    NSNumber * trackIndex;
-    NSNumber * playlistIndex;
+    unsigned int songID; // Internal id #
+    int iTunesDatabaseID; // iTunes track id
     NSString * title;
     NSNumber * duration;
     NSNumber * position;
@@ -18,10 +30,28 @@
     NSString * album;
     NSString * path;
     NSDate * startTime;
-    BOOL hasQueued;
     NSNumber * pausedTime;
     NSDate * postDate;
+    NSDate * lastPlayed;
+    NSNumber *rating;
+    NSNumber *playlistID;
+    NSString *sourceName;
+    NSString *genre;
+    NSString *comment;
+    NSString *mbid;
+    TrackType_t trackType;
+    BOOL isPodcast;
+    BOOL hasQueued;
+    BOOL hasSeeked;
+    BOOL reconstituted;
+    BOOL passedFilters;
 }
+
+// Value to pad time calculations with
++ (float)songTimeFudge;
++ (void)setSongTimeFudge:(float)fudge;
+
++ (NSString *)notRatedString;
 
 // returns a float value between 0 and 100 indicating how much of the song
 // has been played as a percent
@@ -30,24 +60,16 @@
 // returns the amount of time, in seconds, that the song has been playing.
 - (NSNumber *)timePlayed;
 
-// returns an NSMutableDictionary object that is packaged and ready for submission.
-// postDict adds URL escaped title, artist and filename, and duration and time of
-// submission field.
-// The receiver is still responsible for adding the username, password and version
-// fields to the dict.
-// submissionNumber is the number of this data in the submission queue. For single
-// submissions this number will be 0.
-- (NSMutableDictionary *)postDict:(int)submissionNumber;
+- (BOOL)isEqualToSong:(SongData*)song;
+
+- (NSString*)brief;
+
+- (NSComparisonResult) compareSongPostDate:(SongData*)song;
 
 ////// Accessors Galore ///////
 
-// trackIndex is the number corresponding to the track within the playlist
-- (NSNumber *)trackIndex;
-- (void)setTrackIndex:(NSNumber *)newTrackIndex;
-
-// playlistIndex is the number corresponding to the playlist the track is in
-- (NSNumber *)playlistIndex;
-- (void)setPlaylistIndex:(NSNumber *)newPlaylistIndex;
+- (int)iTunesDatabaseID;
+- (void)setiTunesDatabaseID:(int)newID;
 
 // title is the title of the song
 - (NSString *)title;
@@ -57,7 +79,7 @@
 - (NSNumber *)duration;
 - (void)setDuration:(NSNumber *)newDuration;
 
-// position is the current track position within the song
+// position is the current track position (in seconds) within the song
 - (NSNumber *)position;
 - (void)setPosition:(NSNumber *)newPosition;
 
@@ -88,5 +110,64 @@
 // postDate is the moment in which the initial submission was attempted
 - (NSDate *)postDate;
 - (void)setPostDate:(NSDate *)newPostDate;
+
+// lastPlayed is the last time iTunes played the song
+- (NSDate *)lastPlayed;
+- (void)setLastPlayed:(NSDate *)date;
+
+// Rating on a scale of 0 to 100
+- (NSNumber*)rating;
+- (void)setRating:(NSNumber*)newRating;
+// Scales rating to between 0 and 5 (as iTunes presents it to the user)
+- (NSNumber*)scaledRating;
+// String of stars representing the scaled rating
+- (NSString*)starRating;
+// Same as starRating, but empty stars are provide for ratings less than 5
+- (NSString*)fullStarRating;
+
+- (NSNumber*)songID;
+
+- (BOOL)hasSeeked;
+- (void)setHasSeeked;
+
+// Used for persistent cache storage
+- (NSDictionary*)songData;
+- (BOOL)setSongData:(NSDictionary*)data;
+
+- (TrackType_t)type;
+- (void)setType:(TrackType_t)newType;
+
+- (NSNumber*)playlistID;
+- (void)setPlaylistID:(NSNumber*)newPlaylistID;
+
+- (NSString*)sourceName;
+- (void)setSourceName:(NSString*)newSourceName;
+
+- (BOOL)reconstituted;
+- (void)setReconstituted:(BOOL)newValue;
+
+- (NSString*)genre;
+- (void)setGenre:(NSString*)newGenre;
+
+- (NSNumber*)elapsedTime;
+
+- (NSImage*)artwork;
+
+- (BOOL)isPodcast;
+- (void)setIsPodcast:(BOOL)podcast;
+
+- (NSString*)comment;
+- (void)setComment:(NSString*)comment;
+
+- (NSString*)mbid;
+- (void)setMbid:(NSString*)newMBID;
+
+- (BOOL)ignore;
+
+@end
+
+@interface SongData (SongDataComparisons)
+
+- (BOOL)hasPlayedAgain:(SongData*)song;
 
 @end

@@ -3,90 +3,695 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Feb 14, 2003.
+//  Completely re-written by Brian Bergstrand sometime in Feb 2005.
+//  Copyright 2005,2006 Brian Bergstrand.
+//
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net/
 
+#import <openssl/md5.h>
+
+#import <Carbon/Carbon.h>
+
 #import "iScrobblerController.h"
-#import <CURLHandle/CURLHandle.h>
-#import <CURLHandle/CURLHandle+extras.h>
 #import "PreferenceController.h"
 #import "SongData.h"
 #import "keychain.h"
-#import "NSString+parse.h"
-#import "CURLHandle+SpecialEncoding.h"
-#import "NSDictionary+httpEncoding.h"
-#import <mHashMacOSX/mhash.h>
+#import "QueueManager.h"
+#import "ProtocolManager.h"
+#import "ScrobLog.h"
+#import "StatisticsController.h"
+#import "TopListsController.h"
+#import "KFAppleScriptHandlerAdditionsCore.h"
+#import "KFASHandlerAdditions-TypeTranslation.h"
 
-@interface iScrobblerController ( private )
+#import "NSWorkspace+ISAdditions.m"
 
-- (void) setURLHandle:(CURLHandle *)inURLHandle;
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, rating, album, artist) \
+[NSString stringWithFormat:NSLocalizedString(@"Track: %@ (%@)\nAlbum: %@\nArtist: %@", ""), \
+(track), (rating), (album), (artist)]
+
+// UTF16 barred eigth notes
+#define MENU_TITLE_CHAR 0x266B
+// UTF16 sharp note 
+#define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
+
+@interface iScrobblerController (iScrobblerControllerPrivate)
+
+- (IBAction)syncIPod:(id)sender;
+- (void) restoreITunesLastPlayedTime;
+- (void) setITunesLastPlayedTime:(NSDate*)date;
+
+- (void) volumeDidMount:(NSNotification*)notification;
+- (void) volumeDidUnmount:(NSNotification*)notification;
+
+- (void)iTunesPlaylistUpdate:(NSTimer*)timer;
+
+- (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc;
 
 @end
 
+@interface iScrobblerController (Private)
+    - (void)showNewVersionExistsDialog;
+    - (void)retryInfoHandler:(NSTimer*)timer;
+@end
+
+// See iTunesPlayerInfoHandler: for why this is needed
+@interface ProtocolManager (NoCompilerWarnings)
+    - (float)minTimePlayed;
+@end
+
+#define CLEAR_MENUITEM_TAG          1
+#define SUBMIT_IPOD_MENUITEM_TAG    4
+
+@interface SongData (iScrobblerControllerAdditions)
+    - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
+    - (void)updateUsingSong:(SongData*)song;
+    - (double)resubmitInterval;
+@end
 
 @implementation iScrobblerController
 
-- (BOOL)validateMenuItem:(NSMenuItem *)anItem
+- (void)updateStatusWithColor:(NSColor*)color withMsg:msg
 {
-    //NSLog(@"%@",[anItem title]);
-    if([[anItem title] isEqualToString:@"Clear Menu"])
-        [mainTimer fire];
-    return YES;
+    NSAttributedString *newTitle =
+        [[NSAttributedString alloc] initWithString:[statusItem title]
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
+            // If we don't specify this, the font defaults to Helvitica 12
+            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
+    [statusItem setAttributedTitle:newTitle];
+    [newTitle release];
+    
+    if (msg) {
+        // Get rid of extraneous protocol information
+        NSArray *items = [msg componentsSeparatedByString:@"\n"];
+        if (items && [items count] > 0)
+            msg = [items objectAtIndex:0];
+    }
+    [statusItem setToolTip:msg];
 }
 
+- (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:msg
+{
+    NSColor *color;
+    if (opBegin)
+        color = [NSColor greenColor];
+    else {
+        if (opSuccess)
+            color = [NSColor blackColor];
+        else {
+            color = [NSColor redColor];
+        }
+    }
+    
+    [self updateStatusWithColor:color withMsg:msg];
+}
 
+// PM notifications
+
+- (void)handshakeCompleteHandler:(NSNotification*)note
+{
+    ProtocolManager *pm = [note object];
+    
+    if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]))
+        [self showNewVersionExistsDialog];
+    else if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
+        [self showBadCredentialsDialog];
+    
+    BOOL status = NO;
+    NSString *msg = nil;
+    if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
+        status = YES;
+    } else {
+        msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %u)",
+            NSLocalizedString(@"Tracks Queued", ""),
+            [[QueueManager sharedInstance] count]];
+    }
+    [self updateStatus:status withOperation:NO withMsg:msg];
+}
+
+- (void)badAuthHandler:(NSNotification*)note
+{
+    [self showBadCredentialsDialog];
+}
+
+- (void)handshakeStartHandler:(NSNotification*)note
+{
+    [self updateStatus:YES withOperation:YES withMsg:nil];
+}
+
+- (void)submitCompleteHandler:(NSNotification*)note
+{
+    BOOL status = NO;
+    ProtocolManager *pm = [note object];
+    NSString *msg = nil;
+    if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
+        status = YES;
+    } else {
+        msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %u)",
+            NSLocalizedString(@"Tracks Queued", ""),
+            [[QueueManager sharedInstance] count]];;
+    }
+    [self updateStatus:status withOperation:NO withMsg:msg];
+}
+
+- (void)submitStartHandler:(NSNotification*)note
+{
+    [self updateStatus:YES withOperation:YES withMsg:nil];
+}
+
+- (void)networkStatusHandler:(id)obj // NSNotification OR NSTimer
+{
+    static NSTimer *netStatusTimer = nil;
+    static BOOL createTimer = YES;
+    
+    NSNumber *available = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_STATUS_KEY];
+    
+    if (netStatusTimer) {
+        [netStatusTimer invalidate];
+        netStatusTimer = nil;
+        createTimer = NO; // Only try the timer once
+    }
+    
+    if (statusItem) {
+        static BOOL isOrange = NO;
+        if (available && ![available boolValue]) {
+            NSString *msg = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY];
+            if (!msg || 0 == [msg length])
+                msg = NSLocalizedString(@"Network is not available.", "");
+            [self updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
+            isOrange = YES;
+        } else if (isOrange) {
+            [self updateStatusWithColor:[NSColor blackColor] withMsg:nil];
+            isOrange = NO;
+        }
+    } else if (createTimer) {
+        // At launch, the status item will be nil when the Protocol Mgr is initialized,
+        // so we create a timer to deal with this.
+        // 10 seconds should be plenty of time for launch to finish
+        netStatusTimer = [NSTimer scheduledTimerWithTimeInterval:10.0
+                                target:self
+                                selector:@selector(networkStatusHandler:)
+                                userInfo:[obj userInfo]
+                                repeats:NO];
+    }
+}
+
+// End PM Notifications
+
+- (BOOL)updateInfoForSong:(SongData*)song
+{
+    // Run the script to get the info not included in the dict
+    NSDictionary *errInfo = nil;
+    NSAppleEventDescriptor *result = [script executeAndReturnError:&errInfo] ;
+    if (result) {
+        if ([result numberOfItems] > 1) {
+            TrackType_t trackType = trackTypeUnknown;
+            int trackiTunesDatabaseID = -1;
+            NSNumber *trackPosition, *trackRating, *trackPlaylistID, *trackPodcast;
+            NSDate *trackLastPlayed = nil;
+            NSString *trackSourceName = nil, *trackComment;
+            NSArray *values;
+            @try {
+                values = [result objCObjectValue];
+                trackType = (TrackType_t)[[values objectAtIndex:0] intValue];
+                trackiTunesDatabaseID = [[values objectAtIndex:1] intValue];
+                trackPosition = [values objectAtIndex:2];
+                trackRating = [values objectAtIndex:3];
+                trackLastPlayed = [values objectAtIndex:4];
+                trackPlaylistID = [values objectAtIndex:5];
+                trackSourceName = [values objectAtIndex:6];
+                trackPodcast = [values objectAtIndex:7];
+                trackComment = [values objectAtIndex:8];
+            } @catch (NSException *exception) {
+                ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: parsing exception %@\n.", exception);
+                return (NO);
+            }
+            
+            if (IsTrackTypeValid(trackType) && trackiTunesDatabaseID >= 0 && [trackPosition intValue] >= 0) {
+                [song setType:trackType];
+                [song setiTunesDatabaseID:trackiTunesDatabaseID];
+                [song setPosition:trackPosition];
+                
+                @try {
+                    [song setRating:trackRating];
+                } @catch (NSException* exception) {
+                }
+                if ([trackPlaylistID intValue] >= 0)
+                    [song setPlaylistID:trackPlaylistID];
+                if (trackSourceName && [trackSourceName length] > 0)
+                    [song setSourceName:trackSourceName];
+                if (trackLastPlayed)
+                    [song setLastPlayed:trackLastPlayed];
+                if (trackPodcast && [trackPodcast intValue] > 0)
+                    [song setIsPodcast:YES];
+                if (trackComment)
+                    [song setComment:trackComment];
+                return (YES);
+            } else {
+                ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
+                    trackType, trackiTunesDatabaseID, trackPosition);
+            }
+        } else {
+            ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad item count: %d\n.", [result numberOfItems]);
+        }
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script execution error: %@\n.", errInfo);
+    }
+    
+    return (NO);
+}
+
+#define KillQueueTimer() do { \
+[currentSongQueueTimer invalidate]; \
+[currentSongQueueTimer release]; \
+currentSongQueueTimer = nil; \
+} while (0) 
+
+- (void)queueCurrentSong:(NSTimer*)timer
+{
+    SongData *song = [[SongData alloc] init];
+    
+    KillQueueTimer();
+    timer = nil;
+    
+    if (!currentSong || (currentSong && [currentSong hasQueued])) {
+        goto queue_exit;
+    }
+    
+    if (![self updateInfoForSong:song]) {
+        ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error. Trying again in %0.1f seconds.",
+            2.5);
+        currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:2.5l
+                                    target:self
+                                    selector:@selector(queueCurrentSong:)
+                                    userInfo:nil
+                                    repeats:NO] retain];
+        goto queue_exit;
+    }
+    
+    if ([song iTunesDatabaseID] == [currentSong iTunesDatabaseID]) {
+        [currentSong updateUsingSong:song];
+        
+        // Try submission
+        QueueResult_t qr = [[QueueManager sharedInstance] queueSong:currentSong];
+        if (kqFailed == qr) {
+            // Fire ourself again in half of the remaining track play time.
+            // The queue can fail when playing from a network stream (or CD),
+            // and iTunes has to re-buffer. This means the elapsed track play time
+            // would be less than elapsed real-world time and the track may not be 1/2
+            // done.
+            double fireInterval = [currentSong resubmitInterval];
+            if (fireInterval >= 1.0) {
+                ScrobLog(SCROB_LOG_VERBOSE,
+                    @"Track '%@' failed submission rules. "
+                    @"Trying again in %0.0lf seconds.\n", [currentSong brief], fireInterval);
+                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                                target:self
+                                selector:@selector(queueCurrentSong:)
+                                userInfo:nil
+                                repeats:NO] retain];
+            } else {
+                ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules. "
+                    @"There is not enough play time left to retry submission.\n",
+                    [currentSong brief]);
+            }
+        }
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"Lost track! current: (%@, %d), itunes: (%@, %d)\n.",
+            currentSong, [currentSong iTunesDatabaseID], song, [song iTunesDatabaseID]);
+    }
+    
+queue_exit:
+    [song release];
+}
+
+#define ReleaseCurrentSong() do { \
+[currentSong setLastPlayed:[NSDate date]]; \
+[currentSong release]; \
+currentSong = nil; \
+} while(0)
+
+- (void)iTunesPlayerInfoHandler:(NSNotification*)note
+{
+    static int retryCount = 0;
+    // Invalidate any possible outstanding error handler
+    [getTrackInfoTimer invalidate];
+    getTrackInfoTimer = nil;
+    
+    double fireInterval;
+    NSDictionary *info = [note userInfo];
+    static BOOL isiTunesPlaying = NO;
+    BOOL wasiTunesPlaying = isiTunesPlaying;
+    isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
+    
+    ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
+    
+    // Eve if subs are disabled, we still have to update the iTunes play time, as the user
+    // could enable subs, plug-in the ipod, and then we'd pick up everything that was supposed to
+    // have been ignored in iTunes (because the play time had not been updated).
+    SongData *song = nil;
+    if (submissionsDisabled) {
+        ReleaseCurrentSong();
+        goto player_info_exit;
+    }
+    
+    @try {
+        if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
+            song = [[SongData alloc] initWithiTunesPlayerInfo:info];
+            if (song) {
+                if ([song ignore]) {
+                    ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
+                    [song release];
+                    song = nil;
+                    ReleaseCurrentSong();
+                }
+            } else {
+                ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
+            }
+        } else {
+            ReleaseCurrentSong();
+        }
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating/filtering track (%@): %@\n", info, exception);
+    }
+    if (!song)
+        goto player_info_exit;
+    
+    if (![self updateInfoForSong:song]) {
+        if (retryCount < 3) {
+            retryCount++;
+            [getTrackInfoTimer invalidate];
+            getTrackInfoTimer = [NSTimer scheduledTimerWithTimeInterval:2.5
+                                    target:self
+                                    selector:@selector(retryInfoHandler:)
+                                    userInfo:note
+                                    repeats:NO];
+            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error (%d). Trying again in %0.1f seconds.",
+                retryCount, 2.5);
+        } else {
+            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error after %d retries. Giving up.\n", retryCount);
+            retryCount = 0;
+            isiTunesPlaying = NO;
+            ReleaseCurrentSong();
+        }
+        goto player_info_exit;
+    }
+    retryCount = 0;
+    
+    ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,P,D) = (%@,%@,%@,%@,%@)",
+        [song title], [song album], [song artist], [song position], [song duration]);
+    
+    if (currentSong && [currentSong isEqualToSong:song]) {
+        // Try to determine if the song is being played twice (or more in a row)
+        float pos = [[song position] floatValue];
+        if (pos <  [[currentSong position] floatValue] &&
+             // The following conditions do not work with iTunes 4.7, since we are not
+             // constantly updating the song's position by polling iTunes. With 4.7 we update
+             // when the the song first plays, when it's ready for submission or if the user
+             // changes some song metadata -- that's it.
+        #if 0
+             (pos <= [SongData songTimeFudge]) &&
+             // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
+             (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
+        #endif
+             [currentSong hasQueued] &&
+             (pos <= [SongData songTimeFudge]) ) {
+            ReleaseCurrentSong();
+        } else {
+            [currentSong updateUsingSong:song];
+            
+            // Handle a pause
+            if (!isiTunesPlaying && ![currentSong hasQueued]) {
+                KillQueueTimer();
+                ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
+            } else  if (isiTunesPlaying && !wasiTunesPlaying && ![currentSong hasQueued]) {
+                // Reschedule timer
+                ISASSERT(!currentSongQueueTimer, "Timer is active!");
+                fireInterval = [currentSong resubmitInterval];
+                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                                target:self
+                                selector:@selector(queueCurrentSong:)
+                                userInfo:nil
+                                repeats:NO] retain];
+                ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed -- sub in %.1lfs", [currentSong brief], fireInterval);
+            }
+            
+            goto player_info_exit;
+        }
+    }
+    
+    // Kill the current timer
+    KillQueueTimer();
+    
+    /* Workaround for iTunes bug (as of 4.7):
+       If the script is run at the exact moment a track switch on an Audio CD occurs,
+       the new track will have the previous track's duration set as its current position.
+       Since the notification happens at that moment we are always hit by the bug.
+       Note: This seems to only affect Audio CD's, encoded files aren't affected. (Shared tracks?)
+       Note 2: It would be possible for our conditions to occur while not on a track switch if for
+       instance the user changed some song meta-data. However this should be a very rare occurence.
+       */
+    if (currentSong && ![currentSong isEqualToSong:song] &&
+            ([[currentSong duration] isEqualToNumber:[song position]] ||
+            [[song position] isGreaterThan:[song duration]])) {
+        [song setPosition:[NSNumber numberWithUnsignedInt:0]];
+        // Reset the start time too, since it will be off
+        [song setStartTime:[NSDate date]];
+    }
+    
+    if (isiTunesPlaying) {
+        // Fire the main timer at the appropos time to get it queued.
+        fireInterval = [song submitIntervalFromNow];
+        if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
+            ScrobLog(SCROB_LOG_TRACE, @"Firing sub timer in %0.2lf seconds for track '%@'.\n",
+                fireInterval, [song brief]);
+            currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                            target:self
+                            selector:@selector(queueCurrentSong:)
+                            userInfo:nil
+                            repeats:NO] retain];
+        } else {
+            ScrobLog(SCROB_LOG_WARN,
+                @"Invalid submit interval '%0.2lf' for track '%@'. Track will not be submitted. Duration: %@, Position: %@.\n",
+                fireInterval, [song brief], [song duration], [song position]);
+        }
+        
+        // Update Recent Songs list
+        int i, found = 0, count = [songList count];
+        for(i = 0; i < count; ++i) {
+            if ([[songList objectAtIndex:i] isEqualToSong:song]) {
+                found = i;
+                break;
+            }
+        }
+        //ScrobTrace(@"Found = %i",j);
+
+        // If the track wasn't found anywhere in the list, we add a new item
+        if (found) {
+            // If the trackname was found elsewhere in the list, we remove the old item
+            [songList removeObjectAtIndex:found];
+        }
+        else
+            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
+        [songList push:song];
+        
+        while ([songList count] > [prefs integerForKey:@"Number of Songs to Save"])
+            [songList pop];
+        
+        [self updateMenu];
+        
+        ReleaseCurrentSong();
+        currentSong = song;
+        song = nil; // Make sure it's not released
+        
+        // Notify Growl
+        NSData *artwork = nil;
+        if ([GrowlApplicationBridge isGrowlRunning]) {
+            @try {
+            artwork = [[currentSong artwork] TIFFRepresentation];
+            } @catch (NSException*) {
+            }
+        }
+        [GrowlApplicationBridge
+            notifyWithTitle:IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE
+            description:IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO([currentSong title], [currentSong fullStarRating],
+                [currentSong album], [currentSong artist])
+            notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
+            iconData:artwork
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
+    }
+    
+player_info_exit:
+    if (song)
+        [song release];
+    NSDictionary *userInfo = nil;
+    if (isiTunesPlaying && currentSongQueueTimer)
+        userInfo = [NSDictionary dictionaryWithObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
+        object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
+    
+    if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
+        [self setITunesLastPlayedTime:[NSDate date]];
+    ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
+}
+
+- (void)retryInfoHandler:(NSTimer*)timer
+{
+    getTrackInfoTimer = nil;
+    [self iTunesPlayerInfoHandler:[timer userInfo]];
+}
+
+- (void)enableStatusItemMenu:(BOOL)enable
+{
+    if (enable) {
+        if (!statusItem) {
+            statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
+            
+            [statusItem setTitle:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]];
+            [statusItem setHighlightMode:YES];
+            [statusItem setMenu:theMenu];
+            [statusItem setEnabled:YES];
+        }
+    } else if (statusItem) {
+        [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
+        [statusItem setMenu:nil];
+        [statusItem release];
+        statusItem = nil;
+    }
+}
 
 -(id)init
 {
     // Read in a defaults.plist preferences file
-    NSString * file = [[NSBundle mainBundle]
-        pathForResource:@"defaults" ofType:@"plist"];
-	
+    NSString * file = [[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"];
     NSDictionary * defaultPrefs = [NSDictionary dictionaryWithContentsOfFile:file];
-	
-    songQueue = [[NSMutableArray alloc] init];
 	
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     [prefs registerDefaults:defaultPrefs];
+    
+    // This sucks. We added new columns to the Top Artists and Top Tracks lists in 1.0.1. But,
+    // if the saved Column/Sort orderings don't match then the new column won't show.
+    // So here, we delete the saved settings from version 1.0.0.
+    if ([@"1.0.0" isEqualToString:[prefs objectForKey:@"version"]]) {
+        [prefs removeObjectForKey:@"NSTableView Columns Top Artists"];
+        [prefs removeObjectForKey:@"NSTableView Sort Ordering Top Artists"];
+        [prefs removeObjectForKey:@"NSTableView Columns Top Tracks"];
+        [prefs removeObjectForKey:@"NSTableView Sort Ordering Top Tracks"];
+    }
+    
+    // One user has reported the version # showing up in his personal prefs.
+    // I don't know how this is happening, but I've never seen it myself. So here,
+    // we just force the version # from the defaults into the personal prefs.
+    // This came in very handy above -- what foresight!
+    [prefs setObject:[defaultPrefs objectForKey:@"version"] forKey:@"version"];
+    
+    [SongData setSongTimeFudge:5.0];
 	
-    if(!myKeyChain)
-        myKeyChain=[[KeyChain alloc] init];
-	
-    // Request the password and release it, this will force it to ask
+    // Request the password and lease it, this will force it to ask
     // permission when loading, so it doesn't annoy you halfway through
     // a song.
-    NSString * pass = [[[NSString alloc] init] autorelease];
-    pass = [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]];
-    
-    // Activate CURLHandle
-    [CURLHandle curlHelloSignature:@"XxXx" acceptAll:YES];
-    
-    // Set the URL for CURLHandle
-    NSURL * mainurl = [NSURL URLWithString:[prefs stringForKey:@"url"]];
-    [self setURLHandle:(CURLHandle *)[mainurl URLHandleUsingCache:NO]];
+    (void)[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
+        account:[prefs stringForKey:@"username"]];
 	
-    // Indicate that we have not yet handshaked
-    haveHandshaked = NO;
-	
-	// Set the BADAUTH to false
-	lastAttemptBadAuth = NO;
-    
 	// Create an instance of the preferenceController
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
 	
-	// Set the script locations
-    NSURL *url=[NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                stringByAppendingPathComponent:@"Scripts/controlscript.scpt"] ];
-	
-    if(self=[super init])
-    {
-        script=[[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
-        nc=[NSNotificationCenter defaultCenter];
-        [nc addObserver:self selector:@selector(handleChangedNumRecentTunes:)
-                   name:@"CDCNumRecentSongsChanged"
-                 object:nil];
+    // Register our image conversion handler for AE descriptors (KFASHandlerAdditions)
+    [NSAppleEventDescriptor registerConversionHandler:self
+        selector:@selector(aeImageConversionHandler:)
+        forDescriptorTypes:typePict, typeTIFF, typeJPEG, typeGIF, nil];
+    
+	// Create the GetInfo script
+    file = [[[NSBundle mainBundle] resourcePath]
+                stringByAppendingPathComponent:@"Scripts/iTunesGetCurrentTrackInfo.scpt"];
+    NSURL *url = [NSURL fileURLWithPath:file];
+    script = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+    if (!script) {
+        [self showApplicationIsDamagedDialog];
+        [NSApp terminate:nil];
     }
+    
+    [self restoreITunesLastPlayedTime];
+    
+    if ((self = [super init])) {
+        [NSApp setDelegate:self];
+        
+        nc=[NSNotificationCenter defaultCenter];
+        [nc addObserver:self selector:@selector(handlePrefsChanged:)
+            name:SCROB_PREFS_CHANGED
+            object:nil];
+        
+        // Register for mounts and unmounts (iPod support)
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+        
+        // Register with Growl
+        [GrowlApplicationBridge setGrowlDelegate:self];
+        
+        // Register for iTunes track change notifications
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
+            object:nil];
+        
+        // Create protocol mgr -- register the up/down notification before, because
+        // PM init can send it
+        [nc addObserver:self
+                selector:@selector(networkStatusHandler:)
+                name:PM_NOTIFICATION_NETWORK_STATUS
+                object:nil];
+        
+        (void)[ProtocolManager sharedInstance];
+        
+        // Register for PM notifications
+        [nc addObserver:self
+                selector:@selector(handshakeCompleteHandler:)
+                name:PM_NOTIFICATION_HANDSHAKE_COMPLETE
+                object:nil];
+        [nc addObserver:self
+                selector:@selector(badAuthHandler:)
+                name:PM_NOTIFICATION_BADAUTH
+                object:nil];
+        [nc addObserver:self
+                selector:@selector(handshakeStartHandler:)
+                name:PM_NOTIFICATION_HANDSHAKE_START
+                object:nil];
+        [nc addObserver:self
+                selector:@selector(submitCompleteHandler:)
+                name:PM_NOTIFICATION_SUBMIT_COMPLETE
+                object:nil];
+        [nc addObserver:self
+                selector:@selector(submitStartHandler:)
+                name:PM_NOTIFICATION_SUBMIT_START
+                object:nil];
+        
+        // Create queue mgr
+        (void)[QueueManager sharedInstance];
+        if ([[QueueManager sharedInstance] count])
+            [[QueueManager sharedInstance] submit];
+        
+        // Create top lists controller so it will pick up subs
+        // We do this after creating the QM so that queued subs are not counted.
+        (void)[TopListsController sharedInstance];
+    }
+    
+    // Install ourself in the Login Items
+    NSWorkspace *ws = [NSWorkspace sharedWorkspace];
+    NSString *pathToSelf = [[NSBundle mainBundle] bundlePath];
+    if (![ws isLoginItem:pathToSelf]) {
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"Added to Login"]) {
+            if ([ws addLoginItem:pathToSelf hidden:NO])
+                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Added to Login"];
+        }
+    }
+    
     return self;
 }
 
@@ -94,30 +699,82 @@
 {
     songList=[[NSMutableArray alloc ]init];
     
-    [self setLastResult:@"No data sent yet."];
-    //NSLog(@"lastResult: %@",lastResult);
-	
-    mainTimer = [[NSTimer scheduledTimerWithTimeInterval:(10.0)
-                                                  target:self
-                                                selector:@selector(mainTimer:)
-                                                userInfo:nil
-                                                 repeats:YES] retain];
-	
-    queueTimer = [[NSTimer scheduledTimerWithTimeInterval:(60.0)
-												   target:self
-												 selector:@selector(queueTimer:)
-												 userInfo:nil
-												  repeats:YES] retain];
+// We don't need to do this right now, as the only thing that uses playlists is the prefs.
+#if 0
+    // Timer to update our internal copy of iTunes playlists
+    [[NSTimer scheduledTimerWithTimeInterval:300.0
+        target:self
+        selector:@selector(iTunesPlaylistUpdate:)
+        userInfo:nil
+        repeats:YES] fire];
+#endif
+
+    BOOL enableMenu = [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"];
+    if (!enableMenu && (GetCurrentKeyModifiers() & shiftKey))
+        enableMenu = YES;
+    [self enableStatusItemMenu:enableMenu];
+}
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
+    [[QueueManager sharedInstance] syncQueue:nil];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
+        [self openStatistics:nil];
+    }
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]) {
+        [self openTopLists:nil];
+    }
     
-    statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
-	
-    [statusItem setTitle:[NSString stringWithFormat:@"%C",0x266B]];
-    [statusItem setHighlightMode:YES];
-    [statusItem setMenu:theMenu];
-    [statusItem setEnabled:YES];
-	
-    [mainTimer fire];
-    [queueTimer fire];
+    if (0 == [[prefs stringForKey:@"username"] length] || 0 == 
+        [[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
+            account:[prefs stringForKey:@"username"]] length]) {
+        // No clue why, but calling this method directly here causes the status item
+        // to permantly stop functioning. Maybe something to do with the run-loop
+        // not having run yet?
+        [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
+    }
+    
+    if (!iPodMountPath) {
+        // Simulate mount events for current mounts so that any mounted iPod is found
+        NSEnumerator *en = [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
+        NSString *path;
+        while ((path = [en nextObject])) {
+            NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
+            NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidMountNotification
+                object:[NSWorkspace sharedWorkspace] userInfo:dict];
+            [self volumeDidMount:note];
+        }
+    }
+}
+
+-(IBAction)enableDisableSubmissions:(id)sender
+{
+    unichar ch;
+    if (!submissionsDisabled) {
+        submissionsDisabled = YES;
+        ch = MENU_TITLE_SUB_DISABLED_CHAR;
+        [sender setTitle:NSLocalizedString(@"Resume Submissions", "")];
+    } else {
+        submissionsDisabled = NO;
+        ch = MENU_TITLE_CHAR;
+        [sender setTitle:NSLocalizedString(@"Pause Submissions", "")];
+    }
+    NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
+    if (!color)
+        color = [NSColor blackColor];
+    
+    NSAttributedString *newTitle =
+        [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1]
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
+            // If we don't specify this, the font defaults to Helvitica 12
+            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
+    [statusItem setAttributedTitle:newTitle];
+    [newTitle release];
 }
 
 - (void)updateMenu
@@ -125,545 +782,405 @@
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
     SongData *song;
-    //   NSLog(@"updating menu");
+    int addedSongs = 0;
+    // ScrobTrace(@"updating menu");
 	
     // remove songs from menu
-    while(item=[enumerator nextObject])
-        if([item action]==@selector(playSong:))
+    while((item = [enumerator nextObject])) {
+        if([item action]==@selector(playSong:)) {
+            [item setRepresentedObject:nil];
             [theMenu removeItem:item];
+        }
+    }
+    
+    // Remove separator
+    if ([theMenu numberOfItems] && [[theMenu itemAtIndex:0] isSeparatorItem])
+        [theMenu removeItemAtIndex:0];
     
     // add songs from songList array to menu
     enumerator=[songList reverseObjectEnumerator];
-    while ((song = [enumerator nextObject]))
-    {
-        //NSLog(@"Shit in song:\n%@",song);
+    int songsToDisplay = [prefs integerForKey:@"Number of Songs to Save"];
+    while ((song = [enumerator nextObject]) && addedSongs < songsToDisplay) {
         item = [[[NSMenuItem alloc] initWithTitle:[song title]
                                            action:@selector(playSong:)
                                     keyEquivalent:@""] autorelease];
         
         [item setTarget:self];
+        [item setRepresentedObject:song];
         [theMenu insertItem:item atIndex:0];
-		//    NSLog(@"added item to menu");
-    }
-}
-
--(void)queueTimer:(NSTimer *)timer
-{
-    // Does the songQueue currently contain more than one item? If not, then
-    // this whole exercise is meaningless. Lets check that first.
-    if([songQueue count] > 1)
-    {
-        // What was the last result? If it wasn't an OK, then don't bother
-        // attempting a submission.
-        if([self lastResult] != nil && [[self lastResult] hasPrefix:@"OK"])
-        {
-            // All good, lets try a submission.
-        }
-    }
-}
-
--(void)mainTimer:(NSTimer *)timer
-{
-    // micah_modell@users.sourceforge.net
-    // Check for null and branch to avoid having the application hang.
-    NSAppleEventDescriptor * executionResult = [ script executeAndReturnError: nil ] ;
-    
-    if( nil != executionResult )
-    {
-        NSString *result=[[NSString alloc] initWithString:[ executionResult stringValue]];
-	
-    //NSLog(@"timer fired");
-    //NSLog(@"%@",result);
-	
-    // For Debugging: Display the contents of the parsed result array
-    // NSLog(@"Shit in parsed result array:\n%@\n",parsedResult);
-    
-    // If the script didn't return an error, continue
-    if([result hasPrefix:@"NOT PLAYING"]) {
-		
-    } else if([result hasPrefix:@"RADIO"]) {
-		
-    } else if([result hasPrefix:@"INACTIVE"]) {
-        
-    } else {
-        // Parse the result and create an array
-        NSArray *parsedResult = [[NSArray alloc] initWithArray:[result 				componentsSeparatedByString:@"***"]];
-		
-        // Make a SongData object out of the array
-        SongData * song = [[SongData alloc] init];
-        [song setTrackIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:0]
-            floatValue]]];
-        [song setPlaylistIndex:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:1]
-            floatValue]]];
-        [song setTitle:[parsedResult objectAtIndex:2]];
-        [song setDuration:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:3] floatValue]]];
-        [song setPosition:[NSNumber numberWithFloat:[[parsedResult objectAtIndex:4] floatValue]]];
-        [song setArtist:[parsedResult objectAtIndex:5]];
-        [song setAlbum:[parsedResult objectAtIndex:6]];
-        [song setPath:[parsedResult objectAtIndex:7]];
-        //NSLog(@"SongData allocated and filled");
-		
-        // If the songlist is empty, then simply add the song object to the songlist
-        if([songList count]==0)
-        {
-            NSLog(@"adding first item");
-            [songList insertObject:song atIndex:0];
-        }
-        else
-        {
-            // is the title of the result track the same as the title of the track thats
-            // currently in first place in the song list? If so, find out what percentage
-            // of the song has been played, and queue a submission if necessary.
-            if([[song title] isEqualToString:[[songList objectAtIndex:0] title]])
-            {
-                // If the song hasn't been queued yet, see if its ready.
-                if(![[songList objectAtIndex:0] hasQueued])
-                {
-                    if([[[songList objectAtIndex:0] percentPlayed] floatValue] > 50 ||
-                       [[[songList objectAtIndex:0] timePlayed] floatValue] > 120 )
-                    {
-                        NSLog(@"Ready to send.");
-                        [[songList objectAtIndex:0] setHasQueued:YES];
-                        [songQueue insertObject:[[[songList objectAtIndex:0] copy] autorelease]
-                                        atIndex:0];
-                        NSLog(@"Preparing send.");
-                        [self sendData];
-                        NSLog(@"Sent");
-                        //NSLog(@"songQueue at timer: %@",songQueue);
-                    }
-                }
-            } else {
-                // Check to see if the current result's track name is anywhere in the songlist
-                // If it is, we set found equal to the index position where it was found
-                // NSLog(@"Looking for track");
-                int j;
-                int found = 0;
-                for(j = 0; j < [songList count]; j++) {
-                    if([[[songList objectAtIndex:j] title] isEqualToString:[song title]])
-                    {
-                        found = j;
-                        break;
-                    }
-                }
-                //NSLog(@"Found = %i",j);
-				
-                // If the trackname wasn't found anywhere in the list, we add a new item
-                if(!found)
-                {
-                    NSLog(@"adding new item");
-                    [songList insertObject:song atIndex:0];
-                }
-                // If the trackname was found elsewhere in the list, we remove the old
-                // item, and add the new one onto the beginning of the list.
-                else
-                {
-                    //NSLog(@"removing old, adding new");
-                    [songList removeObjectAtIndex:found];
-                    [songList insertObject:song atIndex:0];
-                }
-            }
-        }
-        // If there are more items in the list than the user wanted
-        // Then we remove the last item in the songlist
-        while([songList count]>[prefs integerForKey:@"Number of Songs to Save"]) {
-            //NSLog(@"Removed an item from songList");
-            [songList removeObject:[songList lastObject]];
-        }
-		
-        //NSLog(@"About to release song and parsedResult");
-        [self updateMenu];
-        [song release];
-        [parsedResult release];
-        //NSLog(@"song and parsedResult released");
+        ++addedSongs;
+		//    ScrobTrace(@"added item to menu");
     }
     
-    [result release];
-    //NSLog(@"result released");
-    }
-}
-
--(IBAction)playSong:(id)sender{
-    SongData *songInfo;
-    NSString *scriptText;
-    NSAppleScript *play;
-    int index=[[sender menu] indexOfItem:sender];
-	
-    songInfo = [songList objectAtIndex:index];
-	
-	
-    scriptText=[NSString stringWithFormat: @"tell application \"iTunes\" to play track %d of playlist %d",[[songInfo trackIndex] intValue],[[songInfo playlistIndex] intValue]];
-	
-    play=[[NSAppleScript alloc] initWithSource:scriptText];
-	
-    [play executeAndReturnError:nil];
+    if (addedSongs)
+        [theMenu insertItem:[NSMenuItem separatorItem] atIndex:addedSongs];
     
-    [play release];
-    [mainTimer fire];
 }
 
 -(IBAction)clearMenu:(id)sender{
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
 	
-	NSLog(@"clearing menu");
+	ScrobTrace(@"clearing menu");
     [songList removeAllObjects];
     
 	while(item=[enumerator nextObject])
         if([item action]==@selector(playSong:))
             [theMenu removeItem:item];
 	
-	[mainTimer fire];
+    // remove the first separator
+    if ([theMenu numberOfItems] && [[theMenu itemAtIndex:0] isSeparatorItem])
+        [theMenu removeItemAtIndex:0];
+}
+
+-(IBAction)playSong:(id)sender{
+    static NSAppleScript *iTunesPlayTrackScript = nil;
+    
+    if (!iTunesPlayTrackScript) {
+        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
+                    stringByAppendingPathComponent:@"Scripts/iTunesPlaySpecifiedTrack.scpt"]];
+        iTunesPlayTrackScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
+        if (!iTunesPlayTrackScript) {
+            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesPlaySpecifiedTrack.scpt!\n");
+            [self showApplicationIsDamagedDialog];
+            return;
+        }
+    }
+    
+    SongData *song = [sender representedObject];
+	
+    if (![song playlistID] || ![song sourceName]) {
+        ScrobLog(SCROB_LOG_WARN, @"Can't play track '%@' -- missing iTunes library info.", [song brief]);
+        return;
+    }
+    
+    @try {
+        (void)[iTunesPlayTrackScript executeHandler:@"PlayTrack" withParameters:[song sourceName],
+            [song playlistID], [NSNumber numberWithInt:[song iTunesDatabaseID]], nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't play track -- script error: %@.", exception);
+    }
 }
 
 -(IBAction)openPrefs:(id)sender{
-    // NSLog(@"opening prefs");
+    // ScrobTrace(@"opening prefs");
+    
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
-	
-    [preferenceController takeValue:[self lastResult] forKey:@"lastResult"];
     
-    if([songQueue count] != 0)
-        [preferenceController takeValue:[songQueue objectAtIndex:0] forKey:@"songData"];
-	
+    // Update iTunes playlists
+    if ([prefs boolForKey:@"Sync iPod"])
+        [self iTunesPlaylistUpdate:nil];
+    
     [NSApp activateIgnoringOtherApps:YES];
-    [[preferenceController window] makeKeyAndOrderFront:nil];
+    [preferenceController showPreferencesWindow];
 }
 
 -(IBAction)openScrobblerHomepage:(id)sender
 {
-    NSURL *url = [NSURL URLWithString:@"http://www.audioscrobbler.com"];
+    NSURL *url = [NSURL URLWithString:@"http://www.last.fm"];
     [[NSWorkspace sharedWorkspace] openURL:url];
+}
+
+- (IBAction)openiScrobblerDownloadPage:(id)sender {
+	//NSLog(@"openiScrobblerDownloadPage");
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.last.fm/downloads.php"]];
 }
 
 -(IBAction)openUserHomepage:(id)sender
 {
-    NSString *prefix = @"http://www.audioscrobbler.com/user/";
+    NSString *prefix = @"http://www.last.fm/user/";
     NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
--(void) handleChangedNumRecentTunes:(NSNotification *)aNotification
+-(IBAction)openStatistics:(id)sender
 {
+    [[StatisticsController sharedInstance] showWindow:sender];
+    [NSApp activateIgnoringOtherApps:YES];
+}
+
+-(IBAction)openTopLists:(id)sender
+{
+    [[TopListsController sharedInstance] showWindow:sender];
+    [NSApp activateIgnoringOtherApps:YES];
+}
+
+-(void) handlePrefsChanged:(NSNotification *)aNotification
+{
+    // Song Count
     while([songList count]>[prefs integerForKey:@"Number of Songs to Save"])
         [songList removeObject:[songList lastObject]];
     [self updateMenu];
+
+// We don't have a UI to control this pref because it would cause support nightmares
+// with noobs enabling it w/o actually knowing what it does. If a UI is ever added,
+// enable the following code block.
+#ifdef notyet
+    // Status menu
+    [self enableStatusItemMenu:
+        [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"]];
+#endif
 }
 
 -(void)dealloc{
-    
-	[myURLHandle release];
-	[CURLHandle curlGoodbye];
 	[nc removeObserver:self];
 	[nc release];
-	[lastResult release];
-	[lastHandshakeResult release];
-	[myKeyChain release];
-	[songQueue release];
 	[statusItem release];
 	[songList release];
 	[script release];
-	[md5Challenge release];
-	[submitURL release];
-	[mainTimer invalidate];
-	[mainTimer release];
+	KillQueueTimer();
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
 }
 
-- (void)handshake
+- (NSString *)md5hash:(id)input
 {
-    NSString* url = [prefs stringForKey:@"url"];
-	
-    url = [url stringByAppendingString:@"?hs=true"];
-	
-    NSString* escapedusername=[(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"], NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) 	autorelease];
-	url = [url stringByAppendingString:@"&u="];
-	url = [url stringByAppendingString:escapedusername];
-	
-	url = [url stringByAppendingString:@"&p="];
-	url = [url stringByAppendingString:[prefs stringForKey:@"protocol"]];
-	
-	url = [url stringByAppendingString:@"&v="];
-	url = [url stringByAppendingString:[prefs stringForKey:@"version"]];
-	
-	url = [url stringByAppendingString:@"&c="];
-	url = [url stringByAppendingString:[prefs stringForKey:@"clientid"]];
-	
-	NSLog(@"Handshaking... %@", url);
-	
-	NSURL *nsurl = [NSURL URLWithString:url];
-	//NSLog(@"nsurl: %@",nsurl);
-	//NSLog(@"host: %@",[nsurl host]);
-	//NSLog(@"query: %@", [nsurl query]);
-	
-	CURLHandle *handshakeHandle = [CURLHandle cachedHandleForURL:nsurl];	
-	
-	// fail on errors (response code >= 300)
-    [handshakeHandle setFailsOnError:YES];
-	[handshakeHandle setFollowsRedirects:YES];
-	[handshakeHandle setConnectionTimeout:30];
-	
-    // Set the user-agent to something Mozilla-compatible
-    [handshakeHandle setUserAgent:[prefs stringForKey:@"useragent"]];
-	
-	NSData *data = [handshakeHandle loadInForeground];
-	[handshakeHandle flushCachedData];
-	NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-	
-	NSLog(@"Result: %@", result);
-	if ([result length] == 0) {
-		NSLog(@"Connection failed");
-		result = [[NSString alloc] initWithString:@"FAILED\nConnection failed"];
-	}
-	
-	NSArray *splitResult = [result componentsSeparatedByString:@"\n"];
-	NSString *handshakeResult = [splitResult objectAtIndex:0];
-	[self changeLastHandshakeResult:handshakeResult];
-	
-	if ([handshakeResult hasPrefix:@"UPTODATE"] ||
-		[handshakeResult hasPrefix:@"UPDATE"]) {
-		
-		md5Challenge = [[NSString alloc] initWithString:[splitResult objectAtIndex:1]];
-		submitURL = [[NSString alloc] initWithString:[splitResult objectAtIndex:2]];
-		
-		NSURL *nsurl = [NSURL URLWithString:submitURL];
-		[myURLHandle setURL:nsurl];
-		
-		//TODO: INTERVAL stuff
-		
-		haveHandshaked = YES;
-	}
-	
-	// If we get any response other than "UPTODATE" or "FAILED", open
-	// the preferences window to display the information.
-	if ([handshakeResult hasPrefix:@"BADUSER"] ||
-		[handshakeResult hasPrefix:@"UPDATE"]) {
-		[self openPrefs:self];
-	}
-}
-
-- (void)sendData
-{
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-    int submissionCount = [songQueue count];
-    int i;
-	
-    // First things first, we must execute a server handshake before
-    // doing anything else. If we've already handshaked, then no
-    // worries.
-    if(!haveHandshaked)
-    {
-		NSLog(@"Need to handshake");
-		[self handshake];
-    }
-	
-	if (haveHandshaked) {
-		NSString* escapedusername=[(NSString*)
-			CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs 	stringForKey:@"username"], NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) 	autorelease];
-		
-		[dict setObject:escapedusername forKey:@"u"];
-		
-		//retrieve the password from the keychain, and hash it for sending
-		NSString *pass = [[NSString alloc] initWithString:[myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs 	stringForKey:@"username"]]];
-		//NSLog(@"pass: %@", pass);
-		NSString *hashedPass = [[NSString alloc] initWithString:[self md5hash:[pass autorelease]]];
-		//NSLog(@"hashedPass: %@", hashedPass);
-		//NSLog(@"md5Challenge: %@", md5Challenge);
-		NSString *concat = [[NSString alloc] initWithString:[[hashedPass autorelease] stringByAppendingString:md5Challenge]];
-		//NSLog(@"concat: %@", concat);
-		NSString *response = [[NSString alloc] initWithString:[self md5hash:[concat autorelease]]];
-		//NSLog(@"response: %@", response);
-		
-		[dict setObject:response forKey:@"s"];
-		[response autorelease];
-		
-		// Fill the dictionary with every entry in the songQueue, ordering them from
-		// oldest to newest.
-		for(i=submissionCount-1; i >= 0; i--) {
-			[dict addEntriesFromDictionary:[[songQueue objectAtIndex:i] postDict:
-				(submissionCount - 1 - i)]];
-		}
-		
-		// fail on errors (response code >= 300)
-		[myURLHandle setFailsOnError:YES];
-		[myURLHandle setFollowsRedirects:YES];
-		
-		// Set the user-agent to something Mozilla-compatible
-		[myURLHandle setUserAgent:[prefs stringForKey:@"useragent"]];
-		
-		//NSLog(@"dict before sending: %@",dict);
-		// Handle "POST"
-		[myURLHandle setSpecialPostDictionary:dict encoding:NSUTF8StringEncoding];
-		
-		// And load in background...
-		[myURLHandle addClient:self];
-		[myURLHandle loadInBackground];
-		
-		[dict release];
-		
-		NSLog(@"Data loading...");
-	}
-}
-
-- (void)URLHandleResourceDidFinishLoading:(NSURLHandle *)sender
-{
-    int i;
-    NSData *data = [myURLHandle resourceData];
-    NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-	
-    [self changeLastResult:result];
-    NSLog(@"songQueue count after loading: %d", [songQueue count]);
-	
-	NSLog(@"Server result: %@", result);
-    // Process Body, if OK, then remove the last song from the queue
-    if([result hasPrefix:@"OK"])
-    {
-		int count = [songQueue count];
-        for(i=0; i < count; i++)
-        {
-            [songQueue removeObjectAtIndex:0];
-        }
-        NSLog(@"songQueue cleaned, count = %i",[songQueue count]);
-    } else {
-        NSLog(@"Server error, songs left in queue, count = %i",[songQueue count]);
-		haveHandshaked = NO;
-		
-		// If the password is wrong, show the preferences window.
-		if ([result hasPrefix:@"BADAUTH"]) {
-			// Only show the preferences window if we get BADAUTH
-			// twice in a row.
-			if (lastAttemptBadAuth) {
-				[self openPrefs:self];
-			} else {
-			    lastAttemptBadAuth = YES;
-			}
-		} else {
-			lastAttemptBadAuth = NO;
-		}
-    }
-	
-    [myURLHandle removeClient:self];
+	if ([input isKindOfClass:[NSString class]])
+        input = [input dataUsingEncoding:NSUTF8StringEncoding];
+    else if (nil == input || NO == [input isKindOfClass:[NSData class]])
+        return (nil);
     
-    //NSLog(@"songQueue: %@",songQueue);
-	
-    //NSLog(@"lastResult: %@",lastResult);
+    unsigned char *hash = MD5((unsigned char*)[input bytes], [input length], NULL);
+	int i;
     
-}
-
--(void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender { }
-
--(void)URLHandleResourceDidCancelLoading:(NSURLHandle *)sender
-{
-    [myURLHandle removeClient:self];
-}
-
--(void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes { }
-
--(void)URLHandle:(NSURLHandle *)sender resourceDidFailLoadingWithReason:(NSString *)reason
-{
-    [self changeLastResult:reason];
-    [myURLHandle removeClient:self];
+	NSMutableString *hashString = [NSMutableString string];
 	
-    NSLog(@"Connection error, songQueue count: %d",[songQueue count]);
+    // Convert the binary hash into a string
+    for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
+		//ScrobTrace(@"Appending %X to hashString (currently %@)", *hash, hashString);
+		[hashString appendFormat:@"%02x", *hash++];
+	}
+	
+    //ScrobTrace(@"Returning hash... %@ for input: %@", hashString, input);
+    return hashString;
 }
 
-- (NSString *)lastResult
+-(SongData*)nowPlaying
 {
-    return lastResult;
+    return (currentSong);
 }
 
-- (void)changeLastResult:(NSString *)newResult
+#define URI_RESERVED_CHARS_TO_ESCAPE CFSTR(";/+?:@&=$,")
+- (NSString*)stringByEncodingURIChars:(NSString*)str
 {
-    [self setLastResult:newResult];
-	
-    //NSLog(@"song data before sending: %@",[songQueue objectAtIndex:0]);
-    [preferenceController takeValue:[self lastResult] forKey:@"lastResult"];
-    [preferenceController takeValue:[[[songQueue objectAtIndex:0] copy] autorelease]
-                             forKey:@"songData"];
-    [nc postNotificationName:@"lastResultChanged" object:self];
-	
-    NSLog(@"result changed");
+    // last.fm double encodes everything for URLs
+    // i.e. '/' is %2F but last.fm enocodes the '%' char too so
+    // the final form is %252f
+    str = [(NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+        (CFStringRef)str, CFSTR(" "), URI_RESERVED_CHARS_TO_ESCAPE, kCFStringEncodingUTF8) autorelease];
+    str = (NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+        (CFStringRef)str, CFSTR(" "), NULL, kCFStringEncodingUTF8);
+    return ([str autorelease]);
 }
 
-
-- (void)setLastResult:(NSString *)newResult
+-(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
 {
-    [newResult retain];
-    [lastResult release];
-    lastResult = newResult;
-}
-
-- (NSString *)lastHandshakeResult
-{
-    return lastHandshakeResult;
-}
-
-- (void)changeLastHandshakeResult:(NSString *)newHandshakeResult
-{
-    [self setLastHandshakeResult:newHandshakeResult];
-	
-    [preferenceController setLastHandshakeResult:[self lastHandshakeResult]];
-    [nc postNotificationName:@"lastHandshakeResultChanged" object:self];
-	
-    NSLog(@"Handshakeresult changed: %@", [self lastHandshakeResult]);
-}
-
-
-- (void)setLastHandshakeResult:(NSString *)newHandshakeResult
-{
-    [newHandshakeResult retain];
-    [lastHandshakeResult release];
-    lastHandshakeResult = newHandshakeResult;
-}
-
-- (void)setURLHandle:(CURLHandle *)inURLHandle
-{
-    [inURLHandle retain];
-    [myURLHandle release];
-    myURLHandle = inURLHandle;
-}
-
-- (NSString *)md5hash:(NSString *)input
-{
-    MHASH td;
-    unsigned char *hash;
-    char *buffer,*p;
-    int digestByteSize, digestStringSize, i;
-    static const char *hex_digits = "0123456789abcdef";
-    NSString *digestHexText;
-	
-    // Define the digest byte size, then initialize the
-    // hashing thread.
-    digestByteSize=mhash_get_block_size(MHASH_MD5);
-    td = mhash_init(MHASH_MD5);
-    if (td == MHASH_FAILED) NSLog(@"Hash init failed..");
-	
-    // Perform the hash with the given data
-    mhash(td, [input cString], strlen([input cString]));
-	
-    // Close the hashing thread and dump the data
-    hash = mhash_end(td);
-	
-    // Convert the data returned into a string
-    digestStringSize=2*digestByteSize+1;
-    p=malloc(digestStringSize);
-    buffer=p;
+    static NSString *baseURL = nil;
+    static NSString *artistTitlePathSeparator = nil;
     
-    for (i = 0; i <digestByteSize; i++) {
-        *buffer++ = hex_digits[(*hash & 0xf0) >> 4];
-        *buffer++ = hex_digits[*hash & 0x0f];
-		hash++;
+    if (!artist)
+        return (nil);
+    
+    if (!baseURL) {
+        baseURL = [[NSUserDefaults standardUserDefaults]
+            objectForKey:@"AS Artist Root URL"];
+        if (!baseURL)
+            baseURL = @"http://www.last.fm/music/";
+        artistTitlePathSeparator = [[NSUserDefaults standardUserDefaults]
+            objectForKey:@"AS Artist-Track Path Separator"];
+        if (!artistTitlePathSeparator)
+            artistTitlePathSeparator = @"/_/";
     }
     
-    *buffer = (char)0;
-    digestHexText=[NSString stringWithCString:p];
-    free(p);
-	
-    //NSLog(@"Returning... %@",digestHexText);
-    return digestHexText;
+    NSMutableString *url = [[baseURL mutableCopy] autorelease];
+    
+    artist = [self stringByEncodingURIChars:artist];
+    if (!title)
+        [url appendString:artist];
+    else {
+        title = [self stringByEncodingURIChars:title];
+        [url appendFormat:@"%@%@%@", artist, artistTitlePathSeparator, title];
+    }
+    // Replace spaces with + (why doesn't AS use %20)?
+    [url replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [url length])];
+    return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
 }
 
+-(IBAction)cleanLog:(id)sender
+{
+    ScrobLogTruncate();
+}
+
+-(IBAction)performFindPanelAction:(id)sender
+{
+    NSWindow *w = [NSApp keyWindow];
+    if (w && [[w windowController] respondsToSelector:@selector(performFindPanelAction:)])
+        [[w windowController] performFindPanelAction:sender];
+    else
+        NSBeep();
+}
+
+- (void)showBadCredentialsDialog
+{	
+	[NSApp activateIgnoringOtherApps:YES];
+	
+	// we should give them the option to ignore
+	// these messages, and only update the menu icon... -- ECS 10/30/04
+	int result = NSRunAlertPanel(NSLocalizedString(@"Authentication Failure", nil),
+								NSLocalizedString(@"Audioscrobbler.com did not accept your username and password.  Please update your user credentials in the iScrobbler preferences.", nil),
+								NSLocalizedString(@"Open iScrobbler Preferences", nil),
+								NSLocalizedString(@"New Account", nil),
+								nil); // NSLocalizedString(@"Ignore", nil)
+	
+	if (result == NSAlertDefaultReturn)
+		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
+	else if (result == NSAlertAlternateReturn)
+		[self openScrobblerHomepage:self];
+	//else
+	//	ignoreBadCredentials = YES;
+}
+
+- (void)showNewVersionExistsDialog
+{
+	if (!haveShownUpdateNowDialog) {
+		[NSApp activateIgnoringOtherApps:YES];
+		int result = NSRunAlertPanel(NSLocalizedString(@"New Plugin Available", nil),
+									 NSLocalizedString(@"A new version (%@) of the iScrobbler iTunes plugin is now available.  It strongly suggested you update to the latest version.", nil),
+									 NSLocalizedString(@"Open Download Page", nil),
+									 NSLocalizedString(@"Ignore", nil),
+									 nil); // NSLocalizedString(@"Ignore", nil)
+		if (result == NSAlertDefaultReturn)
+			[self openiScrobblerDownloadPage:self];
+		
+		haveShownUpdateNowDialog = YES;
+	}
+}
+
+- (void)showApplicationIsDamagedDialog
+{
+	[NSApp activateIgnoringOtherApps:YES];
+	int result = NSRunCriticalAlertPanel(NSLocalizedString(@"Critical Error", nil),
+										 NSLocalizedString(@"The iScrobbler application appears to be damaged.  Please download a new copy from the iScrobbler homepage.", nil),
+										 NSLocalizedString(@"Quit", nil),
+										 NSLocalizedString(@"Open iScrobbler Homepage", nil), nil);
+	if (result == NSAlertAlternateReturn)
+		[self openScrobblerHomepage:self];
+	
+	[NSApp terminate:self];
+}
+
+- (BOOL)application:(NSApplication *)sender delegateHandlesKey:(NSString *)key
+{
+    return (NO);
+}
 
 @end
+
+@implementation SongData (iScrobblerControllerAdditions)
+
+- (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict
+{
+    self = [self init];
+    
+    NSString *iname, *ialbum, *iartist, *ipath, *igenre;
+    NSURL *location = nil;
+    NSNumber *irating, *iduration;
+#ifdef notyet
+    NSString *composer;
+    NSNumber *year;
+#endif
+    NSTimeInterval durationInSeconds;
+    
+    iname = [dict objectForKey:@"Name"];
+    ialbum = [dict objectForKey:@"Album"];
+    iartist = [dict objectForKey:@"Artist"];
+    ipath = [dict objectForKey:@"Location"];
+    irating = [dict objectForKey:@"Rating"];
+    iduration = [dict objectForKey:@"Total Time"];
+    igenre = [dict objectForKey:@"Genre"];
+    
+    if (ipath)
+        location = [NSURL URLWithString:ipath];
+    
+    if (!iname || !iartist || !iduration || (location && ![location isFileURL])) {
+        if (!(location && [location isFileURL]))
+            ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
+        [self dealloc];
+        return (nil);
+    }
+    
+    [self setTitle:iname];
+    [self setArtist:iartist];
+    durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
+    [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+    if (ialbum)
+        [self setAlbum:ialbum];
+    if (location && [location isFileURL])
+        [self setPath:[location path]];
+    if (irating)
+        [self setRating:irating];
+    if (igenre)
+        [self setGenre:igenre];
+
+    [self setPostDate:[NSCalendarDate date]];
+    [self setHasQueued:NO];
+    
+    return (self);
+}
+
+- (void)updateUsingSong:(SongData*)song
+{
+    [self setPosition:[song position]];
+    [self setRating:[song rating]];
+}
+
+- (double)resubmitInterval
+{
+    double interval =  [[self duration] doubleValue] - [[self position] doubleValue];
+    if (interval > 1.0)
+        interval /= 2.0;
+    return (interval);
+}
+
+@end
+
+@implementation NSMutableArray (iScrobblerContollerFifoAdditions)
+- (void)push:(id)obj
+{
+    if ([self count])
+        [self insertObject:obj atIndex:0];
+    else
+        [self addObject:obj];
+}
+
+- (void)pop
+{
+    unsigned idx = [self count] - 1;
+    
+    if (idx >= 0)
+        [self removeObjectAtIndex:idx];
+}
+
+- (id)peek
+{
+    unsigned idx = [self count] - 1;
+    
+    if (idx >= 0)
+        return ([self objectAtIndex:idx]);
+    
+    return (nil);
+}
+@end
+
+void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
+    unsigned int *minutes, unsigned int *seconds)
+{
+    *days = time / 86400U;
+    *hours = (time % 86400U) / 3600U;
+    *minutes = ((time % 86400U) % 3600U) / 60U;
+    *seconds = ((time % 86400U) % 3600U) % 60U;
+}
+
+#include "iScrobblerController+Private.m"

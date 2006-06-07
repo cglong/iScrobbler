@@ -1,0 +1,25 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {search = id; }; 
+            CLASS = ISSearchArrayController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {searchField = NSSearchField; tableView = id; }; 
+            SUPERCLASS = NSArrayController; 
+        }, 
+        {
+            ACTIONS = {createProfileReport = id; hideDetails = id; showDetails = id; }; 
+            CLASS = TopListsController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                topArtistsController = id; 
+                topArtistsTable = NSTableView; 
+                topTracksController = id; 
+                topTracksTable = NSTableView; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

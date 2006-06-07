@@ -1,1 +1,128 @@
-////  iScrobblerController.h//  iScrobbler////  Created by Sam Ley on Feb 14, 2003.//  Released under the GPL, license details available at//  http://iscrobbler.sourceforge.net//#import <Cocoa/Cocoa.h>#import "SongData.h"@class PreferenceController;@class CURLHandle;@class KeyChain;@interface iScrobblerController : NSObject <NSURLHandleClient>{    //the status item that will be added to the system status bar    NSStatusItem *statusItem;    //the menu attached to the status item    IBOutlet NSMenu *theMenu;    //a timer which will let us check iTunes every 10 seconds    NSTimer *mainTimer;    //a timer which will let us check for queue activity    NSTimer *queueTimer;    //the script to get information from iTunes    NSAppleScript *script;    //stores info about the songs iTunes has played    NSMutableArray *songList;    //stores data waiting to be sent to the server    NSMutableArray *songQueue;    //the CURLHandle object that will do the data transmission    CURLHandle * myURLHandle;    //the preferences window controller    PreferenceController *preferenceController;    // Result code to display in pref window if error.    NSString * lastResult;    // Result code to display in pref window if error.    NSString * lastHandshakeResult;    // Have we handshaked yet?    BOOL haveHandshaked;		// Did we get BADAUTH last time we tried to submit?	BOOL lastAttemptBadAuth;		// Data from handshake	NSString * md5Challenge;	NSString * submitURL;        // Preferences tracking object    NSUserDefaults * prefs;    NSNotificationCenter *nc;    KeyChain * myKeyChain;}// return the last result-(NSString *)lastResult;// set the last result-(void)setLastResult:(NSString *)newResult;-(void)changeLastResult:(NSString *)newResult;// return the last result-(NSString *)lastHandshakeResult;// set the last result-(void)setLastHandshakeResult:(NSString *)newHandshakeResult;-(void)changeLastHandshakeResult:(NSString *)newHandshakeResult;//called when mainTimer fires-(void)mainTimer:(NSTimer *)timer;//called when queueTimer fires-(void)queueTimer:(NSTimer *)timer;//sync songList and theMenu-(void)updateMenu;//tells iTunes to play song that the user selected from the menu-(IBAction)playSong:(id)sender;//clears songs from theMenu and songList-(IBAction)clearMenu:(id)sender;//opens the preferences window-(IBAction)openPrefs:(id)sender;//opens Audioscrobbler in the default web browser-(IBAction)openScrobblerHomepage:(id)sender;-(IBAction)openUserHomepage:(id)sender;//connects to the server via CURLhandle, executes a handshake transaction-(void)handshake;//connects to the server via CURLhandle and fetches the data-(void)sendData;-(void)handleChangedNumRecentTunes:(NSNotification *)aNotification;-(NSString *)md5hash:(NSString *)input;@end
+//
+//  iScrobblerController.h
+//  iScrobbler
+//
+//  Created by Sam Ley on Feb 14, 2003.
+//  Released under the GPL, license details available at
+//  http://iscrobbler.sourceforge.net
+//
+
+#import <Cocoa/Cocoa.h>
+#import <Growl/Growl.h>
+
+@class PreferenceController;
+@class SongData;
+
+@interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate>
+{
+
+    //the status item that will be added to the system status bar
+    NSStatusItem *statusItem;
+
+    //the menu attached to the status item
+    IBOutlet NSMenu *theMenu;
+
+    //the script to get information from iTunes
+    NSAppleScript *script;
+
+    //stores info about the songs iTunes has played
+    NSMutableArray *songList;
+    
+    // Song that iTunes is currently playing (or pausing)
+    SongData *currentSong;
+    NSTimer *currentSongQueueTimer;
+
+    //the preferences window controller
+    PreferenceController *preferenceController;
+    
+    // Preferences tracking object
+    NSUserDefaults *prefs;
+
+    NSNotificationCenter *nc;
+    
+    BOOL haveShownUpdateNowDialog;
+    
+    // GetTrackInfo error timer
+    NSTimer *getTrackInfoTimer;
+    
+    // iPod sync management
+    NSString *iPodMountPath;
+    NSImage *iPodIcon;
+    BOOL isIPodMounted;
+    NSDate *iTunesLastPlayedTime;
+    NSArray *iTunesPlaylists;
+    
+    // Temporarily disable submissions
+    BOOL submissionsDisabled;
+}
+
+//sync songList and theMenu
+-(void)updateMenu;
+
+//tells iTunes to play song that the user selected from the menu
+-(IBAction)playSong:(id)sender;
+
+//clears songs from theMenu and songList
+-(IBAction)clearMenu:(id)sender;
+
+//opens the preferences window
+-(IBAction)openPrefs:(id)sender;
+
+//opens Audioscrobbler in the default web browser
+-(IBAction)openScrobblerHomepage:(id)sender;
+-(IBAction)openUserHomepage:(id)sender;
+
+-(IBAction)openStatistics:(id)sender;
+-(IBAction)openTopLists:(id)sender;
+
+-(IBAction)cleanLog:(id)sender;
+
+-(IBAction)performFindPanelAction:(id)sender;
+
+-(IBAction)enableDisableSubmissions:(id)sender;
+
+-(NSString *)md5hash:(id)input;
+
+-(SongData*)nowPlaying;
+
+-(NSString*)stringByEncodingURIChars:(NSString*)str;
+-(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
+
+- (void)showApplicationIsDamagedDialog;
+- (void)showBadCredentialsDialog;
+
+@end
+
+@interface NSMutableArray (iScrobblerContollerFifoAdditions)
+    - (void)push:(id)obj;
+    - (void)pop;
+    - (id)peek;
+@end
+
+void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
+    unsigned int *minutes, unsigned int *seconds);
+
+#ifdef __ppc__
+#define trap() asm volatile("trap")
+#elif __i386__
+#define trap() asm volatile("int $3")
+#else
+#error unknown arch
+#endif
+
+#ifdef ISDEBUG
+#define ISASSERT(condition,msg) do { \
+if (0 == (condition)) { \
+    trap(); \
+} } while(0)
+#else
+#define ISASSERT(condition,msg) {}
+#endif
+
+#define IPOD_SYNC_BEGIN @"com.audioscrobbler.ipod.sync.begin"
+#define IPOD_SYNC_END @"com.audioscrobbler.ipod.sync.end"
+#define IPOD_SYNC_KEY_PATH @"Path"
+#define IPOD_SYNC_KEY_ICON @"Icon"
+#define IPOD_ICON_NAME @"iPod Icon"
+
+#import "ScrobLog.h"

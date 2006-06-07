@@ -1,0 +1,22 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {showDetails = id; }; 
+            CLASS = StatisticsController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                artworkImage = NSImageView; 
+                checkImage = NSImageView; 
+                detailsDisclosure = id; 
+                detailsText = id; 
+                detailsView = id; 
+                nowPlayingText = id; 
+                submissionProgress = id; 
+                values = id; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

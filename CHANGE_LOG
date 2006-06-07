@@ -1,6 +1,155 @@
-Change Log for iScrobbler:
+KNOWN ISSUES:
+
+- If you are burning a CD or editing a song's information or your computer is very busy, then iTunes may not be able to process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
+- The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
+- There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu items may be unusable.
+- If you have submissions paused, then un-pause them and sync your iPod, all songs played in iTunes and on the iPod while paused will be submitted.
+
+CHANGE HISTORY:
 
 (Releases/comments tagged as RAB are by Rod Begbie)
+(BDB is Brian Bergstrand)
+(ECS is Eric Seidel)
+(Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
+(Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
+
+v1.2.1 (BDB)
+- Reduced size of queue file by about 2/3rds.
+- If by the grace of Odin your MP3 files have a MBID ID3 tag, iScrobbler can now read it (thanks to David Nicolson).
+- A 'Not all request variables are set' server error is now assumed to be a proxy truncation problem. When this error is detected iScrobbler will automatically reduce the size of it's submissions in the belief that a smaller message size will make it through any misbehaving proxies fully intact.
+- Bug Fix: Artist Details Top fans calculation for artists with non-ascii characters could fail after the first time.
+
+v1.2 (BDB)
+- New Artist details. When you select an artist/track in the Local Top Lists window, a drawer will open displaying a band image, fan data, and similar artists (all gathered from Audioscrobbler's web services). This feature is Tiger only.
+- Redesigned Top Lists window to minimize vertical space use.
+- Rudimentary support for MusicBrainz ID's. If the track comments contain an MBID, it will be submitted to the server. The format is: [MBID]<ID>[/MBID] where <ID> is replaced by the actual MBID. This is really just a stop gap measure to allow any songs that fail the Last.FM Artist/Track filters or songs less than 30 seconds.
+- The time until track submission is displayed in the Stats window as part of the track info cycle.
+- iScrobbler is a Universal app (for PPC and Intel).
+- New Pause/Resume Submissions menu (by request). When paused, the note menu will change to a sharp. Plays from iTunes and iPod will both be ignored.
+- The Artwork script has been optimized, there should be no more iTunes hangs even with the pref enabled.
+- New application icon (provided by last.fm).
+- For iPod submissions, the last submission date will now be used as the epoch if it's availble -- if not, then the last iTunes play time is used.
+- Updated to Growl framework .7.4.
+- iScrobbler will now install itself in the Login Items. If iScrobbler is later removed from Login Items it will not auto-install again.
+- Fixed a possible "The variable trackPodcast is not defined." script error when playing some types of tracks.
+- Workaround for a Tiger bug (fixed in 10.4.3) that causes iScrobbler not to recognize an active network connection on wake.
+
+v1.1.2 (BDB)
+- If a network connection is not available, the Note menu will change its color to orange.
+- If a submission failure occurs, the menu color will stay red until the next submission attempt and a tooltip will be available with the error message.
+- New pref "Enable Track Artwork". This is on by default -- if you experience problems with iTunes hanging, turn this off.
+- German localization is now included thanks to Damrod.
+- Updated Growl framework to .7.
+- iPod tracks with a play date in the future (relative to the local system time) will now be discarded.
+- Fixed: The note menu font no longer shrinks when changing colors.
+
+v1.1.1 (BDB)
+- IMPORTANT CHANGE: The log file is now automatically truncated during launch if it's larger than 2 MiB.
+- The Note menu now changes colors to indicate submission activity -- black for no activity, green for in progress and red for failure.
+- If your iPod contains an accessible volume icon, it will be displayed in the Stats window while a sync is in progress.
+- Removed the "Clear Menu" and "Clean Log" menu items in a simplification effort.
+- Fixed bug that caused the persistent cache to be lost w/o submission when upgrading from a pre-1.1 version.
+
+v1.1 (BDB)
+- OS X 10.3.9 + and iTunes 4.7.1 + are required.
+- Added profile report generation (for local stats only) to the Top Lists.
+- The stats window now displays the artwork for the currently playing song. Note: iTunes does not support artwork for Shared sources, so neither does iScrobbler.
+- Enlarged stats window icon to 96x96 (for artwork).
+- Added Growl support for track changes.
+- iPod syncing is now supported for Manual mode (thanks to j-a-x).
+- Double clicking on an item in the Top Lists tables will open the corresponding Artist/Track page on AS -- this works for most names, but some will fail.
+- The total time played text in the stats window can now be copied.
+- The network monitor should work better for some DSL users.
+- iPod sync no longer uses date strings. This should make syncing much more robust.
+- iPods that are mounted before starting iScrobbler will now be found.
+- Fixed crasher when "Number of Recent Tracks" was set to "None" (thanks to squidinc).
+- Fixed songs not being submitted when "Number of Recent Tracks" was set to "None". Of course the crash was hiding this problem.
+- Fixed a bug where an artist/track could appear twice in the local Top Lists (because string compares were case-sensitive) -- the track was not submitted twice.
+- Fixed problems with track names containing * and $ characters. Any character that iTunes supports, iScrobbler now supports.
+
+v1.0.1 (BDB)
+- The Top Artists list now includes the total time played for each artist.
+- The Top Tracks list now contains the last played time for each track.
+- Copy/Drag and Drop now work for the Top Lists tables. The data is formatted as TSV and can easily be pasted into a spreadsheet.
+- The Tracks Submitted stat is now only updated after a submission attempt completes.
+- Keychain error feedback.
+- If a username has not been entered, the preferences window will automatically open during launch as it did in 0.7.x.
+- Fixed bug that caused a song already in the submission queue and then played again to only be submitted once.
+- Fixed bug that caused the Top Lists window to always open at startup.
+- Fixed bug that caused the Statistics window to open at startup if it was opened and closed more than once during the previous session.
+- Fixed bug that caused characters not available in the default text encoding to be munged (eth, w circumflex, etc).
+- Workaround for iTunes cross-fading and/or network stream buffer issues that caused some songs to not be submitted.
+
+v1.0.0 (BDB and ECS)
+- This version (and all future versions) requires 10.3.0 or higher.
+- Removed all third-party framework dependencies.
+- The system proxy authentication settings are now supported.
+- Redesigned preferences dialog.
+- Redesigned error and update notification dialogs.
+- Network status is now monitored, and we will only send when the network is available. Submissions will be queued until that time. 
+- If iTunes 4.7 or greater is being used, we no longer have to constantly poll iTunes. Instead, iTunes will notify us when a new track is played. This reduces our lifetime CPU usage quite a bit.
+- Tracks from iTunes Shared Music are now submitted by default.
+- Redesigned and expanded client statistics -- including up-to-the-minute Top Artist and Track lists.
+- Any suitable iTunes playlist can be used for iPod Submissions ("Recently Played" is no longer hard-coded).
+- The client log level can now be set from the Preferences window. (Note: If you hover over each menu item long enough, a tool tip will appear explaining the meaning of each level.)
+- The iTunes scripts no longer return file path info (it was never used in iScrobbler proper anyway).
+- Human readable time zones are no longer included in the date strings we give to AppleScript. They are not necessary, and were just causing problems.
+- More robust persitent cache and handling of bad track data.
+- Connection timeout is now sixty seconds.
+- Fixed a 24 byte memory leak that occured with every song played (from 0.6.x releases). According to Malloc Debug iScrobbler is now leak free!
+
+v0.7.5 (BDB)
+- Fixed a bug that caused us to URL encode HTTP post data twice. This bug has been around since the first iScrobbler release, but the old submission server had its own bug that canceled out our double encoding. However, the new Java submission server "fixed" this bug and so our double encoded strings started causing URL escape sequences to become part of the track data.
+
+v0.7.4 (BDB)
+- The Control window will now display the number of songs currently in the queue.
+- New pref to disable version check. If enabled, iScrobbler will no longer open the Preferences window to notify you of a new version.
+- Our scripts no longer use the Finder to gather system info. For those that use Finder alternatives, this means iScrobbler won't launch the Finder anymore.
+- Internal changes to ready ourself for a 0.8.0 release.
+- More robust server response parsing.
+- If a song's Artist, or Title is missing the song will not be submitted (since it would be rejected by the server).
+- Fixed a bug that caused a song played two or more times sequentially to only be submitted once.
+- Fixed Cut/Copy/Paste not working (thanks to Wevah).
+
+v0.7.3 (BDB)
+- Added even more date verification for iPod songs to lessen the chance of server SPAM warnings.
+- Implemented error detection in the iPod AppleScript.
+- iScrobbler now has it's own private log file (~/Library/Logs/iScrobbler.log) so as not to pollute the Console. You can view this log by double clicking on it. It can get rather large, so every week or so you should choose "Clean Log" from the control menu.
+- Removed mHash framework dependency. We now use the system provided functions (from libcrypto).
+- Renamed "Sync iPod" to "Update iPod".
+- Fixed a crash that occurred if we failed to verify the persistent cache file after it was written.
+- Fixed several bugs in the iPod AppleScript date formatting, that caused iPod submissions to fail for non U.S. English users.
+- Fixed a date storage bug that caused us to save a last played time that could be up to 30 seconds in the past, which in turn could cause us to submit a song already played in iTunes when an iPod was sync'd.
+- Fixed another bug concerning the way we handle BADAUTH from the server on a submission. (Intro'd in 0.7.1).
+- Fixed a bug that was causing the Preference window's "Last Song Submitted" field to show the previous submitted song, not the current one.
+- Fixed some memory leaks (from 0.6.x).
+- Fixed a bug in a support framework that would cause iPod sync to fail if the iPod name contained any non-ASCII characters.
+
+v0.7.2 (BDB)
+- Fixed a possible handshake bug that could cause handshaking to never complete when we recieved an unexpected server response.
+- We now auto-resubmit when the server gives us a protocol error response (instead of doing it only for connection/HTTP errors).
+- The minimum submit time (if we haven't reached half the track) is now four minutes.
+- Fixed a bug concerning the way we handle BADAUTH from the server on a submission. (Intro'd in 0.7.1).
+
+v0.7.1 (BDB)
+- Added persistent cache (located at ~/Library/Application Support/net_sourceforge_iscrobbler_cache.plist).
+- Songs less than 30 seconds are no longer submitted (as they are ignored by the server).
+- If handshaking fails, the next attempt will be delayed by 1 minute. Each successive failure, will double the delay time up to a max of 2 hours. Auth failures are not limited.
+- Handshaking is now done in the background, so there is no longer a possibility of iScrobbler hanging. We also attempt to detect and cancel possible "stuck" handshakes.
+- If an error occurs during handshaking or song submission, a re-attempt will automatically be made after a certain delay instead of waiting for the next song to play.
+- Code re-design to make Protocol v1.2 support easier to add.
+- Added date verification to iPod sync to detect any bad play times in iTunes (and prevent spam warnings).
+- Removed bug reporting, if you are having a problem, visit the forums, read the New and iTunes forums, and if you can't find a description of your problem, then (and only then) post a new entry to the iTunes forum (not the general forums!).
+- De-metalized the prefs window.
+
+v0.7.0 (BDB)
+- Added support for iPod syncing.
+Limitations:
+ - If you start playing iTunes before syncing your iPod, then all songs on the iPod will be discarded.
+ *Special note for users who have iPod Disk Mode enabled: Since iScrobbler delays syncing until the iPod is ejected, you must manually sync using the "Sync iPod" item in the control menu, or eject your iPod before you start playing music in iTunes. Either way, make sure to wait until iTunes says your iPod is "up to date".
+ - Seeking a song on the iPod could trigger spam protection on the server.
+- Fixed possible bug that would cause the Preferences window to fail to load.
+- Fixed bug that reported "Last Submission Successful" in the details drawer even though the submission failed.
 
 v0.6.4 (RAB):
 - iScrobbler will no longer bitch that your username & password are wrong, just because the server says it once.  It'll try twice.  If the server *still* complains, *then* iScrobbler will pop-up the error message.
