@@ -20,6 +20,9 @@
     <key>Artist Detail</key>
     <true />
     
+    <key>CheckForFileMBIDs</key>
+    <true />
+    
     <key>Sync iPod</key>
     <true />
     
