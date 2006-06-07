@@ -68,6 +68,9 @@
 		D3EC7B8408082DED00392110 /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
+		D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */ = {isa = PBXBuildFile; fileRef = D3EE90A20A093FF80024A013 /* checkmark.tif */; };
+		D3EE9CC70A144A470024A013 /* MBID.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EE9CC50A144A470024A013 /* MBID.c */; };
+		D3EE9CC80A144A470024A013 /* MBID.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EE9CC60A144A470024A013 /* MBID.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -81,42 +84,6 @@
 		};
 /* End PBXBuildRule section */
 
-/* Begin PBXBuildStyle section */
-		4A9504CCFFE6A4B311CA0CBA /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_ENABLE_PASCAL_STRINGS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_CPU = "";
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				OPTIMIZATION_CFLAGS = "-O0";
-				OTHER_CFLAGS = "-DISDEBUG";
-				PREBINDING = NO;
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		4A9504CDFFE6A4B311CA0CBA /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_ENABLE_PASCAL_STRINGS = NO;
-				GCC_MODEL_TUNING = G5;
-				PREBINDING = NO;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		D3EC730D0804F70F00392110 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -126,6 +93,7 @@
 			files = (
 				D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */,
 				D3D3945109BBF8D1004E215A /* ISArtistDetailsController.h in CopyFiles */,
+				D3EE9CC80A144A470024A013 /* MBID.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,7 +116,7 @@
 		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
 		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
-		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
 		D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcclassmodel; path = iScrobbler.xcclassmodel; sourceTree = "<group>"; };
@@ -187,6 +155,9 @@
 		D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KFAppleScriptHandlerAdditionsCore.m; sourceTree = "<group>"; };
 		D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "KFASHandlerAdditions-TypeTranslation.h"; sourceTree = "<group>"; };
 		D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "KFASHandlerAdditions-TypeTranslation.m"; sourceTree = "<group>"; };
+		D3EE90A20A093FF80024A013 /* checkmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = checkmark.tif; sourceTree = "<group>"; };
+		D3EE9CC50A144A470024A013 /* MBID.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MBID.c; sourceTree = "<group>"; };
+		D3EE9CC60A144A470024A013 /* MBID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBID.h; sourceTree = "<group>"; };
 		D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ISSearchArrayController.h; sourceTree = "<group>"; };
 		D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ISSearchArrayController.m; sourceTree = "<group>"; };
 		DC00A46205B21B9200674DB4 /* iscrobbler.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = iscrobbler.icns; sourceTree = "<group>"; };
@@ -300,6 +271,8 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				D3EE9CC50A144A470024A013 /* MBID.c */,
+				D3EE9CC60A144A470024A013 /* MBID.h */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
 			name = "Other Sources";
@@ -327,6 +300,7 @@
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
 				D306FC7909EF550C0011CEE1 /* no_album.tiff */,
+				D3EE90A20A093FF80024A013 /* checkmark.tif */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -403,23 +377,6 @@
 			buildRules = (
 				D3B2742D0826BC5800B8E08B /* PBXBuildRule */,
 			);
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = "Info-iScrobbler.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_FLAGS = "";
-				PREBINDING = NO;
-				PRODUCT_NAME = iScrobbler;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-			};
 			dependencies = (
 			);
 			name = iScrobbler;
@@ -434,12 +391,6 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				4A9504CCFFE6A4B311CA0CBA /* Development */,
-				4A9504CDFFE6A4B311CA0CBA /* Deployment */,
-			);
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
@@ -474,6 +425,7 @@
 				D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */,
 				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
 				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
+				D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -510,6 +462,7 @@
 				D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */,
 				D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */,
 				D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */,
+				D3EE9CC70A144A470024A013 /* MBID.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
