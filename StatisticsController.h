@@ -19,7 +19,7 @@
     IBOutlet id detailsView;
     IBOutlet id detailsDisclosure;
     IBOutlet id submissionProgress;
-    IBOutlet NSImageView *artworkImage;
+    IBOutlet NSImageView *artworkImage, *checkImage;
     
     id artistDetails;
 }

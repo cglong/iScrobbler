@@ -89,9 +89,9 @@ static enum {title, album, artist, subdate} g_cycleState = title;
     QueueManager *qm = [QueueManager sharedInstance];
     id selection = [values selection];
     
-    if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK])
+    if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
         [selection setValue:[NSColor blackColor] forKey:@"Server Response Color"];
-    else
+    } else
         [selection setValue:[NSColor redColor] forKey:@"Server Response Color"];
     
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm totalSubmissionsCount]]
@@ -128,6 +128,9 @@ static enum {title, album, artist, subdate} g_cycleState = title;
 {
     QueueManager *qm = [QueueManager sharedInstance];
     id selection = [values selection];
+    
+    if (g_nowPlaying && [g_nowPlaying isEqualToSong:[[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG]])
+        [checkImage setHidden:NO];
     
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm count]]
         forKey:@"Tracks Queued"];
@@ -201,6 +204,8 @@ static NSImage *prevIcon = nil;
     SongData *song = [note object];
     
     if (!song || ![g_nowPlaying isEqualToSong:song]) {
+        BOOL queued = (song && [song hasQueued]);
+        [checkImage setHidden:(NO == queued)];
         [g_nowPlaying release];
         g_nowPlaying = [song retain];
         g_cycleState = title;
@@ -280,7 +285,6 @@ static NSImage *prevIcon = nil;
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
-    [artworkImage setImage:[NSApp applicationIconImage]];
     [super showWindow:sender];
 
     SongData *song;
@@ -345,6 +349,9 @@ static NSImage *prevIcon = nil;
     [nowPlayingText setStringValue:
         // 0x2026 == Unicode elipses
         [NSLocalizedString(@"Waiting for track", "") stringByAppendingFormat:@"%C", 0x2026]];
+    
+    [checkImage setHidden:YES];
+    [artworkImage setImage:[NSApp applicationIconImage]];
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
         [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
