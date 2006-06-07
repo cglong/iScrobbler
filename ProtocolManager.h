@@ -50,7 +50,7 @@
     // Is the network available?
     BOOL isNetworkAvailable;
     // Counters
-    unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount;
+    unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount, maxTracksPerSub;
 }
 
 + (ProtocolManager*)sharedInstance;

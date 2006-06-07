@@ -21,6 +21,10 @@
 
 #define REQUEST_TIMEOUT 60.0
 #define HANDSHAKE_DEFAULT_DELAY 60.0
+/* From IRC:
+   Russ​​: ...The server cuts any submission off at 1000,
+   I personally recommend you don't go over 50 or 100 in a single submission */
+#define DEFAULT_MAX_TRACKS_PER_SUB 100
 
 @interface ProtocolManager (Private)
 
@@ -435,6 +439,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         ScrobLog(SCROB_LOG_TRACE, @"Queue cleaned, track count: %u", [[QueueManager sharedInstance] count]);
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
         
+        // Set the new max if we detected a proxy truncation -- only done once
+        if (missingVarErrorCount && DEFAULT_MAX_TRACKS_PER_SUB == maxTracksPerSub)
+            maxTracksPerSub = [inFlight count];
+        
         ++successfulSubmissions;
         missingVarErrorCount = 0;
         
@@ -578,11 +586,8 @@ didFinishLoadingExit:
     
     if (submissionCount > 1 && ![self useBatchSubmission]) {
         submissionCount = 1;
-    } else if (submissionCount > 100) {
-        /* From IRC:
-           Russ​​: ...The server cuts any submission off at 1000,
-           I personally recommend you don't go over 50 or 100 in a single submission */
-        submissionCount = 100;
+    } else if (submissionCount > maxTracksPerSub) {
+        submissionCount = maxTracksPerSub;
     }
     
     // Check if a proxy is causing problems...
@@ -803,7 +808,9 @@ didFinishLoadingExit:
         @"No data sent yet.", HS_RESPONSE_KEY_RESULT_MSG,
         nil]];
     
-    myKeyChain = [[KeyChain defaultKeyChain] retain];
+    myKeyChain = [[KeyChain defaultKeyChain] retain];\
+    
+    maxTracksPerSub = DEFAULT_MAX_TRACKS_PER_SUB;
 
     // We are an abstract class, only subclasses return valid objects
     return (nil);
