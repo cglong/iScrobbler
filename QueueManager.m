@@ -231,11 +231,11 @@ static QueueManager *g_QManager = nil;
     NSData *data = [NSPropertyListSerialization dataFromPropertyList:songs
         format:NSPropertyListBinaryFormat_v1_0
         errorDescription:nil];
-    if (data) {
+    if (data && [data writeToFile:path atomically:atomic]) {
         NSString *md5 = [[NSApp delegate] md5hash:data];
         [[NSUserDefaults standardUserDefaults] setObject:md5 forKey:CACHE_SIG_KEY];
         [[NSUserDefaults standardUserDefaults] synchronize];
-        return ([data writeToFile:path atomically:atomic]);
+        return (YES);
     }
     
     return (NO);
