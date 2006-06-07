@@ -13,6 +13,12 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v1.2.1 (BDB)
+- Reduced size of queue file by about 2/3rds.
+- If by the grace of Odin your MP3 files have a MBID ID3 tag, iScrobbler can now read it (thanks to David Nicolson).
+- A 'Not all request variables are set' server error is now assumed to be a proxy truncation problem. When this error is detected iScrobbler will automatically reduce the size of it's submissions in the belief that a smaller message size will make it through any misbehaving proxies fully intact.
+- Bug Fix: Artist Details Top fans calculation for artists with non-ascii characters could fail after the first time.
+
 v1.2 (BDB)
 - New Artist details. When you select an artist/track in the Local Top Lists window, a drawer will open displaying a band image, fan data, and similar artists (all gathered from Audioscrobbler's web services). This feature is Tiger only.
 - Redesigned Top Lists window to minimize vertical space use.
