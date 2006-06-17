@@ -39,6 +39,7 @@
     NSURLConnection *myConnection;
     // Received data
     NSMutableData *myData;
+    NSFileHandle *subLog;
     // Handshake state
     enum {hs_needed, hs_inprogress, hs_delay, hs_valid} hsState;
     // Delay interval until next Handshake attempt
