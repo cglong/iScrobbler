@@ -24,7 +24,8 @@
 /* From IRC:
    Russ​​: ...The server cuts any submission off at 1000,
    I personally recommend you don't go over 50 or 100 in a single submission */
-#define DEFAULT_MAX_TRACKS_PER_SUB 100
+#define DEFAULT_MAX_TRACKS_PER_SUB 50
+#define MAX_MISSING_VAR_ERRORS 2
 
 @interface ProtocolManager (Private)
 
@@ -131,7 +132,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)completeHandshake:(NSData *)data
 {
 	NSMutableString *result = [[[NSMutableString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
-    // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade
+    // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade)
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
     [killTimer invalidate];
@@ -387,6 +388,16 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         nextResubmission = [self handshakeMaxDelay];
 }
 
+- (void)writeSubLogEntry:(unsigned)sid withTrackCount:(unsigned)count withData:(NSData*)data
+{
+    @try {
+    [subLog writeData:[[NSString stringWithFormat:@"[id=%u,ct=%u,sz=%u]\n", sid, count, [data length]]
+        dataUsingEncoding:NSUTF8StringEncoding]];
+    [subLog writeData:data];
+    [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    } @finally {}
+}
+
 // URLConnection callbacks
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
@@ -440,8 +451,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
         
         // Set the new max if we detected a proxy truncation -- only done once
-        if (missingVarErrorCount && DEFAULT_MAX_TRACKS_PER_SUB == maxTracksPerSub)
-            maxTracksPerSub = [inFlight count];
+        if (missingVarErrorCount > MAX_MISSING_VAR_ERRORS && count > (MAX_MISSING_VAR_ERRORS * 2)
+            && DEFAULT_MAX_TRACKS_PER_SUB == maxTracksPerSub)
+            maxTracksPerSub = count;
         
         ++successfulSubmissions;
         missingVarErrorCount = 0;
@@ -449,10 +461,13 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         // See if there are any more entries in the queue
         if ([[QueueManager sharedInstance] count]) {
             // Schedule the next sub after a minute delay
-            [self performSelector:@selector(submit:) withObject:nil afterDelay:0.05];
+            [self performSelector:@selector(submit:) withObject:nil afterDelay:0.5];
         }
     } else {
         ScrobLog(SCROB_LOG_INFO, @"Server error -- tracks in queue: %u", [[QueueManager sharedInstance] count]);
+        if (SCROB_LOG_TRACE == ScrobLogLevel())
+            [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:myData];
+        
 		hsState = hs_needed;
         
 		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
@@ -538,6 +553,9 @@ didFinishLoadingExit:
     
     ScrobLog(SCROB_LOG_INFO, @"Connection error: '%@'. Tracks in queue: %u.\n",
         [reason localizedDescription], [[QueueManager sharedInstance] count]);
+    if (SCROB_LOG_TRACE == ScrobLogLevel())
+        [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count]
+            withData:[[reason localizedDescription] dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
@@ -591,7 +609,7 @@ didFinishLoadingExit:
     }
     
     // Check if a proxy is causing problems...
-    if (submissionCount > 1 && missingVarErrorCount > 1) {
+    if (submissionCount > 1 && missingVarErrorCount > MAX_MISSING_VAR_ERRORS) {
         if (0 == (submissionCount /= missingVarErrorCount))
             submissionCount = 1;
             
@@ -656,6 +674,8 @@ didFinishLoadingExit:
     myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     
     ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
+    if (SCROB_LOG_TRACE == ScrobLogLevel())
+        [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:[request HTTPBody]];
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
         [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
@@ -743,6 +763,9 @@ didFinishLoadingExit:
     self = [super init];
     
     prefs = [[NSUserDefaults standardUserDefaults] retain];
+    
+    // Create raw submission log
+    subLog = [ScrobLogCreate(@"iScrobblerSub.log", SCROB_LOG_OPT_SESSION_MARKER, 0x400000) retain];
     
     // We keep track of this for iPod support which uses lastSubmitted to
     // determine the timestamp used in played songs detection.
