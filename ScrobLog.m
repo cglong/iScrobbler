@@ -50,11 +50,12 @@ static inline void CreateStringToLevelDict()
 
 #define UTF8_BOM_SIZE 3
 
-static void ScrobLogCreate(void)
+__private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
 {
     NSString *path, *parent;
     NSArray *results;
     NSFileManager *fm;
+    NSFileHandle *fh = nil;
     BOOL bom = NO;
     
     results = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
@@ -70,45 +71,44 @@ static void ScrobLogCreate(void)
             [fm createDirectoryAtPath:parent attributes:nil];
         }
         
-        path = [parent stringByAppendingPathComponent:@"iScrobbler.log"];
+        path = [parent stringByAppendingPathComponent:name];
 
         // Create the file
         if (![fm fileExistsAtPath:path]) {
             bom = YES;
             if (![fm createFileAtPath:path contents:nil attributes:nil])
-                return;
+                return (nil);
         }
 
-        scrobLogFile = [[NSFileHandle fileHandleForWritingAtPath:path] retain];
-        if (!scrobLogFile)
-            return;
+        if (nil == (fh = [NSFileHandle fileHandleForWritingAtPath:path]))
+            return (nil);
         
-        int fd = [scrobLogFile fileDescriptor];
+        int fd = [fh fileDescriptor];
         struct stat sb;
         if (0 == fstat(fd, &sb)) {
             int maxSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
             if (maxSize <= 0)
-                maxSize = 0x200000 /* 2 MiB */;
+                maxSize = limit;
             if (sb.st_size > maxSize) {
-                ScrobLogTruncate();
+                [fh truncateFileAtOffset:UTF8_BOM_SIZE];
             }
         }
         
-        [scrobLogFile seekToEndOfFile];
+        [fh seekToEndOfFile];
 
         NSData *d;
         if (bom) {
             //Write UTF-8 BOM
             d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE];
-        } else {
+        } else if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
             d = [@"    **** New Session ****    \n" dataUsingEncoding:NSUTF8StringEncoding];
         }
-        NS_DURING
-        [scrobLogFile writeData:d];
-        NS_HANDLER
-        // Write failed
-        NS_ENDHANDLER
+        @try {
+        [fh writeData:d];
+        } @finally {}
     }
+    
+    return (fh);
 }
 
 static void ScrobLogWrite(NSString *level, NSString *msg)
@@ -117,11 +117,11 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
     NSData *data;
     
     if (!scrobLogFile) {
-        ScrobLogCreate();
-        if (!scrobLogFile) {
+        if (nil == (scrobLogFile = ScrobLogCreate(@"iScrobbler.log", SCROB_LOG_OPT_SESSION_MARKER, 0x200000))) {
             NSLog(msg);
             return;
         }
+        (void)[scrobLogFile retain];
     }
 
     if (![msg hasSuffix:@"\n"])
@@ -146,12 +146,12 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
     NS_ENDHANDLER
 }
 
-void ScrobLogTruncate(void)
+__private_extern__ void ScrobLogTruncate(void)
 {
     [scrobLogFile truncateFileAtOffset:UTF8_BOM_SIZE];
 }
 
-void ScrobLog (scrob_log_level_t level, NSString *fmt, ...)
+__private_extern__ void ScrobLog (scrob_log_level_t level, NSString *fmt, ...)
 {
     NSString *msg;
     va_list  args;
@@ -170,7 +170,7 @@ void ScrobLog (scrob_log_level_t level, NSString *fmt, ...)
     [msg release];
 }
 
-scrob_log_level_t ScrobLogLevel(void)
+__private_extern__ scrob_log_level_t ScrobLogLevel(void)
 {
     CreateStringToLevelDict();
     NSNumber *lev =  [string_to_scrob_level objectForKey:
@@ -181,7 +181,7 @@ scrob_log_level_t ScrobLogLevel(void)
     return (SCROB_LOG_VERBOSE);
 }
 
-void SetScrobLogLevel(scrob_log_level_t level)
+__private_extern__ void SetScrobLogLevel(scrob_log_level_t level)
 {
     
 }
