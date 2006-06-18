@@ -1138,9 +1138,7 @@ player_info_exit:
 
 - (double)resubmitInterval
 {
-    double interval =  [[self duration] doubleValue] - [[self position] doubleValue];
-    if (interval > 1.0)
-        interval /= 2.0;
+    double interval =  ([[self duration] doubleValue] - [[self position] doubleValue]) / 3.0;
     return (interval);
 }
 
