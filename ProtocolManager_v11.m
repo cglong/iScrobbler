@@ -93,11 +93,8 @@
         nil]);
 }
 
-- (NSDictionary*)encodeSong:(SongData*)song submissionNumber:(int)submissionNumber
+- (NSData*)encodeSong:(SongData*)song submissionNumber:(unsigned)submissionNumber
 {
-    //ScrobTrace(@"preparing postDict");
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-
     // URL escape relevant fields
 	NSString * escapedtitle = [(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[song title], NULL,
@@ -117,17 +114,11 @@
                 timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil],
             NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
     
-    // populate the dictionary
-    [dict setObject:escapedtitle forKey:[NSString stringWithFormat:@"t[%i]", submissionNumber]];
-    [dict setObject:[song duration] forKey:[NSString stringWithFormat:@"l[%i]", submissionNumber]];
-    [dict setObject:escapedartist forKey:[NSString stringWithFormat:@"a[%i]", submissionNumber]];
-    [dict setObject:escapedalbum forKey:[NSString stringWithFormat:@"b[%i]", submissionNumber]];
-    [dict setObject:[song mbid] forKey:[NSString stringWithFormat:@"m[%i]", submissionNumber]];
-    [dict setObject:escapedDate forKey:[NSString stringWithFormat:@"i[%i]", submissionNumber]];
-
-    // return and autorelease
-    //ScrobTrace(@"postDict done");
-    return [dict autorelease];
+    // populate the data
+    return ([[NSString stringWithFormat:@"a[%u]=%@&t[%u]=%@&b[%u]=%@&m[%u]=%@&l[%u]=%@&i[%u]=%@&",
+        submissionNumber, escapedartist, submissionNumber, escapedtitle, submissionNumber,
+        escapedalbum, submissionNumber, [song mbid], submissionNumber, [song duration],
+        submissionNumber, escapedDate] dataUsingEncoding:NSUTF8StringEncoding]);
 }
 
 - (id)init

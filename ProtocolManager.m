@@ -40,12 +40,6 @@
 
 @end
 
-@interface NSDictionary (ProtocolManagerAdditions)
-
-- (NSString*) httpPostString;
-
-@end
-
 static ProtocolManager *g_PM = nil;
 static SCNetworkReachabilityRef g_networkReachRef = nil;
 
@@ -541,8 +535,6 @@ didFinishLoadingExit:
         nil]];
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
-    [inFlight release];
-    inFlight = nil;
     
     myConnection = nil;
     
@@ -556,6 +548,9 @@ didFinishLoadingExit:
     if (SCROB_LOG_TRACE == ScrobLogLevel())
         [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count]
             withData:[[reason localizedDescription] dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    [inFlight release];
+    inFlight = nil;
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
@@ -570,12 +565,13 @@ didFinishLoadingExit:
     [self submit:nil];
 }
 
-- (void)submit:(id)sender
+- (void)setSubValue:(NSString*)value forKey:(NSString*)key inData:(NSMutableData*)data
 {
-    NSMutableDictionary *dict;
-    int submissionCount;
-    int i;
-	
+    [data appendData:[[NSString stringWithFormat:@"%@=%@&", key, value] dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+- (void)submit:(id)sender
+{	
     if (inFlight || myConnection) {
         ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission...\n");
         return;
@@ -596,7 +592,7 @@ didFinishLoadingExit:
     }
     
     inFlight = [[[QueueManager sharedInstance] songs] sortedArrayUsingSelector:@selector(compareSongPostDate:)];
-    submissionCount = [inFlight count];
+    unsigned submissionCount = [inFlight count];
     if (!submissionCount) {
         inFlight = nil;
         return;
@@ -628,14 +624,14 @@ didFinishLoadingExit:
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_START object:self];
     
     (void)[inFlight retain];
-    dict = [[NSMutableDictionary alloc] init];
+    NSMutableData *subData = [[NSMutableData alloc] init];
 
     NSString* escapedusername=[(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
             NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) 	autorelease];
     
     @try {
-    [dict setObject:escapedusername forKey:@"u"];
+    [self setSubValue:escapedusername forKey:@"u" inData:subData];
     
     //retrieve the password from the keychain, and hash it for sending
     NSString *pass = [[NSString alloc] initWithString:
@@ -652,13 +648,14 @@ didFinishLoadingExit:
     [concat release];
     //ScrobTrace(@"response: %@", response);
     
-    [dict setObject:response forKey:@"s"];
+    [self setSubValue:response forKey:@"s" inData:subData];
     [response autorelease];
     
     // Fill the dictionary with every entry in the queue, ordering them from
     // oldest to newest.
+    int i;
     for(i=0; i < submissionCount; ++i) {
-        [dict addEntriesFromDictionary:[self encodeSong:[inFlight objectAtIndex:i] submissionNumber:i]];
+        [subData appendData:[self encodeSong:[inFlight objectAtIndex:i] submissionNumber:i]];
     }
     
     NSMutableURLRequest *request =
@@ -666,7 +663,7 @@ didFinishLoadingExit:
 								cachePolicy:NSURLRequestReloadIgnoringCacheData
 							timeoutInterval:REQUEST_TIMEOUT];
 	[request setHTTPMethod:@"POST"];
-	[request setHTTPBody:[[dict httpPostString] dataUsingEncoding:NSUTF8StringEncoding]];
+	[request setHTTPBody:subData];
     // Set the user-agent to something Mozilla-compatible
     [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
@@ -682,7 +679,7 @@ didFinishLoadingExit:
         [inFlight release];
         inFlight = nil;
     } @finally {
-        [dict release];
+        [subData release];
     }
 }
 
@@ -907,27 +904,6 @@ didFinishLoadingExit:
     
     trackTime += fudge; // Add some fudge to make sure the track gets submitted when the timer fires.
     return (trackTime);
-}
-
-@end
-
-@implementation NSDictionary (ProtocolManagerAdditions)
-
-- (NSString*) httpPostString
-{
-    NSMutableString *s = [NSMutableString string];
-    NSEnumerator *e = [self keyEnumerator];
-    id key;
-
-    while ((key = [e nextObject])) {
-        [s appendFormat:@"%@=%@&", key, [self objectForKey:key]];
-    }
-    
-    // Delete final & from the string
-    if (![s isEqualToString:@""])
-        [s deleteCharactersInRange:NSMakeRange([s length]-1, 1)];
-    
-    return (s);
 }
 
 @end

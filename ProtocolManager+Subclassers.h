@@ -24,14 +24,14 @@
 
 - (NSDictionary*)submitResponse:(NSString*)serverData;
 
-// returns an NSMutableDictionary object that is packaged and ready for submission.
-// postDict adds URL escaped title, artist and filename, and duration and time of
+// returns an NSData object that is packaged and ready for submission.
+// adds URL escaped title, artist and filename, and duration and time of
 // submission field.
-// The receiver is still responsible for adding the username, password and version
-// fields to the dict.
+// The caller is still responsible for adding the username, password and version
+// fields.
 // submissionNumber is the number of this data in the submission queue. For single
 // submissions this number will be 0.
-- (NSDictionary*)encodeSong:(SongData*)song submissionNumber:(int)submissionNumber;
+- (NSData*)encodeSong:(SongData*)song submissionNumber:(unsigned)submissionNumber;
 
 @end
 
