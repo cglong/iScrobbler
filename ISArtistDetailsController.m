@@ -15,11 +15,13 @@
 #import "ScrobLog.h"
 #import "ISArtistDetailsController.h"
 
+#ifdef obsolete
 static NSXMLDocument *profileCache = nil;
 static NSDate *profileNextUpdate = nil;
 static NSXMLDocument *topArtistsCache = nil;
 static NSDate *topArtistsNextUpdate = nil;
 static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
+#endif
 static NSImage *artistImgPlaceholder = nil;
 #if 0
 #define dbgprint printf
@@ -192,6 +194,8 @@ static NSImage *artistImgPlaceholder = nil;
     }
 }
 
+#ifdef obsolete
+// Right after the release of 1.2, last.fm change top fans to a simple count of plays for the last week
 - (void)loadProfileData:(NSXMLDocument*)xml
 {
     NSXMLElement *e = [xml rootElement];
@@ -257,6 +261,8 @@ static NSImage *artistImgPlaceholder = nil;
         ScrobLog(SCROB_LOG_TRACE, @"Caching top artists for %.0f seconds.\n", topArtistsCachePeriod);
     }
 }
+#endif
+
 
 - (void)loadTopFansData:(NSXMLDocument*)xml
 {
@@ -522,10 +528,10 @@ static NSImage *artistImgPlaceholder = nil;
     // According to the webservices wiki, we are not supposed to make more than 1 req/sec
     NSTimeInterval delay = 0.0;
     
-    NSDate *now = [NSDate date];
-    
     artist = [[NSApp delegate] stringByEncodingURIChars:artist];
     
+    #ifdef obsolete
+    NSDate *now = [NSDate date];
     NSString *user = [@"Damaged" //[[[ProtocolManager sharedInstance] userName]
         stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
@@ -547,6 +553,10 @@ static NSImage *artistImgPlaceholder = nil;
         // Use unescaped artist name
         [self loadTopArtistsData:topArtistsCache artist:[detailsData objectForKey:@"artist"]];
     }
+    #else
+    // account for missing profile loads
+    detailsLoaded += 2;
+    #endif
     
     MakeRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
     
@@ -584,11 +594,14 @@ static NSImage *artistImgPlaceholder = nil;
     
     @try {
     
+    #ifdef obsolete
     if (obj == detailsProfile) {
         [self loadProfileData:xml];
     } else if (obj == detailsTopArtists) {
         [self loadTopArtistsData:xml artist:[detailsData objectForKey:@"artist"]];
-    } else if (obj == detailsTopFans) {
+    } else
+    #endif
+    if (obj == detailsTopFans) {
         [self loadTopFansData:xml];
     } else if (obj == detailsSimArtists) {
         [self loadSimilarArtistsData:xml];
