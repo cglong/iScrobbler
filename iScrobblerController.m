@@ -24,6 +24,7 @@
 #import "TopListsController.h"
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
+#import "BBNetUpdate/BBNetUpdateVersionCheckController.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -115,9 +116,13 @@
 {
     ProtocolManager *pm = [note object];
     
+    // Version checking is no longer supported by last.fm
+    #if 0
     if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]))
         [self showNewVersionExistsDialog];
-    else if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
+    else
+    #endif
+    if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
         [self showBadCredentialsDialog];
     
     BOOL status = NO;
@@ -723,10 +728,11 @@ player_info_exit:
 
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
     }
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]) {
+    if ([ud boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]) {
         [self openTopLists:nil];
     }
     
@@ -750,6 +756,10 @@ player_info_exit:
             [self volumeDidMount:note];
         }
     }
+    
+    // Check the version
+    if (NO == [ud boolForKey:@"Disable Update Notification"])
+        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:YES];
 }
 
 -(IBAction)enableDisableSubmissions:(id)sender
