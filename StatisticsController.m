@@ -17,7 +17,7 @@
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
-static NSTimer *g_cycleTimer = nil;
+static NSTimer *g_cycleTimer = nil, *g_SubUpdateTimer = nil;
 static NSDate *g_subDate = nil;
 static enum {title, album, artist, subdate} g_cycleState = title;
 
@@ -157,6 +157,14 @@ static NSImage *prevIcon = nil;
     prevIcon = nil;
 }
 
+- (void)updateSubTime:(NSTimer*)timer
+{
+    NSTimeInterval i = [g_subDate timeIntervalSince1970] - [[NSDate date] timeIntervalSince1970];
+    NSString *msg = [NSString stringWithFormat:@"%@ %u:%02u",
+        NSLocalizedString(@"Submitting in", ""), ((unsigned)i / 60), ((unsigned)i % 60)];
+    [nowPlayingText setStringValue:msg];
+}
+
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
     NSString *msg = nil, *rating;
@@ -167,6 +175,11 @@ static NSImage *prevIcon = nil;
         g_subDate = nil;
         if (subdate == g_cycleState)
             g_cycleState = title;
+    }
+    
+    if (g_SubUpdateTimer) {
+        [g_SubUpdateTimer invalidate];
+        g_SubUpdateTimer = nil;
     }
     
     switch (g_cycleState) {
@@ -187,10 +200,11 @@ static NSImage *prevIcon = nil;
             g_cycleState = g_subDate ? subdate : title;
             break;
         case subdate: {
-            NSTimeInterval i = [g_subDate timeIntervalSince1970] - [now timeIntervalSince1970];
-            msg = [NSString stringWithFormat:@"%@ %u:%02u",
-                NSLocalizedString(@"Submitting in", ""), ((unsigned)i / 60), ((unsigned)i % 60)];
+            [self updateSubTime:nil];
+            g_SubUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self
+                selector:@selector(updateSubTime:) userInfo:nil repeats:YES];
             g_cycleState = title;
+            return;
         };
     }
     
@@ -334,6 +348,8 @@ static NSImage *prevIcon = nil;
     g_nowPlaying = nil;
     [g_subDate release];
     g_subDate = nil;
+    [g_SubUpdateTimer invalidate];
+    g_SubUpdateTimer = nil;
 }
 
 - (void)windowDidLoad
