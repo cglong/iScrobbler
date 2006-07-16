@@ -1,0 +1,14 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {cancel = id; connect = id; }; 
+            CLASS = BBNetUpdateAskController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {boxDontAskAgain = id; fieldQuestion = id; fieldTitle = id; }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = java.lang.Object; LANGUAGE = Java; }
+    ); 
+    IBVersion = 1; 
+}

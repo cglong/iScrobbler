@@ -1,0 +1,23 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {cancel = id; download = id; showHideMoreInfo = id; }; 
+            CLASS = BBNetUpdateVersionCheckController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                boxDontCheck = id; 
+                buttonDownload = id; 
+                buttonMoreInfo = id; 
+                drawerMoreInfo = id; 
+                fieldMoreInfo = id; 
+                fieldText = id; 
+                fieldTitle = id; 
+                progressBar = id; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = java.lang.Object; LANGUAGE = Java; }
+    ); 
+    IBVersion = 1; 
+}
