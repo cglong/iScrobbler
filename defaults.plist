@@ -9,7 +9,7 @@
     <string>/_/</string>
     
     <key>ASS URL</key>
-	<string>http://wsdev.audioscrobbler.com/ass/</string>
+	<string>http://ws.audioscrobbler.com/ass/</string>
     
 	<key>Number of Songs to Save</key>
 	<integer>5</integer>
@@ -22,6 +22,9 @@
     
     <key>CheckForFileMBIDs</key>
     <true />
+    
+    <key>Disable Local Lists</key>
+    <false />
     
     <key>Sync iPod</key>
     <true />
@@ -49,6 +52,9 @@
     
     <key>IgnorePodcasts</key>
     <false />
+    
+    <key>Now Playing Detail</key>
+    <true />
     
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
