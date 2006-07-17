@@ -684,7 +684,9 @@ player_info_exit:
         
         // Create top lists controller so it will pick up subs
         // We do this after creating the QM so that queued subs are not counted.
-        (void)[TopListsController sharedInstance];
+        if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Local Lists"]
+            && YES == [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"])
+            (void)[TopListsController sharedInstance];
     }
     
     // Install ourself in the Login Items
@@ -732,7 +734,8 @@ player_info_exit:
     if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
     }
-    if ([ud boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]) {
+    if ([ud boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]
+        && NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Local Lists"]) {
         [self openTopLists:nil];
     }
     
