@@ -28,8 +28,8 @@
 #import <sys/fcntl.h>
 #import <sys/stat.h>
 #import <unistd.h>
-#import <openssl/sha.h>
-#import <openssl/md5.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
 
 #import "BBNetUpdateDownloadController.h"
 
@@ -118,34 +118,16 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 {
     BOOL good = NO;
     
-    struct {    
-        union {
-            SHA_CTX sha;
-            MD5_CTX md5;
-        } ctx;
-        
-        int digest_len;
-        unsigned char digest[64];
-        
-        int (*init)(void *c);
-        int (*update)(void *c, const void *data, unsigned long len);
-        int (*final)(unsigned char *md, void *c);
-    } h;
-    void *ctx;
+    EVP_MD_CTX ctx;
+    unsigned digest_len;
+    unsigned char digest[EVP_MAX_MD_SIZE];
     
+    const EVP_MD *md;
     NSString *hash = [hashInfo objectForKey:@"SHA1"];
     if (hash) {
-        ctx = &h.ctx.sha;
-        h.digest_len = SHA_DIGEST_LENGTH;
-        h.init = (typeof(h.init))SHA1_Init;
-        h.update = (typeof(h.update))SHA1_Update;
-        h.final = (typeof(h.final))SHA1_Final;
+        md = EVP_sha1();
     } else if ((hash = [hashInfo objectForKey:@"MD5"])) {
-        ctx = &h.ctx.md5;
-        h.digest_len = MD5_DIGEST_LENGTH;
-        h.init = (typeof(h.init))MD5_Init;
-        h.update = (typeof(h.update))MD5_Update;
-        h.final = (typeof(h.final))MD5_Final;
+        md = EVP_md5();
     } else
         return (YES); // unknown method, let it pass
     
@@ -153,19 +135,19 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     if (0 != stat([path fileSystemRepresentation], &sb))
         return (NO);
     
-    bzero(h.digest, sizeof(h.digest));
+    bzero(digest, sizeof(digest));
     
     int fd = open([path fileSystemRepresentation], O_RDONLY,  0);
     if (fd > -1) {
         char *buf = malloc(sb.st_blksize);
         if (buf) {
-            (void)h.init(ctx);
+            (void)EVP_DigestInit(&ctx, md);
             
             int bytes;
             while ((bytes = read(fd, buf, sb.st_blksize)) > 0)
-                (void)h.update(ctx, buf, bytes);
+                (void)EVP_DigestUpdate(&ctx, buf, bytes);
             
-            (void)h.final(h.digest, ctx);
+            (void)EVP_DigestFinal(&ctx, digest, &digest_len);
             
             free(buf);
         }
@@ -174,10 +156,10 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
         const char *expectedDigest = [hash UTF8String];
         unsigned expectedLen = strlen(expectedDigest);
         
-        char digestString[sizeof(h.digest) * 4];
+        char digestString[sizeof(digest) * 4];
         int i, j;
-        for (i = j = 0; i < h.digest_len; ++i)
-            j += sprintf((digestString + j), "%02x", h.digest[i]);
+        for (i = j = 0; i < digest_len; ++i)
+            j += sprintf((digestString + j), "%02x", digest[i]);
         *(digestString + j) = 0;
         
         if (expectedLen == strlen(digestString) && 0 == strcmp(digestString, expectedDigest))
