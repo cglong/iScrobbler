@@ -26,6 +26,17 @@
 /* Begin PBXBuildFile section */
 		D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306F89009EC34F80011CEE1 /* no_artist.tiff */; };
 		D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306FC7909EF550C0011CEE1 /* no_album.tiff */; };
+		D31791310A6A9B5C00B0F081 /* BBNetUpdateAskController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D31791160A6A9B5C00B0F081 /* BBNetUpdateAskController.h */; };
+		D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */; };
+		D31791330A6A9B5D00B0F081 /* BBNetUpdateDownloadController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D31791180A6A9B5C00B0F081 /* BBNetUpdateDownloadController.h */; };
+		D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */; };
+		D31791350A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */; };
+		D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */ = {isa = PBXBuildFile; fileRef = D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */; };
+		D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */ = {isa = PBXBuildFile; fileRef = D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */; };
+		D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */ = {isa = PBXBuildFile; fileRef = D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */; };
+		D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */; };
+		D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */; };
+		D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */; };
 		D3191C9907E3A51700821D03 /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3191CAA07E3A51700821D03 /* defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = EBBB2F1E03F7C3F2005DC01B /* defaults.plist */; };
 		D3191CAB07E3A51700821D03 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
@@ -52,7 +63,7 @@
 		D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B303FBC574005DC01B /* Carbon.framework */; };
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
-		D3191CC607E3A51700821D03 /* libcrypto.0.9.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */; };
+		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
 		D39C15FC0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
 		D3D3945109BBF8D1004E215A /* ISArtistDetailsController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */; };
@@ -94,6 +105,9 @@
 				D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */,
 				D3D3945109BBF8D1004E215A /* ISArtistDetailsController.h in CopyFiles */,
 				D3EE9CC80A144A470024A013 /* MBID.h in CopyFiles */,
+				D31791310A6A9B5C00B0F081 /* BBNetUpdateAskController.h in CopyFiles */,
+				D31791330A6A9B5D00B0F081 /* BBNetUpdateDownloadController.h in CopyFiles */,
+				D31791350A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +129,29 @@
 		D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtocolManager+Subclassers.h"; sourceTree = "<group>"; };
 		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
 		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
+		D31791160A6A9B5C00B0F081 /* BBNetUpdateAskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateAskController.h; sourceTree = "<group>"; };
+		D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateAskController.m; sourceTree = "<group>"; };
+		D31791180A6A9B5C00B0F081 /* BBNetUpdateDownloadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateDownloadController.h; sourceTree = "<group>"; };
+		D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateDownloadController.m; sourceTree = "<group>"; };
+		D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateVersionCheckController.h; sourceTree = "<group>"; };
+		D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateVersionCheckController.m; sourceTree = "<group>"; };
+		D317911D0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
+		D317911F0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
+		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
+		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
+		D31791240A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = French; path = French.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
+		D31791250A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
+		D31791260A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
+		D31791270A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
+		D31791280A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = German; path = German.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
+		D31791290A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
+		D317912A0A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
+		D317912B0A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
+		D317912C0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Spanish; path = Spanish.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
+		D317912D0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
+		D317912E0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
+		D317912F0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
+		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
@@ -140,7 +177,7 @@
 		D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISArtistDetailsController.m; sourceTree = "<group>"; };
 		D3D394C909BC0658004E215A /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ArtistDetails.nib; sourceTree = "<group>"; };
 		D3D4741F077407F50076AA7D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
-		D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.0.9.7.dylib; path = /usr/lib/libcrypto.0.9.7.dylib; sourceTree = "<absolute>"; };
+		D3D4746007740A760076AA7D /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		D3D7BB000809A806005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
 		D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISProfileDocumentController.h; sourceTree = "<group>"; };
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISProfileDocumentController.m; sourceTree = "<group>"; };
@@ -190,7 +227,7 @@
 				D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */,
 				D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */,
 				D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */,
-				D3191CC607E3A51700821D03 /* libcrypto.0.9.7.dylib in Frameworks */,
+				D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */,
 				D3EC73110804F73B00392110 /* Growl.framework in Frameworks */,
 				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
 			);
@@ -226,7 +263,7 @@
 			children = (
 				D3D7BB1B0809AD09005EF5CA /* WebKit.framework */,
 				D3EC73100804F73B00392110 /* Growl.framework */,
-				D3D4746007740A760076AA7D /* libcrypto.0.9.7.dylib */,
+				D3D4746007740A760076AA7D /* libcrypto.dylib */,
 				D3D4741F077407F50076AA7D /* SystemConfiguration.framework */,
 				EB5069B303FBC574005DC01B /* Carbon.framework */,
 				EB5069B403FBC574005DC01B /* CoreFoundation.framework */,
@@ -258,6 +295,7 @@
 			children = (
 				080E96DDFE201D6D7F000001 /* Classes */,
 				EB50663103FBB296005DC01B /* Headers */,
+				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
 				D3EC7C98080858F800392110 /* KFASAdditions */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -281,9 +319,10 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */,
 				EBBB2F1E03F7C3F2005DC01B /* defaults.plist */,
+				D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */,
+				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
 				D3CB13A1077514A7009236FF /* Preferences.nib */,
@@ -312,6 +351,23 @@
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D31791150A6A9B5C00B0F081 /* BBNetUpdate */ = {
+			isa = PBXGroup;
+			children = (
+				D31791160A6A9B5C00B0F081 /* BBNetUpdateAskController.h */,
+				D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */,
+				D31791180A6A9B5C00B0F081 /* BBNetUpdateDownloadController.h */,
+				D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */,
+				D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */,
+				D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */,
+				D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */,
+				D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */,
+				D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */,
+				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
+			);
+			path = BBNetUpdate;
 			sourceTree = "<group>";
 		};
 		D3D7C26F080B99ED005EF5CA /* Documentation */ = {
@@ -398,6 +454,7 @@
 				French,
 				German,
 				de,
+				Spanish,
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Recent Tunes */;
 			projectDirPath = "";
@@ -426,6 +483,11 @@
 				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
 				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
 				D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */,
+				D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */,
+				D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */,
+				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
+				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
+				D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -463,6 +525,9 @@
 				D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */,
 				D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */,
 				D3EE9CC70A144A470024A013 /* MBID.c in Sources */,
+				D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */,
+				D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */,
+				D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,6 +549,50 @@
 				D3C1125808456573000AA2BC /* de */,
 			);
 			name = MainMenu.nib;
+			sourceTree = "<group>";
+		};
+		D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D317911D0A6A9B5C00B0F081 /* English */,
+				D31791240A6A9B5C00B0F081 /* French */,
+				D31791280A6A9B5C00B0F081 /* German */,
+				D317912C0A6A9B5C00B0F081 /* Spanish */,
+			);
+			name = BBNetUpdate.strings;
+			sourceTree = "<group>";
+		};
+		D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D317911F0A6A9B5C00B0F081 /* English */,
+				D31791250A6A9B5C00B0F081 /* French */,
+				D31791290A6A9B5C00B0F081 /* German */,
+				D317912D0A6A9B5C00B0F081 /* Spanish */,
+			);
+			name = BBNetUpdateAsk.nib;
+			sourceTree = "<group>";
+		};
+		D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D31791210A6A9B5C00B0F081 /* English */,
+				D31791260A6A9B5C00B0F081 /* French */,
+				D317912A0A6A9B5C00B0F081 /* German */,
+				D317912E0A6A9B5C00B0F081 /* Spanish */,
+			);
+			name = BBNetUpdateDownload.nib;
+			sourceTree = "<group>";
+		};
+		D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D31791230A6A9B5C00B0F081 /* English */,
+				D31791270A6A9B5C00B0F081 /* French */,
+				D317912B0A6A9B5C00B0F081 /* German */,
+				D317912F0A6A9B5C00B0F081 /* Spanish */,
+			);
+			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
 		};
 		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {
