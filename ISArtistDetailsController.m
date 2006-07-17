@@ -532,7 +532,7 @@ static NSImage *artistImgPlaceholder = nil;
     
     #ifdef obsolete
     NSDate *now = [NSDate date];
-    NSString *user = [@"Damaged" //[[[ProtocolManager sharedInstance] userName]
+    NSString *user = [[[ProtocolManager sharedInstance] userName]
         stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     if (!profileCache || !profileNextUpdate || [profileNextUpdate isLessThan:now]) {
