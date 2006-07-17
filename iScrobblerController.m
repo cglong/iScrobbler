@@ -762,7 +762,7 @@ player_info_exit:
     
     // Check the version
     if (NO == [ud boolForKey:@"Disable Update Notification"])
-        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:YES];
+        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:NO];
 }
 
 -(IBAction)enableDisableSubmissions:(id)sender
