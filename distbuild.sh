@@ -49,4 +49,7 @@ hdiutil eject ${DEVICE}
 
 hdiutil convert -imageKey zlib-level=9 -format UDZO -o ~/Desktop/iscrobbler."${VER}".dmg -ov ${IMAGE}
 
-rm ${IMAGE}	
+rm ${IMAGE}
+
+cd ~/Desktop
+openssl sha1 iscrobbler."${VER}".dmg
