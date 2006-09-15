@@ -460,7 +460,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Totals", ""))));
     HAdd(d, TRCLOSE TR);
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Tracks Played:", "")));
-    HAdd(d, TDEntry(TD, totalPlays));
+    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"%@ (%@ %@)", totalPlays,
+        NSLocalizedString(@"since", ""),
+        [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
     HAdd(d, TDEntry(TD, time));
