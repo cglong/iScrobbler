@@ -1,6 +1,7 @@
 -- syncIpod enum
 property iTunesIsInactive : -1
 property iTunesError : -2
+property iTunes7 : 7
 
 on UpdateiPod(thePlaylistName, theDate)
 	set itunes_active to false
@@ -13,6 +14,7 @@ on UpdateiPod(thePlaylistName, theDate)
 		set out to {}
 		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
+			--set iTunesMajorVer to the first character of (version as string) as integer
 			-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
 			set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 			with timeout of 60 seconds
@@ -47,7 +49,9 @@ on UpdateiPod(thePlaylistName, theDate)
 							set trackID to database ID of theTrack
 							set playlistID to index of the container of theTrack
 							set songTitle to name of theTrack as Unicode text
-							set songLength to duration of theTrack
+							-- iTunes 7 changed the song duration to a real number which broke all iPod submissions
+							-- on eariler versions we'll be converting to a real and rounding just to get back to an integer
+							set songLength to (round (duration of theTrack as real) rounding down) as integer
 							set songPosition to 0 -- the song has already played, so player pos will not be returned 
 							set songArtist to artist of theTrack as Unicode text
 							set songLocation to ""
@@ -97,6 +101,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Thursday, June 2, 2005 1:30:00 PM"
+	set when to date "Friday, September 15, 2006 12:00:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run
