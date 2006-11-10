@@ -9,6 +9,7 @@
 //  http://iscrobbler.sourceforge.net
 //
 
+#import <notify.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 
 #import "ProtocolManager.h"
@@ -494,6 +495,8 @@ didFinishLoadingExit:
     
     myConnection = nil;
     
+    if (0 != notify_post)
+        notify_post("org.bergstrand.iscrobbler.didsubmit");
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
 }
 
@@ -621,6 +624,8 @@ didFinishLoadingExit:
     [resubmitTimer invalidate];
     resubmitTimer = nil;
     
+    if (0 != notify_post)
+        notify_post("org.bergstrand.iscrobbler.willsubmit");
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_START object:self];
     
     (void)[inFlight retain];
