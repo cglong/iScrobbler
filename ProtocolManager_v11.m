@@ -115,9 +115,9 @@
             NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
     
     // populate the data
-    return ([[NSString stringWithFormat:@"a[%u]=%@&t[%u]=%@&b[%u]=%@&m[%u]=%@&l[%u]=%@&i[%u]=%@&",
+    return ([[NSString stringWithFormat:@"a[%u]=%@&t[%u]=%@&b[%u]=%@&m[%u]=%@&l[%u]=%u&i[%u]=%@&",
         submissionNumber, escapedartist, submissionNumber, escapedtitle, submissionNumber,
-        escapedalbum, submissionNumber, [song mbid], submissionNumber, [song duration],
+        escapedalbum, submissionNumber, [song mbid], submissionNumber, [[song duration] unsignedIntValue],
         submissionNumber, escapedDate] dataUsingEncoding:NSUTF8StringEncoding]);
 }
 
