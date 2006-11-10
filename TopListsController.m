@@ -17,6 +17,7 @@
 #import "ISProfileDocumentController.h"
 #import "ScrobLog.h"
 #import "ISArtistDetailsController.h"
+#import "ProtocolManager.h"
 
 // From iScrobblerController.m
 void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
@@ -27,6 +28,9 @@ static NSCountedSet *topRatings = nil;
 
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
+
+#define TOP_LISTS_PERSISTENT_STORE \
+[@"~/Library/Caches/net.sourceforge.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath]
 
 @interface NSString (ISHTMLConversion)
 - (NSString *)stringByConvertingCharactersToHTMLEntities;
@@ -207,6 +211,8 @@ static NSCountedSet *topRatings = nil;
     }
     rating = [song rating] ? [song rating] : [NSNumber numberWithInt:0];
     [topRatings addObject:rating];
+    
+    [self writePersistentStore];
 }
 
 - (id)initWithWindowNibName:(NSString *)windowNibName
@@ -355,12 +361,88 @@ static NSCountedSet *topRatings = nil;
     [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
     [topTracksTable setTarget:self];
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
+    
+    [self restorePersistentStore];
 }
 
 @end
 
 #define PROFILE_DATE_FORMAT @"%Y-%m-%d %I:%M:%S %p"
 @implementation TopListsController (ISProfileReportAdditions)
+
+- (void)writePersistentStore 
+{
+    NSDictionary *d = nil;
+    @try {
+    // An NSSet is not a valid plist object, so create an archive
+    NSMutableData *rdata = [NSMutableData data];
+    NSKeyedArchiver *archiver = [[[NSKeyedArchiver alloc] initForWritingWithMutableData:rdata] autorelease];
+    [archiver encodeObject:topRatings forKey:@"object"];
+    [archiver finishEncoding];
+    
+    d = [[NSDictionary alloc] initWithObjectsAndKeys:
+        [topArtistsController content], @"artists",
+        [topTracksController content], @"tracks",
+        topAlbums, @"albums",
+        rdata, @"ratings",
+        startDate, @"since",
+        [NSNumber numberWithUnsignedInt:[[ProtocolManager sharedInstance] successfulSubmissionsCount]],
+            @"subcount",
+        nil];
+
+    NSData *data = [NSPropertyListSerialization dataFromPropertyList:d
+        format:NSPropertyListBinaryFormat_v1_0
+        errorDescription:nil];
+    [data writeToFile:TOP_LISTS_PERSISTENT_STORE atomically:YES];
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception while saving persistent profile: %@.", e);
+    }
+    
+    [d release];
+}
+
+- (void)restorePersistentStore
+{
+    NSData *d = nil;
+    @try {
+    d = [[NSData alloc] initWithContentsOfFile:TOP_LISTS_PERSISTENT_STORE];
+    if (d) {
+        NSPropertyListFormat format;
+        NSDictionary *store;
+        store = [NSPropertyListSerialization propertyListFromData:d
+            mutabilityOption:NSPropertyListMutableContainersAndLeaves
+            format:&format
+            errorDescription:nil];
+        if (NO == [store isKindOfClass:[NSDictionary class]]) {
+            @throw [NSException exceptionWithName:NSInternalInconsistencyException
+                reason:@"Top Lists store is not of the correct object type." userInfo:nil];
+        }
+        
+        id obj;
+        if ((obj = [store objectForKey:@"artists"]))
+            [topArtistsController setContent:obj];
+        if ((obj = [store objectForKey:@"tracks"]))
+            [topTracksController setContent:obj];
+        if ((obj = [store objectForKey:@"since"]))
+            [self setValue:obj forKey:@"startDate"];
+        if ((obj = [store objectForKey:@"albums"])) {
+            [topAlbums release];
+            topAlbums = [obj retain];
+        }
+        if ((obj = [store objectForKey:@"ratings"])) {
+            NSKeyedUnarchiver *unarchiver = [[[NSKeyedUnarchiver alloc] initForReadingWithData:obj] autorelease];
+            [topRatings release];
+            topRatings = [[unarchiver decodeObjectForKey:@"object"] retain];
+            
+        }
+        if ((obj = [store objectForKey:@"subcount"])) {
+        }
+    }
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception while restoring persistent profile: %@.", e);
+    }
+    [d release];
+}
 
 - (IBAction)createProfileReport:(id)sender
 {
@@ -376,8 +458,8 @@ static NSCountedSet *topRatings = nil;
     @try {
         data = [self generateHTMLReportWithCSSURL:[NSURL fileURLWithPath:cssPath]
             withTitle:title];
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while generating profile report: %@.", exception);
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception while generating profile report: %@.", e);
         return;
     }
     
@@ -385,11 +467,33 @@ static NSCountedSet *topRatings = nil;
         [[ISProfileDocumentController alloc] initWithWindowNibName:@"ISProfileReport"];
     @try {
         [report showWindowWithHTMLData:data withWindowTitle:title];
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while creating profile report: %@.", exception);
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception while creating profile report: %@.", e);
         [report release];
         return;
     }
+}
+
+- (IBAction)resetProfile:(id)sender
+{
+    [self hideDetails:nil];
+    
+    @try {
+    if ([[topArtistsController content] count])
+        [topArtistsController removeObjects:[topArtistsController content]];
+    if ([[topTracksController content] count])
+        [topTracksController removeObjects:[topTracksController content]];
+    
+    [topAlbums removeAllObjects];
+    [topRatings removeAllObjects];
+    [self setValue:[NSDate date] forKey:@"startDate"];
+    // reset sub count to 0
+     } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception while resetting profile: %@.", e);
+        return;
+    }
+    
+    (void)[[NSFileManager defaultManager] removeFileAtPath:TOP_LISTS_PERSISTENT_STORE handler:nil];
 }
 
 #define HEAD @"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n" \

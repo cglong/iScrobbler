@@ -29,8 +29,12 @@
 @interface TopListsController (ISProfileReportAdditions)
 
 - (IBAction)createProfileReport:(id)sender;
+- (IBAction)resetProfile:(id)sender;
 
 - (NSData*)generateHTMLReportWithCSSURL:(NSURL*)cssURL withTitle:(NSString*)profileTitle;
+
+- (void)writePersistentStore;
+- (void)restorePersistentStore;
 
 @end
 

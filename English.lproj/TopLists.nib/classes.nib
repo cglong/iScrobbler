@@ -9,7 +9,12 @@
             SUPERCLASS = NSArrayController; 
         }, 
         {
-            ACTIONS = {createProfileReport = id; hideDetails = id; showDetails = id; }; 
+            ACTIONS = {
+                createProfileReport = id; 
+                hideDetails = id; 
+                resetProfile = id; 
+                showDetails = id; 
+            }; 
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
