@@ -158,11 +158,16 @@ int getMBID(const char *path, char mbid[MBID_BUFFER_SIZE]) {
                 if (-1 == mfile(4,frame_header,fp)) goto mbid_err_exit;
                 frame_size = toInteger32(frame_header);
             }
+            if (frame_size <= 0 || frame_size >= tag_size) {
+                debug("Bad frame size %d\n",frame_size);
+                goto mbid_err_exit;
+            }
    
             fseek(fp,2,SEEK_CUR); // 2 flag bytes
             debug("Reading %d bytes from %s\n",frame_size,frame_bytes);
 
-            if (strncmp(frame_bytes,"UFID", 4) == 0) {
+            // Frame size check keeps us from blowing the stack
+            if (strncmp(frame_bytes,"UFID", 4) == 0 && frame_size <= 1024) {
                 char frame_data[frame_size];
                 if (-1 ==  mfile(frame_size,frame_data,fp)) goto mbid_err_exit;
                 if (frame_size >= 59 && strncmp(frame_data,"http://musicbrainz.org",22) == 0) {
