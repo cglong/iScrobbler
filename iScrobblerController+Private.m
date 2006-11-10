@@ -328,9 +328,9 @@ sync_exit_with_note:
         [self setValue:mountPath forKey:@"iPodMountPath"];
         ISASSERT(iPodIcon == nil, "iPodIcon exists!");
         if ([[NSFileManager defaultManager] fileExistsAtPath:
-            [iPodMountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
+            [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
             iPodIcon = [[NSImage alloc] initWithContentsOfFile:
-                [iPodMountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
+                [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
             [iPodIcon setName:IPOD_ICON_NAME];
         }
         [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
