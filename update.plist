@@ -5,20 +5,16 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>ce271985b05b02aaa1566d14c5a6867f2328bc3d</string>
+        	<string>d52503d93016dd3df7032548a10c9826995d2433</string>
         </dict>
         <key>Version</key>
-        <string>1.2.1b1</string>
+        <string>1.2.1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.2.1_test1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.2.1.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- Artist details are now displayed for the currently playing track (via the Statistics window).
-- Reduced size of queue file by about 2/3rds.
-- If by the grace of Odin your MP3 files have an MBID ID3 tag, iScrobbler can now read it (thanks to David Nicolson).
-- A 'Not all request variables are set' server error is now assumed to be a proxy truncation problem. When this error is detected iScrobbler will automatically reduce the size of its submissions in the belief that a smaller message size will make it through any misbehaving proxies fully intact.
-- Version checking works again (no longer via last.fm).
+                <string>Local Top Lists are now persistent. 
                 </string>
         </dict>
 </dict>

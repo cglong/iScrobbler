@@ -14,6 +14,7 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.2.1 (BDB)
+- Local Top Lists are now persistent. This is a rather rudimentary implementation in that all data is loaded in memory. So if you decide you want to keep a year's worth of data, be prepared for some large memory use and possible hangs while iScrobbler writes all of that data out every time a track is queued.
 - Artist details are now displayed for the currently playing track (via the Statistics window).
 - Reduced size of queue file by about 2/3rds.
 - If by the grace of Odin your MP3 files have an MBID ID3 tag, iScrobbler can now read it (thanks to David Nicolson).
