@@ -247,7 +247,6 @@ static NSImage *prevIcon = nil;
             [artworkImage setImage:[NSApp applicationIconImage]];
         }
         
-        // This will probably put a good amount of strain on the servers, so it's disabled by defauilt
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Now Playing Detail"]) {
             if (!artistDetails && [ISArtistDetailsController canLoad])
                 artistDetails = [[ISArtistDetailsController artistDetailsWithDelegate:self] retain];
@@ -257,45 +256,64 @@ static NSImage *prevIcon = nil;
     }
 }
 
+- (void)profileDidReset:(NSNotification*)note
+{
+    static int doreset = 0;
+    if (!doreset) {
+        doreset = 1;
+        // make sure we run after every other observer
+        [self performSelector:@selector(profileDidReset:) withObject:note afterDelay:0.0];
+        return;
+    }
+    
+    doreset = 0;
+    [self submitCompleteHandler:nil];
+}
+
 - (IBAction)showWindow:(id)sender
 {
     // Register for PM notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    
+    [nc addObserver:self
             selector:@selector(handshakeStartHandler:)
             name:PM_NOTIFICATION_HANDSHAKE_START
             object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(handshakeCompleteHandler:)
             name:PM_NOTIFICATION_HANDSHAKE_COMPLETE
             object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(submitCompleteHandler:)
             name:PM_NOTIFICATION_SUBMIT_COMPLETE
             object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(submitStartHandler:)
             name:PM_NOTIFICATION_SUBMIT_START
             object:nil];
     // And QM notes
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(songQueuedHandler:)
             name:QM_NOTIFICATION_SONG_QUEUED
             object:nil];
     // And Now Playing
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(nowPlaying:)
             name:@"Now Playing"
             object:nil];
     
     // iPod notes
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(iPodSyncBeginHandler:)
             name:IPOD_SYNC_BEGIN
             object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [nc addObserver:self
             selector:@selector(iPodSyncEndHandler:)
             name:IPOD_SYNC_END
             object:nil];
+    
+    [nc addObserver:self
+            selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     

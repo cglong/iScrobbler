@@ -760,6 +760,12 @@ didFinishLoadingExit:
     }
 }
 
+- (void)profileDidReset:(NSNotification*)note
+{
+    submissionAttempts = 0;
+    successfulSubmissions = 0;
+}
+
 - (id)init
 {
     self = [super init];
@@ -836,6 +842,9 @@ didFinishLoadingExit:
     myKeyChain = [[KeyChain defaultKeyChain] retain];\
     
     maxTracksPerSub = DEFAULT_MAX_TRACKS_PER_SUB;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
 
     // We are an abstract class, only subclasses return valid objects
     return (nil);

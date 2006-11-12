@@ -487,8 +487,10 @@ static NSCountedSet *topRatings = nil;
     [topAlbums removeAllObjects];
     [topRatings removeAllObjects];
     [self setValue:[NSDate date] forKey:@"startDate"];
-    // reset sub count to 0
-     } @catch (NSException *e) {
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:RESET_PROFILE object:nil];
+    
+    } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception while resetting profile: %@.", e);
         return;
     }

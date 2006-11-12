@@ -279,6 +279,12 @@ static QueueManager *g_QManager = nil;
     }
 }
 
+- (void)profileDidReset:(NSNotification*)note
+{
+    totalSubmissions = 0;
+    totalSubmissionSeconds = 0;
+}
+
 - (id)init
 {
     if ((self = [super init])) {
@@ -295,6 +301,9 @@ static QueueManager *g_QManager = nil;
         }
 
         songQueue = [[NSMutableArray alloc] init];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
         
         // Read in the persistent cache
         if (queuePath) {
