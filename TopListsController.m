@@ -474,9 +474,12 @@ static NSCountedSet *topRatings = nil;
     }
 }
 
-- (IBAction)resetProfile:(id)sender
+- (void)resetAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-    [self hideDetails:nil];
+    if (NSOKButton != returnCode)
+        return;
+   
+   [self hideDetails:nil];
     
     @try {
     if ([[topArtistsController content] count])
@@ -496,6 +499,21 @@ static NSCountedSet *topRatings = nil;
     }
     
     (void)[[NSFileManager defaultManager] removeFileAtPath:TOP_LISTS_PERSISTENT_STORE handler:nil];
+}
+
+- (IBAction)resetProfile:(id)sender
+{
+     NSAlert *alert = [NSAlert
+        alertWithMessageText:NSLocalizedString(@"Reset Profile?", "")
+        defaultButton:NSLocalizedString(@"Reset", "")
+        alternateButton:NSLocalizedString(@"Cancel", "")
+        otherButton:nil
+        informativeTextWithFormat:
+            NSLocalizedString(@"Resetting your profile will clear all local Top List data (your online Last.FM profile is not touched).", "")];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    [alert beginSheetModalForWindow:[self window] modalDelegate:self
+        didEndSelector:@selector(resetAlertDidEnd:returnCode:contextInfo:) contextInfo:nil];
+    return;
 }
 
 #define HEAD @"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n" \
