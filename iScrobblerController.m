@@ -780,8 +780,8 @@ player_info_exit:
     // Check the version
     if (NO == [ud boolForKey:@"Disable Update Notification"]) {
         [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:NO];
-        // Check every 24 hours
-        [NSTimer scheduledTimerWithTimeInterval:86400.0 target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES];
+        // Check every 72 hours
+        [NSTimer scheduledTimerWithTimeInterval:259200.0 target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES];
     }
 }
 
