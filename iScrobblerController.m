@@ -39,6 +39,15 @@
 // UTF16 sharp note 
 #define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
 
+static int drainArtworkCache = 0;
+
+static void handlesig (int sigraised)
+{
+    if (SIGUSR1 == sigraised) {
+        drainArtworkCache = 1;
+    }
+}
+
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
 - (IBAction)syncIPod:(id)sender;
@@ -368,7 +377,7 @@ currentSong = nil; \
     
     ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
     
-    // Eve if subs are disabled, we still have to update the iTunes play time, as the user
+    // Even if subs are disabled, we still have to update the iTunes play time, as the user
     // could enable subs, plug-in the ipod, and then we'd pick up everything that was supposed to
     // have been ignored in iTunes (because the play time had not been updated).
     SongData *song = nil;
@@ -557,6 +566,11 @@ player_info_exit:
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
+    
+    if (drainArtworkCache) {
+        drainArtworkCache = 0;
+        [SongData drainArtworkCache];
+    }
 }
 
 - (void)retryInfoHandler:(NSTimer*)timer
@@ -716,6 +730,8 @@ player_info_exit:
         }
     }
     
+    signal(SIGUSR1, handlesig);
+    
     return self;
 }
 
@@ -787,6 +803,8 @@ player_info_exit:
 
 -(IBAction)checkForUpdate:(id)sender
 {
+    if ([sender isKindOfClass:[NSTimer class]])
+        sender = nil;
     if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Update Notification"]) {
         [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
     }
@@ -944,6 +962,12 @@ player_info_exit:
 {
     [[TopListsController sharedInstance] showWindow:sender];
     [NSApp activateIgnoringOtherApps:YES];
+}
+
+- (IBAction)donate:(id)sender
+{
+    [[NSWorkspace sharedWorkspace] openURL:
+        [NSURL URLWithString:@"http://www.bergstrand.org/brian/donate"]];
 }
 
 -(void) handlePrefsChanged:(NSNotification *)aNotification
@@ -1144,8 +1168,8 @@ player_info_exit:
     if (ipath)
         location = [NSURL URLWithString:ipath];
     
-    if (!iname || !iartist || !iduration || (location && ![location isFileURL])) {
-        if (!(location && [location isFileURL]))
+    if (!iname || !iartist || !iduration /*|| (location && ![location isFileURL])*/) {
+        //if (!(location && [location isFileURL]))
             ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
         [self dealloc];
         return (nil);
