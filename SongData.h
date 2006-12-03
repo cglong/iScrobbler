@@ -50,8 +50,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 // Value to pad time calculations with
 + (float)songTimeFudge;
 + (void)setSongTimeFudge:(float)fudge;
-
 + (NSString *)notRatedString;
++ (void)drainArtworkCache;
 
 // returns a float value between 0 and 100 indicating how much of the song
 // has been played as a percent

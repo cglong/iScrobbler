@@ -23,6 +23,8 @@
 static unsigned int g_songID = 0;
 static float songTimeFudge;
 static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
+static NSMutableDictionary *artworkCache = nil;
+static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 @interface NSMutableDictionary (SongDataAdditions)
 - (NSComparisonResult)compareLastHitDate:(NSMutableDictionary*)entry;
@@ -46,6 +48,13 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
     if (!empty)
         empty = [[NSString alloc] initWithCharacters:noRating length:5];
     return (empty);
+}
+
++ (void)drainArtworkCache
+{
+    [artworkCache removeAllObjects];
+    artworkCacheLookups = artworkCacheHits = 0.0f;
+    ScrobLog(SCROB_LOG_TRACE, @"Artwork cache drained.");
 }
 
 - (id)init
@@ -554,10 +563,8 @@ static const unichar noRating[6] = {0x2606,0x2606,0x2606,0x2606,0x2606,0};
 #define KEY_IMAGE @"image"
 - (NSImage*)artwork
 {
-    static NSMutableDictionary *artworkCache = nil;
     static NSAppleScript *iTunesArtworkScript = nil;
     static int artworkCacheMax;
-    static float artworkCacheLookups = 0.0, artworkCacheHits = 0.0;
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"])
         return (nil);
