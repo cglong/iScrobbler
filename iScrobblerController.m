@@ -64,7 +64,6 @@ static void handlesig (int sigraised)
 @end
 
 @interface iScrobblerController (Private)
-    - (void)showNewVersionExistsDialog;
     - (void)retryInfoHandler:(NSTimer*)timer;
 @end
 
@@ -125,15 +124,6 @@ static void handlesig (int sigraised)
 {
     ProtocolManager *pm = [note object];
     
-    // Version checking is no longer supported by last.fm
-    #if 0
-    if (([pm updateAvailable] && ![prefs boolForKey:@"Disable Update Notification"]))
-        [self showNewVersionExistsDialog];
-    else
-    #endif
-    if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH])
-        [self showBadCredentialsDialog];
-    
     BOOL status = NO;
     NSString *msg = nil;
     if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
@@ -148,7 +138,7 @@ static void handlesig (int sigraised)
 
 - (void)badAuthHandler:(NSNotification*)note
 {
-    [self showBadCredentialsDialog];
+    [self performSelector:@selector(showBadCredentialsDialog) withObject:nil afterDelay:0.0];
 }
 
 - (void)handshakeStartHandler:(NSNotification*)note
@@ -778,7 +768,7 @@ player_info_exit:
         // No clue why, but calling this method directly here causes the status item
         // to permantly stop functioning. Maybe something to do with the run-loop
         // not having run yet?
-        [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
+        [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.1];
     }
     
     if (!iPodMountPath) {
@@ -940,11 +930,6 @@ player_info_exit:
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
-- (IBAction)openiScrobblerDownloadPage:(id)sender {
-	//NSLog(@"openiScrobblerDownloadPage");
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.last.fm/downloads.php"]];
-}
-
 -(IBAction)openUserHomepage:(id)sender
 {
     NSString *prefix = @"http://www.last.fm/user/";
@@ -1093,33 +1078,17 @@ player_info_exit:
 	// we should give them the option to ignore
 	// these messages, and only update the menu icon... -- ECS 10/30/04
 	int result = NSRunAlertPanel(NSLocalizedString(@"Authentication Failure", nil),
-								NSLocalizedString(@"Audioscrobbler.com did not accept your username and password.  Please update your user credentials in the iScrobbler preferences.", nil),
+								NSLocalizedString(@"Last.fm did not accept your username and/or password.  Please verify your credentials are set correctly in the iScrobbler preferences.", nil),
 								NSLocalizedString(@"Open iScrobbler Preferences", nil),
 								NSLocalizedString(@"New Account", nil),
 								nil); // NSLocalizedString(@"Ignore", nil)
 	
 	if (result == NSAlertDefaultReturn)
-		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.2];
+		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.1];
 	else if (result == NSAlertAlternateReturn)
 		[self openScrobblerHomepage:self];
 	//else
 	//	ignoreBadCredentials = YES;
-}
-
-- (void)showNewVersionExistsDialog
-{
-	if (!haveShownUpdateNowDialog) {
-		[NSApp activateIgnoringOtherApps:YES];
-		int result = NSRunAlertPanel(NSLocalizedString(@"New Plugin Available", nil),
-									 NSLocalizedString(@"A new version (%@) of the iScrobbler iTunes plugin is now available.  It strongly suggested you update to the latest version.", nil),
-									 NSLocalizedString(@"Open Download Page", nil),
-									 NSLocalizedString(@"Ignore", nil),
-									 nil); // NSLocalizedString(@"Ignore", nil)
-		if (result == NSAlertDefaultReturn)
-			[self openiScrobblerDownloadPage:self];
-		
-		haveShownUpdateNowDialog = YES;
-	}
 }
 
 - (void)showApplicationIsDamagedDialog
