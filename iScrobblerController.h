@@ -40,8 +40,6 @@
 
     NSNotificationCenter *nc;
     
-    BOOL haveShownUpdateNowDialog;
-    
     // GetTrackInfo error timer
     NSTimer *getTrackInfoTimer;
     
@@ -80,6 +78,8 @@
 -(IBAction)performFindPanelAction:(id)sender;
 
 -(IBAction)enableDisableSubmissions:(id)sender;
+
+-(IBAction)donate:(id)sender;
 
 -(NSString *)md5hash:(id)input;
 
