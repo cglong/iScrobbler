@@ -158,19 +158,29 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     if ((success = [self validHandshake])) {
         hsState = hs_valid;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
-        lastAttemptBadAuth = NO; // Reset now that we have a new session.
 	} else {
         if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
-            hsState = hs_needed;
-            handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
+            // If this occurs during a handshake, the user name is invalid.
+            // If it occurs during a sub, the user name is valid, but the password is not.
+            //hsState = hs_needed;
+            if (lastAttemptBadAuth) {
+				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
+                handshakeDelay = HANDSHAKE_DEFAULT_DELAY * 2.0f;
+                lastAttemptBadAuth = NO;
+			} else {
+                handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
+			    lastAttemptBadAuth = YES;
+            }
         } else {
-            hsState = hs_delay;
-            handshakeTimer = [NSTimer scheduledTimerWithTimeInterval:handshakeDelay target:self
-                selector:@selector(scheduleHandshake:) userInfo:nil repeats:NO];
-            handshakeDelay *= 2.0;
+            lastAttemptBadAuth = NO;
+            //hsState = hs_delay;
+            handshakeDelay *= 2.0f;
             if (handshakeDelay > [self handshakeMaxDelay])
                 handshakeDelay = [self handshakeMaxDelay];
         }
+        hsState = hs_delay;
+        handshakeTimer = [NSTimer scheduledTimerWithTimeInterval:handshakeDelay target:self
+                selector:@selector(scheduleHandshake:) userInfo:nil repeats:NO];
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
@@ -263,22 +273,12 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return ([submitResult objectForKey:HS_RESPONSE_KEY_RESULT_MSG]);
 }
 
-- (NSString *)updateURL
-{
-    return ([hsResult objectForKey:HS_RESPONSE_KEY_UPDATE_URL]);
-}
-
 - (BOOL) validHandshake
 {
     NSString *result = [self lastHandshakeResult];
     
     return ([result isEqualToString:HS_RESULT_OK] ||
          [result isEqualToString:HS_RESULT_UPDATE_AVAIL]);
-}
-
-- (BOOL) updateAvailable
-{
-    return ([[self lastHandshakeResult] isEqualToString:HS_RESULT_UPDATE_AVAIL]);
 }
 
 - (unsigned)submissionAttemptsCount
@@ -469,6 +469,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 			// Send notification if we received BADAUTH twice
 			if (lastAttemptBadAuth) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
+                lastAttemptBadAuth = NO;
 			} else {
 			    lastAttemptBadAuth = YES;
 			}
