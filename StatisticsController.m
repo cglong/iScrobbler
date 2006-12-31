@@ -85,6 +85,13 @@ static enum {title, album, artist, subdate} g_cycleState = title;
 {
     [submissionProgress stopAnimation:nil];
     
+    if (g_SubUpdateTimer) {
+        [g_SubUpdateTimer invalidate];
+        g_SubUpdateTimer = nil;
+    }
+    if (subdate == g_cycleState)
+        [g_cycleTimer fire];
+    
     ProtocolManager *pm = [ProtocolManager sharedInstance];
     QueueManager *qm = [QueueManager sharedInstance];
     id selection = [values selection];
@@ -149,6 +156,7 @@ static NSImage *prevIcon = nil;
 - (void)iPodSyncEndHandler:(NSNotification*)note
 {
     NSImage *icon = [artworkImage image];
+    ScrobLog(SCROB_LOG_TRACE, @"icon name: %@, prevIcon: %p", [icon name], prevIcon);
     if ([[icon name] isEqualToString:IPOD_ICON_NAME] && prevIcon) {
         // Restore the saved icon
         [artworkImage setImage:prevIcon];
@@ -224,6 +232,8 @@ static NSImage *prevIcon = nil;
         g_nowPlaying = [song retain];
         g_cycleState = title;
         
+        [g_SubUpdateTimer invalidate];
+        g_SubUpdateTimer = nil;
         [g_cycleTimer invalidate];
         g_cycleTimer = nil;
         [g_subDate release];
