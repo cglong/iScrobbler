@@ -76,11 +76,7 @@
 
 - (NSString *)lastSubmissionMessage;
 
-- (NSString *)updateURL;
-
 - (BOOL)validHandshake;
-
-- (BOOL)updateAvailable;
 
 - (unsigned)submissionAttemptsCount;
 
