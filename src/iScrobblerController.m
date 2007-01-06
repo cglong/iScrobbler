@@ -1203,11 +1203,13 @@ player_info_exit:
             [fmt replaceCharactersInRange:r withString:[self artist]];
         
         [fmt replaceOccurrencesOfString:@"%n" withString:@"\n" options:0 range:NSMakeRange(0, [fmt length])];
-        return (fmt);
+        return ([fmt autorelease]);
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"%s: -Exception- %@ while processing %@\n", __FUNCTION__, e,
             [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"]);
     }
+    
+    [fmt release];
     return (@"");
 }
 
