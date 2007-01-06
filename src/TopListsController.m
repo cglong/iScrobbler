@@ -578,6 +578,12 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
     
+    ISDurationsFromTime([[NSDate date] timeIntervalSince1970] - [startDate timeIntervalSince1970],
+        &days, &hours, &minutes, &seconds);
+    NSString *elapsedTime = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
+        days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
+        hours, minutes, seconds];
+    
     HAdd(d, @"<table style=\"width:100%; border:0; margin:0; padding:0;\">\n<tr><td valign=\"top\">\n");
     
     HAdd(d, @"<div class=\"modbox\" style=\"vertical-align:top;\">\n" @"<table class=\"topn\">\n" TR);
@@ -589,7 +595,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
-    HAdd(d, TDEntry(TD, time));
+    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"%@ (%@ %@)", time, elapsedTime,
+        NSLocalizedString(@"elapsed", "")]));
     HAdd(d, TRCLOSE TBLCLOSE @"</div>");
     
     HAdd(d, TDCLOSE TRCLOSE TBLCLOSE);
