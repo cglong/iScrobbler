@@ -26,6 +26,18 @@
     <key>Disable Local Lists</key>
     <false />
     
+    <key>GrowlPlays</key>
+    <true />
+    
+    <key>GrowlOnResume</key>
+    <false />
+    
+    <key>GrowlPlayTitle</key>
+    <string>Now Playing</string>
+    
+    <key>GrowlPlayFormat</key>
+    <string>Track: %t (%r)%nAlbum: %A%nArtist: %a</string>
+    
     <key>Sync iPod</key>
     <true />
     

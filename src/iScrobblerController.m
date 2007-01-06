@@ -4,7 +4,7 @@
 //
 //  Created by Sam Ley on Feb 14, 2003.
 //  Completely re-written by Brian Bergstrand sometime in Feb 2005.
-//  Copyright 2005,2006 Brian Bergstrand.
+//  Copyright 2005-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net/
@@ -29,10 +29,7 @@
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
-#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE NSLocalizedString(@"Now Playing", "")
-#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO(track, rating, album, artist) \
-[NSString stringWithFormat:NSLocalizedString(@"Track: %@ (%@)\nAlbum: %@\nArtist: %@", ""), \
-(track), (rating), (album), (artist)]
+#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]
 
 // UTF16 barred eigth notes
 #define MENU_TITLE_CHAR 0x266B
@@ -79,6 +76,7 @@ static void handlesig (int sigraised)
     - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
     - (void)updateUsingSong:(SongData*)song;
     - (double)resubmitInterval;
+    - (NSString*)growlDescription;
 @end
 
 @implementation iScrobblerController
@@ -445,7 +443,8 @@ currentSong = nil; \
             if (!isiTunesPlaying && ![currentSong hasQueued]) {
                 KillQueueTimer();
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
-            } else  if (isiTunesPlaying && !wasiTunesPlaying && ![currentSong hasQueued]) {
+            } else  if (isiTunesPlaying && !wasiTunesPlaying) {
+                if (![currentSong hasQueued]) {
                 // Reschedule timer
                 ISASSERT(!currentSongQueueTimer, "Timer is active!");
                 fireInterval = [currentSong resubmitInterval];
@@ -455,6 +454,11 @@ currentSong = nil; \
                                 userInfo:nil
                                 repeats:NO] retain];
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed -- sub in %.1lfs", [currentSong brief], fireInterval);
+                }
+                
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlOnResume"]) {
+                    goto notify_growl;
+                }
             }
             
             goto player_info_exit;
@@ -526,6 +530,8 @@ currentSong = nil; \
         song = nil; // Make sure it's not released
         
         // Notify Growl
+notify_growl:
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
         NSData *artwork = nil;
         if ([GrowlApplicationBridge isGrowlRunning]) {
             @try {
@@ -535,13 +541,13 @@ currentSong = nil; \
         }
         [GrowlApplicationBridge
             notifyWithTitle:IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE
-            description:IS_GROWL_NOTIFICATION_TRACK_CHANGE_INFO([currentSong title], [currentSong fullStarRating],
-                [currentSong album], [currentSong artist])
+            description:[currentSong growlDescription]
             notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
             iconData:artwork
             priority:0.0
             isSticky:NO
             clickContext:nil];
+        } // GrowlPlays
     }
     
 player_info_exit:
@@ -1173,6 +1179,36 @@ player_info_exit:
 {
     double interval =  ([[self duration] doubleValue] - [[self position] doubleValue]) / 3.0;
     return (interval);
+}
+
+- (NSString*)growlDescription
+{
+    NSMutableString *fmt = [[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"] mutableCopy];
+    
+    @try {
+        NSRange r = [fmt rangeOfString:@"%t"];
+        if (NSNotFound != r.location)
+            [fmt replaceCharactersInRange:r withString:[self title]];
+        
+        r = [fmt rangeOfString:@"%r"];
+        if (NSNotFound != r.location)
+            [fmt replaceCharactersInRange:r withString:[self starRating]];
+        
+        r = [fmt rangeOfString:@"%A"];
+        if (NSNotFound != r.location)
+            [fmt replaceCharactersInRange:r withString:[self album]];
+        
+        r = [fmt rangeOfString:@"%a"];
+        if (NSNotFound != r.location)
+            [fmt replaceCharactersInRange:r withString:[self artist]];
+        
+        [fmt replaceOccurrencesOfString:@"%n" withString:@"\n" options:0 range:NSMakeRange(0, [fmt length])];
+        return (fmt);
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"%s: -Exception- %@ while processing %@\n", __FUNCTION__, e,
+            [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"]);
+    }
+    return (@"");
 }
 
 @end
