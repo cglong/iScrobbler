@@ -5,16 +5,19 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>49d5a08eb39c1a2296b8c5dafdd89ee1b2918627</string>
+        	<string>d99871f1ee9ddf5ae693a56d6add14f5346e7348</string>
         </dict>
         <key>Version</key>
-        <string>1.2.2b1</string>
+        <string>1.2.2b2</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.2.2b1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.2.2b2.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- A profile reset now requires confirmation.
+                <string>- The Top Lists profile now includes the elpased time since the last profile reset.
+- Bug Fix: Top Tracks search field was mis-behaving.
+b1:
+- A profile reset now requires confirmation.
 - Bug Fix: The auto version update check is now silent if there is no update.
 - Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
 - Bug Fix: The authentication warning dialog will now display when necessary.

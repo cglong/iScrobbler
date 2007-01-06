@@ -14,6 +14,9 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.2.2 (BDB)
+- The Top Lists profile now includes the elpased time since the last profile reset.
+- Bug Fix: Top Tracks search field was mis-behaving.
+b1:
 - A profile reset now requires confirmation.
 - Bug Fix: The auto version update check is now silent if there is no update.
 - Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
