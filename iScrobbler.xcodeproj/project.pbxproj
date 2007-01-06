@@ -196,9 +196,7 @@
 		D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ISSearchArrayController.m; sourceTree = "<group>"; };
 		DC00A46205B21B9200674DB4 /* iscrobbler.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = iscrobbler.icns; sourceTree = "<group>"; };
 		EB16394A04080C51005DC01B /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
-		EB1639550408132E005DC01B /* INSTALL */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = INSTALL; sourceTree = "<group>"; };
 		EB24D529040AECC8005DC01B /* CHANGE_LOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGE_LOG; sourceTree = "<group>"; };
-		EB45285C040A8D11005DC01B /* KNOWN_ISSUES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = KNOWN_ISSUES; sourceTree = "<group>"; };
 		EB50662D03FBB239005DC01B /* keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = keychain.m; sourceTree = "<group>"; };
 		EB50662F03FBB284005DC01B /* keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keychain.h; sourceTree = "<group>"; };
 		EB5069A903FBC43A005DC01B /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
@@ -383,10 +381,8 @@
 			isa = PBXGroup;
 			children = (
 				D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */,
-				EB45285C040A8D11005DC01B /* KNOWN_ISSUES */,
 				EB24D529040AECC8005DC01B /* CHANGE_LOG */,
 				EB16394A04080C51005DC01B /* README */,
-				EB1639550408132E005DC01B /* INSTALL */,
 			);
 			includeInIndex = 0;
 			name = Documentation;
