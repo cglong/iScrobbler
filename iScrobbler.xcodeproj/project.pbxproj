@@ -12,7 +12,6 @@
 			buildActionMask = 2147483647;
 			contextName = "";
 			files = (
-				D3191CB107E3A51700821D03 /* iPodUpdate.applescript in AppleScript */,
 				D3191C9907E3A51700821D03 /* iTunesGetPlaylists.applescript in AppleScript */,
 				D39C15FC0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript in AppleScript */,
 				D3EC7B8308082DED00392110 /* iTunesGetArtworkForTrack.applescript in AppleScript */,
@@ -44,7 +43,6 @@
 		D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */ = {isa = PBXBuildFile; fileRef = DC00A46205B21B9200674DB4 /* iscrobbler.icns */; };
 		D3191CAE07E3A51700821D03 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB13A1077514A7009236FF /* Preferences.nib */; };
 		D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
-		D3191CB107E3A51700821D03 /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3191CB207E3A51700821D03 /* TopLists.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB38A207A59AE5009236FF /* TopLists.nib */; };
 		D3191CB407E3A51700821D03 /* keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = EB50662D03FBB239005DC01B /* keychain.m */; };
 		D3191CB507E3A51700821D03 /* iScrobblerController.m in Sources */ = {isa = PBXBuildFile; fileRef = F575CE9702FE0E8801A80164 /* iScrobblerController.m */; };
@@ -65,6 +63,7 @@
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
 		D39C15FC0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3B19D7C0B4F31AF008F54BF /* iPodLimitations.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
 		D3D3945109BBF8D1004E215A /* ISArtistDetailsController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
@@ -156,7 +155,7 @@
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
-		D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcclassmodel; path = iScrobbler.xcclassmodel; sourceTree = "<group>"; };
+		D3B19D7B0B4F31AF008F54BF /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = res/English.lproj/iPodLimitations.rtf; sourceTree = "<group>"; };
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScrobLog.m; sourceTree = "<group>"; };
 		D3C1125808456573000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/MainMenu.nib; sourceTree = "<group>"; };
@@ -183,8 +182,6 @@
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISProfileDocumentController.m; sourceTree = "<group>"; };
 		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ProfileReport.css; sourceTree = "<group>"; };
-		D3D7C29A080B9A5B005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/iPodLimitations.rtf; sourceTree = "<group>"; };
-		D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iPodUpdate.applescript; sourceTree = "<group>"; };
 		D3EC73100804F73B00392110 /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Growl.framework; sourceTree = "<group>"; };
 		D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetArtworkForTrack.applescript; sourceTree = "<group>"; };
 		D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlaySpecifiedTrack.applescript; sourceTree = "<group>"; };
@@ -256,6 +253,7 @@
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
 			);
 			name = Classes;
+			path = src;
 			sourceTree = "<group>";
 		};
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
@@ -298,6 +296,7 @@
 				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
 				D3EC7C98080858F800392110 /* KFASAdditions */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				D3B19CB00B4F3049008F54BF /* Scripts */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				D3D7C26F080B99ED005EF5CA /* Documentation */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
@@ -314,6 +313,7 @@
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
 			name = "Other Sources";
+			path = src;
 			sourceTree = "<group>";
 		};
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
@@ -331,17 +331,13 @@
 				D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */,
 				D3D394C809BC0658004E215A /* ArtistDetails.nib */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
-				D3EC0A740729CFA600C13782 /* iPodUpdate.applescript */,
-				D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */,
-				D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */,
-				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
-				D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
 				D306FC7909EF550C0011CEE1 /* no_album.tiff */,
 				D3EE90A20A093FF80024A013 /* checkmark.tif */,
 			);
 			name = Resources;
+			path = res;
 			sourceTree = "<group>";
 		};
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
@@ -367,14 +363,26 @@
 				D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */,
 				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
 			);
-			path = BBNetUpdate;
+			name = BBNetUpdate;
+			path = src/BBNetUpdate;
+			sourceTree = "<group>";
+		};
+		D3B19CB00B4F3049008F54BF /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */,
+				D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */,
+				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
+				D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */,
+			);
+			name = Scripts;
+			path = src;
 			sourceTree = "<group>";
 		};
 		D3D7C26F080B99ED005EF5CA /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
-				D3B2736A0824429600B8E08B /* iScrobbler.xcclassmodel */,
-				D3D7C299080B9A5B005EF5CA /* iPodLimitations.rtf */,
+				D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */,
 				EB45285C040A8D11005DC01B /* KNOWN_ISSUES */,
 				EB24D529040AECC8005DC01B /* CHANGE_LOG */,
 				EB16394A04080C51005DC01B /* README */,
@@ -392,7 +400,8 @@
 				D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */,
 				D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */,
 			);
-			path = KFASAdditions;
+			name = KFASAdditions;
+			path = src/KFASAdditions;
 			sourceTree = "<group>";
 		};
 		EB50663103FBB296005DC01B /* Headers */ = {
@@ -414,6 +423,7 @@
 				D3CB38A507A59AFE009236FF /* TopListsController.h */,
 			);
 			name = Headers;
+			path = src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -488,6 +498,7 @@
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
 				D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */,
+				D3B19D7C0B4F31AF008F54BF /* iPodLimitations.rtf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -595,6 +606,14 @@
 			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
 		};
+		D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3B19D7B0B4F31AF008F54BF /* English */,
+			);
+			name = iPodLimitations.rtf;
+			sourceTree = "<group>";
+		};
 		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -645,14 +664,6 @@
 				D3C11269084565C2000AA2BC /* de */,
 			);
 			name = ISProfileReport.nib;
-			sourceTree = "<group>";
-		};
-		D3D7C299080B9A5B005EF5CA /* iPodLimitations.rtf */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D3D7C29A080B9A5B005EF5CA /* English */,
-			);
-			name = iPodLimitations.rtf;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -707,7 +718,7 @@
 				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
-				INFOPLIST_FILE = "Info-iScrobbler.plist";
+				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				PREBINDING = NO;
 				PRODUCT_NAME = iScrobbler;
