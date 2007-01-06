@@ -558,7 +558,6 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     return ([NSNumber numberWithDouble:floor(fabs(elapsed))]);
 }
 
-#define CXXVIII_MB 0x8000000ULL
 #define KEY_LAST_HIT @"last hit"
 #define KEY_IMAGE @"image"
 - (NSImage*)artwork
@@ -576,8 +575,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
             size_t len = sizeof(mem);
             (void)sysctl(mib, 2, &mem, &len, NULL, 0);
             artworkCacheMax = 8;
-            if (mem > CXXVIII_MB)
-                artworkCacheMax *= (unsigned)(mem / CXXVIII_MB);
+            if (mem > 0x8000000ULL /*128 MB*/) {
+                if (mem > 0xc0000000ULL /*3 GB or 168 cache slots */)
+                    mem = 0xc0000000ULL;
+                artworkCacheMax *= (unsigned)(mem / 0x8000000ULL);
+            }
         }
         
         artworkCache = [[NSMutableDictionary alloc] initWithCapacity:artworkCacheMax];
