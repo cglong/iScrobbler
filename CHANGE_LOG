@@ -15,6 +15,7 @@ CHANGE HISTORY:
 
 v1.2.2 (BDB)
 - The Top Lists profile now includes the elpased time since the last profile reset.
+- Growl track notification layout change.
 - Bug Fix: Top Tracks search field was mis-behaving.
 b1:
 - A profile reset now requires confirmation.
