@@ -25,7 +25,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.2.2</string>
+	<string>svn</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.3.9</string>
 	<key>LSUIElement</key>
