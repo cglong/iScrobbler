@@ -2,7 +2,7 @@
 //  ScrobLog.m
 //  iScrobbler
 //
-//  Copyright 2005,2006 Brian Bergstrand.
+//  Copyright 2005-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -100,8 +100,12 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
         if (bom) {
             //Write UTF-8 BOM
             d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE];
-        } else if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
-            d = [@"    **** New Session ****    \n" dataUsingEncoding:NSUTF8StringEncoding];
+        }
+        if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
+            d = [[NSString stringWithFormat:@"  **** New Session %@ (%@) ****\n",
+                    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+                    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]]
+                dataUsingEncoding:NSUTF8StringEncoding];
         }
         @try {
         [fh writeData:d];
