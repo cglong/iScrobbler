@@ -26,11 +26,8 @@
 /* Begin PBXBuildFile section */
 		D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306F89009EC34F80011CEE1 /* no_artist.tiff */; };
 		D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306FC7909EF550C0011CEE1 /* no_album.tiff */; };
-		D31791310A6A9B5C00B0F081 /* BBNetUpdateAskController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D31791160A6A9B5C00B0F081 /* BBNetUpdateAskController.h */; };
 		D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */; };
-		D31791330A6A9B5D00B0F081 /* BBNetUpdateDownloadController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D31791180A6A9B5C00B0F081 /* BBNetUpdateDownloadController.h */; };
 		D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */; };
-		D31791350A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */; };
 		D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */ = {isa = PBXBuildFile; fileRef = D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */; };
 		D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */ = {isa = PBXBuildFile; fileRef = D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */; };
 		D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */ = {isa = PBXBuildFile; fileRef = D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */; };
@@ -69,7 +66,6 @@
 		D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
-		D3D3945109BBF8D1004E215A /* ISArtistDetailsController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
 		D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D394C809BC0658004E215A /* ArtistDetails.nib */; };
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
@@ -82,7 +78,6 @@
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
 		D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */ = {isa = PBXBuildFile; fileRef = D3EE90A20A093FF80024A013 /* checkmark.tif */; };
 		D3EE9CC70A144A470024A013 /* MBID.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EE9CC50A144A470024A013 /* MBID.c */; };
-		D3EE9CC80A144A470024A013 /* MBID.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EE9CC60A144A470024A013 /* MBID.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -104,11 +99,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */,
-				D3D3945109BBF8D1004E215A /* ISArtistDetailsController.h in CopyFiles */,
-				D3EE9CC80A144A470024A013 /* MBID.h in CopyFiles */,
-				D31791310A6A9B5C00B0F081 /* BBNetUpdateAskController.h in CopyFiles */,
-				D31791330A6A9B5D00B0F081 /* BBNetUpdateDownloadController.h in CopyFiles */,
-				D31791350A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,8 +284,6 @@
 			children = (
 				080E96DDFE201D6D7F000001 /* Classes */,
 				EB50663103FBB296005DC01B /* Headers */,
-				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
-				D3EC7C98080858F800392110 /* KFASAdditions */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				D3B19CB00B4F3049008F54BF /* Scripts */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -309,6 +297,8 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
+				D3EC7C98080858F800392110 /* KFASAdditions */,
 				D3EE9CC50A144A470024A013 /* MBID.c */,
 				D3EE9CC60A144A470024A013 /* MBID.h */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
@@ -364,8 +354,7 @@
 				D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */,
 				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
 			);
-			name = BBNetUpdate;
-			path = src/BBNetUpdate;
+			path = BBNetUpdate;
 			sourceTree = "<group>";
 		};
 		D3B19CB00B4F3049008F54BF /* Scripts */ = {
@@ -400,8 +389,7 @@
 				D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */,
 				D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */,
 			);
-			name = KFASAdditions;
-			path = src/KFASAdditions;
+			path = KFASAdditions;
 			sourceTree = "<group>";
 		};
 		EB50663103FBB296005DC01B /* Headers */ = {
@@ -438,7 +426,7 @@
 				D3191CA907E3A51700821D03 /* Resources */,
 				D3191CB307E3A51700821D03 /* Sources */,
 				D3191CC007E3A51700821D03 /* Frameworks */,
-				D3191CC707E3A51700821D03 /* Rez */,
+				D3B19FA90B5179F8008F54BF /* Set Build Number Script */,
 			);
 			buildRules = (
 				D3B2742D0826BC5800B8E08B /* PBXBuildRule */,
@@ -504,15 +492,22 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXRezBuildPhase section */
-		D3191CC707E3A51700821D03 /* Rez */ = {
-			isa = PBXRezBuildPhase;
+/* Begin PBXShellScriptBuildPhase section */
+		D3B19FA90B5179F8008F54BF /* Set Build Number Script */ = {
+			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
+			inputPaths = (
+			);
+			name = "Set Build Number Script";
+			outputPaths = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = "/usr/bin/perl -w";
+			shellScript = "# Xcode auto-versioning script for Subversion\n# by Axel Andersson, modified by Daniel Jalkut and Timothy Hatcher\n\nuse strict;\n\n# Get the current subversion revision number and use it to set the CFBundleVersion value\nmy $infoFile = \"$ENV{BUILT_PRODUCTS_DIR}/$ENV{INFOPLIST_PATH}\";\nmy $version = undef;\n$version = `/usr/bin/svnversion -n .` if -e \"/usr/bin/svnversion\";\n$version = `/usr/local/bin/svnversion -n .` if -e \"/usr/local/bin/svnversion\";\n$version = `/opt/local/bin/svnversion -n .` if -e \"/opt/local/bin/svnversion\";\n\n# Match the last group of digits:\n($version =~ m/(\\d+)[MS]*$/) && ($version = $1);\n\nif( $version ) {\n\topen( FH, \"$infoFile\" ) or die \"$0: $infoFile: $!\";\n\tmy $content = join( \"\", <FH> );\n\tclose( FH );\n\t\n\t$content =~ s/(\\s+<key>CFBundleVersion<\\/key>\\s+<string>).*?(<\\/string>)/$1$version$2/;\n\t\n\topen( FH, \">$infoFile\" ) or die \"$0: $infoFile: $!\";\n\tprint FH $content;\n\tclose( FH );\n}\n";
 		};
-/* End PBXRezBuildPhase section */
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D3191CB307E3A51700821D03 /* Sources */ = {
