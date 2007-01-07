@@ -29,7 +29,6 @@
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
-#define IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]
 
 // UTF16 barred eigth notes
 #define MENU_TITLE_CHAR 0x266B
@@ -77,6 +76,7 @@ static void handlesig (int sigraised)
     - (void)updateUsingSong:(SongData*)song;
     - (double)resubmitInterval;
     - (NSString*)growlDescription;
+    - (NSString*)growlTitle;
 @end
 
 @implementation iScrobblerController
@@ -540,7 +540,7 @@ notify_growl:
             }
         }
         [GrowlApplicationBridge
-            notifyWithTitle:IS_GROWL_NOTIFICATION_TRACK_CHANGE_TITLE
+            notifyWithTitle:[currentSong growlTitle]
             description:[currentSong growlDescription]
             notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
             iconData:artwork
@@ -1181,10 +1181,9 @@ player_info_exit:
     return (interval);
 }
 
-- (NSString*)growlDescription
+- (NSString*)growlDescriptionWithFormat:(NSString*)format
 {
-    NSMutableString *fmt = [[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"] mutableCopy];
-    
+    NSMutableString *fmt = [format mutableCopy];
     @try {
         NSRange r = [fmt rangeOfString:@"%t"];
         if (NSNotFound != r.location)
@@ -1211,6 +1210,16 @@ player_info_exit:
     
     [fmt release];
     return (@"");
+}
+
+- (NSString*)growlDescription
+{
+    return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"]]);
+}
+
+- (NSString*)growlTitle
+{
+    return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]]);
 }
 
 @end
