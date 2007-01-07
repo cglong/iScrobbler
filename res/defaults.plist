@@ -33,10 +33,10 @@
     <false />
     
     <key>GrowlPlayTitle</key>
-    <string>Now Playing</string>
+    <string>%t</string>
     
     <key>GrowlPlayFormat</key>
-    <string>Track: %t (%r)%nAlbum: %A%nArtist: %a</string>
+    <string>%a%n%A%n%r</string>
     
     <key>Sync iPod</key>
     <true />
@@ -88,6 +88,5 @@
         
 	<key>version</key>
 	<string>1.2.2</string>
-        
 </dict>
 </plist>
