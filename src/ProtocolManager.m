@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -273,12 +273,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return ([submitResult objectForKey:HS_RESPONSE_KEY_RESULT_MSG]);
 }
 
-- (BOOL) validHandshake
+- (BOOL)validHandshake
 {
     NSString *result = [self lastHandshakeResult];
     
-    return ([result isEqualToString:HS_RESULT_OK] ||
-         [result isEqualToString:HS_RESULT_UPDATE_AVAIL]);
+    return ([result isEqualToString:HS_RESULT_OK]);
 }
 
 - (unsigned)submissionAttemptsCount
@@ -638,24 +637,7 @@ didFinishLoadingExit:
     
     @try {
     [self setSubValue:escapedusername forKey:@"u" inData:subData];
-    
-    //retrieve the password from the keychain, and hash it for sending
-    NSString *pass = [[NSString alloc] initWithString:
-        [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]]];
-    //ScrobTrace(@"pass: %@", pass);
-    NSString *hashedPass = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:pass]];
-    [pass release];
-    //ScrobTrace(@"hashedPass: %@", hashedPass);
-    //ScrobTrace(@"md5Challenge: %@", md5Challenge);
-    NSString *concat = [[NSString alloc] initWithString:[hashedPass stringByAppendingString:[self md5Challenge]]];
-    [hashedPass release];
-    //ScrobTrace(@"concat: %@", concat);
-    NSString *response = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:concat]];
-    [concat release];
-    //ScrobTrace(@"response: %@", response);
-    
-    [self setSubValue:response forKey:@"s" inData:subData];
-    [response autorelease];
+    [self setSubValue:[self authChallengeResponse] forKey:@"s" inData:subData];
     
     // Fill the dictionary with every entry in the queue, ordering them from
     // oldest to newest.

@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -11,6 +11,14 @@
 
 #import "ProtocolManager_v11.h"
 #import "SongData.h"
+#import "keychain.h"
+#import "iScrobblerController.h"
+
+@interface ProtocolManager (Private)
+
+- (NSString*)md5Challenge;
+
+@end
 
 @implementation ProtocolManager_v11
 
@@ -119,6 +127,25 @@
         submissionNumber, escapedartist, submissionNumber, escapedtitle, submissionNumber,
         escapedalbum, submissionNumber, [song mbid], submissionNumber, [[song duration] unsignedIntValue],
         submissionNumber, escapedDate] dataUsingEncoding:NSUTF8StringEncoding]);
+}
+
+- (NSString*)authChallengeResponse
+{
+    //retrieve the password from the keychain, and hash it for sending
+    NSString *pass = [[NSString alloc] initWithString:
+        [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]]];
+    //ScrobTrace(@"pass: %@", pass);
+    NSString *hashedPass = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:pass]];
+    [pass release];
+    //ScrobTrace(@"hashedPass: %@", hashedPass);
+    //ScrobTrace(@"md5Challenge: %@", md5Challenge);
+    NSString *concat = [[NSString alloc] initWithString:[hashedPass stringByAppendingString:[self md5Challenge]]];
+    [hashedPass release];
+    //ScrobTrace(@"concat: %@", concat);
+    NSString *response = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:concat]];
+    [concat release];
+    //ScrobTrace(@"response: %@", response);
+    return ([response autorelease]);
 }
 
 - (id)init
