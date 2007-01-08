@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -20,7 +20,8 @@
 
 @interface ProtocolManager : NSObject {
     NSUserDefaults *prefs;
-    
+    KeyChain *myKeyChain;
+
 @private
     // Songs that have been submitted
     id inFlight;
@@ -34,7 +35,6 @@
     NSTimer *killTimer;
     NSTimer *resubmitTimer;
     NSTimer *handshakeTimer;
-    KeyChain *myKeyChain;
     // The  object that will do the data transmission
     NSURLConnection *myConnection;
     // Received data
