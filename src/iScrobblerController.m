@@ -440,10 +440,13 @@ currentSong = nil; \
             [currentSong updateUsingSong:song];
             
             // Handle a pause
-            if (!isiTunesPlaying && ![currentSong hasQueued]) {
-                KillQueueTimer();
+            if (!isiTunesPlaying) {
+                currentSongPaused = YES;
+                if (![currentSong hasQueued])
+                    KillQueueTimer();
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
             } else  if (isiTunesPlaying && !wasiTunesPlaying) {
+                currentSongPaused = NO;
                 if (![currentSong hasQueued]) {
                 // Reschedule timer
                 ISASSERT(!currentSongQueueTimer, "Timer is active!");
@@ -1014,7 +1017,7 @@ player_info_exit:
 
 -(SongData*)nowPlaying
 {
-    return (currentSong);
+    return (!currentSongPaused ? currentSong : nil);
 }
 
 #define URI_RESERVED_CHARS_TO_ESCAPE CFSTR(";/+?:@&=$,")

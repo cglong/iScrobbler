@@ -31,6 +31,7 @@
     // Song that iTunes is currently playing (or pausing)
     SongData *currentSong;
     NSTimer *currentSongQueueTimer;
+    BOOL currentSongPaused;
 
     //the preferences window controller
     PreferenceController *preferenceController;
