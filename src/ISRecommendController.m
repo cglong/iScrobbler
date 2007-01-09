@@ -16,6 +16,7 @@
 
 - (IBAction)ok:(id)sender
 {
+    [[self window] endEditingFor:nil]; // force any editor to resign first-responder and commit
     send = YES;
     [self performSelector:@selector(performClose:) withObject:sender];
 }
