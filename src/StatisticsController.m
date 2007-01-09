@@ -16,6 +16,7 @@
 #import "ISArtistDetailsController.h"
 #import "ASXMLRPC.h"
 #import "ISRecommendController.h"
+#import "ISTagController.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -560,23 +561,17 @@ static NSImage *prevIcon = nil;
                 [req setMethod:@"recommendTrack"];
                 [p addObject:[song artist]];
                 [p addObject:[song title]];
-                [p addObject:[rc who]];
-                [p addObject:[rc message]];
             break;
             
             case rt_artist:
                 [req setMethod:@"recommendArtist"];
                 [p addObject:[song artist]];
-                [p addObject:[rc who]];
-                [p addObject:[rc message]];
             break;
             
             case rt_album:
                 [req setMethod:@"recommendAlbum"];
                 [p addObject:[song artist]];
                 [p addObject:[song album]];
-                [p addObject:[rc who]];
-                [p addObject:[rc message]];
             break;
             
             default:
@@ -584,6 +579,8 @@ static NSImage *prevIcon = nil;
                 goto exit;
             break;
         }
+        [p addObject:[rc who]];
+        [p addObject:[rc message]];
         
         [req setParameters:p];
         [req setDelegate:self];
@@ -606,9 +603,59 @@ exit:
     [rc showWindow:[self window]];
 }
 
+- (void)tagSheetDidEnd:(NSNotification*)note
+{
+    ISTagController *tc = [note object];
+    if ([tc send]) {
+        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [req standardParams];
+        SongData *song = [tc representedObject];
+        NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
+        switch ([tc type]) {
+            case tt_track:
+                [req setMethod:@"tagTrack"];
+                [p addObject:[song artist]];
+                [p addObject:[song title]];
+            break;
+            
+            case tt_artist:
+                [req setMethod:@"tagArtist"];
+                [p addObject:[song artist]];
+            break;
+            
+            case tt_album:
+                [req setMethod:@"tagAlbum"];
+                [p addObject:[song artist]];
+                [p addObject:[song album]];
+            break;
+            
+            default:
+                [req release];
+                goto exit;
+            break;
+        }
+        [p addObject:[tc tags]];
+        [p addObject:mode];
+        
+        [req setParameters:p];
+        [req setDelegate:self];
+        [req setRepresentedObject:song];
+        [req sendRequest];
+        rpcreq = req;
+    }
+
+exit:
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ISTagDidEnd object:tc];
+    [tc release];
+}
+
 - (IBAction)tag:(id)sender
 {
-
+    ISTagController *tc = [[ISTagController alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tagSheetDidEnd:)
+        name:ISTagDidEnd object:tc];
+    [tc setRepresentedObject:g_nowPlaying];
+    [tc showWindow:[self window]];
 }
 
 - (IBAction)showLovedBanned:(id)sender
@@ -668,9 +715,9 @@ exit:
         #ifdef notyet
         @"showloveban",
         NSToolbarSeparatorItemIdentifier,
-        @"tag",
         #endif
         @"recommend",
+        @"tag",
         NSToolbarSeparatorItemIdentifier,
         @"love",
         @"ban",
