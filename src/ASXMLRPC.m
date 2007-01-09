@@ -98,7 +98,24 @@ static float handshakeDelay = 60.0;
     id p;
     while ((p = [en nextObject])) {
         NSXMLElement *e = [xmlNode elementWithName:@"param"];
-        [e addChild:[xmlNode elementWithName:@"value" stringValue:p]];
+        NSXMLElement *v = [xmlNode elementWithName:@"value"];
+        NSXMLElement *a;
+        if ([p isKindOfClass:[NSArray class]]) {
+            a = [xmlNode elementWithName:@"array"];
+            NSXMLElement *d = [xmlNode elementWithName:@"data"];
+            NSEnumerator *aen = [p objectEnumerator];
+            id obj;
+            while ((obj = [aen nextObject])) {
+                NSXMLElement *v2 = [xmlNode elementWithName:@"value"];
+                [v2 addChild:[xmlNode elementWithName:@"string" stringValue:obj]];
+                [d addChild:v2];
+            }
+            [a addChild:d];
+        } else
+            a = [xmlNode elementWithName:@"string" stringValue:p];
+        
+        [v addChild:a];
+        [e addChild:v];
         [xparams addChild:e];
     }
     
