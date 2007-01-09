@@ -59,6 +59,8 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
+		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
+		D38F6D730B535AF800230DBE /* Recommend.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6D710B535AF800230DBE /* Recommend.nib */; };
 		D3B19D7C0B4F31AF008F54BF /* iPodLimitations.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */; };
 		D3B19F470B517381008F54BF /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -146,6 +148,9 @@
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D38F6CCD0B53514400230DBE /* ISRecommendController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRecommendController.h; sourceTree = "<group>"; };
+		D38F6CCE0B53514400230DBE /* ISRecommendController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRecommendController.m; sourceTree = "<group>"; };
+		D38F6D720B535AF800230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Recommend.nib; sourceTree = "<group>"; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
 		D3B19D7B0B4F31AF008F54BF /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = res/English.lproj/iPodLimitations.rtf; sourceTree = "<group>"; };
@@ -234,6 +239,7 @@
 				D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */,
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
+				D38F6CCE0B53514400230DBE /* ISRecommendController.m */,
 				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
 				F575CEAA02FF7F3501A80164 /* PreferenceController.m */,
 				EB50662D03FBB239005DC01B /* keychain.m */,
@@ -325,6 +331,7 @@
 				D3CB38A207A59AE5009236FF /* TopLists.nib */,
 				D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */,
 				D3D394C809BC0658004E215A /* ArtistDetails.nib */,
+				D38F6D710B535AF800230DBE /* Recommend.nib */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
@@ -402,6 +409,7 @@
 				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D38F6CCD0B53514400230DBE /* ISRecommendController.h */,
 				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
 				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
 				EB50662F03FBB284005DC01B /* keychain.h */,
@@ -492,6 +500,7 @@
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
 				D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */,
 				D3B19D7C0B4F31AF008F54BF /* iPodLimitations.rtf in Resources */,
+				D38F6D730B535AF800230DBE /* Recommend.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -540,6 +549,7 @@
 				D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */,
 				D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */,
 				D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */,
+				D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,6 +615,14 @@
 				D317912F0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateVersionCheck.nib;
+			sourceTree = "<group>";
+		};
+		D38F6D710B535AF800230DBE /* Recommend.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D38F6D720B535AF800230DBE /* English */,
+			);
+			name = Recommend.nib;
 			sourceTree = "<group>";
 		};
 		D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */ = {
