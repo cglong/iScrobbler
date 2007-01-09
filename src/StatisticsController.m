@@ -15,6 +15,7 @@
 #import "iScrobblerController.h"
 #import "ISArtistDetailsController.h"
 #import "ASXMLRPC.h"
+#import "ISRecommendController.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -443,6 +444,30 @@ static NSImage *prevIcon = nil;
         [toolbarItems setObject:item forKey:@"ban"];
         [item release];
         
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
+        title = [NSString stringWithFormat:@"%C ", 0x2709];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
+        [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(recommend:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSong];
+        [toolbarItems setObject:item forKey:@"recommend"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
+        title = [NSString stringWithFormat:@"%C ", 0x270E];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
+        [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(tag:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSong];
+        [toolbarItems setObject:item forKey:@"tag"];
+        [item release];
+        
         item = [[NSToolbarItem alloc] initWithItemIdentifier:@"showloveban"];
         [item setLabel:NSLocalizedString(@"Show Loved/Banned", "")];
         [item setToolTip:NSLocalizedString(@"Show recently Loved or Banned tracks.", "")];
@@ -523,6 +548,69 @@ static NSImage *prevIcon = nil;
     rpcreq = req;
 }
 
+- (void)recommendSheetDidEnd:(NSNotification*)note
+{
+    ISRecommendController *rc = [note object];
+    if ([rc send]) {
+        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [req standardParams];
+        SongData *song = [rc representedObject];
+        switch ([rc type]) {
+            case rt_track:
+                [req setMethod:@"recommendTrack"];
+                [p addObject:[song artist]];
+                [p addObject:[song title]];
+                [p addObject:[rc who]];
+                [p addObject:[rc message]];
+            break;
+            
+            case rt_artist:
+                [req setMethod:@"recommendArtist"];
+                [p addObject:[song artist]];
+                [p addObject:[rc who]];
+                [p addObject:[rc message]];
+            break;
+            
+            case rt_album:
+                [req setMethod:@"recommendAlbum"];
+                [p addObject:[song artist]];
+                [p addObject:[song album]];
+                [p addObject:[rc who]];
+                [p addObject:[rc message]];
+            break;
+            
+            default:
+                [req release];
+                goto exit;
+            break;
+        }
+        
+        [req setParameters:p];
+        [req setDelegate:self];
+        [req setRepresentedObject:song];
+        [req sendRequest];
+        rpcreq = req;
+    }
+    
+exit:
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ISRecommendDidEnd object:rc];
+    [rc release];
+}
+
+- (IBAction)recommend:(id)sender
+{
+    ISRecommendController *rc = [[ISRecommendController alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recommendSheetDidEnd:)
+        name:ISRecommendDidEnd object:rc];
+    [rc setRepresentedObject:g_nowPlaying];
+    [rc showWindow:[self window]];
+}
+
+- (IBAction)tag:(id)sender
+{
+
+}
+
 - (IBAction)showLovedBanned:(id)sender
 {
 
@@ -580,7 +668,10 @@ static NSImage *prevIcon = nil;
         #ifdef notyet
         @"showloveban",
         NSToolbarSeparatorItemIdentifier,
+        @"tag",
         #endif
+        @"recommend",
+        NSToolbarSeparatorItemIdentifier,
         @"love",
         @"ban",
         nil];
