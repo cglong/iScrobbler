@@ -4,7 +4,7 @@
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
 //  Major re-write in 2005 by Brian Bergstrand.
-//  Copyright (c) 2005,2006 Brian Bergstrand. All rights reserved.
+//  Copyright (c) 2005-2007 Brian Bergstrand. All rights reserved.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -775,6 +775,26 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     }
     
     return (ignoreMe);
+}
+
+- (BOOL)loved
+{
+    return (loved);
+}
+
+- (void)setLoved:(BOOL)isLoved
+{
+    loved = isLoved;
+}
+
+- (BOOL)banned
+{
+    return (banned);
+}
+
+- (void)setBanned:(BOOL)isBanned
+{
+    banned = isBanned;
 }
 
 - (void)dealloc

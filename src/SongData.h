@@ -4,7 +4,7 @@
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
 //  Copyright (c) 2003 Sam Ley. All rights reserved.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
 
 #import <Cocoa/Cocoa.h>
@@ -45,6 +45,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     BOOL hasSeeked;
     BOOL reconstituted;
     BOOL passedFilters;
+    BOOL loved;
+    BOOL banned;
 }
 
 // Value to pad time calculations with
@@ -163,6 +165,12 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (void)setMbid:(NSString*)newMBID;
 
 - (BOOL)ignore;
+
+- (BOOL)loved;
+- (void)setLoved:(BOOL)isLoved;
+
+- (BOOL)banned;
+- (void)setBanned:(BOOL)isBanned;
 
 @end
 
