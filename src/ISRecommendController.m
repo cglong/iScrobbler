@@ -150,11 +150,11 @@
 
 - (IBAction)showWindow:(id)sender
 {
-    [progress startAnimation:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tableViewSelectionDidChange:)
         name:NSTableViewSelectionDidChangeNotification object:nil];
     
     [NSApp beginSheet:[self window] modalForWindow:sender modalDelegate:self didEndSelector:nil contextInfo:nil];
+    [progress startAnimation:nil];
     
     // Get the friends list
     NSString *user = [[[ProtocolManager sharedInstance] userName]
@@ -163,7 +163,6 @@
         stringByAppendingFormat:@"user/%@/friends.xml", user];
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-    
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     conn = [NSURLConnection connectionWithRequest:req delegate:self];
 }
