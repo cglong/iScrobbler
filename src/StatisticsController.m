@@ -675,16 +675,40 @@ exit:
     }
     
     NSString *method = [request method];
-    if ([method isEqualToString:@"loveTrack"])
+    NSString *tag = nil;
+    if ([method isEqualToString:@"loveTrack"]) {
         [[request representedObject] setLoved:YES];
-    else if ([method isEqualToString:@"banTrack"])
+        tag = @"loved";
+    } else if ([method isEqualToString:@"banTrack"]) {
         [[request representedObject] setBanned:YES];
+        tag = @"banned";
+    }
     
     ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
         method, [request representedObject]);
     
-    [rpcreq release];
-    rpcreq = nil;
+    if (tag && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTagLovedBanned"]) {
+        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [tagReq standardParams];
+        SongData *song = [request representedObject];
+        NSString *mode = @"append";
+        [tagReq setMethod:@"tagTrack"];
+        [p addObject:[song artist]];
+        [p addObject:[song title]];
+        [p addObject:[NSArray arrayWithObject:tag]];
+        [p addObject:mode];
+        
+        [tagReq setParameters:p];
+        [tagReq setDelegate:self];
+        [tagReq setRepresentedObject:song];
+        [tagReq performSelector:@selector(sendRequest) withObject:nil afterDelay:0.0];
+        
+        [rpcreq release];
+        rpcreq = tagReq;
+    } else {
+        [rpcreq release];
+        rpcreq = nil;
+    }
 }
 
 - (void)error:(NSError*)error receivedForRequest:(ASXMLRPC*)request
