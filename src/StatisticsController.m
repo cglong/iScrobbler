@@ -691,12 +691,11 @@ exit:
         ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
         NSMutableArray *p = [tagReq standardParams];
         SongData *song = [request representedObject];
-        NSString *mode = @"append";
         [tagReq setMethod:@"tagTrack"];
         [p addObject:[song artist]];
         [p addObject:[song title]];
         [p addObject:[NSArray arrayWithObject:tag]];
-        [p addObject:mode];
+        [p addObject:@"append"];
         
         [tagReq setParameters:p];
         [tagReq setDelegate:self];
@@ -708,6 +707,7 @@ exit:
     } else {
         [rpcreq release];
         rpcreq = nil;
+        [[[self window] toolbar] validateVisibleItems];
     }
 }
 
@@ -718,6 +718,7 @@ exit:
     
     [rpcreq release];
     rpcreq = nil;
+    [[[self window] toolbar] validateVisibleItems];
 }
 
 // NSToolbar
