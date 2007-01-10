@@ -28,8 +28,19 @@
 #import <sys/fcntl.h>
 #import <sys/stat.h>
 #import <unistd.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
+#import <openssl/sha.h>
+#import <openssl/md5.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
+#import <CommonCrypto/CommonDigest.h>
+#else
+// We define our own prototypes, because the CommonCrypto ones are explicitly
+// marked extern which prevents them from being weak linked.
+typedef unsigned char CC_SHA512_CTX[256];
+#define CC_SHA512_DIGEST_LENGTH		64			/* digest length in bytes */
+extern int CC_SHA512_Init(CC_SHA512_CTX *c)  __attribute__((weak_import));
+extern int CC_SHA512_Update(CC_SHA512_CTX *c, const void *data, uint32_t len)  __attribute__((weak_import));
+extern int CC_SHA512_Final(unsigned char *md, CC_SHA512_CTX *c)  __attribute__((weak_import));
+#endif
 
 #import "BBNetUpdateDownloadController.h"
 
@@ -118,16 +129,41 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 {
     BOOL good = NO;
     
-    EVP_MD_CTX ctx;
-    unsigned digest_len;
-    unsigned char digest[EVP_MAX_MD_SIZE];
+    struct {    
+        union {
+            CC_SHA512_CTX sha512;
+            SHA_CTX sha;
+            MD5_CTX md5;
+        } ctx;
+        
+        int digest_len;
+        unsigned char digest[64];
+        
+        int (*init)(void *c);
+        int (*update)(void *c, const void *data, unsigned long len);
+        int (*final)(unsigned char *md, void *c);
+    } h;
+    void *ctx;
     
-    const EVP_MD *md;
-    NSString *hash = [hashInfo objectForKey:@"SHA1"];
-    if (hash) {
-        md = EVP_sha1();
+    NSString *hash = [hashInfo objectForKey:@"SHA512"];
+    if (hash && NULL != CC_SHA512_Init) {
+        ctx = &h.ctx.sha512;
+        h.digest_len = CC_SHA512_DIGEST_LENGTH;
+        h.init = (typeof(h.init))CC_SHA512_Init;
+        h.update = (typeof(h.update))CC_SHA512_Update;
+        h.final = (typeof(h.final))CC_SHA512_Final;
+    } else if ((hash = [hashInfo objectForKey:@"SHA1"])) {
+        ctx = &h.ctx.sha;
+        h.digest_len = SHA_DIGEST_LENGTH;
+        h.init = (typeof(h.init))SHA1_Init;
+        h.update = (typeof(h.update))SHA1_Update;
+        h.final = (typeof(h.final))SHA1_Final;
     } else if ((hash = [hashInfo objectForKey:@"MD5"])) {
-        md = EVP_md5();
+        ctx = &h.ctx.md5;
+        h.digest_len = MD5_DIGEST_LENGTH;
+        h.init = (typeof(h.init))MD5_Init;
+        h.update = (typeof(h.update))MD5_Update;
+        h.final = (typeof(h.final))MD5_Final;
     } else
         return (YES); // unknown method, let it pass
     
@@ -135,19 +171,19 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     if (0 != stat([path fileSystemRepresentation], &sb))
         return (NO);
     
-    bzero(digest, sizeof(digest));
+    bzero(h.digest, sizeof(h.digest));
     
     int fd = open([path fileSystemRepresentation], O_RDONLY,  0);
     if (fd > -1) {
         char *buf = malloc(sb.st_blksize);
         if (buf) {
-            (void)EVP_DigestInit(&ctx, md);
+            (void)h.init(ctx);
             
             int bytes;
             while ((bytes = read(fd, buf, sb.st_blksize)) > 0)
-                (void)EVP_DigestUpdate(&ctx, buf, bytes);
+                (void)h.update(ctx, buf, bytes);
             
-            (void)EVP_DigestFinal(&ctx, digest, &digest_len);
+            (void)h.final(h.digest, ctx);
             
             free(buf);
         }
@@ -156,10 +192,10 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
         const char *expectedDigest = [hash UTF8String];
         unsigned expectedLen = strlen(expectedDigest);
         
-        char digestString[sizeof(digest) * 4];
+        char digestString[sizeof(h.digest) * 4];
         int i, j;
-        for (i = j = 0; i < digest_len; ++i)
-            j += sprintf((digestString + j), "%02x", digest[i]);
+        for (i = j = 0; i < h.digest_len; ++i)
+            j += sprintf((digestString + j), "%02x", h.digest[i]);
         *(digestString + j) = 0;
         
         if (expectedLen == strlen(digestString) && 0 == strcmp(digestString, expectedDigest))
@@ -222,10 +258,14 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     // Create a unique name incase the user somehow ended up with duplicate URL's.
     char tmp[] = "bbdlXXXXXX";
     (void*)mktemp(tmp);
-    NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:
-        [NSString stringWithCString:tmp encoding:NSASCIIStringEncoding]];
+    NSString *path = NSTemporaryDirectory();
+    path = [path stringByAppendingPathComponent:
+        ([path respondsToSelector:@selector(stringWithCString:encoding:)] ?
+        [NSString stringWithCString:tmp encoding:NSASCIIStringEncoding] :
+        [NSString stringWithCString:tmp])];
     [download setDestination:path allowOverwrite:NO];
-    [download setDeletesFileUponFailure:YES];
+    if ([download respondsToSelector:@selector(setDeletesFileUponFailure:)])
+        [download setDeletesFileUponFailure:YES];
 }
 
 - (void)download:(NSURLDownload *)download didCreateDestination:(NSString*)filename
