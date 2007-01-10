@@ -674,6 +674,7 @@ didFinishLoadingExit:
 - (NSString*)netDiagnostic
 {
     NSString *msg = nil;
+    #pragma weak CFNetDiagnosticCreateWithURL
     if (CFNetDiagnosticCreateWithURL) { // 10.4 only
         CFNetDiagnosticRef diag = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault,
             (CFURLRef)[NSURL URLWithString:[self handshakeURL]]);
