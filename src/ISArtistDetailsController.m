@@ -276,55 +276,51 @@ static NSImage *artistImgPlaceholder = nil;
     if (!all || [all count] <= 0)
         return;
     
-    // We are only interested in the top fan
-    e = [all objectAtIndex:0];
-    NSString *user = [[[e attributeForName:@"username"] stringValue]
-        stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    if (user) {
-        if ((all = [e elementsForName:@"weight"]) && [all count] > 0) {
-            NSString *rating = [[all objectAtIndex:0] stringValue];
-            if (rating) {
-                id value = nil;
-                NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
-                [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
-                NSFont *font = [[artistController selection] valueForKey:@"Font"];
-                if ((all = [e elementsForName:@"url"]) && [all count] > 0) {
-                    NSString *urlStr = [[all objectAtIndex:0] stringValue];
-                    NSURL *url = nil;
-                    @try {
-                        url = [NSURL URLWithString:urlStr];
-                    } @catch (NSException *e) { }
-                    
-                    if (url) {
-                        value = [[[NSMutableAttributedString alloc] initWithString:user attributes:
-                            [NSDictionary dictionaryWithObjectsAndKeys:
-                                url, NSLinkAttributeName,
-                                [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
-                                [NSColor blueColor], NSForegroundColorAttributeName,
-                                [NSCursor pointingHandCursor], NSCursorAttributeName,
-                            nil]] autorelease];
-                         
-                        [value appendAttributedString:[[[NSAttributedString alloc]
-                            initWithString:[NSString stringWithFormat:@" - %@", rating]]
-                            autorelease]];
-                        [value addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
-                            font, NSFontAttributeName,
-                            style, NSParagraphStyleAttributeName,
-                            nil]
-                            range:NSMakeRange(0, [value length])];
-                    }
-                } else
-                    value = [[[NSAttributedString alloc] initWithString:
-                        [NSString stringWithFormat:@"%@ - %@", user, rating]
-                        attributes:[NSDictionary dictionaryWithObjectsAndKeys:
-                            style, NSParagraphStyleAttributeName,
-                            font, NSFontAttributeName,
-                            nil]] autorelease];
+    NSAttributedString *comma = [[[NSAttributedString alloc] initWithString:@", "] autorelease];
+    NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+        [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+    NSFont *font = [[artistController selection] valueForKey:@"Font"];
+    NSMutableAttributedString *value = nil, *tmp;
+    NSEnumerator *en = [all objectEnumerator];
+    int i = 0;
+    while ((e = [en nextObject]) && i++ < 3) {
+        NSString *user = [[[e attributeForName:@"username"] stringValue]
+            stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        if (user) {
+            if ((all = [e elementsForName:@"url"]) && [all count] > 0) {
+                NSURL *url = nil;
+                @try {
+                    url = [NSURL URLWithString:[[all objectAtIndex:0] stringValue]];
+                } @catch (NSException *e) { }
                 
-                if (value)
-                    [[artistController selection] setValue:value forKeyPath:@"TopFan"];
+                if (url) {
+                    tmp = [[[NSMutableAttributedString alloc] initWithString:user attributes:
+                        [NSDictionary dictionaryWithObjectsAndKeys:
+                            url, NSLinkAttributeName,
+                            [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
+                            [NSColor blueColor], NSForegroundColorAttributeName,
+                            [NSCursor pointingHandCursor], NSCursorAttributeName,
+                        nil]] autorelease];
+                }
+            } else
+                tmp = [[[NSAttributedString alloc] initWithString:user] autorelease];
+            
+            if (!value)
+                value = tmp;
+            else {
+                [value appendAttributedString:comma];
+                [value appendAttributedString:tmp];
             }
         }
+    }
+    
+    if (value) {
+        [value addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
+            font, NSFontAttributeName,
+            style, NSParagraphStyleAttributeName,
+            nil]
+            range:NSMakeRange(0, [value length])];
+        [[artistController selection] setValue:value forKeyPath:@"TopFan"];
     }
     
 #ifdef obsolete
