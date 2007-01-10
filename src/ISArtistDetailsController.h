@@ -19,7 +19,7 @@
     IBOutlet NSTableView *similarArtistsTable;
     
     NSURLConnection *detailsProfile, *detailsTopArtists,
-        *detailsTopFans, *detailsSimArtists, *detailsArtistData;
+        *detailsTopFans, *detailsSimArtists, *detailsArtistData, *detailsArtistTags;
     NSMutableDictionary *detailsData;
     NSURLDownload *imageRequest;
     NSString *imagePath;
