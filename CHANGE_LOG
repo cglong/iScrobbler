@@ -13,11 +13,14 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
-v1.2.2 (BDB)
+v1.5 (BDB)
+- The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
+- Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
+1.2.2b2
 - The Top Lists profile now includes the elpased time since the last profile reset.
 - Growl track notification layout change.
 - Bug Fix: Top Tracks search field was mis-behaving.
-b1:
+1.2.2b1
 - A profile reset now requires confirmation.
 - Bug Fix: The auto version update check is now silent if there is no update.
 - Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
