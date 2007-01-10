@@ -363,6 +363,7 @@ static NSCountedSet *topRatings = nil;
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
     
     [self restorePersistentStore];
+    [self hideDetails:nil];
 }
 
 @end
