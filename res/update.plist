@@ -5,16 +5,19 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>9926b12f387508e631067d7781a7b2f3715ba416</string>
+        	<string>1d962577d81919039aa8bbf260663ea08d27fa38</string>
         </dict>
         <key>Version</key>
-        <string>1.2.2b2</string>
+        <string>1.5.0b1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.2.2b2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b1.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- The Top Lists profile now includes the elpased time since the last profile reset.
+                <string>- The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
+- Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
+1.2.2b2
+- The Top Lists profile now includes the elpased time since the last profile reset.
 - Growl track notification layout change.
 - Bug Fix: Top Tracks search field was mis-behaving.
 b1:
