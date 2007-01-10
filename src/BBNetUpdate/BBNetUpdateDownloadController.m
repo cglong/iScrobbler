@@ -24,6 +24,7 @@
 * $Id$
 */
 
+#import <AvailabilityMacros.h>
 #import <sys/types.h>
 #import <sys/fcntl.h>
 #import <sys/stat.h>
@@ -92,10 +93,24 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 
 - (void)startDownload
 {
-    NSURLRequest *request = [NSURLRequest requestWithURL:_url
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:_url
             cachePolicy:NSURLRequestReloadIgnoringCacheData
             timeoutInterval:60.0];
-   
+    
+    NSString *ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BBNetUpdateVersion"];
+    if (!ver) {
+        if (!(ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]))
+            ver = @"";
+    }
+    NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (!build)
+        build = ver;
+    
+    NSString *agent = [NSString stringWithFormat:@"%@ %@/%@",
+        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
+    
+    [request setValue:agent forHTTPHeaderField:@"User-Agent"];
+    
     bbDownload = [[[NSURLDownload alloc] initWithRequest:request delegate:self] autorelease];
    
    if (!bbDownload) {
