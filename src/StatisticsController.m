@@ -482,6 +482,7 @@ static NSImage *prevIcon = nil;
         
         [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
         [toolbarItems setObject:[NSNull null] forKey:NSToolbarFlexibleSpaceItemIdentifier];
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSpaceItemIdentifier];
         
         [[self window] setToolbar:tb];
         [tb release];
@@ -719,8 +720,9 @@ exit:
         @"recommend",
         @"tag",
         NSToolbarSeparatorItemIdentifier,
-        @"love",
         @"ban",
+        @"love",
+        //NSToolbarSpaceItemIdentifier,
         nil];
 }
 
