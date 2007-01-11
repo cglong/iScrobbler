@@ -17,6 +17,7 @@
 #import "ASXMLRPC.h"
 #import "ISRecommendController.h"
 #import "ISTagController.h"
+#import "ISLoveBanListController.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -669,7 +670,7 @@ exit:
 
 - (IBAction)showLovedBanned:(id)sender
 {
-
+    [[ISLoveBanListController sharedController] showWindow:[self window]];
 }
 
 // ASXMLRPC
@@ -746,10 +747,8 @@ exit:
 {
     return [NSArray arrayWithObjects:
         NSToolbarFlexibleSpaceItemIdentifier,
-        #ifdef notyet
         @"showloveban",
         NSToolbarSeparatorItemIdentifier,
-        #endif
         @"recommend",
         @"tag",
         NSToolbarSeparatorItemIdentifier,
