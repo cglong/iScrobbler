@@ -24,10 +24,13 @@
 
 - (NSArray*)tags
 {
-    NSMutableArray *array = [[tagData componentsSeparatedByString:@","] mutableCopy];
+    // strip extra spaces
+    id s = [[tagData mutableCopy] autorelease];
+    [s replaceOccurrencesOfString:@", " withString:@"," options:0 range:NSMakeRange(0, [s length])];
+    
+    NSMutableArray *array = [[s componentsSeparatedByString:@","] mutableCopy];
     NSMutableArray *empty = [NSMutableArray array];
     NSEnumerator *en = [array objectEnumerator];
-    NSString *s;
     while ((s = [en nextObject])) {
         if (0 == [s length])
             [empty addObject:s];
@@ -103,6 +106,8 @@
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
+    
+    [progress startAnimation:nil];
     globalConn = [NSURLConnection connectionWithRequest:req delegate:self];
 }
 
