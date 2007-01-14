@@ -5,16 +5,20 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>1d962577d81919039aa8bbf260663ea08d27fa38</string>
+        	<string>897d66a85ac8ca9eb50740721da32f9120365902</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0b1</string>
+        <string>1.5.0b2</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b2.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
+                <string>- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window.
+- You can view and change your recently Loved/Banned tracks.
+- The top three fans are now listed in the Artist Detail window.
+1.5b1
+- The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
 - Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
 1.2.2b2
 - The Top Lists profile now includes the elpased time since the last profile reset.

@@ -14,6 +14,10 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.5 (BDB)
+- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window.
+- You can view and change your recently Loved/Banned tracks.
+- The top three fans are now listed in the Artist Detail window.
+b1
 - The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
 - Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
 1.2.2b2
