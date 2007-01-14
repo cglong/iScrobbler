@@ -17,8 +17,11 @@
     IBOutlet id topTracksController;
     IBOutlet NSTableView *topArtistsTable;
     IBOutlet NSTableView *topTracksTable;
+    IBOutlet NSTabView *tabView;
     
     NSDate *startDate;
+    NSMutableDictionary *toolbarItems;
+    NSMutableArray *rpcreqs;
     id artistDetails;
 }
 

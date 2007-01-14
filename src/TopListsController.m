@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 12/18/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -18,6 +18,16 @@
 #import "ScrobLog.h"
 #import "ISArtistDetailsController.h"
 #import "ProtocolManager.h"
+#import "ASXMLRPC.h"
+#import "ISRecommendController.h"
+#import "ISTagController.h"
+#import "ISLoveBanListController.h"
+
+enum {
+    kTBItemRequiresSelection      = 0x00000001,
+    kTBItemRequiresTrackSelection = 0x00000002,
+    kTBItemNoMultipleSelection    = 0x00000004,
+};
 
 // From iScrobblerController.m
 void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
@@ -236,8 +246,10 @@ static NSCountedSet *topRatings = nil;
 
 - (void)selectionDidChange:(NSNotification*)note
 {
+    @try {
     NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
     [artistDetails setArtist:artist];
+    } @catch (id e) {}
 }
 
 #if 0
@@ -280,6 +292,7 @@ static NSCountedSet *topRatings = nil;
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
+    //[rpcreqs removeAll];
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     [self hideDetails:nil];
 }
@@ -364,7 +377,427 @@ static NSCountedSet *topRatings = nil;
     
     [self restorePersistentStore];
     [self hideDetails:nil];
+    
+    if ([ASXMLRPC isAvailable]) {
+        // Create toolbar
+        toolbarItems = [[NSMutableDictionary alloc] init];
+        
+        NSToolbar *tb = [[NSToolbar alloc] initWithIdentifier:@"toplists"];
+        [tb setDisplayMode:NSToolbarDisplayModeLabelOnly]; // XXX
+        [tb setSizeMode:NSToolbarSizeModeSmall];
+        [tb setDelegate:self];
+        [tb setAllowsUserCustomization:NO];
+        [tb setAutosavesConfiguration:NO];
+        #ifdef looksalittleweird
+        [tb setShowsBaselineSeparator:NO]; // 10.4 only, but ASXMLRPC won't load w/o it
+        #endif
+        
+        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];
+        title = [NSString stringWithFormat:@"%C ", 0x2665];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Love", "")]];
+        [item setToolTip:NSLocalizedString(@"Love the currently playing track.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(loveTrack:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection|kTBItemRequiresTrackSelection];
+        [toolbarItems setObject:item forKey:@"love"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"ban"];
+        title = [NSString stringWithFormat:@"%C ", 0x2298];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]];
+        [item setToolTip:NSLocalizedString(@"Ban the currently playing track from last.fm.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(banTrack:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection|kTBItemRequiresTrackSelection];
+        [toolbarItems setObject:item forKey:@"ban"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
+        title = [NSString stringWithFormat:@"%C ", 0x2709];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
+        [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(recommend:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection|kTBItemNoMultipleSelection];
+        [toolbarItems setObject:item forKey:@"recommend"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
+        title = [NSString stringWithFormat:@"%C ", 0x270E];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
+        [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(tag:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection];
+        [toolbarItems setObject:item forKey:@"tag"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"showloveban"];
+        [item setLabel:NSLocalizedString(@"Show Loved/Banned", "")];
+        [item setToolTip:NSLocalizedString(@"Show recently Loved or Banned tracks.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(showLovedBanned:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:0];
+        [toolbarItems setObject:item forKey:@"showloveban"];
+        [item release];
+        
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarFlexibleSpaceItemIdentifier];
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSpaceItemIdentifier];
+        
+        [[self window] setToolbar:tb];
+        [tb release];
+        
+        rpcreqs = [[NSMutableArray alloc] init];
+    } // [ASXMLRPC isAvailable])
 }
+
+// ================= Toolbar support ================= //
+
+- (void)loveBan:(NSString*)method track:(NSDictionary*)track
+{
+    NSString *artist = [track objectForKey:@"Artist"];
+    NSString *title = [track objectForKey:@"Track"];
+    if (!artist || !title)
+        return;
+    
+    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    [req setMethod:method];
+    NSMutableArray *p = [req standardParams];
+    [p addObject:artist];
+    [p addObject:title];
+    [req setParameters:p];
+    [req setDelegate:self];
+    [req setRepresentedObject:track];
+    [req sendRequest];
+    [rpcreqs addObject:req];
+}
+
+- (IBAction)loveTrack:(id)sender
+{
+    @try {
+        NSArray *tracks = [topTracksController selectedObjects];
+        NSEnumerator *en = [tracks objectEnumerator];
+        NSDictionary *track;
+        while ((track = [en nextObject])) {
+            if (![track isKindOfClass:[NSDictionary class]])
+                continue;
+            [self loveBan:@"loveTrack" track:track];
+        }
+    } @catch (id e) {}
+}
+
+- (IBAction)banTrack:(id)sender
+{
+    @try {
+        NSArray *tracks = [topTracksController selectedObjects];
+        NSEnumerator *en = [tracks objectEnumerator];
+        NSDictionary *track;
+        while ((track = [en nextObject])) {
+            if (![track isKindOfClass:[NSDictionary class]])
+                continue;
+            [self loveBan:@"banTrack" track:track];
+        }
+    } @catch (id e) {}
+}
+
+- (void)recommendSheetDidEnd:(NSNotification*)note
+{
+    ISRecommendController *rc = [note object];
+    NSDictionary *song = [rc representedObject];
+    if ([rc send] && song && [song isKindOfClass:[NSDictionary class]]) {
+        NSString *artist = [song objectForKey:@"Artist"];
+        if (!artist)
+            goto exit;
+        
+        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [req standardParams];
+        switch ([rc type]) {
+            case rt_track: {
+                NSString *title = [song objectForKey:@"Track"];
+                if (!title) {
+                    [req release];
+                    goto exit;
+                }
+                [req setMethod:@"recommendTrack"];
+                [p addObject:artist];
+                [p addObject:title];
+            } break;
+            
+            case rt_artist:
+                [req setMethod:@"recommendArtist"];
+                [p addObject:artist];
+            break;
+            
+            case rt_album:
+            default:
+                [req release];
+                goto exit;
+            break;
+        }
+        [p addObject:[rc who]];
+        [p addObject:[rc message]];
+        
+        [req setParameters:p];
+        [req setDelegate:self];
+        [req setRepresentedObject:song];
+        [req sendRequest];
+        [rpcreqs addObject:req];
+    }
+    
+exit:
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ISRecommendDidEnd object:rc];
+    [rc release];
+}
+
+- (IBAction)recommend:(id)sender
+{
+    NSTabViewItem *activeTab;
+    id data, obj;
+    @try {
+    activeTab = [tabView selectedTabViewItem];
+    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    obj = [[data selectedObjects] objectAtIndex:0];
+    } @catch (id e) {
+        return;
+    }
+    if (!obj || ![obj isKindOfClass:[NSDictionary class]])
+        return;
+    
+    ISRecommendController *rc = [[ISRecommendController alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recommendSheetDidEnd:)
+        name:ISRecommendDidEnd object:rc];
+    [rc setAlbumEnabled:NO];
+    if (data == topArtistsController) {
+        [rc setTrackEnabled:NO];
+        [rc setType:rt_artist];
+    }
+    [rc setRepresentedObject:obj];
+    [rc showWindow:[self window]];
+}
+
+- (void)tagSheetDidEnd:(NSNotification*)note
+{
+    ISTagController *tc = [note object];
+    NSArray *tracks = [tc representedObject];
+    if ([tc send] && tracks && [tracks isKindOfClass:[NSArray class]]) {
+        NSEnumerator *en = [tracks objectEnumerator];
+        NSDictionary *song;
+        while ((song = [en nextObject])) {
+            if (![song isKindOfClass:[NSDictionary class]])
+                continue;
+            NSString *artist = [song objectForKey:@"Artist"];
+            if (!artist)
+                continue;
+            
+            ASXMLRPC *req = [[ASXMLRPC alloc] init];
+            NSMutableArray *p = [req standardParams];
+            NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
+            switch ([tc type]) {
+                case tt_track: {
+                    NSString *title = [song objectForKey:@"Track"];
+                    if (!title) {
+                        [req release];
+                        continue;
+                    }
+                    [req setMethod:@"tagTrack"];
+                    [p addObject:artist];
+                    [p addObject:title];
+                } break;
+                
+                case tt_artist:
+                    [req setMethod:@"tagArtist"];
+                    [p addObject:artist];
+                break;
+                
+                case tt_album:                
+                default:
+                    [req release];
+                    continue;
+                break;
+            }
+            [p addObject:[tc tags]];
+            [p addObject:mode];
+            
+            [req setParameters:p];
+            [req setDelegate:self];
+            [req setRepresentedObject:song];
+            [req sendRequest];
+            [rpcreqs addObject:req];
+        } // while(song)
+    }
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ISTagDidEnd object:tc];
+    [tc release];
+}
+
+- (IBAction)tag:(id)sender
+{
+    NSTabViewItem *activeTab;
+    id data, obj;
+    @try {
+    activeTab = [tabView selectedTabViewItem];
+    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    obj = [data selectedObjects];
+    } @catch (id e) {
+        return;
+    }
+    
+    ISTagController *tc = [[ISTagController alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tagSheetDidEnd:)
+        name:ISTagDidEnd object:tc];
+    [tc setAlbumEnabled:NO];
+    if (data == topArtistsController) {
+        [tc setTrackEnabled:NO];
+        [tc setType:tt_artist];
+    }
+    [tc setRepresentedObject:obj];
+    [tc showWindow:[self window]];
+}
+
+- (IBAction)showLovedBanned:(id)sender
+{
+    [[ISLoveBanListController sharedController] showWindow:[self window]];
+}
+
+// ASXMLRPC
+- (void)responseReceivedForRequest:(ASXMLRPC*)request
+{
+    if (NSOrderedSame != [[request response] compare:@"OK" options:NSCaseInsensitiveSearch]) {
+        NSError *err = [NSError errorWithDomain:@"iScrobbler" code:-1 userInfo:
+            [NSDictionary dictionaryWithObject:[request response] forKey:@"Response"]];
+        [self error:err receivedForRequest:request];
+        return;
+    }
+    
+    NSString *method = [request method];
+    NSString *tag = nil;
+    if ([method isEqualToString:@"loveTrack"]) {
+        tag = @"loved";
+    } else if ([method isEqualToString:@"banTrack"]) {
+        tag = @"banned";
+    }
+    
+    id obj = [request representedObject];
+    ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
+        method, obj);
+    
+    NSString *artist, *title;
+    if (tag && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTagLovedBanned"]
+        && [obj isKindOfClass:[NSDictionary class]]
+        && (artist = [obj objectForKey:@"Artist"])
+        && (title = [obj objectForKey:@"Track"])) {
+        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [tagReq standardParams];
+        [tagReq setMethod:@"tagTrack"];
+        [p addObject:artist];
+        [p addObject:title];
+        [p addObject:[NSArray arrayWithObject:tag]];
+        [p addObject:@"append"];
+        
+        [tagReq setParameters:p];
+        [tagReq setDelegate:self];
+        [tagReq setRepresentedObject:obj];
+        [tagReq performSelector:@selector(sendRequest) withObject:nil afterDelay:0.0];
+        
+        [request retain];
+        [rpcreqs removeObject:request];
+        [request autorelease];
+        
+        [rpcreqs addObject:tagReq];
+    } else {
+        [request retain];
+        [rpcreqs removeObject:request];
+        [request autorelease];
+        
+        [[[self window] toolbar] validateVisibleItems];
+    }
+}
+
+- (void)error:(NSError*)error receivedForRequest:(ASXMLRPC*)request
+{
+    ScrobLog(SCROB_LOG_ERR, @"RPC request '%@' for '%@' returned error: %@",
+        [request method], [request representedObject], error);
+    
+    [request retain];
+    [rpcreqs removeObject:request];
+    [request autorelease];
+    [[[self window] toolbar] validateVisibleItems];
+}
+
+// NSToolbar
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier
+    willBeInsertedIntoToolbar:(BOOL)flag 
+{
+    return [toolbarItems objectForKey:itemIdentifier];
+}
+
+- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
+{
+    return [toolbarItems allKeys];
+}
+
+// Called once during toolbar init
+- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
+{
+    return [NSArray arrayWithObjects:
+        NSToolbarFlexibleSpaceItemIdentifier,
+        @"showloveban",
+        NSToolbarSeparatorItemIdentifier,
+        @"recommend",
+        @"tag",
+        NSToolbarSeparatorItemIdentifier,
+        @"ban",
+        @"love",
+        //NSToolbarSpaceItemIdentifier,
+        nil];
+}
+
+- (BOOL)validateToolbarItem:(NSToolbarItem*)item
+{
+    NSTabViewItem *activeTab;
+    id data;
+    
+    @try {
+    activeTab = [tabView selectedTabViewItem];
+    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    } @catch (id e) {
+        return (NO);
+    }
+    int flags = [item tag];
+    unsigned ct = [[data selectedObjects] count];
+    BOOL valid = YES;
+    if ((flags & kTBItemRequiresSelection))
+        valid = (ct > 0);
+    if (valid && (flags & kTBItemRequiresTrackSelection))
+        valid = (data == topTracksController);
+    if (valid && (flags & kTBItemNoMultipleSelection))
+        valid = (1 == ct);
+    
+    //ScrobTrace(@"flags = %x, ct = %u, valid = %d", flags, ct, valid);
+    return (valid);
+}
+
+#if 0
+- (void)toolbarWillAddItem:(NSNotification *) notification
+{
+}
+
+- (void)toolbarDidRemoveItem:(NSNotification *)notification
+{
+}
+#endif
+
 
 @end
 

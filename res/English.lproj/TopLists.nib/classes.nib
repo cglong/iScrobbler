@@ -18,6 +18,7 @@
             CLASS = TopListsController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                tabView = NSTabView; 
                 topArtistsController = id; 
                 topArtistsTable = NSTableView; 
                 topTracksController = id; 
