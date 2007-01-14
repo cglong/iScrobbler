@@ -311,8 +311,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     lastSongSubmitted = song;
     
     NSDictionary *d = [lastSongSubmitted songData];
-    if (d)
+    if (d) {
         [prefs setObject:d forKey:@"LastSongSubmitted"];
+        (void)[prefs synchronize];
+    }
 }
 
 - (NSString*)md5Challenge
