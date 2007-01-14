@@ -28,7 +28,7 @@ typedef enum {
     NSMutableData *responseData;
     NSURLConnection *conn;
     id representedObj;
-    BOOL send;
+    BOOL send, artistEnabled, trackEnabled, albumEnabled;
 }
 
 - (IBAction)ok:(id)sender;
@@ -36,7 +36,12 @@ typedef enum {
 - (NSString*)who;
 - (NSString*)message;
 - (ISTypeToRecommend_t)type;
+- (void)setType:(ISTypeToRecommend_t)newtype;
 - (BOOL)send;
+
+- (void)setArtistEnabled:(BOOL)enabled;
+- (void)setTrackEnabled:(BOOL)enabled;
+- (void)setAlbumEnabled:(BOOL)enabled;
 
 // Object is retained, but not interpreted in anyway
 - (id)representedObject;

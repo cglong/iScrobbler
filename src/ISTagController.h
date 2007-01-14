@@ -33,15 +33,20 @@ typedef enum {
     NSMutableData *responseData;
     NSURLConnection *userConn, *globalConn;
     id representedObj;
-    BOOL send;
+    BOOL send, artistEnabled, trackEnabled, albumEnabled;
 }
 
 - (IBAction)ok:(id)sender;
 
 - (NSArray*)tags;
 - (ISTypeToTag_t)type;
+- (void)setType:(ISTypeToTag_t)newtype;
 - (ISTaggingMode_t)editMode;
 - (BOOL)send;
+
+- (void)setArtistEnabled:(BOOL)enabled;
+- (void)setTrackEnabled:(BOOL)enabled;
+- (void)setAlbumEnabled:(BOOL)enabled;
 
 // Object is retained and possibly interpreted as SongData
 - (id)representedObject;

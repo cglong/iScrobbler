@@ -47,6 +47,11 @@
     return (what);
 }
 
+- (void)setType:(ISTypeToTag_t)newtype
+{
+    what = newtype;
+}
+
 - (ISTaggingMode_t)editMode
 {
     return (mode);
@@ -259,8 +264,24 @@
     userConn = [NSURLConnection connectionWithRequest:req delegate:self];
 }
 
+- (void)setArtistEnabled:(BOOL)enabled
+{
+    artistEnabled = enabled;
+}
+
+- (void)setTrackEnabled:(BOOL)enabled
+{
+    trackEnabled = enabled;
+}
+
+- (void)setAlbumEnabled:(BOOL)enabled
+{
+    albumEnabled = enabled;
+}
+
 - (id)init
 {
+    artistEnabled = trackEnabled = albumEnabled = YES;
     return ((self = [super initWithWindowNibName:@"Tag"]));
 }
 

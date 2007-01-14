@@ -36,6 +36,11 @@
     return (what);
 }
 
+- (void)setType:(ISTypeToRecommend_t)newtype
+{
+    what = newtype;
+}
+
 - (BOOL)send
 {
     return (send);
@@ -167,8 +172,24 @@
     conn = [NSURLConnection connectionWithRequest:req delegate:self];
 }
 
+- (void)setArtistEnabled:(BOOL)enabled
+{
+    artistEnabled = enabled;
+}
+
+- (void)setTrackEnabled:(BOOL)enabled
+{
+    trackEnabled = enabled;
+}
+
+- (void)setAlbumEnabled:(BOOL)enabled
+{
+    albumEnabled = enabled;
+}
+
 - (id)init
 {
+    artistEnabled = trackEnabled = albumEnabled = YES;
     return ((self = [super initWithWindowNibName:@"Recommend"]));
 }
 
