@@ -23,7 +23,7 @@ static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
 static NSTimer *g_cycleTimer = nil, *g_SubUpdateTimer = nil;
 static NSDate *g_subDate = nil;
-static enum {title, album, artist, subdate} g_cycleState = title;
+static enum {title, artist_album, subdate} g_cycleState = title;
 
 enum {
     kTBItemRequiresSong = 0x00000001,
@@ -214,14 +214,10 @@ static NSImage *prevIcon = nil;
                 msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%@)", rating];
             else
                 msg = [g_nowPlaying title];
-            g_cycleState = album;
+            g_cycleState = artist_album;
             break;
-        case album:
-            msg = [g_nowPlaying album];
-            g_cycleState = artist;
-            break;
-        case artist:
-            msg = [g_nowPlaying artist];
+        case artist_album:
+            msg = [[g_nowPlaying artist] stringByAppendingFormat:@" - %@", [g_nowPlaying album]];
             g_cycleState = g_subDate ? subdate : title;
             break;
         case subdate: {
@@ -257,7 +253,7 @@ static NSImage *prevIcon = nil;
         g_subDate = [[[note userInfo] objectForKey:@"sub date"] retain]; 
         if (g_nowPlaying) {
             // Create the timer
-            g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:8.0 target:self
+            g_cycleTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self
                 selector:@selector(cycleNowPlaying:) userInfo:nil repeats:YES];
             [g_cycleTimer fire];
         } else {
@@ -616,7 +612,8 @@ exit:
 - (void)tagSheetDidEnd:(NSNotification*)note
 {
     ISTagController *tc = [note object];
-    if ([tc send]) {
+    NSArray *tags = [tc tags];
+    if (tags && [tc send]) {
         ASXMLRPC *req = [[ASXMLRPC alloc] init];
         NSMutableArray *p = [req standardParams];
         SongData *song = [tc representedObject];
@@ -644,7 +641,7 @@ exit:
                 goto exit;
             break;
         }
-        [p addObject:[tc tags]];
+        [p addObject:tags];
         [p addObject:mode];
         
         [req setParameters:p];
