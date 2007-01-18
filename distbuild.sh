@@ -2,7 +2,7 @@
 # Created by Brian Bergstrand for the iScrobbler project.
 # Licensed under the GPL. See gpl.txt for the terms.
 
-PATH="/usr/bin:/bin:"
+PATH="/usr/bin:/usr/local/bin:/bin:"
 
 if [ ! -d ./build ]; then
 	echo "Invalid working directory"
@@ -33,17 +33,22 @@ read VER
 
 IMAGE=/tmp/scrobbuild_$$.dmg
 VOLUME="iScrobbler ${VER}"
-hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
+hdiutil create -megabytes 7 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
 cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
-#cp ./English.lproj/iPodLimitations.rtf "/Volumes/${VOLUME}/"
 cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
-#ditto -rsrc How\ to\ install\ iScrobbler\ \(OSX\)\ properly\!.webloc "/Volumes/${VOLUME}/"
-cp English.lproj/Readme.webarchive "/Volumes/${VOLUME}/"
-#mkdir "/Volumes/${VOLUME}/REQUIRES 10.3.9 +"
-#mkdir "/Volumes/${VOLUME}/REQUIRES iTunes 4.7.1 +"
-cp ./gpl.txt "/Volumes/${VOLUME}/LICENSE"
+cp ./res/English.lproj/Readme.webarchive "/Volumes/${VOLUME}/"
+cp ./res/gpl.txt "/Volumes/${VOLUME}/LICENSE"
+
+#create src tarball (zipball in this case) of HEAD
+echo "Exporting source..."
+svn export . /tmp/issrc
+cd /tmp
+zip -qr -9 "/Volumes/${VOLUME}/.src.zip" issrc
+rm -rf issrc
+
+cd ~/Desktop
 
 hdiutil eject ${DEVICE}
 
