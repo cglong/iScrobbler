@@ -37,8 +37,12 @@
     }
     
     [array removeObjectsInArray:empty];
-    if (0 == [array count])
-        array = nil;
+    if (!array || 0 == [array count]) {
+        if (tt_overwrite == mode)
+            array = [NSArray arrayWithObject:@""];
+        else
+            array = nil;
+    }
     return (array);
 }
 
