@@ -590,7 +590,8 @@ exit:
 {
     ISTagController *tc = [note object];
     NSArray *tracks = [tc representedObject];
-    if ([tc send] && tracks && [tracks isKindOfClass:[NSArray class]]) {
+    NSArray *tags = [tc tags];
+    if (tags && [tc send] && tracks && [tracks isKindOfClass:[NSArray class]]) {
         NSEnumerator *en = [tracks objectEnumerator];
         NSDictionary *song;
         while ((song = [en nextObject])) {
@@ -626,7 +627,7 @@ exit:
                     continue;
                 break;
             }
-            [p addObject:[tc tags]];
+            [p addObject:tags];
             [p addObject:mode];
             
             [req setParameters:p];
@@ -1000,8 +1001,10 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, [NSString stringWithFormat:STYLE, [NSString stringWithFormat:@"file://%@", [cssURL path]]]);
     HAdd(d, HEAD_CLOSE BODY);
     
-    id artists = [topArtistsController valueForKey:@"arrangedObjects"];
-    id tracks = [topTracksController valueForKey:@"arrangedObjects"];
+    NSArray *artists = [[topArtistsController valueForKey:@"arrangedObjects"]
+        sortedArrayUsingSelector:@selector(sortByPlayCount:)];
+    NSArray *tracks = [[topTracksController valueForKey:@"arrangedObjects"]
+        sortedArrayUsingSelector:@selector(sortByPlayCount:)];
     
     NSNumber *totalTime = [artists valueForKeyPath:@"Total Duration.@sum.unsignedIntValue"];
     NSNumber *totalPlays = [artists valueForKeyPath:@"Play Count.@sum.unsignedIntValue"];
@@ -1041,7 +1044,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
     HAdd(d, TRCLOSE);
     
-    NSEnumerator *en = [artists objectEnumerator];
+    NSEnumerator *en = [artists reverseObjectEnumerator]; // high->low
     NSDictionary *entry;
     NSString *artist, *track, *tmp;
     NSNumber *playCount;
@@ -1081,7 +1084,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
     HAdd(d, TRCLOSE);
     
-    en = [tracks objectEnumerator];
+    en = [tracks reverseObjectEnumerator]; // high->low
     position = 1;
     basePlayCount = [[tracks valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue];
     while ((entry = [en nextObject])) {
