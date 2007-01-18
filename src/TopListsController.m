@@ -27,6 +27,7 @@ enum {
     kTBItemRequiresSelection      = 0x00000001,
     kTBItemRequiresTrackSelection = 0x00000002,
     kTBItemNoMultipleSelection    = 0x00000004,
+    kTBItemDisabledForFeedback    = 0x00000008,
 };
 
 // From iScrobblerController.m
@@ -464,6 +465,28 @@ static NSCountedSet *topRatings = nil;
 
 // ================= Toolbar support ================= //
 
+- (void)clearUserFeedbackForItem:(NSString*)key
+{
+    NSToolbarItem *item = [toolbarItems objectForKey:key];
+    int flags = [item tag] & ~kTBItemDisabledForFeedback;
+    [item setTag:flags];
+    [[[self window] toolbar] validateVisibleItems];
+}
+
+- (void)clearUserFeedbackDelayed:(NSTimer*)timer
+{
+    [self clearUserFeedbackForItem:[timer userInfo]];
+}
+
+- (void)setUserFeedbackForItem:(NSString*)key
+{
+    NSToolbarItem *item = [toolbarItems objectForKey:key];
+    int flags = [item tag] | kTBItemDisabledForFeedback;
+    [item setTag:flags];
+    [[[self window] toolbar] validateVisibleItems];
+    [NSTimer scheduledTimerWithTimeInterval:0.65 target:self selector:@selector(clearUserFeedbackDelayed:) userInfo:key repeats:NO];
+}
+
 - (void)loveBan:(NSString*)method track:(NSDictionary*)track
 {
     NSString *artist = [track objectForKey:@"Artist"];
@@ -494,6 +517,8 @@ static NSCountedSet *topRatings = nil;
                 continue;
             [self loveBan:@"loveTrack" track:track];
         }
+        
+        [self setUserFeedbackForItem:@"love"];
     } @catch (id e) {}
 }
 
@@ -508,6 +533,8 @@ static NSCountedSet *topRatings = nil;
                 continue;
             [self loveBan:@"banTrack" track:track];
         }
+        
+        [self setUserFeedbackForItem:@"ban"];
     } @catch (id e) {}
 }
 
@@ -776,6 +803,9 @@ exit:
         return (NO);
     }
     int flags = [item tag];
+    if ((flags & kTBItemDisabledForFeedback))
+        return (NO);
+    
     unsigned ct = [[data selectedObjects] count];
     BOOL valid = YES;
     if ((flags & kTBItemRequiresSelection))
