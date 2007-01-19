@@ -97,9 +97,8 @@ enum {
     if (g_SubUpdateTimer) {
         [g_SubUpdateTimer invalidate];
         g_SubUpdateTimer = nil;
-    }
-    if (subdate == g_cycleState)
         [g_cycleTimer fire];
+    }
     
     ProtocolManager *pm = [ProtocolManager sharedInstance];
     QueueManager *qm = [QueueManager sharedInstance];
