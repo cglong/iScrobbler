@@ -188,6 +188,7 @@
                 [data addObject:entry];
             }
         }
+        [data rearrangeObjects];
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception processing tags: %@", e);
     }
@@ -254,6 +255,12 @@
     
     [NSApp beginSheet:[self window] modalForWindow:sender modalDelegate:self didEndSelector:nil contextInfo:nil];
     [progress startAnimation:nil];
+    
+    NSSortDescriptor *nameSort = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
+    NSArray *sorters = [NSArray arrayWithObjects:nameSort, nil];
+    [nameSort release];
+    [userTags setSortDescriptors:sorters];
+    [globalTags setSortDescriptors:sorters];
     
     [self addObserver:self forKeyPath:@"what" options:0 context:nil];
     
