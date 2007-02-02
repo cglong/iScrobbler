@@ -426,7 +426,7 @@ currentSong = nil; \
         if (pos <  [[currentSong position] floatValue] &&
              // The following conditions do not work with iTunes 4.7, since we are not
              // constantly updating the song's position by polling iTunes. With 4.7 we update
-             // when the the song first plays, when it's ready for submission or if the user
+             // when the song first plays, when it's ready for submission or if the user
              // changes some song metadata -- that's it.
         #if 0
              (pos <= [SongData songTimeFudge]) &&
@@ -438,6 +438,10 @@ currentSong = nil; \
             ReleaseCurrentSong();
         } else {
             [currentSong updateUsingSong:song];
+            if (pos < 1.0 && ![currentSong hasQueued]) {
+                [currentSong setStartTime:[NSDate date]];
+                [currentSong setPostDate:[NSCalendarDate date]];
+            }
             
             // Handle a pause
             if (!isiTunesPlaying) {
@@ -948,14 +952,14 @@ player_info_exit:
 
 -(IBAction)openStatistics:(id)sender
 {
-    [[StatisticsController sharedInstance] showWindow:sender];
     [NSApp activateIgnoringOtherApps:YES];
+    [[StatisticsController sharedInstance] showWindow:sender];
 }
 
 -(IBAction)openTopLists:(id)sender
 {
-    [[TopListsController sharedInstance] showWindow:sender];
     [NSApp activateIgnoringOtherApps:YES];
+    [[TopListsController sharedInstance] showWindow:sender];
 }
 
 - (IBAction)donate:(id)sender
@@ -1080,24 +1084,58 @@ player_info_exit:
         NSBeep();
 }
 
+- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+{
+    if (returnCode == NSAlertDefaultReturn)
+		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.0];
+	else if (returnCode == NSAlertAlternateReturn)
+		[self openScrobblerHomepage:self];
+    
+    badAuthAlertIsOpen = NO;
+    [(id)contextInfo performSelector:@selector(close) withObject:nil afterDelay:0.0];
+}
+
 - (void)showBadCredentialsDialog
 {	
 	[NSApp activateIgnoringOtherApps:YES];
 	
+    if (badAuthAlertIsOpen)
+        return;
+    
+    // Create a new transparent window (with click through) so that we don't block the app event loop
+    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0f, 0.0f, 100.0, 100.0)
+        styleMask:NSBorderlessWindowMask
+        backing:NSBackingStoreBuffered defer:NO];
+    [w setReleasedWhenClosed:YES];
+    [w setHasShadow:NO];
+    [w setBackgroundColor:[NSColor clearColor]];
+    [w setAlphaValue:0.0];
+    // Switch to Nonretained after making above settings to avoid
+    // nasty console messages from the window server about an
+    // "invalid window type"
+    [w setBackingType:NSBackingStoreNonretained];
+    // This has to be done before changing click through properties,
+    // otherwise things won't work
+    [w orderFront:nil];
+    // Carbon apps
+    (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
+    [w setIgnoresMouseEvents:YES]; // For Cocoa apps
+    // [w setDelegate:self];
+    [w center];
+    
 	// we should give them the option to ignore
 	// these messages, and only update the menu icon... -- ECS 10/30/04
-	int result = NSRunAlertPanel(NSLocalizedString(@"Authentication Failure", nil),
-								NSLocalizedString(@"Last.fm did not accept your username and/or password.  Please verify your credentials are set correctly in the iScrobbler preferences.", nil),
-								NSLocalizedString(@"Open iScrobbler Preferences", nil),
-								NSLocalizedString(@"New Account", nil),
-								nil); // NSLocalizedString(@"Ignore", nil)
-	
-	if (result == NSAlertDefaultReturn)
-		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.1];
-	else if (result == NSAlertAlternateReturn)
-		[self openScrobblerHomepage:self];
-	//else
-	//	ignoreBadCredentials = YES;
+    NSBeginInformationalAlertSheet(NSLocalizedString(@"Authentication Failure", nil),
+        NSLocalizedString(@"Open iScrobbler Preferences", nil),
+        NSLocalizedString(@"New Account", nil),
+        nil,
+        w,
+        self,
+        @selector(badCredentialsDidEnd:returnCode:contextInfo:),
+        nil,
+        w,
+        NSLocalizedString(@"Last.fm did not accept your username and/or password.  Please verify your credentials are set correctly in the iScrobbler preferences.", nil));
+    badAuthAlertIsOpen = YES;
 }
 
 - (void)showApplicationIsDamagedDialog

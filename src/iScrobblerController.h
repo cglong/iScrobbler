@@ -50,6 +50,7 @@
     BOOL isIPodMounted;
     NSDate *iTunesLastPlayedTime;
     NSArray *iTunesPlaylists;
+    BOOL badAuthAlertIsOpen;
     
     // Temporarily disable submissions
     BOOL submissionsDisabled;
