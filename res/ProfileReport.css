@@ -2,7 +2,7 @@ tr.alt {background:#edf3fe;}
 td.title {
 	text-align: left;
 	width: 60%;
-	white-space:nowrap;
+	white-space:normal;
 }
 td.graph {
 	text-align: left;
