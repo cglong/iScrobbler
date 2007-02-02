@@ -53,6 +53,7 @@ cd ~/Desktop
 hdiutil eject ${DEVICE}
 
 hdiutil convert -imageKey zlib-level=9 -format UDZO -o ~/Desktop/iscrobbler."${VER}".dmg -ov ${IMAGE}
+# hdiutil internet-enable -yes ~/Desktop/iscrobbler."${VER}".dmg
 
 rm ${IMAGE}
 
