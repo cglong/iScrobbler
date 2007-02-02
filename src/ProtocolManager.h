@@ -46,8 +46,8 @@
     float handshakeDelay;
     // Re-submission time
     float nextResubmission;
-    // Was the last result bad auth?
-    BOOL lastAttemptBadAuth;
+    // Count of consecutive BADAUTH repsonses
+    int subBadAuth, hsBadAuth;
     // Is the network available?
     BOOL isNetworkAvailable;
     // Counters

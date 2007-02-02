@@ -27,6 +27,7 @@
    I personally recommend you don't go over 50 or 100 in a single submission */
 #define DEFAULT_MAX_TRACKS_PER_SUB 50
 #define MAX_MISSING_VAR_ERRORS 2
+#define BADAUTH_WARN 5
 
 @interface ProtocolManager (Private)
 
@@ -157,22 +158,23 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 	BOOL success;
     if ((success = [self validHandshake])) {
         hsState = hs_valid;
+        hsBadAuth = 0;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
 	} else {
         if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
             // If this occurs during a handshake, the user name is invalid.
             // If it occurs during a sub, the user name is valid, but the password is not.
             //hsState = hs_needed;
-            if (lastAttemptBadAuth) {
+            ++hsBadAuth;
+            if (hsBadAuth >= BADAUTH_WARN) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
                 handshakeDelay = HANDSHAKE_DEFAULT_DELAY * 2.0f;
-                lastAttemptBadAuth = NO;
+                hsBadAuth = 0;
 			} else {
                 handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
-			    lastAttemptBadAuth = YES;
             }
         } else {
-            lastAttemptBadAuth = NO;
+            hsBadAuth = 0;
             //hsState = hs_delay;
             handshakeDelay *= 2.0f;
             if (handshakeDelay > [self handshakeMaxDelay])
@@ -453,6 +455,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         
         ++successfulSubmissions;
         missingVarErrorCount = 0;
+        subBadAuth = 0;
         
         // See if there are any more entries in the queue
         if ([[QueueManager sharedInstance] count]) {
@@ -467,16 +470,14 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 		hsState = hs_needed;
         
 		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
-			// Send notification if we received BADAUTH twice
-			if (lastAttemptBadAuth) {
+			++subBadAuth;
+            // Send notification if we've hit the threshold
+			if (subBadAuth >= BADAUTH_WARN) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
-                lastAttemptBadAuth = NO;
-			} else {
-			    lastAttemptBadAuth = YES;
+                subBadAuth = 0;
 			}
 		} else {
-			lastAttemptBadAuth = NO;
-            
+			subBadAuth = 0;
             if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_FAILED_MISSING_VARS]) {
                 ++missingVarErrorCount;
             } else
