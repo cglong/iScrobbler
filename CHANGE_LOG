@@ -14,8 +14,13 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.5 (BDB)
-- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window.
-- You can view and change your recently Loved/Banned tracks.
+- All tags associated with an item can be erased by setting the mode to Overwrite and leaving the tags empty.
+- The tag window now sorts the tag lists by name to make it easier to find a single tag in large listing.
+- Bug Fix: Bumped the threshold needed to show the BADAUTH alert and made the alert non-modal so track plays are recognized while it's on screen.
+- Other minor changes and bug fixes.
+b2
+- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window. (10.4+ only)
+- You can view and change your recently Loved/Banned tracks. (10.4+ only)
 - The top three fans are now listed in the Artist Detail window.
 b1
 - The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
