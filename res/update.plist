@@ -5,16 +5,21 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>897d66a85ac8ca9eb50740721da32f9120365902</string>
+        	<string>122a140e82140c171a2535283e57f56543033120</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0b2</string>
+        <string>1.5.0b3</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b3.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window.
+                <string>- All tags associated with an item can be erased by setting the mode to Overwrite and leaving the tags empty.
+- The tag window now sorts the tag lists by name to make it easier to find a single tag in large listing.
+- Bug Fix: Bumped the threshold needed to show the BADAUTH alert and made the alert non-modal so track plays are recognized while it's on screen.
+- Other minor changes and bug fixes.
+1.5b2
+- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window.
 - You can view and change your recently Loved/Banned tracks.
 - The top three fans are now listed in the Artist Detail window.
 1.5b1
