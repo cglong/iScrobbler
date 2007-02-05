@@ -1057,13 +1057,22 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Totals", ""))));
     HAdd(d, TRCLOSE TR);
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Tracks Played:", "")));
-    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"%@ (%@ %@)", totalPlays,
+    
+    NSTimeInterval elapsedDays = (elapsedSeconds / 86400.0);
+    NSString *tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %0.2f tracks per day.", ""),
+        elapsedDays >= 1.0 ? ([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
+    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%@ %@)</span>",
+        tmp,
+        totalPlays,
         NSLocalizedString(@"since", ""),
         [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);
+    
+    tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %0.2f hours per day.", ""),
+        ([totalTime doubleValue] / 3600.0) / elapsedDays];
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
-    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"%@ (%0.2f%% %@ %@ %@)", time,
-        ([totalTime floatValue] / elapsedSeconds) * 100.0,
+    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%0.2f%% %@ %@ %@)</span>",
+        tmp, time, ([totalTime floatValue] / elapsedSeconds) * 100.0,
         NSLocalizedString(@"of", ""), elapsedTime, NSLocalizedString(@"elapsed", "")]));
     HAdd(d, TRCLOSE TBLCLOSE @"</div>");
     
@@ -1076,7 +1085,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     NSEnumerator *en = [artists reverseObjectEnumerator]; // high->low
     NSDictionary *entry;
-    NSString *artist, *track, *tmp;
+    NSString *artist, *track;
     NSNumber *playCount;
     unsigned position = 1; // ranking
     float width = 100.0 /* bar width */, percentage,
