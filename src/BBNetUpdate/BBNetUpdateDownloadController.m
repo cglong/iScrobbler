@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006 Brian Bergstrand.
+* Copyright 2002,2006,2007 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -106,8 +106,16 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     if (!build)
         build = ver;
     
-    NSString *agent = [NSString stringWithFormat:@"%@ %@/%@",
-        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
+    NSString *agent = [NSString stringWithFormat:@"%@ %@/%@ (Macintosh; U; %@ Mac OS X)",
+        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build,
+        #ifdef __ppc__
+        @"PPC"
+        #elif defined(__i386__)
+        @"Intel"
+        #else
+        #error Unknown architecture
+        #endif
+        ];
     
     [request setValue:agent forHTTPHeaderField:@"User-Agent"];
     
