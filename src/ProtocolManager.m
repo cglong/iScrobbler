@@ -344,9 +344,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     agent = [[prefs stringForKey:@"useragent"] mutableCopy];
     
 #ifdef __ppc__
-    NSString *arch = @"ppc";
+    NSString *arch = @"PPC";
 #elif defined(__i386__)
-    NSString *arch = @"i386";
+    NSString *arch = @"Intel";
 #else
 #error unknown arch
 #endif
@@ -393,7 +393,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         dataUsingEncoding:NSUTF8StringEncoding]];
     [subLog writeData:data];
     [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    } @finally {}
+    } @catch(id e) {}
 }
 
 // URLConnection callbacks
