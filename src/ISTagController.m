@@ -238,7 +238,8 @@
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self
         name:NSTableViewSelectionDidChangeNotification object:nil];
-    [NSApp endSheet:[self window]];
+    if ([[self window] isSheet])
+        [NSApp endSheet:[self window]];
     [[self window] close];
     [[NSNotificationCenter defaultCenter] postNotificationName:ISTagDidEnd object:self];
 }
@@ -253,7 +254,10 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tableViewSelectionDidChange:)
         name:NSTableViewSelectionDidChangeNotification object:nil];
     
-    [NSApp beginSheet:[self window] modalForWindow:sender modalDelegate:self didEndSelector:nil contextInfo:nil];
+    if (sender)
+        [NSApp beginSheet:[self window] modalForWindow:sender modalDelegate:self didEndSelector:nil contextInfo:nil];
+    else
+        [super showWindow:nil];
     [progress startAnimation:nil];
     
     NSSortDescriptor *nameSort = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
