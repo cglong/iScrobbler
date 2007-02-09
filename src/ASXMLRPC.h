@@ -16,10 +16,6 @@
     NSXMLDocument *request, *response;
     NSMutableData *responseData;
     id adelegate, conn, representedObj;
-    #ifdef WSHANDSHAKE
-    NSTimer *hstimer;
-    BOOL sendRequestAfterHS;
-    #endif
 }
 
 + (BOOL)isAvailable;

@@ -15,11 +15,6 @@
 #import "iScrobblerController.h"
 #import "keychain.h"
 
-#ifdef WSHANDSHAKE
-static BOOL needHandshake = YES;
-static float handshakeDelay = 60.0;
-#endif
-
 @implementation ASXMLRPC
 
 + (BOOL)isAvailable
@@ -27,35 +22,6 @@ static float handshakeDelay = 60.0;
     // 10.4+ only
     return (nil != NSClassFromString(@"NSXMLDocument"));
 }
-
-#ifdef WSHANDSHAKE
-- (void)handshake:(id)obj
-{
-    [hstimer invalidate];
-    hstimer = nil;
-    
-    NSString *escapedusername=[(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[[ProtocolManager sharedInstance] userName],
-            NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-    NSString *pass = [[KeyChain defaultKeyChain]  genericPasswordForService:@"iScrobbler"
-        account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
-    NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS ROOT"]
-        stringByAppendingFormat:@"/radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
-            [[NSUserDefaults standardUserDefaults] stringForKey:@"version"],
-            [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"],
-            escapedusername,
-            [[NSApp delegate] md5hash:pass],
-            @"jp"]; // XXX somehow this indicates the radio is hidden?
-    
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-        cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
-    ScrobTrace(@"%@", req);
-    
-    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-    
-    conn = [NSURLConnection connectionWithRequest:req delegate:self];
-}
-#endif
 
 - (NSString*)method
 {
@@ -152,15 +118,6 @@ static float handshakeDelay = 60.0;
         [self connection:nil didFailWithError:[NSError errorWithDomain:NSPOSIXErrorDomain code:ENOENT userInfo:nil]];
         return;
     }
-    #ifdef WSHANDSHAKE
-    if (needHandshake) {
-        sendRequestAfterHS = TRUE;
-        if (60.f == handshakeDelay)
-            [self handshake:nil];
-        return;
-    }
-    sendRequestAfterHS = FALSE;
-    #endif
     
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
         stringByAppendingString:@"rw/xmlrpc.php"];
@@ -198,39 +155,9 @@ static float handshakeDelay = 60.0;
         [connection cancel];
         conn = nil;
         NSError *err = [NSError errorWithDomain:@"HTTPErrorDomain" code:code  userInfo:nil];
-        #ifdef WSHANDSHAKE
-        if (!needHandshake || 401 != code) {
-        #endif
-            [self connection:connection didFailWithError:err];
-        #ifdef WSHANDSHAKE
-        } else {
-            ScrobLog(SCROB_LOG_ERR, @"WS handshake failure: %@", err);
-        }
-        if (401 == code) {
-            if (!needHandshake)
-                sendRequestAfterHS = YES;
-            needHandshake = YES;
-            [hstimer invalidate];
-            hstimer = nil;
-            hstimer = [NSTimer scheduledTimerWithTimeInterval:handshakeDelay
-                target:self selector:@selector(handshake:) userInfo:nil repeats:NO];
-            if (handshakeDelay < 3600.0f)
-                handshakeDelay += 60.0f;
-        }
-        #endif
+        [self connection:connection didFailWithError:err];
+ 
     }
-    #ifdef WSHANDSHAKE
-    else if (needHandshake) {
-        // We don't need any of the handshake session info, so just cancel
-        [connection cancel];
-        conn = nil;
-        needHandshake = NO;
-        handshakeDelay = 60.0;
-        if (sendRequestAfterHS)
-            [self performSelector:@selector(sendRequest) withObject:nil afterDelay:0.0];
-        ScrobLog(SCROB_LOG_TRACE, @"WS Handshake succeeded");
-    }
-    #endif
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
@@ -299,9 +226,6 @@ static float handshakeDelay = 60.0;
 
 - (void)dealloc
 {
-    #ifdef WSHANDSHAKE
-    [hstimer invalidate];
-    #endif
     [conn cancel];
     [request release];
     [responseData release];
