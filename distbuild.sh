@@ -33,7 +33,7 @@ read VER
 
 IMAGE=/tmp/scrobbuild_$$.dmg
 VOLUME="iScrobbler ${VER}"
-hdiutil create -megabytes 7 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
+hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
 cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
@@ -41,11 +41,11 @@ cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
 cp ./res/English.lproj/Readme.webarchive "/Volumes/${VOLUME}/"
 cp ./res/gpl.txt "/Volumes/${VOLUME}/LICENSE"
 
-#create src tarball (zipball in this case) of HEAD
+#create src zipball of HEAD
 echo "Exporting source..."
 svn export . /tmp/issrc
 cd /tmp
-zip -qr -9 "/Volumes/${VOLUME}/.src.zip" issrc
+zip -qr -9 "${HOME}/Desktop/iscrobbler_src.${VER}.zip" issrc
 rm -rf issrc
 
 cd ~/Desktop
