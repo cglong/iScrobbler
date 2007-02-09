@@ -707,10 +707,10 @@ exit:
         [tagReq setRepresentedObject:song];
         [tagReq performSelector:@selector(sendRequest) withObject:nil afterDelay:0.0];
         
-        [rpcreq release];
+        [rpcreq autorelease];
         rpcreq = tagReq;
     } else {
-        [rpcreq release];
+        [rpcreq autorelease];
         rpcreq = nil;
         [[[self window] toolbar] validateVisibleItems];
     }
@@ -721,7 +721,7 @@ exit:
     ScrobLog(SCROB_LOG_ERR, @"RPC request '%@' for '%@' returned error: %@",
         [request method], [request representedObject], error);
     
-    [rpcreq release];
+    [rpcreq autorelease];
     rpcreq = nil;
     [[[self window] toolbar] validateVisibleItems];
 }
