@@ -14,23 +14,14 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.5 (BDB)
-- All tags associated with an item can be erased by setting the mode to Overwrite and leaving the tags empty.
-- The tag window now sorts the tag lists by name to make it easier to find a single tag in large listing.
-- Bug Fix: Bumped the threshold needed to show the BADAUTH alert and made the alert non-modal so track plays are recognized while it's on screen.
-- Other minor changes and bug fixes.
-b2
-- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window. (10.4+ only)
-- You can view and change your recently Loved/Banned tracks. (10.4+ only)
+- You can now Love, Ban, Tag and Recommend the currently playing track and tracks in the Top Lists window (10.4+ only). To clear all tags associated with an item, set the mode to Overwrite and leave the tags empty.
 - The top three fans are now listed in the Artist Detail window.
-b1
-- The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
 - Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
-1.2.2b2
+- The Top Lists profile now includes the number of tracks played per day and the number of hours played per day (as tooltips).
 - The Top Lists profile now includes the elpased time since the last profile reset.
 - Growl track notification layout change.
-- Bug Fix: Top Tracks search field was mis-behaving.
-1.2.2b1
 - A profile reset now requires confirmation.
+- Bug Fix: Top Tracks search field was mis-behaving.
 - Bug Fix: The auto version update check is now silent if there is no update.
 - Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
 - Bug Fix: The authentication warning dialog will now display when necessary.
