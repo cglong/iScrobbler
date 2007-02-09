@@ -21,6 +21,8 @@
 
     //the menu attached to the status item
     IBOutlet NSMenu *theMenu;
+    // a sub-menu attached to recently played songs
+    NSMenu *songActionMenu;
 
     //the script to get information from iTunes
     NSAppleScript *script;
