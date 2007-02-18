@@ -1059,8 +1059,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Tracks Played:", "")));
     
     NSTimeInterval elapsedDays = (elapsedSeconds / 86400.0);
-    NSString *tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %0.2f tracks per day.", ""),
-        elapsedDays >= 1.0 ? ([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
+    NSString *tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %.1f tracks per day.", ""),
+        elapsedDays >= 1.0 ? round([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%@ %@)</span>",
         tmp,
         totalPlays,
