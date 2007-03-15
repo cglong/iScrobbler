@@ -230,11 +230,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    NSData *data = [sender resourceData];
    
    if (data) {
-      CFStringRef *errstr = NULL;
+      CFStringRef errstr = NULL;
       BOOL display = NO;
       
       verInfo = (NSDictionary*)CFPropertyListCreateFromXMLData(NULL, (CFDataRef)data, 
-         kCFPropertyListImmutable, errstr);
+         kCFPropertyListImmutable, &errstr);
       if (errstr)
          CFRelease(errstr);
       
