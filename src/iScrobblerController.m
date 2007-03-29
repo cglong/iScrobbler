@@ -388,27 +388,30 @@ currentSong = nil; \
     
     @try {
         if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
-            song = [[SongData alloc] initWithiTunesPlayerInfo:info];
-            if (song) {
-                if ([song ignore]) {
-                    ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
-                    [song release];
-                    song = nil;
-                    ReleaseCurrentSong();
-                }
-            } else {
+            if (!(song = [[SongData alloc] initWithiTunesPlayerInfo:info]))
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
-            }
         } else {
             ReleaseCurrentSong();
         }
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception creating/filtering track (%@): %@\n", info, exception);
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
     if (!song)
         goto player_info_exit;
     
-    if (![self updateInfoForSong:song]) {
+    if ([self updateInfoForSong:song]) {
+        @try {
+        if ([song ignore]) {
+            ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
+            [song release];
+            song = nil;
+            ReleaseCurrentSong();
+            goto player_info_exit;
+        }
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", song, exception);
+        }
+    } else {
         if (retryCount < 3) {
             retryCount++;
             [getTrackInfoTimer invalidate];
