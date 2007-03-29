@@ -152,6 +152,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     return ([[self postDate] compare:[song postDate]]);
 }
 
+- (NSComparisonResult)compareSongLastPlayedDate:(SongData*)song
+{
+    return ([[self lastPlayed] compare:[song lastPlayed]]);
+}
+
 // This is a dump of /dev/urandom
 #define SD_MAGIC [NSNumber numberWithUnsignedInt:0xae0da1b7]
 #define SD_KEY_MAGIC @"SDM"

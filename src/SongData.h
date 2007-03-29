@@ -68,6 +68,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (NSComparisonResult) compareSongPostDate:(SongData*)song;
 
+- (NSComparisonResult)compareSongLastPlayedDate:(SongData*)song;
+
 ////// Accessors Galore ///////
 
 - (int)iTunesDatabaseID;
