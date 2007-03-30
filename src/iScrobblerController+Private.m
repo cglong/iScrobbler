@@ -103,53 +103,34 @@
     unsigned count = [sorted count];
     // Shuffle plays will have a last played equal to the time the Shuffle was sync'd
     NSTimeInterval shuffleEpoch = [[NSDate date] timeIntervalSince1970];
-    // handle single play case
     SongData *song;
-    if (1 == count) {
-        song = [sorted objectAtIndex:0];
-        NSTimeInterval duration = [[song duration] doubleValue];
-        shuffleEpoch -= duration;
-        if ([[song lastPlayed] timeIntervalSince1970] > shuffleEpoch) {
-            [song setLastPlayed:[NSDate dateWithTimeIntervalSince1970:shuffleEpoch + duration]];
-            [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:shuffleEpoch]];
-            // Make sure the song passes submission rules                            
-            [song setStartTime:[NSDate dateWithTimeIntervalSince1970:shuffleEpoch]];
-            [song setPosition:[song duration]];
-        }
-        return;
-    }
-    
-    BOOL foundShuffleTracks = NO;
     for (i = 1; i < count; ++i) {
         song = [sorted objectAtIndex:i-1];
         SongData *nextSong = [sorted objectAtIndex:i];
         if (NSOrderedSame != [song compareSongLastPlayedDate:nextSong]) {
-            if (!foundShuffleTracks) {
-                requestEpoch = [song postDate];
-                continue;
-            } else
-                break;
+            requestEpoch = [song postDate];
+            continue;
         }
         
-        if (!foundShuffleTracks) {
-            foundShuffleTracks = YES;
-            ScrobLog(SCROB_LOG_TRACE, @"Shuffle play block begins at %@", [song lastPlayed]);
-        }
-        do {
+        NSDate *shuffleBegin = [song lastPlayed];
+        shuffleEpoch = [shuffleBegin timeIntervalSince1970];
+        ScrobLog(SCROB_LOG_TRACE, @"Shuffle play block begins at %@", shuffleBegin);
+        for (i -= 1; i < count; ++i) {
+            song = [sorted objectAtIndex:i];
+            if (NSOrderedSame != [[song lastPlayed] compare:shuffleBegin]) {
+                i = count;
+                break;
+            }
             [song setLastPlayed:[NSDate dateWithTimeIntervalSince1970:shuffleEpoch]];
             shuffleEpoch -= [[song duration] doubleValue];
             [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:shuffleEpoch]];
             // Make sure the song passes submission rules                            
             [song setStartTime:[NSDate dateWithTimeIntervalSince1970:shuffleEpoch]];
             [song setPosition:[song duration]];
-            if ((song = nextSong)) {
-                nextSong = nil;
-                ++i;
-            }
-        } while (song);
+        }
     }
     
-    if ([[NSDate dateWithTimeIntervalSince1970:shuffleEpoch] isGreaterThan:requestEpoch])
+    if ([[NSDate dateWithTimeIntervalSince1970:shuffleEpoch] isLessThan:requestEpoch])
         ScrobLog(SCROB_LOG_WARN, @"All iPod Shuffle tracks could not be adjusted to fit into the time period since "
             @"the last submission. Some tracks may not be submitted or may be rejected by the last.fm servers.");
 }
@@ -166,9 +147,10 @@ and some of the last played dates will be very bad.
 {
     NSMutableArray *sorted = [[songs sortedArrayUsingSelector:@selector(compareSongPostDate:)] mutableCopy];
     int i;
-    unsigned count = [sorted count];
+    unsigned count;
     
 validate:
+    count = [sorted count];
     for (i = 1; i < count; ++i) {
         SongData *thisSong = [sorted objectAtIndex:i];
         SongData *lastSong = [sorted objectAtIndex:i-1];
