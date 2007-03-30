@@ -106,8 +106,8 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 - (NSString*)description
 {
-    return ([NSString stringWithFormat:@"<SongData: %p> %@ (id: %u)",
-        self, [self brief], songID]);
+    return ([NSString stringWithFormat:@"<SongData: %p> %@ (id: %u, start=%@, dur=%@, last=%@)",
+        self, [self brief], songID, [self startTime], [self duration], [self lastPlayed]]);
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
