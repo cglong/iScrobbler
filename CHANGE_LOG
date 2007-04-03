@@ -14,6 +14,7 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v1.5 (BDB)
+- iPod Shuffle support (courtesy of a donation from patsyfreer).
 - You can now Love, Ban, Tag and Recommend the currently playing track and tracks in the Top Lists window (10.4+ only). To clear all tags associated with an item, set the mode to Overwrite and leave the tags empty.
 - The top three fans are now listed in the Artist Detail window.
 - Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
@@ -21,10 +22,12 @@ v1.5 (BDB)
 - The Top Lists profile now includes the elpased time since the last profile reset.
 - Growl track notification layout change.
 - A profile reset now requires confirmation.
+- New icon courtesy of einsteinbqat.
 - Bug Fix: Top Tracks search field was mis-behaving.
 - Bug Fix: The auto version update check is now silent if there is no update.
 - Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
 - Bug Fix: The authentication warning dialog will now display when necessary.
+- Bug Fix: Crash in version checker if an invalid XML file was downloaded.
 
 v1.2.1 (BDB)
 - Local Top Lists are now persistent. This is a rather rudimentary implementation in that all data is loaded in memory. So if you decide you want to keep a year's worth of data, be prepared for some large memory use and possible hangs while iScrobbler writes all of that data out every time a track is queued.
