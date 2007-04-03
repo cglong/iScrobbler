@@ -1,9 +1,9 @@
 //
 //  Created by Brian Bergstrand on 4/4/2005.
-//  Copyright 2005,2006 Brian Bergstrand.
+//  Copyright 2005-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  iscrobbler/res/gpl.txt
 //
 
 @interface SongData (iScrobblerControllerPrivateAdditions)
