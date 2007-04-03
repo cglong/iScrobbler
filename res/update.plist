@@ -5,35 +5,20 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>122a140e82140c171a2535283e57f56543033120</string>
+        	<string>a59c8b324eff5a2294bacaf6d736b6d1b76b8224</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0b3</string>
+        <string>1.5.0b4</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b3.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b4.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- All tags associated with an item can be erased by setting the mode to Overwrite and leaving the tags empty.
-- The tag window now sorts the tag lists by name to make it easier to find a single tag in large listing.
-- Bug Fix: Bumped the threshold needed to show the BADAUTH alert and made the alert non-modal so track plays are recognized while it's on screen.
-- Other minor changes and bug fixes.
-1.5b2
-- Previously played Tracks/Artists can be Loved, Banned, Tagged, and Recommended from the Top Lists window.
-- You can view and change your recently Loved/Banned tracks.
-- The top three fans are now listed in the Artist Detail window.
-1.5b1
-- The currently playing track can be Loved, Banned, Tagged, and Recommended from the Stats window. (10.4+ only)
-- Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
-1.2.2b2
-- The Top Lists profile now includes the elpased time since the last profile reset.
-- Growl track notification layout change.
-- Bug Fix: Top Tracks search field was mis-behaving.
-b1:
-- A profile reset now requires confirmation.
-- Bug Fix: The auto version update check is now silent if there is no update.
-- Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
-- Bug Fix: The authentication warning dialog will now display when necessary.
+                <string>- iPod Shuffle support (courtesy of a donation from patsyfreer).
+- New icon courtesy of einsteinbqat.
+- You can now love/ban/tag/recommend the currently playing track from the note menu.
+- The Top Lists profile now includes the number of tracks played per day and the number of hours played per day (as tooltips).
+- Bug Fix: Crash in version checker if an invalid XML file was downloaded.
                 </string>
         </dict>
 </dict>
