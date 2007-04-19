@@ -106,16 +106,15 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     if (!build)
         build = ver;
     
-    NSString *agent = [NSString stringWithFormat:@"%@ %@/%@ (Macintosh; U; %@ Mac OS X)",
-        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build,
+    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@ (%@)",
         #ifdef __ppc__
         @"PPC"
         #elif defined(__i386__)
         @"Intel"
         #else
-        #error Unknown architecture
+        @"Unknown"
         #endif
-        ];
+        , [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
     
     [request setValue:agent forHTTPHeaderField:@"User-Agent"];
     
