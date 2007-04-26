@@ -835,7 +835,7 @@ player_info_exit:
         [songActionMenu addItem:item];
         [item release];
         
-        title = [NSString stringWithFormat:@"%C ", 0x2709];
+        title = [NSString stringWithFormat:@"%C ", 0x270E];
         item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
             action:@selector(tagTrack:) keyEquivalent:@""];
         [item setTarget:self];
@@ -844,7 +844,7 @@ player_info_exit:
         [songActionMenu addItem:item];
         [item release];
         
-        title = [NSString stringWithFormat:@"%C ", 0x270E];
+        title = [NSString stringWithFormat:@"%C ", 0x2709];
         item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]
             action:@selector(recommendTrack:) keyEquivalent:@""];
         [item setTarget:self];
