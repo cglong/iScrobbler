@@ -538,6 +538,7 @@ currentSong = nil; \
     }
     
     if (isiTunesPlaying) {
+        currentSongPaused = NO;
         // Fire the main timer at the appropos time to get it queued.
         fireInterval = [song submitIntervalFromNow];
         if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
