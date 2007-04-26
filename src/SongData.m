@@ -78,6 +78,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     // initialize with current time
     [self setStartTime:[NSDate date]];
     [self setLastPlayed:[NSDate date]];
+    [self setPausedTime:[NSNumber numberWithInt:0]];
 
     return self;
 }
@@ -100,6 +101,8 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     [copy setPausedTime:[self pausedTime]];
     [copy setPostDate:[self postDate]];
     [copy setLastPlayed:[self lastPlayed]];
+    
+    copy->iTunes = self->iTunes;
 
     return (copy);
 }
@@ -260,6 +263,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 }
 
 ////// Accessors Galore ///////
+
+- (BOOL)isPlayeriTunes
+{
+    return (iTunes);
+}
 
 - (int)iTunesDatabaseID
 {
@@ -560,7 +568,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
     if (elapsed > 0.0) // We should never have a future value
         return ([NSNumber numberWithDouble:0.0]);
-    return ([NSNumber numberWithDouble:floor(fabs(elapsed))]);
+    return ([NSNumber numberWithDouble:floor(fabs(elapsed)) - [[self pausedTime] floatValue]]);
 }
 
 #define KEY_LAST_HIT @"last hit"

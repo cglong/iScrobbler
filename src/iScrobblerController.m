@@ -309,7 +309,7 @@ currentSongQueueTimer = nil; \
         goto queue_exit;
     }
     
-    if (![self updateInfoForSong:song]) {
+    if ([currentSong isPlayeriTunes] && ![self updateInfoForSong:song]) {
         ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error. Trying again in %0.1f seconds.",
             2.5);
         currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:2.5l
@@ -318,9 +318,11 @@ currentSongQueueTimer = nil; \
                                     userInfo:nil
                                     repeats:NO] retain];
         goto queue_exit;
+    } else if (![currentSong isPlayeriTunes]) {
+        [song setPosition:[currentSong elapsedTime]];
     }
     
-    if ([song iTunesDatabaseID] == [currentSong iTunesDatabaseID]) {
+    if (![currentSong isPlayeriTunes] || [song iTunesDatabaseID] == [currentSong iTunesDatabaseID]) {
         [currentSong updateUsingSong:song];
         
         // Try submission
@@ -374,8 +376,9 @@ currentSong = nil; \
     static BOOL isiTunesPlaying = NO;
     BOOL wasiTunesPlaying = isiTunesPlaying;
     isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
+    BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]];
     
-    ScrobLog(SCROB_LOG_TRACE, @"iTunes notification received: %@\n", [info objectForKey:@"Player State"]);
+    ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
     // Even if subs are disabled, we still have to update the iTunes play time, as the user
     // could enable subs, plug-in the ipod, and then we'd pick up everything that was supposed to
@@ -399,7 +402,35 @@ currentSong = nil; \
     if (!song)
         goto player_info_exit;
     
-    if ([self updateInfoForSong:song]) {
+    BOOL didInfoUpdate;
+    if (isPlayeriTunes)
+        didInfoUpdate = [self updateInfoForSong:song];
+    else {
+        // player is PandoraBoy, etc
+        didInfoUpdate = YES;
+        [song setType:trackTypeFile];
+        // The only thing we require is the song position, try and calculate that
+        
+        if (currentSong && [currentSong isEqualToSong:song]) {
+            if (!isiTunesPlaying) {
+                // Pause
+                [song setLastPlayed:[NSDate date]];
+                ScrobLog(SCROB_LOG_TRACE, @"non-iTunes pause");
+            } else if (!wasiTunesPlaying && isiTunesPlaying) {
+                // Resume
+                NSTimeInterval elapsed = [[currentSong lastPlayed] timeIntervalSinceNow];
+                if (elapsed < 0.0) { // should never have a future time
+                    elapsed = floor(fabs(elapsed)) + [[currentSong pausedTime] floatValue];
+                    [song setPausedTime:[NSNumber numberWithDouble:elapsed]];
+                    ScrobLog(SCROB_LOG_TRACE, @"non-iTunes resume. elapased pause: %.0f", elapsed);
+                }
+            }
+            
+            [song setPausedTime:[NSNumber numberWithInt:0]];
+        }
+    }
+    
+    if (didInfoUpdate) {
         @try {
         if ([song ignore]) {
             ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
@@ -411,7 +442,7 @@ currentSong = nil; \
         } @catch (NSException *exception) {
             ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", song, exception);
         }
-    } else {
+    } else if (isPlayeriTunes) {
         if (retryCount < 3) {
             retryCount++;
             [getTrackInfoTimer invalidate];
@@ -690,6 +721,14 @@ player_info_exit:
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
             object:nil];
+        
+        #ifdef notyet
+        // Doesn't work yet, as "Total Time" is not included in the note
+        // Register for PandoraBoy track change notifications
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"net.frozensilicon.pandoraBoy.playerInfo"
+            object:nil];
+        #endif
         
         // Create protocol mgr -- register the up/down notification before, because
         // PM init can send it
@@ -1501,6 +1540,10 @@ exit:
 {
     [self setPosition:[song position]];
     [self setRating:[song rating]];
+    [self setPausedTime:[song pausedTime]];
+    [self setLastPlayed:[song lastPlayed]];
+    
+    self->iTunes = song->iTunes;
 }
 
 - (double)resubmitInterval

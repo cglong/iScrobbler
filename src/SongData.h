@@ -40,13 +40,14 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSString *comment;
     NSString *mbid;
     TrackType_t trackType;
-    BOOL isPodcast;
-    BOOL hasQueued;
-    BOOL hasSeeked;
-    BOOL reconstituted;
-    BOOL passedFilters;
-    BOOL loved;
-    BOOL banned;
+    unsigned isPodcast : 1;
+    unsigned hasQueued : 1;
+    unsigned hasSeeked : 1;
+    unsigned reconstituted : 1;
+    unsigned passedFilters : 1;
+    unsigned loved : 1;
+    unsigned banned : 1;
+    unsigned iTunes : 1;
 }
 
 // Value to pad time calculations with
@@ -71,6 +72,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (NSComparisonResult)compareSongLastPlayedDate:(SongData*)song;
 
 ////// Accessors Galore ///////
+
+- (BOOL)isPlayeriTunes;
 
 - (int)iTunesDatabaseID;
 - (void)setiTunesDatabaseID:(int)newID;
