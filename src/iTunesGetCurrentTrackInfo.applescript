@@ -35,7 +35,11 @@ tell application "iTunes"
 			end if
 		end if
 		
-		set trackID to database ID of theTrack
+		try
+			set trackID to persistent ID of theTrack -- 6.0.2+
+		on error
+			set trackID to database ID of theTrack
+		end try
 		set trackPostion to player position
 		try
 			set trackRating to rating of theTrack

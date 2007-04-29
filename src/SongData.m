@@ -6,8 +6,7 @@
 //  Major re-write in 2005 by Brian Bergstrand.
 //  Copyright (c) 2005-2007 Brian Bergstrand. All rights reserved.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <sys/types.h>
@@ -61,6 +60,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 {
     [super init];
 
+    iTunes = YES;
     // set the id
     songID = g_songID;
     IncrementAtomic((SInt32*)&g_songID);
@@ -191,7 +191,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     plastPlayed = [self lastPlayed];
     pstartTime = [self startTime];
     ptype = [NSNumber numberWithInt:[self type]];
-    pitunesid = [NSNumber numberWithInt:[self iTunesDatabaseID]];
+    pitunesid = [NSNumber numberWithUnsignedLongLong:[self iTunesDatabaseID]];
     @try {
         if ((pmbid = [self mbid]) && [pmbid length] == 0)
             pmbid = nil;
@@ -252,7 +252,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         else
             [self setType:trackTypeFile]; // If missing, then we are upgrading from a pre-1.1 version
         if ((obj = [data objectForKey:SD_KEY_ITUNES_DB_ID]))
-            [self setiTunesDatabaseID:[obj intValue]];
+            [self setiTunesDatabaseID:[obj unsignedLongLongValue]];
         if ((obj = [data objectForKey:SD_KEY_MBID]))
             [self setMbid:obj];
         reconstituted = YES;
@@ -269,15 +269,19 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     return (iTunes);
 }
 
-- (int)iTunesDatabaseID
+- (void)setIsPlayeriTunes:(BOOL)val
+{
+    iTunes = val;
+}
+
+- (u_int64_t)iTunesDatabaseID
 {
     return (iTunesDatabaseID);
 }
 
-- (void)setiTunesDatabaseID:(int)newID
+- (void)setiTunesDatabaseID:(u_int64_t)newID
 {
-    if (newID >= 0)
-        iTunesDatabaseID = newID;
+    iTunesDatabaseID = newID;
 }
 
 // title is the title of the song

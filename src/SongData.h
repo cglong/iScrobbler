@@ -6,6 +6,8 @@
 //  Copyright (c) 2003 Sam Ley. All rights reserved.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
+//  Released under the GPL, license details available res/gpl.txt
+//
 
 #import <Cocoa/Cocoa.h>
 
@@ -22,7 +24,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 @interface SongData : NSObject <NSCopying> {
     unsigned int songID; // Internal id #
-    int iTunesDatabaseID; // iTunes track id
+    u_int64_t iTunesDatabaseID; // iTunes track id
     NSString * title;
     NSNumber * duration;
     NSNumber * position;
@@ -74,9 +76,10 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 ////// Accessors Galore ///////
 
 - (BOOL)isPlayeriTunes;
+- (void)setIsPlayeriTunes:(BOOL)val;
 
-- (int)iTunesDatabaseID;
-- (void)setiTunesDatabaseID:(int)newID;
+- (u_int64_t)iTunesDatabaseID;
+- (void)setiTunesDatabaseID:(u_int64_t)newID;
 
 // title is the title of the song
 - (NSString *)title;
