@@ -6,8 +6,7 @@
 //  Completely re-written by Brian Bergstrand sometime in Feb 2005.
 //  Copyright 2005-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net/
+//  Released under the GPL, license details available res/gpl.txt
 
 #import <openssl/md5.h>
 
@@ -237,7 +236,7 @@ static void handlesig (int sigraised)
     if (result) {
         if ([result numberOfItems] > 1) {
             TrackType_t trackType = trackTypeUnknown;
-            int trackiTunesDatabaseID = -1;
+            u_int64_t trackiTunesDatabaseID = 0;
             NSNumber *trackPosition, *trackRating, *trackPlaylistID, *trackPodcast;
             NSDate *trackLastPlayed = nil;
             NSString *trackSourceName = nil, *trackComment;
@@ -267,8 +266,7 @@ static void handlesig (int sigraised)
                     [song setRating:trackRating];
                 } @catch (NSException* exception) {
                 }
-                if ([trackPlaylistID intValue] >= 0)
-                    [song setPlaylistID:trackPlaylistID];
+                [song setPlaylistID:trackPlaylistID];
                 if (trackSourceName && [trackSourceName length] > 0)
                     [song setSourceName:trackSourceName];
                 if (trackLastPlayed)
@@ -407,10 +405,11 @@ currentSong = nil; \
         didInfoUpdate = [self updateInfoForSong:song];
     else {
         // player is PandoraBoy, etc
+        [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
         [song setType:trackTypeFile];
-        // The only thing we require is the song position, try and calculate that
         
+        // The only thing we require is the song position, try and calculate that
         if (currentSong && [currentSong isEqualToSong:song]) {
             if (!isiTunesPlaying) {
                 // Pause
@@ -1543,8 +1542,7 @@ exit:
     [self setRating:[song rating]];
     [self setPausedTime:[song pausedTime]];
     [self setLastPlayed:[song lastPlayed]];
-    
-    self->iTunes = song->iTunes;
+    [self setIsPlayeriTunes:[song isPlayeriTunes]];
 }
 
 - (double)resubmitInterval
