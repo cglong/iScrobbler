@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 12/18/04.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import "iScrobblerController.h"
@@ -154,10 +153,12 @@ static NSCountedSet *topRatings = nil;
     // Top Tracks
     id lastPlayedDate = [[song startTime] addTimeInterval:[[song duration] doubleValue]];
     
+    #ifdef obsolete
     if ([startDate isGreaterThan:lastPlayedDate]) {
         // This can occur when iScrobbler is launched after the last played date of tracks on an iPod
         [self setValue:lastPlayedDate forKey:@"startDate"];
     }
+    #endif
     
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
