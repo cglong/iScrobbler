@@ -64,9 +64,10 @@
         hresult = HS_RESULT_BADAUTH;
     else if ([result hasPrefix:@"BANNED"])
         hresult = HS_RESULT_FAILED;
-    else if ([result hasPrefix:@"BADTIME"])
+    else if ([result hasPrefix:@"BADTIME"]) {
         hresult = HS_RESULT_FAILED;
-    else
+        ScrobLog(SCROB_LOG_WARN, @"Your computer clock may be wrong. Please check the time, month and year.");
+    } else
         hresult = HS_RESULT_UNKNOWN;
     
     if ([hresult isEqualToString:HS_RESULT_OK]) {
