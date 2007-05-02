@@ -124,7 +124,8 @@ static QueueManager *g_QManager = nil;
     // Wake the protocol mgr
     if ([songQueue count]) {
         [self syncQueue:nil];
-        [[ProtocolManager sharedInstance] submit:nil];
+        if (NO == [[NSApp delegate] queueSongsForLaterSubmission])
+            [[ProtocolManager sharedInstance] submit:nil];
     }
 }
 

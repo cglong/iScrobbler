@@ -3,8 +3,8 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Feb 14, 2003.
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
@@ -37,7 +37,6 @@
 
     //the preferences window controller
     PreferenceController *preferenceController;
-    
     // Preferences tracking object
     NSUserDefaults *prefs;
 
@@ -48,12 +47,13 @@
     
     // iPod sync management
     NSString *iPodMountPath;
+    NSMutableDictionary *iPodMounts;
     NSImage *iPodIcon;
-    BOOL isIPodMounted;
     NSDate *iTunesLastPlayedTime;
+    int iPodMountCount;
     NSArray *iTunesPlaylists;
-    BOOL badAuthAlertIsOpen;
     
+    BOOL badAuthAlertIsOpen;
     // Temporarily disable submissions
     BOOL submissionsDisabled;
 }
@@ -89,11 +89,17 @@
 
 -(SongData*)nowPlaying;
 
+- (BOOL)queueSongsForLaterSubmission;
+
 -(NSString*)stringByEncodingURIChars:(NSString*)str;
 -(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
 
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
+
+// Bindings
+- (BOOL)isIPodMounted;
+- (void)setIsIPodMounted:(BOOL)val;
 
 @end
 

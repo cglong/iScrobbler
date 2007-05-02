@@ -298,6 +298,12 @@ static void handlesig (int sigraised)
 currentSongQueueTimer = nil; \
 } while (0) 
 
+- (BOOL)queueSongsForLaterSubmission
+{
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]
+        && iPodMountCount > 0);
+}
+
 - (void)queueCurrentSong:(NSTimer*)timer
 {
     SongData *song = [[SongData alloc] init];
@@ -1493,6 +1499,18 @@ exit:
         [request method], [request representedObject], error);
     
     [request autorelease];
+}
+
+// Bindings
+
+- (BOOL)isIPodMounted
+{
+    return ((BOOL)(iPodMountCount > 0));
+}
+
+- (void)setIsIPodMounted:(BOOL)val
+{
+    // just here, so KVO notifications work
 }
 
 @end

@@ -50,6 +50,9 @@
     <key>iPod Submission Playlist</key>
     <string>Recently Played</string>
     
+    <key>QueueSubmissionsIfiPodIsMounted</key>
+    <true />
+    
     <key>Disable Update Notification</key>
     <false />
     

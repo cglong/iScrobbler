@@ -218,14 +218,9 @@ validate:
         // of the tracks played during the pause will be picked up (in auto-sync mode).
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission;
-        NSArray *queuedSongs = [[[QueueManager sharedInstance] songs]
-            sortedArrayUsingSelector:@selector(compareSongPostDate:)];
-        if (queuedSongs && [queuedSongs count] > 0)
-            lastSubmission = [queuedSongs lastObject];
-        else
-            lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
-        NSDate *requestDate;
+        SongData *lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
+        NSDate *requestDate, *iPodMountEpoch;
+        iPodMountEpoch = [[[iPodMounts allValues] sortedArrayUsingSelector:@selector(compare:)] lastObject];
         if (lastSubmission) {
             requestDate = [NSDate dateWithTimeIntervalSince1970:
                 [[lastSubmission startTime] timeIntervalSince1970] +
@@ -331,6 +326,14 @@ validate:
                             requestDate);
                         continue;
                     }
+                    if ([[song lastPlayed] isGreaterThanOrEqualTo:iPodMountEpoch]) {
+                        ScrobLog(SCROB_LOG_INFO,
+                            @"Discarding '%@' in the assumption that it was played after an iPod sync began.\n\t"
+                            "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@, iPodMountEpoch: %@.\n",
+                            [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
+                            requestDate, iPodMountEpoch);
+                        continue;
+                    }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
                     [song setReconstituted:YES];
                     ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
@@ -368,6 +371,10 @@ sync_exit_with_note:
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
         [self setValue:mountPath forKey:@"iPodMountPath"];
+        if (!iPodMounts)
+            iPodMounts = [[NSMutableDictionary alloc] init];
+        [iPodMounts setObject:[NSDate date] forKey:mountPath];
+        
         ISASSERT(iPodIcon == nil, "iPodIcon exists!");
         if ([[NSFileManager defaultManager] fileExistsAtPath:
             [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
@@ -375,6 +382,8 @@ sync_exit_with_note:
                 [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
             [iPodIcon setName:IPOD_ICON_NAME];
         }
+        ++iPodMountCount;
+        ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
     }
 }
@@ -386,12 +395,16 @@ sync_exit_with_note:
 	
     ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.\n", info);
     
-    if ([iPodMountPath isEqualToString:mountPath]) {
+    if ([iPodMounts objectForKey:mountPath]) {
         [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
         [self setValue:nil forKey:@"iPodMountPath"];
         [iPodIcon release];
         iPodIcon = nil;
         [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
+        
+        --iPodMountCount;
+        ISASSERT(iPodMountCount > -1, "negative ipod count!");
+        [iPodMounts removeObjectForKey:mountPath];
     }
 }
 
