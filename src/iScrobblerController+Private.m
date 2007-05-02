@@ -405,6 +405,8 @@ sync_exit_with_note:
         --iPodMountCount;
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [iPodMounts removeObjectForKey:mountPath];
+        if (0 == iPodMountCount)
+            [[QueueManager sharedInstance] submit];
     }
 }
 
