@@ -13,7 +13,7 @@
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.flexistentialist.iscrobbler</string>
+	<string>org.bergstrand.iscrobbler</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

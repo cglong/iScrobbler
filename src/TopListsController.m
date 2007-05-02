@@ -40,7 +40,7 @@ static NSCountedSet *topRatings = nil;
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
 
 #define TOP_LISTS_PERSISTENT_STORE \
-[@"~/Library/Caches/net.sourceforge.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath]
+[@"~/Library/Caches/org.bergstrand.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath]
 
 @interface NSString (ISHTMLConversion)
 - (NSString *)stringByConvertingCharactersToHTMLEntities;
@@ -870,8 +870,16 @@ exit:
 - (void)restorePersistentStore
 {
     NSData *d = nil;
+    BOOL save = NO;
     @try {
     d = [[NSData alloc] initWithContentsOfFile:TOP_LISTS_PERSISTENT_STORE];
+    if (!d) {
+        // Try old name
+        NSString *tmp = [@"~/Library/Caches/net.sourceforge.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath];
+        d = [[NSData alloc] initWithContentsOfFile:tmp];
+        save = YES;
+        (void)[[NSFileManager defaultManager] removeFileAtPath:tmp handler:nil];
+    }
     if (d) {
         NSPropertyListFormat format;
         NSDictionary *store;
@@ -903,6 +911,9 @@ exit:
         }
         if ((obj = [store objectForKey:@"subcount"])) {
         }
+        
+        if (save)
+            [self writePersistentStore];
     }
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception while restoring persistent profile: %@.", e);

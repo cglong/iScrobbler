@@ -812,6 +812,22 @@ player_info_exit:
 
 - (void)awakeFromNib
 {
+    // transition from old prefs domain
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    id oldPrefs = [ud persistentDomainForName:@"org.flexistentialist.iscrobbler"];
+    if (oldPrefs) {
+        [ud setPersistentDomain:oldPrefs forName:[[NSBundle mainBundle] bundleIdentifier]];
+        [ud removePersistentDomainForName:@"org.flexistentialist.iscrobbler"];
+        
+        NSArray *keys = [oldPrefs allKeys];
+        NSEnumerator *en = [keys objectEnumerator];
+        id key;
+        while ((key = [en nextObject])) {
+            [ud setObject:[oldPrefs objectForKey:key] forKey:key];
+        }
+        [ud synchronize];
+    }
+    
     songList=[[NSMutableArray alloc ]init];
     
 // We don't need to do this right now, as the only thing that uses playlists is the prefs.
