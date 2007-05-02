@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 10/31/04.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <notify.h>
@@ -15,6 +14,7 @@
 #import "ProtocolManager.h"
 #import "ProtocolManager+Subclassers.h"
 #import "ProtocolManager_v11.h"
+#import "ProtocolManager_v12.h"
 #import "keychain.h"
 #import "QueueManager.h"
 #import "SongData.h"
@@ -39,6 +39,7 @@
 - (NSString*)md5Challenge;
 - (NSString*)submitURL;
 - (void)setIsNetworkAvailable:(BOOL)available;
+- (NSString*)protocolVersion;
 
 @end
 
@@ -50,6 +51,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 
 #define NETWORK_UNAVAILABLE_MSG @"Network is not available, submissions are being queued.\n"
 
+#define PM_VERSION [[ProtocolManager sharedInstance] protocolVersion]
+
 @implementation ProtocolManager
 
 + (ProtocolManager*)sharedInstance
@@ -58,7 +61,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         if ([@"1.1" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
             g_PM = [[ProtocolManager_v11 alloc] init];
         else if ([@"1.2" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
-            g_PM = [[ProtocolManager_v11 alloc] init];
+            g_PM = [[ProtocolManager_v12 alloc] init];
         else
             ScrobLog(SCROB_LOG_CRIT, @"Unknown protocol version\n");
     }
@@ -633,13 +636,14 @@ didFinishLoadingExit:
     
     (void)[inFlight retain];
     NSMutableData *subData = [[NSMutableData alloc] init];
-
-    NSString* escapedusername=[(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
-            NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) 	autorelease];
     
     @try {
-    [self setSubValue:escapedusername forKey:@"u" inData:subData];
+    if ([[self protocolVersion] isEqualToString:@"1.1"]) {
+        NSString* escapedusername=[(NSString*)
+            CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
+                NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+        [self setSubValue:escapedusername forKey:@"u" inData:subData];
+    }
     [self setSubValue:[self authChallengeResponse] forKey:@"s" inData:subData];
     
     // Fill the dictionary with every entry in the queue, ordering them from
@@ -859,8 +863,8 @@ didFinishLoadingExit:
     BOOL good = ( IsTrackTypeValid([self type])
         && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
         && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
-        [[self position] floatValue] > [pm minTimePlayed]) );
-    if (good && !reconstituted) {
+        [[self elapsedTime] floatValue] > [pm minTimePlayed]) );
+    if ([PM_VERSION isEqualTo:@"1.1"] && good && !reconstituted) {
         // Make sure there was no forward seek (allowing for a little fudge time)
         // This is not perfect, so some "illegal" tracks may slip through.
         NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + ([SongData songTimeFudge] * 2);
@@ -887,6 +891,9 @@ didFinishLoadingExit:
 
 - (NSTimeInterval)submitIntervalFromNow
 {
+    if ([PM_VERSION isEqualTo:@"1.2"])
+        return (PM_SUBMIT_AT_TRACK_END);
+        
     double trackTime = [[self duration] doubleValue];
     static double minTime = -1.0;
     static double quotient;
@@ -905,6 +912,15 @@ didFinishLoadingExit:
     
     trackTime += fudge; // Add some fudge to make sure the track gets submitted when the timer fires.
     return (trackTime);
+}
+
+- (double)resubmitInterval
+{
+    if ([PM_VERSION isEqualTo:@"1.2"])
+        return (0.0);
+        
+    double interval = ([[self duration] doubleValue] - [[self position] doubleValue]) / 3.0;
+    return (interval);
 }
 
 @end

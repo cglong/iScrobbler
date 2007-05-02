@@ -121,7 +121,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
     // The amount of time passed since the song started, divided by the duration of the song
     // times 100 to generate a percentage.
-    NSNumber * percentage = [NSNumber numberWithDouble:(([[self position] doubleValue] / [[self duration] doubleValue]) * 100)];
+    NSNumber * percentage = [NSNumber numberWithDouble:(([[self elapsedTime] doubleValue] / [[self duration] doubleValue]) * 100)];
 
     return percentage;
 }
@@ -400,6 +400,20 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     [newPausedTime retain];
     [pausedTime release];
     pausedTime = newPausedTime;
+}
+
+- (void)didPause
+{
+    [self setLastPlayed:[NSDate date]];
+}
+
+- (void)didResumeFromPause
+{
+    NSTimeInterval elapsed = [[self lastPlayed] timeIntervalSinceNow];
+    if (elapsed < 0.0) { // should never have a future time
+        elapsed = floor(fabs(elapsed)) + [[self pausedTime] floatValue];
+        [self setPausedTime:[NSNumber numberWithDouble:elapsed]];
+    }
 }
 
 // postDate is the moment in which the initial submission was attempted

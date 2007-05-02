@@ -117,6 +117,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (NSNumber *)pausedTime;
 - (void)setPausedTime:(NSNumber *)newPausedTime;
 
+- (void)didPause;
+- (void)didResumeFromPause;
+
 // postDate is the moment in which the initial submission was attempted
 - (NSDate *)postDate;
 - (void)setPostDate:(NSDate *)newPostDate;

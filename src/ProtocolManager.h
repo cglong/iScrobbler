@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 10/31/04.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
@@ -89,6 +88,7 @@
 // Tests to see if the song is ready to submit
 - (BOOL)canSubmit;
 - (NSTimeInterval)submitIntervalFromNow;
+- (double)resubmitInterval;
 
 @end
 
@@ -100,6 +100,8 @@
 #define PM_NOTIFICATION_NETWORK_STATUS @"PMNetworkStatus"
 #define PM_NOTIFICATION_NETWORK_STATUS_KEY @"PMNetworkStatusKey"
 #define PM_NOTIFICATION_NETWORK_MSG_KEY @"PMNetworkMsgKey" 
+
+#define PM_SUBMIT_AT_TRACK_END ((NSTimeInterval)LLONG_MAX)
 
 // Handshake and Submission result values
 #define HS_RESULT_OK @"OK"

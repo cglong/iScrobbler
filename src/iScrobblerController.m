@@ -85,7 +85,6 @@ static void handlesig (int sigraised)
 @interface SongData (iScrobblerControllerAdditions)
     - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
     - (void)updateUsingSong:(SongData*)song;
-    - (double)resubmitInterval;
     - (NSString*)growlDescription;
     - (NSString*)growlTitle;
 @end
@@ -269,8 +268,11 @@ static void handlesig (int sigraised)
                 [song setPlaylistID:trackPlaylistID];
                 if (trackSourceName && [trackSourceName length] > 0)
                     [song setSourceName:trackSourceName];
+                #ifdef obsolete
+                // We now use this to calculate elapsed time, so don't update it with the iTunes value
                 if (trackLastPlayed)
                     [song setLastPlayed:trackLastPlayed];
+                #endif
                 if (trackPodcast && [trackPodcast intValue] > 0)
                     [song setIsPodcast:YES];
                 if (trackComment)
@@ -356,10 +358,23 @@ queue_exit:
     [song release];
 }
 
+- (void)queueSong:(SongData*)song
+{
+    [song setPosition:[song duration]];
+    QueueResult_t qr = [[QueueManager sharedInstance] queueSong:song];
+    if (kqFailed == qr) {
+        ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules.", [song brief]);
+    }
+}
+
 #define ReleaseCurrentSong() do { \
-[currentSong setLastPlayed:[NSDate date]]; \
-[currentSong release]; \
-currentSong = nil; \
+if (currentSong) { \
+    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] && [currentSong canSubmit]) \
+        [self queueSong:currentSong]; \
+    [currentSong setLastPlayed:[NSDate date]]; \
+    [currentSong release]; \
+    currentSong = nil; \
+} \
 } while(0)
 
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
@@ -408,25 +423,6 @@ currentSong = nil; \
         [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
         [song setType:trackTypeFile];
-        
-        // The only thing we require is the song position, try and calculate that
-        if (currentSong && [currentSong isEqualToSong:song]) {
-            if (!isiTunesPlaying) {
-                // Pause
-                [song setLastPlayed:[NSDate date]];
-                ScrobLog(SCROB_LOG_TRACE, @"non-iTunes pause");
-            } else if (!wasiTunesPlaying && isiTunesPlaying) {
-                // Resume
-                NSTimeInterval elapsed = [[currentSong lastPlayed] timeIntervalSinceNow];
-                if (elapsed < 0.0) { // should never have a future time
-                    elapsed = floor(fabs(elapsed)) + [[currentSong pausedTime] floatValue];
-                    [song setPausedTime:[NSNumber numberWithDouble:elapsed]];
-                    ScrobLog(SCROB_LOG_TRACE, @"non-iTunes resume. elapased pause: %.0f", elapsed);
-                }
-            }
-            
-            [song setPausedTime:[NSNumber numberWithInt:0]];
-        }
     }
     
     if (didInfoUpdate) {
@@ -467,8 +463,9 @@ currentSong = nil; \
     
     if (currentSong && [currentSong isEqualToSong:song]) {
         // Try to determine if the song is being played twice (or more in a row)
-        float pos = [[song position] floatValue];
-        if (pos <  [[currentSong position] floatValue] &&
+        fireInterval = 0.0;
+        float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
+        if (pos <  [[currentSong elapsedTime] floatValue] &&
              // The following conditions do not work with iTunes 4.7, since we are not
              // constantly updating the song's position by polling iTunes. With 4.7 we update
              // when the song first plays, when it's ready for submission or if the user
@@ -478,8 +475,9 @@ currentSong = nil; \
              // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
              (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
         #endif
-             [currentSong hasQueued] &&
-             (pos <= [SongData songTimeFudge]) ) {
+             ([currentSong hasQueued] || [currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END) &&
+             (pos <= [SongData songTimeFudge]) ) {            
+            ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
         } else {
             [currentSong updateUsingSong:song];
@@ -488,24 +486,28 @@ currentSong = nil; \
                 [currentSong setPostDate:[NSCalendarDate date]];
             }
             
-            // Handle a pause
-            if (!isiTunesPlaying) {
+            if (!isiTunesPlaying) { // Handle a pause
+                [currentSong didPause];
                 currentSongPaused = YES;
                 if (![currentSong hasQueued])
                     KillQueueTimer();
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
-            } else  if (isiTunesPlaying && !wasiTunesPlaying) {
+            } else  if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
                 currentSongPaused = NO;
                 if (![currentSong hasQueued]) {
-                // Reschedule timer
-                ISASSERT(!currentSongQueueTimer, "Timer is active!");
-                fireInterval = [currentSong resubmitInterval];
-                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                                target:self
-                                selector:@selector(queueCurrentSong:)
-                                userInfo:nil
-                                repeats:NO] retain];
-                ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed -- sub in %.1lfs", [currentSong brief], fireInterval);
+                    [currentSong didResumeFromPause];
+                    
+                    ISASSERT(!currentSongQueueTimer, "Timer is active!");
+                    fireInterval = [currentSong resubmitInterval];
+                    if (fireInterval > 0) {
+                        currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
+                                    target:self
+                                    selector:@selector(queueCurrentSong:)
+                                    userInfo:nil
+                                    repeats:NO] retain];
+                    }
+                    ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs) -- sub in %.1lfs", [currentSong brief],
+                        [[currentSong elapsedTime] floatValue], fireInterval);
                 }
                 
                 if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlOnResume"]) {
@@ -536,11 +538,22 @@ currentSong = nil; \
         [song setStartTime:[NSDate date]];
     }
     
+    #if 0
+    fireInterval = currentSong ? [currentSong submitIntervalFromNow] : 0.0f;
+    if (fireInterval >= PM_SUBMIT_AT_TRACK_END) {
+        if (![currentSong isEqualToSong:song] && [currentSong canSubmit]) {
+            [self queueSong:currentSong];
+        }
+    }
+    #endif
+    
     if (isiTunesPlaying) {
         currentSongPaused = NO;
-        // Fire the main timer at the appropos time to get it queued.
+        // Fire the main timer at the appropos time to get it queued (proto 1.1 only)
         fireInterval = [song submitIntervalFromNow];
-        if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
+        if (fireInterval >= PM_SUBMIT_AT_TRACK_END) {
+            ;
+        } else if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
             ScrobLog(SCROB_LOG_TRACE, @"Firing sub timer in %0.2lf seconds for track '%@'.\n",
                 fireInterval, [song brief]);
             currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
@@ -1540,15 +1553,7 @@ exit:
 {
     [self setPosition:[song position]];
     [self setRating:[song rating]];
-    [self setPausedTime:[song pausedTime]];
-    [self setLastPlayed:[song lastPlayed]];
     [self setIsPlayeriTunes:[song isPlayeriTunes]];
-}
-
-- (double)resubmitInterval
-{
-    double interval =  ([[self duration] doubleValue] - [[self position] doubleValue]) / 3.0;
-    return (interval);
 }
 
 - (NSString*)growlDescriptionWithFormat:(NSString*)format
