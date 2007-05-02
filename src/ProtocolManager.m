@@ -161,6 +161,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 	BOOL success;
     if ((success = [self validHandshake])) {
         hsState = hs_valid;
+        subFailures = 0;
         hsBadAuth = 0;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
 	} else {
@@ -470,10 +471,12 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:myData];
         
-		hsState = hs_needed;
+        if (++subFailures >= 3)
+            hsState = hs_needed;
         
 		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
-			++subBadAuth;
+			hsState = hs_needed;
+            ++subBadAuth;
             // Send notification if we've hit the threshold
 			if (subBadAuth >= BADAUTH_WARN) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];

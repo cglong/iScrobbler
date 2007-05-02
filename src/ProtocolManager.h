@@ -47,6 +47,7 @@
     float nextResubmission;
     // Count of consecutive BADAUTH repsonses
     int subBadAuth, hsBadAuth;
+    int subFailures;
     // Is the network available?
     BOOL isNetworkAvailable;
     // Counters
