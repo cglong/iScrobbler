@@ -14,6 +14,4 @@
 
 }
 
-- (NSData*)nowPlayingDataForSong:(SongData*)song;
-
 @end
