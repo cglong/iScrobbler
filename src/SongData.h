@@ -42,6 +42,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSString *comment;
     NSString *mbid;
     TrackType_t trackType;
+    unsigned trackNumber;
     unsigned isPodcast : 1;
     unsigned hasQueued : 1;
     unsigned hasSeeked : 1;
@@ -182,6 +183,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (BOOL)banned;
 - (void)setBanned:(BOOL)isBanned;
+
+- (NSNumber*)trackNumber;
+- (void)setTrackNumber:(NSNumber*)number;
 
 @end
 

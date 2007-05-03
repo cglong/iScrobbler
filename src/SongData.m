@@ -101,6 +101,9 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     [copy setPausedTime:[self pausedTime]];
     [copy setPostDate:[self postDate]];
     [copy setLastPlayed:[self lastPlayed]];
+    [copy setLoved:(BOOL)loved];
+    [copy setBanned:(BOOL)banned];
+    [copy setTrackNumber:[self trackNumber]];
     
     copy->iTunes = self->iTunes;
 
@@ -176,10 +179,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 #define SD_KEY_TYPE @"Type"
 #define SD_KEY_ITUNES_DB_ID @"iTunes DB ID"
 #define SD_KEY_MBID @"MBID"
+#define SD_KEY_TRACKNUM @"Track Number"
 - (NSDictionary*)songData
 {
     NSString *ptitle, *palbum, *partist, *ppath, *pmbid;
-    NSNumber *pduration, *ptype, *pitunesid;
+    NSNumber *pduration, *ptype, *pitunesid, *ptrackNumber;
     NSDate *ppostDate, *plastPlayed, *pstartTime;
     
     ptitle = [self title];
@@ -192,6 +196,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     pstartTime = [self startTime];
     ptype = [NSNumber numberWithInt:[self type]];
     pitunesid = [NSNumber numberWithUnsignedLongLong:[self iTunesDatabaseID]];
+    ptrackNumber = [self trackNumber];
     @try {
         if ((pmbid = [self mbid]) && [pmbid length] == 0)
             pmbid = nil;
@@ -221,6 +226,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         pstartTime, SD_KEY_STARTTIME,
         ptype, SD_KEY_TYPE,
         pitunesid, SD_KEY_ITUNES_DB_ID,
+        ptrackNumber, SD_KEY_TRACKNUM,
         pmbid, SD_KEY_MBID,
         nil];
     return (d);
@@ -255,6 +261,8 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
             [self setiTunesDatabaseID:[obj unsignedLongLongValue]];
         if ((obj = [data objectForKey:SD_KEY_MBID]))
             [self setMbid:obj];
+        if ((obj = [data objectForKey:SD_KEY_TRACKNUM]))
+            [self setTrackNumber:obj];
         reconstituted = YES;
         return (YES);
     }
@@ -826,6 +834,16 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 - (void)setBanned:(BOOL)isBanned
 {
     banned = isBanned;
+}
+
+- (NSNumber*)trackNumber
+{
+    return ([NSNumber numberWithUnsignedInt:trackNumber]);
+}
+
+- (void)setTrackNumber:(NSNumber*)number
+{
+    trackNumber = [number unsignedIntValue];
 }
 
 - (void)dealloc

@@ -1539,7 +1539,7 @@ exit:
     
     NSString *iname, *ialbum, *iartist, *ipath, *igenre;
     NSURL *location = nil;
-    NSNumber *irating, *iduration;
+    NSNumber *irating, *iduration, *itrackNumber;
 #ifdef notyet
     NSString *composer;
     NSNumber *year;
@@ -1553,6 +1553,7 @@ exit:
     irating = [dict objectForKey:@"Rating"];
     iduration = [dict objectForKey:@"Total Time"];
     igenre = [dict objectForKey:@"Genre"];
+    itrackNumber = [dict objectForKey:@"Track Number"];
     
     if (ipath)
         location = [NSURL URLWithString:ipath];
@@ -1576,6 +1577,8 @@ exit:
         [self setRating:irating];
     if (igenre)
         [self setGenre:igenre];
+    if (itrackNumber)
+        [self setTrackNumber:itrackNumber];
 
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
