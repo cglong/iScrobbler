@@ -784,6 +784,7 @@ didFinishLoadingExit:
 }
 
 static SongData *npSong = nil;
+static int npDelays = 0;
 - (void)sendNowPlaying
 {
     sendNP = NO;
@@ -800,12 +801,17 @@ static SongData *npSong = nil;
     if (!myConnection) {
         myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
         npInProgress = YES;
+        npDelays = 0;
         
         ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:UINT_MAX withTrackCount:1 withData:[request HTTPBody]];
-    } else
+    } else if (npDelays < 3) {
+        [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+1) * 1.0];
+    } else {
+        npDelays = 0;
         ScrobLog(SCROB_LOG_WARN, @"Can't send NP notification as a connection to the server is already in progress.");
+    }
 }
 
 - (void)nowPlaying:(NSNotification*)note
@@ -827,7 +833,7 @@ static SongData *npSong = nil;
         return;
     }
     
-    [self sendNowPlaying];
+    [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:1.0];
 }
 
 - (id)init
