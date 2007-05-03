@@ -81,7 +81,7 @@
         serverData, HS_RESPONSE_KEY_RESULT_MSG,
         md5, HS_RESPONSE_KEY_MD5,
         submitURL, HS_RESPONSE_KEY_SUBMIT_URL,
-        // nowPlayingURL, HS_RESPONSE_KEY_NOWPLAYING_URL,
+        nowPlayingURL, HS_RESPONSE_KEY_NOWPLAYING_URL,
         nil]);
 }
 
@@ -124,9 +124,6 @@
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[song album], NULL,
         (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
     
-    // optional params:
-    // Rating: r[%u]=%@ 
-    
     // populate the data
     unsigned trackNum = [[song trackNumber] unsignedIntValue];
     return ([[NSString stringWithFormat:@"a[%u]=%@&t[%u]=%@&i[%u]=%qu&o[%u]=%@&b[%u]=%@&m[%u]=%@&l[%u]=%u&n[%u]=%@&r[%u]=%@&",
@@ -137,6 +134,31 @@
         submissionNumber, [[song duration] unsignedIntValue], // required only when source is "P"
         submissionNumber, trackNum > 0 ? [song trackNumber] : @"",
         submissionNumber, @"" // love, ban, skip
+        ] dataUsingEncoding:NSUTF8StringEncoding]);
+}
+
+- (NSData*)nowPlayingDataForSong:(SongData*)song
+{
+    // URL escape relevant fields
+	NSString *escapedtitle = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[song title], NULL,
+        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+
+    NSString *escapedartist = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[song artist], NULL,
+        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+
+    NSString *escapedalbum = [(NSString*)
+        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[song album], NULL,
+        (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+    
+    // populate the data
+    unsigned trackNum = [[song trackNumber] unsignedIntValue];
+    return ([[NSString stringWithFormat:@"s=%@&a=%@&t=%@&b=%@&m=%@&l=%u&n=%@&",
+        [self authChallengeResponse], escapedartist, escapedtitle,
+        escapedalbum, [song mbid],
+        [[song duration] unsignedIntValue],
+        trackNum > 0 ? [song trackNumber] : @""
         ] dataUsingEncoding:NSUTF8StringEncoding]);
 }
 

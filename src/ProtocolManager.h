@@ -48,10 +48,11 @@
     // Count of consecutive BADAUTH repsonses
     int subBadAuth, hsBadAuth;
     int subFailures;
-    // Is the network available?
-    BOOL isNetworkAvailable;
     // Counters
     unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount, maxTracksPerSub;
+    BOOL isNetworkAvailable;
+    BOOL sendNP; // send NP notification after handshake
+    BOOL npInProgress; // a NP notification is active
 }
 
 + (ProtocolManager*)sharedInstance;

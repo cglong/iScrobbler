@@ -40,6 +40,7 @@
 - (NSString*)submitURL;
 - (void)setIsNetworkAvailable:(BOOL)available;
 - (NSString*)protocolVersion;
+- (void)sendNowPlaying;
 
 @end
 
@@ -191,6 +192,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
     
+    if (success && sendNP)
+        [self sendNowPlaying];
+    
     if (success && [[QueueManager sharedInstance] count])
         [self submit:nil];
 }
@@ -213,6 +217,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     hsState = hs_inprogress;
+    npInProgress = NO;
     
     NSString* url = /*@"127.0.0.1"*/ [self handshakeURL];
     ScrobLog(SCROB_LOG_VERBOSE, @"Handshaking... %@", url);
@@ -333,6 +338,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return ([hsResult objectForKey:HS_RESPONSE_KEY_SUBMIT_URL]);
 }
 
+- (NSString*)nowPlayingURL
+{
+    return ([hsResult objectForKey:HS_RESPONSE_KEY_NOWPLAYING_URL]);
+}
+
 // Defaults
 - (NSString*)clientID
 {
@@ -434,10 +444,17 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade)
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
-    //[self changeLastResult:result];
+    if (npInProgress) {
+        [myData release];
+        myData = nil;
+        myConnection = nil;
+        npInProgress = NO;
+        ScrobLog(SCROB_LOG_VERBOSE, @"NP result: %@", result);
+        return;
+    }
+    
+    ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
     ScrobLog(SCROB_LOG_TRACE, @"Tracks in queue after submission: %d", [[QueueManager sharedInstance] count]);
-	
-	ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
     
     [self setSubmitResult:[self submitResponse:result]];
     
@@ -540,6 +557,14 @@ didFinishLoadingExit:
         return;
     }
     
+    myConnection = nil;
+    
+    if (npInProgress) {
+        npInProgress = NO;
+        ScrobLog(SCROB_LOG_INFO, @"NP Connection error: '%@'.", [reason localizedDescription]);
+        return;
+    }
+    
     [self setSubmitResult:
         [NSDictionary dictionaryWithObjectsAndKeys:
         HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
@@ -547,8 +572,6 @@ didFinishLoadingExit:
         nil]];
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
-    
-    myConnection = nil;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
     
@@ -760,6 +783,53 @@ didFinishLoadingExit:
     successfulSubmissions = 0;
 }
 
+static SongData *npSong = nil;
+- (void)sendNowPlaying
+{
+    sendNP = NO;
+    
+    NSMutableURLRequest *request =
+		[NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
+								cachePolicy:NSURLRequestReloadIgnoringCacheData
+							timeoutInterval:REQUEST_TIMEOUT];
+	[request setHTTPMethod:@"POST"];
+	[request setHTTPBody:[self nowPlayingDataForSong:npSong]];
+    // Set the user-agent to something Mozilla-compatible
+    [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+    
+    if (!myConnection) {
+        myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+        npInProgress = YES;
+        
+        ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
+        if (SCROB_LOG_TRACE == ScrobLogLevel())
+            [self writeSubLogEntry:UINT_MAX withTrackCount:1 withData:[request HTTPBody]];
+    } else
+        ScrobLog(SCROB_LOG_WARN, @"Can't send NP notification as a connection to the server is already in progress.");
+}
+
+- (void)nowPlaying:(NSNotification*)note
+{
+    SongData *s = [note object];
+    if (!isNetworkAvailable || !s || [npSong isEqualToSong:s] || 0 == [[s artist] length] || 0 == [[s title] length])
+        return;
+    
+    [npSong release];
+    npSong = [s retain];
+    
+    // We must execute a server handshake before
+    // doing anything else. If we've already handshaked, then no
+    // worries.
+    if (hs_valid != hsState) {
+		ScrobLog(SCROB_LOG_VERBOSE, @"NP: Need to handshake.\n");
+        sendNP = YES;
+		[self handshake];
+        return;
+    }
+    
+    [self sendNowPlaying];
+}
+
 - (id)init
 {
     self = [super init];
@@ -839,6 +909,11 @@ didFinishLoadingExit:
     
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
+    
+    if ([self respondsToSelector:@selector(nowPlayingDataForSong:)]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
+    }
 
     // We are an abstract class, only subclasses return valid objects
     return (nil);
