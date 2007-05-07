@@ -815,7 +815,7 @@ player_info_exit:
     // transition from old prefs domain
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     id oldPrefs = [ud persistentDomainForName:@"org.flexistentialist.iscrobbler"];
-    if (oldPrefs) {
+    if (oldPrefs && NO == [ud boolForKey:@"PrefsMigrated"]) {
         [ud setPersistentDomain:oldPrefs forName:[[NSBundle mainBundle] bundleIdentifier]];
         [ud removePersistentDomainForName:@"org.flexistentialist.iscrobbler"];
         
@@ -825,6 +825,7 @@ player_info_exit:
         while ((key = [en nextObject])) {
             [ud setObject:[oldPrefs objectForKey:key] forKey:key];
         }
+        [ud setBool:YES forKey:@"PrefsMigrated"];
         [ud synchronize];
     }
     
