@@ -400,13 +400,14 @@ sync_exit_with_note:
         [self setValue:nil forKey:@"iPodMountPath"];
         [iPodIcon release];
         iPodIcon = nil;
-        [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
         
         --iPodMountCount;
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [iPodMounts removeObjectForKey:mountPath];
-        if (0 == iPodMountCount)
+        if (0 == iPodMountCount) {
+            [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
             [[QueueManager sharedInstance] submit];
+        }
     }
 }
 
