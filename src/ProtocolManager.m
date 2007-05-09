@@ -25,7 +25,7 @@
 /* From IRC:
    Russ​​: ...The server cuts any submission off at 1000,
    I personally recommend you don't go over 50 or 100 in a single submission */
-#define DEFAULT_MAX_TRACKS_PER_SUB 50
+#define DEFAULT_MAX_TRACKS_PER_SUB 25
 #define MAX_MISSING_VAR_ERRORS 2
 #define BADAUTH_WARN 5
 
