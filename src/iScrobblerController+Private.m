@@ -102,7 +102,7 @@
     int i;
     unsigned count = [sorted count];
     // Shuffle plays will have a last played equal to the time the Shuffle was sync'd
-    NSTimeInterval shuffleEpoch = [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval shuffleEpoch = [[NSDate date] timeIntervalSince1970] - 1.0;
     SongData *song;
     for (i = 1; i < count; ++i) {
         song = [sorted objectAtIndex:i-1];
@@ -326,7 +326,7 @@ validate:
                             requestDate);
                         continue;
                     }
-                    if ([[song lastPlayed] isGreaterThanOrEqualTo:iPodMountEpoch]) {
+                    if ([[song lastPlayed] isGreaterThan:iPodMountEpoch]) {
                         ScrobLog(SCROB_LOG_INFO,
                             @"Discarding '%@' in the assumption that it was played after an iPod sync began.\n\t"
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@, iPodMountEpoch: %@.\n",
