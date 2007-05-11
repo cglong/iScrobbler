@@ -594,7 +594,10 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
     if (elapsed > 0.0) // We should never have a future value
         return ([NSNumber numberWithDouble:0.0]);
-    return ([NSNumber numberWithDouble:floor(fabs(elapsed)) - [[self pausedTime] floatValue]]);
+    NSNumber *n = [NSNumber numberWithDouble:floor(fabs(elapsed)) - [[self pausedTime] floatValue]];
+    if ([n isGreaterThan:[self duration]])
+        n = [self duration];
+    return (n);
 }
 
 #define KEY_LAST_HIT @"last hit"

@@ -366,10 +366,7 @@ queue_exit:
 
 - (void)queueSong:(SongData*)song
 {
-    NSNumber *n = [song elapsedTime];
-    if ([n isGreaterThan:[song duration]])
-        n = [song duration];
-    [song setPosition:n];
+    [song setPosition:[song elapsedTime]];
     QueueResult_t qr = [[QueueManager sharedInstance] queueSong:song];
     if (kqFailed == qr) {
         ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules.", [song brief]);
