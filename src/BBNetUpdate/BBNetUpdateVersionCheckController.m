@@ -216,7 +216,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 
 - (void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender
 {
-   [progressBar startAnimation:self];
+   [progressBar startAnimation:nil];
    [progressBar displayIfNeeded];
 }
 
@@ -287,11 +287,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
    }
    
+   [progressBar stopAnimation:nil];
+   [progressBar displayIfNeeded];
+   
    if (![[super window] isVisible])
       [self close];
-   
-   [progressBar stopAnimation:self];
-   [progressBar displayIfNeeded];
 }
 
 - (void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes
@@ -314,7 +314,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    [buttonDownload setTitle:@"OK"];
    [buttonDownload setEnabled:YES];
    
-   [progressBar stopAnimation:self];
+   [progressBar stopAnimation:nil];
    [progressBar displayIfNeeded];
 }
 
