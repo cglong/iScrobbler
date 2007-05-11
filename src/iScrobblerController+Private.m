@@ -113,7 +113,7 @@
         }
         
         NSDate *shuffleBegin = [song lastPlayed];
-        shuffleEpoch = [shuffleBegin timeIntervalSince1970];
+        shuffleEpoch = [shuffleBegin timeIntervalSince1970] - 1.0;
         ScrobLog(SCROB_LOG_TRACE, @"Shuffle play block begins at %@", shuffleBegin);
         for (i -= 1; i < count; ++i) {
             song = [sorted objectAtIndex:i];
