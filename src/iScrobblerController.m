@@ -366,7 +366,10 @@ queue_exit:
 
 - (void)queueSong:(SongData*)song
 {
-    [song setPosition:[song duration]];
+    NSNumber *n = [song elapsedTime];
+    if ([n isGreaterThan:[song duration]])
+        n = [song duration];
+    [song setPosition:n];
     QueueResult_t qr = [[QueueManager sharedInstance] queueSong:song];
     if (kqFailed == qr) {
         ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules.", [song brief]);
@@ -375,7 +378,7 @@ queue_exit:
 
 #define ReleaseCurrentSong() do { \
 if (currentSong) { \
-    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] && [currentSong canSubmit]) \
+    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued]) \
         [self queueSong:currentSong]; \
     [currentSong setLastPlayed:[NSDate date]]; \
     [currentSong release]; \
