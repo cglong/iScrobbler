@@ -947,7 +947,7 @@ static int npDelays = 0;
     BOOL good = ( IsTrackTypeValid([self type])
         && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
         && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
-        [[self elapsedTime] floatValue] > [pm minTimePlayed]) );
+        [[self elapsedTime] floatValue] > [pm minTimePlayed] || reconstituted) );
     if ([PM_VERSION isEqualTo:@"1.1"] && good && !reconstituted) {
         // Make sure there was no forward seek (allowing for a little fudge time)
         // This is not perfect, so some "illegal" tracks may slip through.
