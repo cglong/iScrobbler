@@ -90,7 +90,7 @@
 	<string>osx</string>
 	
 	<key>protocol</key>
-	<string>1.1</string>
+	<string>1.2</string>
         
 	<key>useragent</key>
 	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/1.5</string>
