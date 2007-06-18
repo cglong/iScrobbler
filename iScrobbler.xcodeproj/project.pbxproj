@@ -137,18 +137,6 @@
 		D317911F0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
 		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
 		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D31791240A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = French; path = French.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
-		D31791250A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
-		D31791260A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
-		D31791270A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D31791280A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = German; path = German.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
-		D31791290A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
-		D317912A0A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
-		D317912B0A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D317912C0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Spanish; path = Spanish.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
-		D317912D0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
-		D317912E0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
-		D317912F0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -170,11 +158,6 @@
 		D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASXMLRPC.m; sourceTree = "<group>"; };
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScrobLog.m; sourceTree = "<group>"; };
-		D3C1125808456573000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/MainMenu.nib; sourceTree = "<group>"; };
-		D3C11260084565A5000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/Preferences.nib; sourceTree = "<group>"; };
-		D3C11263084565AF000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/StatisticsController.nib; sourceTree = "<group>"; };
-		D3C11266084565BA000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/TopLists.nib; sourceTree = "<group>"; };
-		D3C11269084565C2000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D3CB130F07750960009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StatisticsController.nib; sourceTree = "<group>"; };
 		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
@@ -590,7 +573,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				29B97319FDCFA39411CA2CEA /* English */,
-				D3C1125808456573000AA2BC /* de */,
 			);
 			name = MainMenu.nib;
 			sourceTree = "<group>";
@@ -599,9 +581,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D317911D0A6A9B5C00B0F081 /* English */,
-				D31791240A6A9B5C00B0F081 /* French */,
-				D31791280A6A9B5C00B0F081 /* German */,
-				D317912C0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdate.strings;
 			sourceTree = "<group>";
@@ -610,9 +589,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D317911F0A6A9B5C00B0F081 /* English */,
-				D31791250A6A9B5C00B0F081 /* French */,
-				D31791290A6A9B5C00B0F081 /* German */,
-				D317912D0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateAsk.nib;
 			sourceTree = "<group>";
@@ -621,9 +597,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D31791210A6A9B5C00B0F081 /* English */,
-				D31791260A6A9B5C00B0F081 /* French */,
-				D317912A0A6A9B5C00B0F081 /* German */,
-				D317912E0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateDownload.nib;
 			sourceTree = "<group>";
@@ -632,9 +605,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D31791230A6A9B5C00B0F081 /* English */,
-				D31791270A6A9B5C00B0F081 /* French */,
-				D317912B0A6A9B5C00B0F081 /* German */,
-				D317912F0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
@@ -675,7 +645,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D3CB130F07750960009236FF /* English */,
-				D3C11263084565AF000AA2BC /* de */,
 			);
 			name = StatisticsController.nib;
 			sourceTree = "<group>";
@@ -684,7 +653,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				F575CEAE02FF7FB901A80164 /* English */,
-				D3C11260084565A5000AA2BC /* de */,
 			);
 			name = Preferences.nib;
 			sourceTree = "<group>";
@@ -693,7 +661,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D3CB38A307A59AE5009236FF /* English */,
-				D3C11266084565BA000AA2BC /* de */,
 			);
 			name = TopLists.nib;
 			sourceTree = "<group>";
@@ -710,7 +677,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D3D7BB000809A806005EF5CA /* English */,
-				D3C11269084565C2000AA2BC /* de */,
 			);
 			name = ISProfileReport.nib;
 			sourceTree = "<group>";
