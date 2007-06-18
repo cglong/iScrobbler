@@ -396,6 +396,7 @@ if (currentSong) { \
     BOOL wasiTunesPlaying = isiTunesPlaying;
     isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
     BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]];
+    BOOL isRepeat = NO;
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
@@ -485,6 +486,7 @@ if (currentSong) { \
              (pos <= [SongData songTimeFudge]) ) {            
             ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
+            isRepeat = YES;
         } else {
             [currentSong updateUsingSong:song];
             if (pos < 1.0 && ![currentSong hasQueued]) {
@@ -624,9 +626,9 @@ notify_growl:
 player_info_exit:
     if (song)
         [song release];
-    NSDictionary *userInfo = nil;
+    NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObject:[NSNumber numberWithBool:isRepeat] forKey:@"repeat"];
     if (isiTunesPlaying && currentSongQueueTimer)
-        userInfo = [NSDictionary dictionaryWithObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
+        [userInfo setObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
         object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
     
@@ -713,6 +715,7 @@ player_info_exit:
     NSURL *url = [NSURL fileURLWithPath:file];
     script = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
     if (!script) {
+        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetCurrentTrackInfo.scpt!\n");
         [self showApplicationIsDamagedDialog];
         [NSApp terminate:nil];
     }
@@ -1093,7 +1096,7 @@ player_info_exit:
 
 -(IBAction)openScrobblerHomepage:(id)sender
 {
-    NSURL *url = [NSURL URLWithString:@"http://www.last.fm"];
+    NSURL *url = [NSURL URLWithString:@"http://www.last.fm/group/iScrobbler"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
@@ -1164,13 +1167,10 @@ player_info_exit:
 	NSMutableString *hashString = [NSMutableString string];
 	
     // Convert the binary hash into a string
-    for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
-		//ScrobTrace(@"Appending %X to hashString (currently %@)", *hash, hashString);
+    for (i = 0; i < MD5_DIGEST_LENGTH; i++)
 		[hashString appendFormat:@"%02x", *hash++];
-	}
-	
-    //ScrobTrace(@"Returning hash... %@ for input: %@", hashString, input);
-    return hashString;
+    
+    return (hashString);
 }
 
 -(SongData*)nowPlaying
