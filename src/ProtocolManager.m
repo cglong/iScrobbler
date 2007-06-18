@@ -817,7 +817,12 @@ static int npDelays = 0;
 - (void)nowPlaying:(NSNotification*)note
 {
     SongData *s = [note object];
-    if (!isNetworkAvailable || !s || [npSong isEqualToSong:s] || 0 == [[s artist] length] || 0 == [[s title] length])
+    BOOL repeat = NO;
+    id obj;
+    NSDictionary *userInfo = [note userInfo];
+    if (userInfo && (obj = [userInfo objectForKey:@"repeat"]))
+        repeat = [obj boolValue];
+    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length])
         return;
     
     [npSong release];
