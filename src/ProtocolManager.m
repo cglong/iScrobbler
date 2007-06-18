@@ -874,6 +874,9 @@ static int npDelays = 0;
              IsNetworkUp(connectionFlags)) {
             [self setIsNetworkAvailable:YES];
         } else {
+            // XXX isNetworkAvailable is initialized to false during alloc, set it to true
+            // so [self setIsNetworkAvailable:] sends the notification that the network is down
+            isNetworkAvailable = YES;
             [self setIsNetworkAvailable:NO];
         }
         // Install a callback to get notified of iface up/down events
