@@ -182,7 +182,8 @@ static void handlesig (int sigraised)
     NSNumber *available = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_STATUS_KEY];
     
     if (netStatusTimer) {
-        [netStatusTimer invalidate];
+        if (netStatusTimer != obj)
+            [netStatusTimer invalidate];
         netStatusTimer = nil;
         createTimer = NO; // Only try the timer once
     }
@@ -202,8 +203,8 @@ static void handlesig (int sigraised)
     } else if (createTimer) {
         // At launch, the status item will be nil when the Protocol Mgr is initialized,
         // so we create a timer to deal with this.
-        // 10 seconds should be plenty of time for launch to finish
-        netStatusTimer = [NSTimer scheduledTimerWithTimeInterval:10.0
+        // 2 seconds should be plenty of time for launch to finish
+        netStatusTimer = [NSTimer scheduledTimerWithTimeInterval:2.0
                                 target:self
                                 selector:@selector(networkStatusHandler:)
                                 userInfo:[obj userInfo]
@@ -473,17 +474,16 @@ if (currentSong) { \
         fireInterval = 0.0;
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
         if (pos + [SongData songTimeFudge] <  [[currentSong elapsedTime] floatValue] &&
-             // The following conditions do not work with iTunes 4.7, since we are not
+             (pos <= [SongData songTimeFudge]) &&
+             // The following condition does not work with iTunes 4.7, since we are not
              // constantly updating the song's position by polling iTunes. With 4.7 we update
              // when the song first plays, when it's ready for submission or if the user
              // changes some song metadata -- that's it.
         #if 0
-             (pos <= [SongData songTimeFudge]) &&
-             // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
+              // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
              (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
         #endif
-             ([currentSong hasQueued] || ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END) && [currentSong canSubmit]) &&
-             (pos <= [SongData songTimeFudge]) ) {            
+             ([currentSong hasQueued] || ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END) && [currentSong canSubmit])) {
             ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
             isRepeat = YES;
