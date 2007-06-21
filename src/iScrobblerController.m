@@ -46,12 +46,14 @@ enum {
     MACTION_PLAY_TAG
 };
 
-static int drainArtworkCache = 0;
+static int drainArtworkCacheFlag = 0, forcePlayCacheFlag = 0;
 
 static void handlesig (int sigraised)
 {
     if (SIGUSR1 == sigraised) {
-        drainArtworkCache = 1;
+        drainArtworkCacheFlag = 1;
+    } else if (SIGUSR2 == sigraised) {
+        forcePlayCacheFlag = 1;
     }
 }
 
@@ -301,8 +303,8 @@ currentSongQueueTimer = nil; \
 
 - (BOOL)queueSongsForLaterSubmission
 {
-    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]
-        && iPodMountCount > 0);
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"] ||
+        ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && iPodMountCount > 0));
 }
 
 - (void)queueCurrentSong:(NSTimer*)timer
@@ -398,6 +400,13 @@ if (currentSong) { \
     isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
     BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]];
     BOOL isRepeat = NO;
+    
+    if (forcePlayCacheFlag) {
+        forcePlayCacheFlag = 0;
+        BOOL forceCache = ![[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"];
+        [[NSUserDefaults standardUserDefaults] setBool:forceCache forKey:@"ForcePlayCache"];
+        ScrobLog(SCROB_LOG_TRACE, @"ForcePlayCache %@\n", forceCache ? @"set" : @"unset");
+    }
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
@@ -636,8 +645,8 @@ player_info_exit:
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
     
-    if (drainArtworkCache) {
-        drainArtworkCache = 0;
+    if (drainArtworkCacheFlag) {
+        drainArtworkCacheFlag = 0;
         [SongData drainArtworkCache];
     }
 }
@@ -809,6 +818,7 @@ player_info_exit:
     }
     
     signal(SIGUSR1, handlesig);
+    signal(SIGUSR2, handlesig);
     
     return self;
 }

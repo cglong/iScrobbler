@@ -32,6 +32,9 @@
     <key>Disable Local Lists</key>
     <false />
     
+    <key>ForcePlayCache</key>
+    <false />
+    
     <key>GrowlPlays</key>
     <true />
     
