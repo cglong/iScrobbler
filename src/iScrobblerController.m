@@ -103,11 +103,15 @@ static void handlesig (int sigraised)
     [statusItem setAttributedTitle:newTitle];
     [newTitle release];
     
+    unsigned tracksQueued;
     if (msg) {
         // Get rid of extraneous protocol information
         NSArray *items = [msg componentsSeparatedByString:@"\n"];
         if (items && [items count] > 0)
             msg = [items objectAtIndex:0];
+    } else if (tracksQueued = [[QueueManager sharedInstance] count]) {
+        msg = [NSString stringWithFormat:@"%@: %u",
+            NSLocalizedString(@"Tracks Queued", ""), tracksQueued];
     }
     [statusItem setToolTip:msg];
 }
