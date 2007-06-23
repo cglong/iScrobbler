@@ -1,24 +1,24 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>a59c8b324eff5a2294bacaf6d736b6d1b76b8224</string>
+        	<string>3a34138d946f4bb16b618b7b7e6cc602af8b6671</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0b4</string>
+        <string>1.5.0b5</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5b4.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.0b5.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- iPod Shuffle support (courtesy of a donation from patsyfreer).
-- New icon courtesy of einsteinbqat.
-- You can now love/ban/tag/recommend the currently playing track from the note menu.
-- The Top Lists profile now includes the number of tracks played per day and the number of hours played per day (as tooltips).
+                <string>- Audioscrobbler Protocol 1.2 is now supported (and the default).
+- Songs can now be played in iTunes while a non-Shuffle iPod is syncing with iTunes. iTunes tracks will be queued locally until the sync is complete.
+- Removed outdated localizations.
 - Bug Fix: Crash in version checker if an invalid XML file was downloaded.
+- Bug Fix: Network down status is properly reflected in the note menu at launch.
                 </string>
         </dict>
 </dict>
