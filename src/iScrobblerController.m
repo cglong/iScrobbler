@@ -483,6 +483,13 @@ if (currentSong) { \
         [song title], [song album], [song artist], [song position], [song duration]);
     
     if (currentSong && [currentSong isEqualToSong:song]) {
+        // The pause data needs to be update before a repeat check
+        if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
+            currentSongPaused = NO;
+            if (![currentSong hasQueued])
+                [currentSong didResumeFromPause];
+        }
+        
         // Try to determine if the song is being played twice (or more in a row)
         fireInterval = 0.0;
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
@@ -514,10 +521,7 @@ if (currentSong) { \
                     KillQueueTimer();
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
             } else  if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
-                currentSongPaused = NO;
                 if (![currentSong hasQueued]) {
-                    [currentSong didResumeFromPause];
-                    
                     ISASSERT(!currentSongQueueTimer, "Timer is active!");
                     fireInterval = [currentSong resubmitInterval];
                     if (fireInterval > 0) {
