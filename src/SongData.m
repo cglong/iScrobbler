@@ -413,6 +413,12 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 - (void)didPause
 {
     [self setLastPlayed:[NSDate date]];
+    isPaused = 1;
+}
+
+- (BOOL)isPaused
+{
+    return (isPaused);
 }
 
 - (void)didResumeFromPause
@@ -422,6 +428,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         elapsed = floor(fabs(elapsed)) + [[self pausedTime] floatValue];
         [self setPausedTime:[NSNumber numberWithDouble:elapsed]];
     }
+    isPaused = 0;
 }
 
 // postDate is the moment in which the initial submission was attempted

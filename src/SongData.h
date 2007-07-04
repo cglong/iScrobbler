@@ -51,6 +51,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     unsigned loved : 1;
     unsigned banned : 1;
     unsigned iTunes : 1;
+    unsigned isPaused : 1;
 }
 
 // Value to pad time calculations with
@@ -119,6 +120,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (void)setPausedTime:(NSNumber *)newPausedTime;
 
 - (void)didPause;
+- (BOOL)isPaused;
 - (void)didResumeFromPause;
 
 // postDate is the moment in which the initial submission was attempted

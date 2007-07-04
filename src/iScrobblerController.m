@@ -109,9 +109,13 @@ static void handlesig (int sigraised)
         NSArray *items = [msg componentsSeparatedByString:@"\n"];
         if (items && [items count] > 0)
             msg = [items objectAtIndex:0];
-    } else if (tracksQueued = [[QueueManager sharedInstance] count]) {
+    } else {
         msg = [NSString stringWithFormat:@"%@: %u",
-            NSLocalizedString(@"Tracks Queued", ""), tracksQueued];
+                NSLocalizedString(@"Subs:", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
+        if (tracksQueued = [[QueueManager sharedInstance] count]) {
+            msg = [msg stringByAppendingFormat:@", %@: %u",
+                NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
+        }
     }
     [statusItem setToolTip:msg];
 }
@@ -382,6 +386,8 @@ queue_exit:
 
 #define ReleaseCurrentSong() do { \
 if (currentSong) { \
+    if ([currentSong isPaused]) \
+        [currentSong didResumeFromPause]; \
     if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued]) \
         [self queueSong:currentSong]; \
     [currentSong setLastPlayed:[NSDate date]]; \
