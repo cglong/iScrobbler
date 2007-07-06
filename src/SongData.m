@@ -598,11 +598,17 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 - (NSNumber*)elapsedTime
 {
+    NSNumber *zero = [NSNumber numberWithDouble:0.0];
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
     if (elapsed > 0.0) // We should never have a future value
-        return ([NSNumber numberWithDouble:0.0]);
+        return (zero);
     NSNumber *n = [NSNumber numberWithDouble:floor(fabs(elapsed)) - [[self pausedTime] floatValue]];
-    if ([n isGreaterThan:[self duration]])
+    
+    if ([n floatValue] < 0.0) {
+        // This can happen if the song is scrubbed back to the beginning and the pause time is > 0
+        [self setPausedTime:zero];
+        n = zero;
+    } else if ([n isGreaterThan:[self duration]])
         n = [self duration];
     return (n);
 }
