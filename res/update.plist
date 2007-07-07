@@ -5,20 +5,20 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>3a34138d946f4bb16b618b7b7e6cc602af8b6671</string>
+        	<string>4884dd509ddd77948e247ac837b0600244c44246</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0b5</string>
+        <string>1.5.0</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.0b5.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.0.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- Audioscrobbler Protocol 1.2 is now supported (and the default).
-- Songs can now be played in iTunes while a non-Shuffle iPod is syncing with iTunes. iTunes tracks will be queued locally until the sync is complete.
-- Removed outdated localizations.
-- Bug Fix: Crash in version checker if an invalid XML file was downloaded.
-- Bug Fix: Network down status is properly reflected in the note menu at launch.
+                <string>- iPod Shuffle support.
+- Love, Ban, Tag and Recommend support (10.4+ only).
+- Audioscrobbler Protocol 1.2 is now supported (and the default).
+- New icon courtesy of einsteinbqat.
+- Many other minor enhancements and bug fixes.
                 </string>
         </dict>
 </dict>
