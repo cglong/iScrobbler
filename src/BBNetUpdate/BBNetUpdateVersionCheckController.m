@@ -191,7 +191,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 }
 
 // NSWindowController
-- (void)close;
+- (void)close
 {
    [verInfo release];
    verInfo = nil;
