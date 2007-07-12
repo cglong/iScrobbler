@@ -388,7 +388,7 @@ queue_exit:
 if (currentSong) { \
     if ([currentSong isPaused]) \
         [currentSong didResumeFromPause]; \
-    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued]) \
+    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] && !submissionsDisabled) \
         [self queueSong:currentSong]; \
     [currentSong setLastPlayed:[NSDate date]]; \
     [currentSong release]; \
