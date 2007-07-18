@@ -113,7 +113,7 @@ static void handlesig (int sigraised)
             msg = [items objectAtIndex:0];
     } else {
         msg = [NSString stringWithFormat:@"%@: %u",
-                NSLocalizedString(@"Subs", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
+                NSLocalizedString(@"Tracks Sub'd", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
         if (tracksQueued = [[QueueManager sharedInstance] count]) {
             msg = [msg stringByAppendingFormat:@", %@: %u",
                 NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
