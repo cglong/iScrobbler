@@ -32,6 +32,8 @@
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
+#define IS_GROWL_NOTIFICATION_IPOD_WILL_SYNC @"iPod Sync Begin"
+#define IS_GROWL_NOTIFICATION_IPOD_DID_SYNC @"iPod Sync Finished"
 
 // UTF16 barred eigth notes
 #define MENU_TITLE_CHAR 0x266B
@@ -752,6 +754,16 @@ player_info_exit:
         [nc addObserver:self selector:@selector(handlePrefsChanged:)
             name:SCROB_PREFS_CHANGED
             object:nil];
+        
+        // iPod notes
+        [nc addObserver:self
+                selector:@selector(iPodSyncBegin:)
+                name:IPOD_SYNC_BEGIN
+                object:nil];
+        [nc addObserver:self
+                selector:@selector(iPodSyncEnd:)
+                name:IPOD_SYNC_END
+                object:nil];
         
         // Register for mounts and unmounts (iPod support)
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
@@ -1540,6 +1552,26 @@ exit:
         [request method], [request representedObject], error);
     
     [request autorelease];
+}
+
+- (void)iPodSyncBegin:(NSNotification*)note
+{
+
+}
+
+- (void)iPodSyncEnd:(NSNotification*)note
+{
+    NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
+    if (!msg)
+        msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
+    [GrowlApplicationBridge
+            notifyWithTitle:NSLocalizedString(@"iPod Sync Finished", "")
+            description:msg
+            notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
+            iconData:nil
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
 }
 
 // Bindings

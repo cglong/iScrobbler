@@ -179,7 +179,7 @@ validate:
         NSArray *trackList, *trackData;
         NSString *errInfo = nil, *playlist;
         NSTimeInterval now, fudge;
-        unsigned int added;
+        unsigned int added = 0;
         
         // Get our iPod update script
         if (!iPodUpdateScript) {
@@ -218,7 +218,7 @@ validate:
         // of the tracks played during the pause will be picked up (in auto-sync mode).
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted]; // XXX Bug is subs are being cached
+        SongData *lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted]; // XXX Bug if subs are being cached
         NSDate *requestDate, *iPodMountEpoch;
         iPodMountEpoch = [[[iPodMounts allValues] sortedArrayUsingSelector:@selector(compare:)] lastObject];
         if (lastSubmission) {
@@ -261,6 +261,7 @@ validate:
                 scriptMsgCode = [[trackData objectAtIndex:0] intValue];
             } @catch (NSException *exception) {
                 ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript script invalid result: parsing exception %@\n.", exception);
+                errInfo = [exception description];
                 goto sync_exit_with_note;
             }
             
@@ -275,8 +276,12 @@ validate:
                     errnum = [NSNumber numberWithInt:-1];
                 }
                 // Display dialog instead of logging?
-                ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
-                    errmsg, errnum);
+                if (errnum)
+                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
+                        errmsg, errnum);
+                else
+                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: \"%@\" (%@)\n", errmsg, errnum);
+                errInfo = errmsg;
                 goto sync_exit_with_note;
             }
 
@@ -359,7 +364,12 @@ validate:
 sync_exit_with_note:
         [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_END
             object:nil
-            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:iPodMountPath, IPOD_SYNC_KEY_PATH, nil]];
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                iPodMountPath, IPOD_SYNC_KEY_PATH,
+                [NSNumber numberWithUnsignedInt:added], IPOD_SYNC_KEY_TRACK_COUNT,
+                // errInfo may be nil, so it should always be last in the arg list
+                errInfo, IPOD_SYNC_KEY_SCRIPT_MSG,
+                nil]];
         
     } // if ("Sync iPod")
 }
@@ -471,7 +481,8 @@ bad_song_data:
 
 - (NSDictionary *) registrationDictionaryForGrowl
 {
-    NSArray *notifications = [NSArray arrayWithObject:IS_GROWL_NOTIFICATION_TRACK_CHANGE];
+    NSArray *notifications = [NSArray arrayWithObjects:
+        IS_GROWL_NOTIFICATION_TRACK_CHANGE, IS_GROWL_NOTIFICATION_IPOD_DID_SYNC, nil];
     return ( [NSDictionary dictionaryWithObjectsAndKeys:
         notifications, GROWL_NOTIFICATIONS_ALL,
         notifications, GROWL_NOTIFICATIONS_DEFAULT,

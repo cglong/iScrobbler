@@ -134,6 +134,8 @@ if (0 == (condition)) { \
 #define IPOD_SYNC_KEY_PATH @"Path"
 #define IPOD_SYNC_KEY_ICON @"Icon"
 #define IPOD_ICON_NAME @"iPod Icon"
+#define IPOD_SYNC_KEY_TRACK_COUNT @"Track Count"
+#define IPOD_SYNC_KEY_SCRIPT_MSG @"Script Msg"
 
 #define RESET_PROFILE @"org.bergstrand.iscrobbler.resetProfile"
 
