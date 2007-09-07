@@ -822,8 +822,13 @@ static int npDelays = 0;
     NSDictionary *userInfo = [note userInfo];
     if (userInfo && (obj = [userInfo objectForKey:@"repeat"]))
         repeat = [obj boolValue];
-    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length])
+    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length]) {
+        if (!s) {
+            [npSong release];
+            npSong = nil;
+        }
         return;
+    }
     
     [npSong release];
     npSong = [s retain];
