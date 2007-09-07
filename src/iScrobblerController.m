@@ -95,6 +95,38 @@ static void handlesig (int sigraised)
 
 @implementation iScrobblerController
 
+- (NSColor*)primaryMenuColor
+{
+    static NSSet *validColors = nil;
+#if 1
+    // Disable if this is ever made a GUI accessible pref
+    static NSColor *color = nil;
+    
+    if (color)
+        return (color);
+#endif
+
+    if (!validColors) {
+        validColors = [[NSSet alloc] initWithArray:[NSArray arrayWithObjects:
+            @"blackColor", @"darkGrayColor", @"lightGrayColor", @"whiteColor", @"grayColor", @"blueColor",
+            @"cyanColor", @"yellowColor", @"magentaColor", @"purpleColor", @"brownColor", nil]];
+    }
+    
+    NSString *method = [[NSUserDefaults standardUserDefaults] stringForKey:@"PrimaryMenuColor"];
+    if (!method || ![validColors containsObject:method]) {
+        if (method)
+            ScrobLog(SCROB_LOG_TRACE, @"\"%@\" is not a valid menu color. Valid colors are: %@", method, validColors);
+        return ([NSColor blackColor]);
+    }
+    
+    @try {
+    color = [[NSColor performSelector:NSSelectorFromString(method)] retain];
+    } @catch (id e) {}
+    
+    
+    return (color ? color : [NSColor blackColor]);
+}
+
 - (void)updateStatusWithColor:(NSColor*)color withMsg:msg
 {
     NSAttributedString *newTitle =
@@ -129,7 +161,7 @@ static void handlesig (int sigraised)
         color = [NSColor greenColor];
     else {
         if (opSuccess)
-            color = [NSColor blackColor];
+            color = [self primaryMenuColor];
         else {
             color = [NSColor redColor];
         }
@@ -209,7 +241,7 @@ static void handlesig (int sigraised)
             [self updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
             isOrange = YES;
         } else if (isOrange) {
-            [self updateStatusWithColor:[NSColor blackColor] withMsg:nil];
+            [self updateStatusWithColor:[self primaryMenuColor] withMsg:nil];
             isOrange = NO;
         }
     } else if (createTimer) {
@@ -683,7 +715,14 @@ player_info_exit:
         if (!statusItem) {
             statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
             
-            [statusItem setTitle:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]];
+            NSAttributedString *newTitle =
+                [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]
+                    attributes:[NSDictionary dictionaryWithObjectsAndKeys:[self primaryMenuColor], NSForegroundColorAttributeName,
+                    // If we don't specify this, the font defaults to Helvitica 12
+                    [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
+            [statusItem setAttributedTitle:newTitle];
+            [newTitle release];
+            
             [statusItem setHighlightMode:YES];
             [statusItem setMenu:theMenu];
             [statusItem setEnabled:YES];
@@ -1015,7 +1054,7 @@ player_info_exit:
     }
     NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
     if (!color)
-        color = [NSColor blackColor];
+        color = [self primaryMenuColor];
     
     NSAttributedString *newTitle =
         [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1]
