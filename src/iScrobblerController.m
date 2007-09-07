@@ -629,6 +629,7 @@ if (currentSong) { \
         
         // Notify Growl
 notify_growl:
+#ifndef __LP64__
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
         NSData *artwork = nil;
         if ([GrowlApplicationBridge isGrowlRunning]) {
@@ -646,6 +647,9 @@ notify_growl:
             isSticky:NO
             clickContext:nil];
         } // GrowlPlays
+#else
+; // Growl not 64bit yet
+#endif
     }
     
 player_info_exit:
@@ -770,10 +774,13 @@ player_info_exit:
             selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
-        
+
+#ifndef __LP64__
         // Register with Growl
         [GrowlApplicationBridge setGrowlDelegate:self];
-        
+#else
+; // Growl not 64bit yet
+#endif
         // Register for iTunes track change notifications
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
@@ -1561,6 +1568,7 @@ exit:
 
 - (void)iPodSyncEnd:(NSNotification*)note
 {
+#ifndef __LP64__
     NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
     if (!msg)
         msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
@@ -1572,6 +1580,9 @@ exit:
             priority:0.0
             isSticky:NO
             clickContext:nil];
+#else
+; // Growl not 64bit yet
+#endif
 }
 
 // Bindings

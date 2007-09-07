@@ -8,7 +8,10 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#ifndef __LP64__
+// Growl not 64bit yet
 #import <Growl/Growl.h>
+#endif
 
 @class PreferenceController;
 @class SongData;
