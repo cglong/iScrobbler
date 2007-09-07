@@ -109,6 +109,7 @@ static NSImage *artistImgPlaceholder = nil;
     [obj setMinValue:0.0]; 
     [obj setLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
     [[similarArtistsTable tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
+    [obj setEnabled:NO];
     [similarArtistsTable setAutosaveName:[[delegate windowFrameAutosaveName] stringByAppendingString:@"Artist Details"]];
     
     [self setDetails:nil];
