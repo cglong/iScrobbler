@@ -677,7 +677,8 @@ notify_growl:
             iconData:artwork
             priority:0.0
             isSticky:NO
-            clickContext:nil];
+            clickContext:nil
+            identifier:@"iscrobbler.play"];
         } // GrowlPlays
 #else
 ; // Growl not 64bit yet
