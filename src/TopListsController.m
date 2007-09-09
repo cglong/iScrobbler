@@ -35,6 +35,7 @@ void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned in
 static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topAlbums = nil;
 static NSCountedSet *topRatings = nil;
+static NSMutableArray *playCountPerHour = nil;
 
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
@@ -223,6 +224,19 @@ static NSCountedSet *topRatings = nil;
     }
     rating = [song rating] ? [song rating] : [NSNumber numberWithInt:0];
     [topRatings addObject:rating];
+    
+    int i = 0;
+    if (!playCountPerHour) {
+        playCountPerHour = [[NSMutableArray alloc] initWithCapacity:24];
+        rating = [NSNumber numberWithInt:0];
+        for (; i < 24; ++i)
+            [playCountPerHour addObject:rating];
+    }
+    @try {
+    i = [[lastPlayedDate dateWithCalendarFormat:nil timeZone:nil] hourOfDay];
+    rating = [NSNumber numberWithInt:[[playCountPerHour objectAtIndex:i] intValue] + 1];
+    [playCountPerHour replaceObjectAtIndex:i withObject:rating];
+    } @catch (id e) {}
     
     [self writePersistentStore];
 }
@@ -854,6 +868,7 @@ exit:
         startDate, @"since",
         [NSNumber numberWithUnsignedInt:[[ProtocolManager sharedInstance] successfulSubmissionsCount]],
             @"subcount",
+        playCountPerHour, @"playCountPerHour", // could be nil
         nil];
 
     NSData *data = [NSPropertyListSerialization dataFromPropertyList:d
@@ -911,6 +926,10 @@ exit:
         }
         if ((obj = [store objectForKey:@"subcount"])) {
         }
+        if ((obj = [store objectForKey:@"playCountPerHour"])) {
+            [playCountPerHour release];
+            playCountPerHour = [obj retain];
+        }
         
         if (save)
             [self writePersistentStore];
@@ -966,6 +985,8 @@ exit:
     
     [topAlbums removeAllObjects];
     [topRatings removeAllObjects];
+    [playCountPerHour release];
+    playCountPerHour = nil;
     [self setValue:[NSDate date] forKey:@"startDate"];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:RESET_PROFILE object:nil];
@@ -1165,7 +1186,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     [pool release];
 
     NSArray *keys;
-    if (topAlbums) {
+    if (topAlbums && [topAlbums count] > 0) {
         pool = [[NSAutoreleasePool alloc] init];
         [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
@@ -1262,6 +1283,44 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             ++position;
         }
         [dummy release];
+        
+        HAdd(d, TBLCLOSE @"</div>");
+        [pool release];
+    }
+    
+    if (playCountPerHour) {
+        pool = [[NSAutoreleasePool alloc] init];
+        
+        HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"playcountperhour\">\n" TR);
+        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Track Plays By Hour", ""))));
+        HAdd(d, TRCLOSE);
+        
+        NSNumber *rating;
+        // Determine max count
+        unsigned maxCount = 0;
+        en = [playCountPerHour objectEnumerator];
+        while ((rating = [en nextObject])) {
+            if ([rating intValue] > maxCount)
+                maxCount = [rating intValue];
+        }
+        basePlayCount = (float)maxCount;
+        position = 0;
+        for (; position < 24; ++position) {
+            HAdd(d, (position & 0x0000001) ? TR : TRALT);
+            
+            tmp = [NSString stringWithFormat:@"%02d00", position];
+            
+            HAdd(d, TDEntry(TDTITLE, tmp));
+            // Total Plays bar
+            float ratingCount = [[playCountPerHour objectAtIndex:position] floatValue];
+            width = rintf((ratingCount / basePlayCount) * 100.0);
+            percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            playCount = [NSNumber numberWithFloat:ratingCount];
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
+            
+            HAdd(d, TRCLOSE);
+        }
         
         HAdd(d, TBLCLOSE @"</div>");
         [pool release];
