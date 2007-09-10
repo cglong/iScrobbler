@@ -36,6 +36,7 @@ static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topAlbums = nil;
 static NSCountedSet *topRatings = nil;
 static NSMutableArray *playCountPerHour = nil;
+static NSMutableArray *playTimePerHour = nil;
 
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
@@ -227,15 +228,23 @@ static NSMutableArray *playCountPerHour = nil;
     
     int i = 0;
     if (!playCountPerHour) {
+        ISASSERT(playTimePerHour == nil, "playTimePerHour is not nil!");
         playCountPerHour = [[NSMutableArray alloc] initWithCapacity:24];
+        playTimePerHour = [[NSMutableArray alloc] initWithCapacity:24];
+        
         rating = [NSNumber numberWithInt:0];
-        for (; i < 24; ++i)
+        for (; i < 24; ++i) {
             [playCountPerHour addObject:rating];
+            [playTimePerHour addObject:rating];
+        }
     }
     @try {
     i = [[lastPlayedDate dateWithCalendarFormat:nil timeZone:nil] hourOfDay];
     rating = [NSNumber numberWithInt:[[playCountPerHour objectAtIndex:i] intValue] + 1];
     [playCountPerHour replaceObjectAtIndex:i withObject:rating];
+    
+    rating = [NSNumber numberWithInt:[[playTimePerHour objectAtIndex:i] intValue] + [[song duration] unsignedIntValue]];
+    [playTimePerHour replaceObjectAtIndex:i withObject:rating];
     } @catch (id e) {}
     
     [self writePersistentStore];
@@ -869,6 +878,7 @@ exit:
         [NSNumber numberWithUnsignedInt:[[ProtocolManager sharedInstance] successfulSubmissionsCount]],
             @"subcount",
         playCountPerHour, @"playCountPerHour", // could be nil
+        playTimePerHour, @"playTimePerHour", // could be nil
         nil];
 
     NSData *data = [NSPropertyListSerialization dataFromPropertyList:d
@@ -930,6 +940,10 @@ exit:
             [playCountPerHour release];
             playCountPerHour = [obj retain];
         }
+        if ((obj = [store objectForKey:@"playTimePerHour"])) {
+            [playTimePerHour release];
+            playTimePerHour = [obj retain];
+        }
         
         if (save)
             [self writePersistentStore];
@@ -987,6 +1001,8 @@ exit:
     [topRatings removeAllObjects];
     [playCountPerHour release];
     playCountPerHour = nil;
+    [playTimePerHour release];
+    playTimePerHour = nil;
     [self setValue:[NSDate date] forKey:@"startDate"];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:RESET_PROFILE object:nil];
@@ -1290,9 +1306,10 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     if (playCountPerHour) {
         pool = [[NSAutoreleasePool alloc] init];
+        ISASSERT(playTimePerHour != nil, "playTimePerHour is not valid!");
         
-        HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"playcountperhour\">\n" TR);
-        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Track Plays By Hour", ""))));
+        HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
+        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
         HAdd(d, TRCLOSE);
         
         NSNumber *rating;
@@ -1304,6 +1321,13 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 maxCount = [rating intValue];
         }
         basePlayCount = (float)maxCount;
+        
+        en = [playTimePerHour objectEnumerator];
+        while ((rating = [en nextObject])) {
+            if ([rating intValue] > maxCount)
+                maxCount = [rating intValue];
+        }
+        basePlayTime = (float)maxCount;
         position = 0;
         for (; position < 24; ++position) {
             HAdd(d, (position & 0x0000001) ? TR : TRALT);
@@ -1318,6 +1342,19 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             playCount = [NSNumber numberWithFloat:ratingCount];
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
+            
+            // Total time bar
+            ratingCount = [[playTimePerHour objectAtIndex:position] floatValue];
+            width = rintf((ratingCount / basePlayTime) * 100.0);
+            percentage = (ratingCount / [totalTime floatValue]) * 100.0;
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
+            if (hours > 0) {
+                minutes = 60;
+                seconds = 0;
+            }
+            time = [NSString stringWithFormat:@"%u:%02u", minutes, seconds];
+            HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
             
             HAdd(d, TRCLOSE);
         }
