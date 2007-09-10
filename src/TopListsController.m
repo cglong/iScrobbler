@@ -1349,11 +1349,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             percentage = (ratingCount / [totalTime floatValue]) * 100.0;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
-            if (hours > 0) {
-                minutes = 60;
-                seconds = 0;
-            }
-            time = [NSString stringWithFormat:@"%u:%02u", minutes, seconds];
+            time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
             HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
             
             HAdd(d, TRCLOSE);
