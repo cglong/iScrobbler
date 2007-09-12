@@ -1309,7 +1309,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         ISASSERT(playTimePerHour != nil, "playTimePerHour is not valid!");
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
-        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
+        HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
         HAdd(d, TRCLOSE);
         
         NSNumber *rating;
@@ -1334,7 +1334,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             
             tmp = [NSString stringWithFormat:@"%02d00", position];
             
-            HAdd(d, TDEntry(TDTITLE, tmp));
+            HAdd(d, TDEntry(@"<td class=\"smalltitle\">", tmp));
             // Total Plays bar
             float ratingCount = [[playCountPerHour objectAtIndex:position] floatValue];
             width = rintf((ratingCount / basePlayCount) * 100.0);
@@ -1350,7 +1350,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
             time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-            HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, time)));
             
             HAdd(d, TRCLOSE);
         }
