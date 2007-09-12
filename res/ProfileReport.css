@@ -4,6 +4,11 @@ td.title {
 	width: 60%;
 	white-space:normal;
 }
+td.smalltitle {
+	text-align: left;
+	width: 20%;
+	white-space:normal;
+}
 td.graph {
 	text-align: left;
 	width: 40%;
