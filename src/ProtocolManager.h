@@ -3,10 +3,9 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
@@ -20,7 +19,8 @@
 
 @interface ProtocolManager : NSObject {
     NSUserDefaults *prefs;
-    
+    KeyChain *myKeyChain;
+
 @private
     // Songs that have been submitted
     id inFlight;
@@ -34,7 +34,6 @@
     NSTimer *killTimer;
     NSTimer *resubmitTimer;
     NSTimer *handshakeTimer;
-    KeyChain *myKeyChain;
     // The  object that will do the data transmission
     NSURLConnection *myConnection;
     // Received data
@@ -46,12 +45,14 @@
     float handshakeDelay;
     // Re-submission time
     float nextResubmission;
-    // Was the last result bad auth?
-    BOOL lastAttemptBadAuth;
-    // Is the network available?
-    BOOL isNetworkAvailable;
+    // Count of consecutive BADAUTH repsonses
+    int subBadAuth, hsBadAuth;
+    int subFailures;
     // Counters
     unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount, maxTracksPerSub;
+    BOOL isNetworkAvailable;
+    BOOL sendNP; // send NP notification after handshake
+    BOOL npInProgress; // a NP notification is active
 }
 
 + (ProtocolManager*)sharedInstance;
@@ -89,6 +90,7 @@
 // Tests to see if the song is ready to submit
 - (BOOL)canSubmit;
 - (NSTimeInterval)submitIntervalFromNow;
+- (double)resubmitInterval;
 
 @end
 
@@ -100,6 +102,8 @@
 #define PM_NOTIFICATION_NETWORK_STATUS @"PMNetworkStatus"
 #define PM_NOTIFICATION_NETWORK_STATUS_KEY @"PMNetworkStatusKey"
 #define PM_NOTIFICATION_NETWORK_MSG_KEY @"PMNetworkMsgKey" 
+
+#define PM_SUBMIT_AT_TRACK_END ((NSTimeInterval)LLONG_MAX)
 
 // Handshake and Submission result values
 #define HS_RESULT_OK @"OK"

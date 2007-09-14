@@ -3,10 +3,9 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 12/18/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import "iScrobblerController.h"
@@ -18,6 +17,17 @@
 #import "ScrobLog.h"
 #import "ISArtistDetailsController.h"
 #import "ProtocolManager.h"
+#import "ASXMLRPC.h"
+#import "ISRecommendController.h"
+#import "ISTagController.h"
+#import "ISLoveBanListController.h"
+
+enum {
+    kTBItemRequiresSelection      = 0x00000001,
+    kTBItemRequiresTrackSelection = 0x00000002,
+    kTBItemNoMultipleSelection    = 0x00000004,
+    kTBItemDisabledForFeedback    = 0x00000008,
+};
 
 // From iScrobblerController.m
 void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
@@ -25,12 +35,14 @@ void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned in
 static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topAlbums = nil;
 static NSCountedSet *topRatings = nil;
+static NSMutableArray *playCountPerHour = nil;
+static NSMutableArray *playTimePerHour = nil;
 
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
 
 #define TOP_LISTS_PERSISTENT_STORE \
-[@"~/Library/Caches/net.sourceforge.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath]
+[@"~/Library/Caches/org.bergstrand.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath]
 
 @interface NSString (ISHTMLConversion)
 - (NSString *)stringByConvertingCharactersToHTMLEntities;
@@ -143,10 +155,12 @@ static NSCountedSet *topRatings = nil;
     // Top Tracks
     id lastPlayedDate = [[song startTime] addTimeInterval:[[song duration] doubleValue]];
     
+    #ifdef obsolete
     if ([startDate isGreaterThan:lastPlayedDate]) {
         // This can occur when iScrobbler is launched after the last played date of tracks on an iPod
         [self setValue:lastPlayedDate forKey:@"startDate"];
     }
+    #endif
     
     en = [[topTracksController content] objectEnumerator];
     while ((entry = [en nextObject])) {
@@ -212,6 +226,27 @@ static NSCountedSet *topRatings = nil;
     rating = [song rating] ? [song rating] : [NSNumber numberWithInt:0];
     [topRatings addObject:rating];
     
+    int i = 0;
+    if (!playCountPerHour) {
+        ISASSERT(playTimePerHour == nil, "playTimePerHour is not nil!");
+        playCountPerHour = [[NSMutableArray alloc] initWithCapacity:24];
+        playTimePerHour = [[NSMutableArray alloc] initWithCapacity:24];
+        
+        rating = [NSNumber numberWithInt:0];
+        for (; i < 24; ++i) {
+            [playCountPerHour addObject:rating];
+            [playTimePerHour addObject:rating];
+        }
+    }
+    @try {
+    i = [[lastPlayedDate dateWithCalendarFormat:nil timeZone:nil] hourOfDay];
+    rating = [NSNumber numberWithInt:[[playCountPerHour objectAtIndex:i] intValue] + 1];
+    [playCountPerHour replaceObjectAtIndex:i withObject:rating];
+    
+    rating = [NSNumber numberWithInt:[[playTimePerHour objectAtIndex:i] intValue] + [[song duration] unsignedIntValue]];
+    [playTimePerHour replaceObjectAtIndex:i withObject:rating];
+    } @catch (id e) {}
+    
     [self writePersistentStore];
 }
 
@@ -236,8 +271,10 @@ static NSCountedSet *topRatings = nil;
 
 - (void)selectionDidChange:(NSNotification*)note
 {
+    @try {
     NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
     [artistDetails setArtist:artist];
+    } @catch (id e) {}
 }
 
 #if 0
@@ -280,6 +317,7 @@ static NSCountedSet *topRatings = nil;
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
+    //[rpcreqs removeAll];
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     [self hideDetails:nil];
 }
@@ -363,7 +401,458 @@ static NSCountedSet *topRatings = nil;
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
     
     [self restorePersistentStore];
+    [self hideDetails:nil];
+    
+    if ([ASXMLRPC isAvailable]) {
+        // Create toolbar
+        toolbarItems = [[NSMutableDictionary alloc] init];
+        
+        NSToolbar *tb = [[NSToolbar alloc] initWithIdentifier:@"toplists"];
+        [tb setDisplayMode:NSToolbarDisplayModeLabelOnly]; // XXX
+        [tb setSizeMode:NSToolbarSizeModeSmall];
+        [tb setDelegate:self];
+        [tb setAllowsUserCustomization:NO];
+        [tb setAutosavesConfiguration:NO];
+        #ifdef looksalittleweird
+        [tb setShowsBaselineSeparator:NO]; // 10.4 only, but ASXMLRPC won't load w/o it
+        #endif
+        
+        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];
+        title = [NSString stringWithFormat:@"%C ", 0x2665];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Love", "")]];
+        [item setToolTip:NSLocalizedString(@"Love the currently playing track.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(loveTrack:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection|kTBItemRequiresTrackSelection];
+        [toolbarItems setObject:item forKey:@"love"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"ban"];
+        title = [NSString stringWithFormat:@"%C ", 0x2298];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]];
+        [item setToolTip:NSLocalizedString(@"Ban the currently playing track from last.fm.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(banTrack:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection|kTBItemRequiresTrackSelection];
+        [toolbarItems setObject:item forKey:@"ban"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
+        title = [NSString stringWithFormat:@"%C ", 0x2709];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
+        [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(recommend:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection|kTBItemNoMultipleSelection];
+        [toolbarItems setObject:item forKey:@"recommend"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
+        title = [NSString stringWithFormat:@"%C ", 0x270E];
+        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
+        [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(tag:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:kTBItemRequiresSelection];
+        [toolbarItems setObject:item forKey:@"tag"];
+        [item release];
+        
+        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"showloveban"];
+        [item setLabel:NSLocalizedString(@"Show Loved/Banned", "")];
+        [item setToolTip:NSLocalizedString(@"Show recently Loved or Banned tracks.", "")];
+        [item setPaletteLabel:[item label]];
+        [item setTarget:self];
+        [item setAction:@selector(showLovedBanned:)];
+        // [item setImage:[NSImage imageNamed:@""]];
+        [item setTag:0];
+        [toolbarItems setObject:item forKey:@"showloveban"];
+        [item release];
+        
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarFlexibleSpaceItemIdentifier];
+        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSpaceItemIdentifier];
+        
+        [[self window] setToolbar:tb];
+        [tb release];
+        
+        rpcreqs = [[NSMutableArray alloc] init];
+    } // [ASXMLRPC isAvailable])
 }
+
+// ================= Toolbar support ================= //
+
+- (void)clearUserFeedbackForItem:(NSString*)key
+{
+    NSToolbarItem *item = [toolbarItems objectForKey:key];
+    int flags = [item tag] & ~kTBItemDisabledForFeedback;
+    [item setTag:flags];
+    [[[self window] toolbar] validateVisibleItems];
+}
+
+- (void)clearUserFeedbackDelayed:(NSTimer*)timer
+{
+    [self clearUserFeedbackForItem:[timer userInfo]];
+}
+
+- (void)setUserFeedbackForItem:(NSString*)key
+{
+    NSToolbarItem *item = [toolbarItems objectForKey:key];
+    int flags = [item tag] | kTBItemDisabledForFeedback;
+    [item setTag:flags];
+    [[[self window] toolbar] validateVisibleItems];
+    [NSTimer scheduledTimerWithTimeInterval:0.65 target:self selector:@selector(clearUserFeedbackDelayed:) userInfo:key repeats:NO];
+}
+
+- (void)loveBan:(NSString*)method track:(NSDictionary*)track
+{
+    NSString *artist = [track objectForKey:@"Artist"];
+    NSString *title = [track objectForKey:@"Track"];
+    if (!artist || !title)
+        return;
+    
+    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    [req setMethod:method];
+    NSMutableArray *p = [req standardParams];
+    [p addObject:artist];
+    [p addObject:title];
+    [req setParameters:p];
+    [req setDelegate:self];
+    [req setRepresentedObject:track];
+    [req sendRequest];
+    [rpcreqs addObject:req];
+}
+
+- (IBAction)loveTrack:(id)sender
+{
+    @try {
+        NSArray *tracks = [topTracksController selectedObjects];
+        NSEnumerator *en = [tracks objectEnumerator];
+        NSDictionary *track;
+        while ((track = [en nextObject])) {
+            if (![track isKindOfClass:[NSDictionary class]])
+                continue;
+            [self loveBan:@"loveTrack" track:track];
+        }
+        
+        [self setUserFeedbackForItem:@"love"];
+    } @catch (id e) {}
+}
+
+- (IBAction)banTrack:(id)sender
+{
+    @try {
+        NSArray *tracks = [topTracksController selectedObjects];
+        NSEnumerator *en = [tracks objectEnumerator];
+        NSDictionary *track;
+        while ((track = [en nextObject])) {
+            if (![track isKindOfClass:[NSDictionary class]])
+                continue;
+            [self loveBan:@"banTrack" track:track];
+        }
+        
+        [self setUserFeedbackForItem:@"ban"];
+    } @catch (id e) {}
+}
+
+- (void)recommendSheetDidEnd:(NSNotification*)note
+{
+    ISRecommendController *rc = [note object];
+    NSDictionary *song = [rc representedObject];
+    if ([rc send] && song && [song isKindOfClass:[NSDictionary class]]) {
+        NSString *artist = [song objectForKey:@"Artist"];
+        if (!artist)
+            goto exit;
+        
+        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [req standardParams];
+        switch ([rc type]) {
+            case rt_track: {
+                NSString *title = [song objectForKey:@"Track"];
+                if (!title) {
+                    [req release];
+                    goto exit;
+                }
+                [req setMethod:@"recommendTrack"];
+                [p addObject:artist];
+                [p addObject:title];
+            } break;
+            
+            case rt_artist:
+                [req setMethod:@"recommendArtist"];
+                [p addObject:artist];
+            break;
+            
+            case rt_album:
+            default:
+                [req release];
+                goto exit;
+            break;
+        }
+        [p addObject:[rc who]];
+        [p addObject:[rc message]];
+        
+        [req setParameters:p];
+        [req setDelegate:self];
+        [req setRepresentedObject:song];
+        [req sendRequest];
+        [rpcreqs addObject:req];
+    }
+    
+exit:
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ISRecommendDidEnd object:rc];
+    [rc release];
+}
+
+- (IBAction)recommend:(id)sender
+{
+    NSTabViewItem *activeTab;
+    id data, obj;
+    @try {
+    activeTab = [tabView selectedTabViewItem];
+    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    obj = [[data selectedObjects] objectAtIndex:0];
+    } @catch (id e) {
+        return;
+    }
+    if (!obj || ![obj isKindOfClass:[NSDictionary class]])
+        return;
+    
+    ISRecommendController *rc = [[ISRecommendController alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recommendSheetDidEnd:)
+        name:ISRecommendDidEnd object:rc];
+    [rc setAlbumEnabled:NO];
+    if (data == topArtistsController) {
+        [rc setTrackEnabled:NO];
+        [rc setType:rt_artist];
+    }
+    [rc setRepresentedObject:obj];
+    [rc showWindow:[self window]];
+}
+
+- (void)tagSheetDidEnd:(NSNotification*)note
+{
+    ISTagController *tc = [note object];
+    NSArray *tracks = [tc representedObject];
+    NSArray *tags = [tc tags];
+    if (tags && [tc send] && tracks && [tracks isKindOfClass:[NSArray class]]) {
+        NSEnumerator *en = [tracks objectEnumerator];
+        NSDictionary *song;
+        while ((song = [en nextObject])) {
+            if (![song isKindOfClass:[NSDictionary class]])
+                continue;
+            NSString *artist = [song objectForKey:@"Artist"];
+            if (!artist)
+                continue;
+            
+            ASXMLRPC *req = [[ASXMLRPC alloc] init];
+            NSMutableArray *p = [req standardParams];
+            NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
+            switch ([tc type]) {
+                case tt_track: {
+                    NSString *title = [song objectForKey:@"Track"];
+                    if (!title) {
+                        [req release];
+                        continue;
+                    }
+                    [req setMethod:@"tagTrack"];
+                    [p addObject:artist];
+                    [p addObject:title];
+                } break;
+                
+                case tt_artist:
+                    [req setMethod:@"tagArtist"];
+                    [p addObject:artist];
+                break;
+                
+                case tt_album:                
+                default:
+                    [req release];
+                    continue;
+                break;
+            }
+            [p addObject:tags];
+            [p addObject:mode];
+            
+            [req setParameters:p];
+            [req setDelegate:self];
+            [req setRepresentedObject:song];
+            [req sendRequest];
+            [rpcreqs addObject:req];
+        } // while(song)
+    }
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:ISTagDidEnd object:tc];
+    [tc release];
+}
+
+- (IBAction)tag:(id)sender
+{
+    NSTabViewItem *activeTab;
+    id data, obj;
+    @try {
+    activeTab = [tabView selectedTabViewItem];
+    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    obj = [data selectedObjects];
+    } @catch (id e) {
+        return;
+    }
+    
+    ISTagController *tc = [[ISTagController alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tagSheetDidEnd:)
+        name:ISTagDidEnd object:tc];
+    [tc setAlbumEnabled:NO];
+    if (data == topArtistsController) {
+        [tc setTrackEnabled:NO];
+        [tc setType:tt_artist];
+    }
+    [tc setRepresentedObject:obj];
+    [tc showWindow:[self window]];
+}
+
+- (IBAction)showLovedBanned:(id)sender
+{
+    [[ISLoveBanListController sharedController] showWindow:[self window]];
+}
+
+// ASXMLRPC
+- (void)responseReceivedForRequest:(ASXMLRPC*)request
+{
+    if (NSOrderedSame != [[request response] compare:@"OK" options:NSCaseInsensitiveSearch]) {
+        NSError *err = [NSError errorWithDomain:@"iScrobbler" code:-1 userInfo:
+            [NSDictionary dictionaryWithObject:[request response] forKey:@"Response"]];
+        [self error:err receivedForRequest:request];
+        return;
+    }
+    
+    NSString *method = [request method];
+    NSString *tag = nil;
+    if ([method isEqualToString:@"loveTrack"]) {
+        tag = @"loved";
+    } else if ([method isEqualToString:@"banTrack"]) {
+        tag = @"banned";
+    }
+    
+    id obj = [request representedObject];
+    ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
+        method, obj);
+    
+    NSString *artist, *title;
+    if (tag && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTagLovedBanned"]
+        && [obj isKindOfClass:[NSDictionary class]]
+        && (artist = [obj objectForKey:@"Artist"])
+        && (title = [obj objectForKey:@"Track"])) {
+        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
+        NSMutableArray *p = [tagReq standardParams];
+        [tagReq setMethod:@"tagTrack"];
+        [p addObject:artist];
+        [p addObject:title];
+        [p addObject:[NSArray arrayWithObject:tag]];
+        [p addObject:@"append"];
+        
+        [tagReq setParameters:p];
+        [tagReq setDelegate:self];
+        [tagReq setRepresentedObject:obj];
+        [tagReq performSelector:@selector(sendRequest) withObject:nil afterDelay:0.0];
+        
+        [request retain];
+        [rpcreqs removeObject:request];
+        [request autorelease];
+        
+        [rpcreqs addObject:tagReq];
+    } else {
+        [request retain];
+        [rpcreqs removeObject:request];
+        [request autorelease];
+        
+        [[[self window] toolbar] validateVisibleItems];
+    }
+}
+
+- (void)error:(NSError*)error receivedForRequest:(ASXMLRPC*)request
+{
+    ScrobLog(SCROB_LOG_ERR, @"RPC request '%@' for '%@' returned error: %@",
+        [request method], [request representedObject], error);
+    
+    [request retain];
+    [rpcreqs removeObject:request];
+    [request autorelease];
+    [[[self window] toolbar] validateVisibleItems];
+}
+
+// NSToolbar
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier
+    willBeInsertedIntoToolbar:(BOOL)flag 
+{
+    return [toolbarItems objectForKey:itemIdentifier];
+}
+
+- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
+{
+    return [toolbarItems allKeys];
+}
+
+// Called once during toolbar init
+- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
+{
+    return [NSArray arrayWithObjects:
+        NSToolbarFlexibleSpaceItemIdentifier,
+        @"showloveban",
+        NSToolbarSeparatorItemIdentifier,
+        @"recommend",
+        @"tag",
+        NSToolbarSeparatorItemIdentifier,
+        @"ban",
+        @"love",
+        //NSToolbarSpaceItemIdentifier,
+        nil];
+}
+
+- (BOOL)validateToolbarItem:(NSToolbarItem*)item
+{
+    NSTabViewItem *activeTab;
+    id data;
+    
+    @try {
+    activeTab = [tabView selectedTabViewItem];
+    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    } @catch (id e) {
+        return (NO);
+    }
+    int flags = [item tag];
+    if ((flags & kTBItemDisabledForFeedback))
+        return (NO);
+    
+    unsigned ct = [[data selectedObjects] count];
+    BOOL valid = YES;
+    if ((flags & kTBItemRequiresSelection))
+        valid = (ct > 0);
+    if (valid && (flags & kTBItemRequiresTrackSelection))
+        valid = (data == topTracksController);
+    if (valid && (flags & kTBItemNoMultipleSelection))
+        valid = (1 == ct);
+    
+    //ScrobTrace(@"flags = %x, ct = %u, valid = %d", flags, ct, valid);
+    return (valid);
+}
+
+#if 0
+- (void)toolbarWillAddItem:(NSNotification *) notification
+{
+}
+
+- (void)toolbarDidRemoveItem:(NSNotification *)notification
+{
+}
+#endif
+
 
 @end
 
@@ -388,6 +877,8 @@ static NSCountedSet *topRatings = nil;
         startDate, @"since",
         [NSNumber numberWithUnsignedInt:[[ProtocolManager sharedInstance] successfulSubmissionsCount]],
             @"subcount",
+        playCountPerHour, @"playCountPerHour", // could be nil
+        playTimePerHour, @"playTimePerHour", // could be nil
         nil];
 
     NSData *data = [NSPropertyListSerialization dataFromPropertyList:d
@@ -404,8 +895,16 @@ static NSCountedSet *topRatings = nil;
 - (void)restorePersistentStore
 {
     NSData *d = nil;
+    BOOL save = NO;
     @try {
     d = [[NSData alloc] initWithContentsOfFile:TOP_LISTS_PERSISTENT_STORE];
+    if (!d) {
+        // Try old name
+        NSString *tmp = [@"~/Library/Caches/net.sourceforge.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath];
+        d = [[NSData alloc] initWithContentsOfFile:tmp];
+        save = YES;
+        (void)[[NSFileManager defaultManager] removeFileAtPath:tmp handler:nil];
+    }
     if (d) {
         NSPropertyListFormat format;
         NSDictionary *store;
@@ -437,6 +936,17 @@ static NSCountedSet *topRatings = nil;
         }
         if ((obj = [store objectForKey:@"subcount"])) {
         }
+        if ((obj = [store objectForKey:@"playCountPerHour"])) {
+            [playCountPerHour release];
+            playCountPerHour = [obj retain];
+        }
+        if ((obj = [store objectForKey:@"playTimePerHour"])) {
+            [playTimePerHour release];
+            playTimePerHour = [obj retain];
+        }
+        
+        if (save)
+            [self writePersistentStore];
     }
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception while restoring persistent profile: %@.", e);
@@ -489,6 +999,10 @@ static NSCountedSet *topRatings = nil;
     
     [topAlbums removeAllObjects];
     [topRatings removeAllObjects];
+    [playCountPerHour release];
+    playCountPerHour = nil;
+    [playTimePerHour release];
+    playTimePerHour = nil;
     [self setValue:[NSDate date] forKey:@"startDate"];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:RESET_PROFILE object:nil];
@@ -566,8 +1080,10 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, [NSString stringWithFormat:STYLE, [NSString stringWithFormat:@"file://%@", [cssURL path]]]);
     HAdd(d, HEAD_CLOSE BODY);
     
-    id artists = [topArtistsController valueForKey:@"arrangedObjects"];
-    id tracks = [topTracksController valueForKey:@"arrangedObjects"];
+    NSArray *artists = [[topArtistsController valueForKey:@"arrangedObjects"]
+        sortedArrayUsingSelector:@selector(sortByPlayCount:)];
+    NSArray *tracks = [[topTracksController valueForKey:@"arrangedObjects"]
+        sortedArrayUsingSelector:@selector(sortByPlayCount:)];
     
     NSNumber *totalTime = [artists valueForKeyPath:@"Total Duration.@sum.unsignedIntValue"];
     NSNumber *totalPlays = [artists valueForKeyPath:@"Play Count.@sum.unsignedIntValue"];
@@ -590,13 +1106,22 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Totals", ""))));
     HAdd(d, TRCLOSE TR);
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Tracks Played:", "")));
-    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"%@ (%@ %@)", totalPlays,
+    
+    NSTimeInterval elapsedDays = (elapsedSeconds / 86400.0);
+    NSString *tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %.1f tracks per day.", ""),
+        elapsedDays >= 1.0 ? round([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
+    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%@ %@)</span>",
+        tmp,
+        totalPlays,
         NSLocalizedString(@"since", ""),
         [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);
+    
+    tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %0.2f hours per day.", ""),
+        ([totalTime doubleValue] / 3600.0) / elapsedDays];
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
-    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"%@ (%0.2f%% %@ %@ %@)", time,
-        ([totalTime floatValue] / elapsedSeconds) * 100.0,
+    HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%0.2f%% %@ %@ %@)</span>",
+        tmp, time, ([totalTime floatValue] / elapsedSeconds) * 100.0,
         NSLocalizedString(@"of", ""), elapsedTime, NSLocalizedString(@"elapsed", "")]));
     HAdd(d, TRCLOSE TBLCLOSE @"</div>");
     
@@ -607,9 +1132,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
     HAdd(d, TRCLOSE);
     
-    NSEnumerator *en = [artists objectEnumerator];
+    NSEnumerator *en = [artists reverseObjectEnumerator]; // high->low
     NSDictionary *entry;
-    NSString *artist, *track, *tmp;
+    NSString *artist, *track;
     NSNumber *playCount;
     unsigned position = 1; // ranking
     float width = 100.0 /* bar width */, percentage,
@@ -647,7 +1172,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
     HAdd(d, TRCLOSE);
     
-    en = [tracks objectEnumerator];
+    en = [tracks reverseObjectEnumerator]; // high->low
     position = 1;
     basePlayCount = [[tracks valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue];
     while ((entry = [en nextObject])) {
@@ -677,7 +1202,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     [pool release];
 
     NSArray *keys;
-    if (topAlbums) {
+    if (topAlbums && [topAlbums count] > 0) {
         pool = [[NSAutoreleasePool alloc] init];
         [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
@@ -774,6 +1299,61 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             ++position;
         }
         [dummy release];
+        
+        HAdd(d, TBLCLOSE @"</div>");
+        [pool release];
+    }
+    
+    if (playCountPerHour) {
+        pool = [[NSAutoreleasePool alloc] init];
+        ISASSERT(playTimePerHour != nil, "playTimePerHour is not valid!");
+        
+        HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
+        HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
+        HAdd(d, TRCLOSE);
+        
+        NSNumber *rating;
+        // Determine max count
+        unsigned maxCount = 0;
+        en = [playCountPerHour objectEnumerator];
+        while ((rating = [en nextObject])) {
+            if ([rating intValue] > maxCount)
+                maxCount = [rating intValue];
+        }
+        basePlayCount = (float)maxCount;
+        
+        en = [playTimePerHour objectEnumerator];
+        while ((rating = [en nextObject])) {
+            if ([rating intValue] > maxCount)
+                maxCount = [rating intValue];
+        }
+        basePlayTime = (float)maxCount;
+        position = 0;
+        for (; position < 24; ++position) {
+            HAdd(d, (position & 0x0000001) ? TR : TRALT);
+            
+            tmp = [NSString stringWithFormat:@"%02d00", position];
+            
+            HAdd(d, TDEntry(@"<td class=\"smalltitle\">", tmp));
+            // Total Plays bar
+            float ratingCount = [[playCountPerHour objectAtIndex:position] floatValue];
+            width = rintf((ratingCount / basePlayCount) * 100.0);
+            percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            playCount = [NSNumber numberWithFloat:ratingCount];
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
+            
+            // Total time bar
+            ratingCount = [[playTimePerHour objectAtIndex:position] floatValue];
+            width = rintf((ratingCount / basePlayTime) * 100.0);
+            percentage = (ratingCount / [totalTime floatValue]) * 100.0;
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
+            time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, time)));
+            
+            HAdd(d, TRCLOSE);
+        }
         
         HAdd(d, TBLCLOSE @"</div>");
         [pool release];

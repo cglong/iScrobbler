@@ -11,7 +11,7 @@ on PlayTrack(theSource, thePlaylistID, theTrackID)
 			repeat with pl in thePlaylists
 				try
 					tell pl
-						set theTrack to first item in (every track whose database ID is theTrackID)
+						set theTrack to first item in (every track whose persistent ID is theTrackID)
 						play theTrack
 						return
 					end tell

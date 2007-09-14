@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {ok = id; performClose = id; }; 
+            CLASS = ISRecommendController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {friends = NSArrayController; progress = NSProgressIndicator; }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

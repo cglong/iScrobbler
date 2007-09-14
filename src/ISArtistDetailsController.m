@@ -80,6 +80,7 @@ static NSImage *artistImgPlaceholder = nil;
             [[[NSAttributedString alloc] initWithString:@""] autorelease], @"Artist",
             font, @"Font",
             @"", @"Description",
+            [[[NSAttributedString alloc] initWithString:@"" attributes:attrs] autorelease], @"Tags",
             nil];
         if ([[similarArtistsController content] count])
             [similarArtistsController removeObjects:[similarArtistsController content]];
@@ -108,6 +109,7 @@ static NSImage *artistImgPlaceholder = nil;
     [obj setMinValue:0.0]; 
     [obj setLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
     [[similarArtistsTable tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
+    [obj setEnabled:NO];
     [similarArtistsTable setAutosaveName:[[delegate windowFrameAutosaveName] stringByAppendingString:@"Artist Details"]];
     
     [self setDetails:nil];
@@ -151,6 +153,8 @@ static NSImage *artistImgPlaceholder = nil;
     detailsSimArtists = nil;
     [detailsArtistData cancel];
     detailsArtistData = nil; 
+    [detailsArtistTags cancel];
+    detailsArtistTags = nil;
     
     [imageRequest cancel];
     [imageRequest release];
@@ -176,9 +180,12 @@ static NSImage *artistImgPlaceholder = nil;
         detailsSimArtists = nil;
     } else if (conn == detailsArtistData) {
         detailsArtistData = nil;
+    } else if (conn == detailsArtistTags) {
+        detailsArtistTags = nil;
     }
 }
 
+#ifdef obsolete
 - (void)setCurrentRating
 {
     int total = [[[artistController content] valueForKey:@"totalPlaycount"] intValue];
@@ -194,7 +201,6 @@ static NSImage *artistImgPlaceholder = nil;
     }
 }
 
-#ifdef obsolete
 // Right after the release of 1.2, last.fm change top fans to a simple count of plays for the last week
 - (void)loadProfileData:(NSXMLDocument*)xml
 {
@@ -271,57 +277,55 @@ static NSImage *artistImgPlaceholder = nil;
     if (!all || [all count] <= 0)
         return;
     
-    // We are only interested in the top fan
-    e = [all objectAtIndex:0];
-    NSString *user = [[[e attributeForName:@"username"] stringValue]
-        stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    if (user) {
-        if ((all = [e elementsForName:@"weight"]) && [all count] > 0) {
-            NSString *rating = [[all objectAtIndex:0] stringValue];
-            if (rating) {
-                id value = nil;
-                NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
-                [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
-                NSFont *font = [[artistController selection] valueForKey:@"Font"];
-                if ((all = [e elementsForName:@"url"]) && [all count] > 0) {
-                    NSString *urlStr = [[all objectAtIndex:0] stringValue];
-                    NSURL *url = nil;
-                    @try {
-                        url = [NSURL URLWithString:urlStr];
-                    } @catch (NSException *e) { }
-                    
-                    if (url) {
-                        value = [[[NSMutableAttributedString alloc] initWithString:user attributes:
-                            [NSDictionary dictionaryWithObjectsAndKeys:
-                                url, NSLinkAttributeName,
-                                [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
-                                [NSColor blueColor], NSForegroundColorAttributeName,
-                                [NSCursor pointingHandCursor], NSCursorAttributeName,
-                            nil]] autorelease];
-                         
-                        [value appendAttributedString:[[[NSAttributedString alloc]
-                            initWithString:[NSString stringWithFormat:@" - %@", rating]]
-                            autorelease]];
-                        [value addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
-                            font, NSFontAttributeName,
-                            style, NSParagraphStyleAttributeName,
-                            nil]
-                            range:NSMakeRange(0, [value length])];
-                    }
-                } else
-                    value = [[[NSAttributedString alloc] initWithString:
-                        [NSString stringWithFormat:@"%@ - %@", user, rating]
-                        attributes:[NSDictionary dictionaryWithObjectsAndKeys:
-                            style, NSParagraphStyleAttributeName,
-                            font, NSFontAttributeName,
-                            nil]] autorelease];
+    NSAttributedString *comma = [[[NSAttributedString alloc] initWithString:@", "] autorelease];
+    NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+        [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+    NSFont *font = [[artistController selection] valueForKey:@"Font"];
+    NSMutableAttributedString *value = nil, *tmp;
+    NSEnumerator *en = [all objectEnumerator];
+    int i = 0;
+    while ((e = [en nextObject]) && i++ < 3) {
+        NSString *user = [[[e attributeForName:@"username"] stringValue]
+            stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        if (user) {
+            if ((all = [e elementsForName:@"url"]) && [all count] > 0) {
+                NSURL *url = nil;
+                @try {
+                    url = [NSURL URLWithString:[[all objectAtIndex:0] stringValue]];
+                } @catch (NSException *e) { }
                 
-                if (value)
-                    [[artistController selection] setValue:value forKeyPath:@"TopFan"];
+                if (url) {
+                    tmp = [[[NSMutableAttributedString alloc] initWithString:user attributes:
+                        [NSDictionary dictionaryWithObjectsAndKeys:
+                            url, NSLinkAttributeName,
+                            [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
+                            [NSColor blueColor], NSForegroundColorAttributeName,
+                            [NSCursor pointingHandCursor], NSCursorAttributeName,
+                        nil]] autorelease];
+                }
+            } else
+                tmp = [[[NSAttributedString alloc] initWithString:user] autorelease];
+            
+            if (!value)
+                value = tmp;
+            else {
+                [value appendAttributedString:comma];
+                [value appendAttributedString:tmp];
             }
         }
     }
     
+    if (value) {
+        [value addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
+            font, NSFontAttributeName,
+            style, NSParagraphStyleAttributeName,
+            nil]
+            range:NSMakeRange(0, [value length])];
+        [[artistController selection] setValue:value forKeyPath:@"TopFan"];
+    }
+    
+#ifdef obsolete
+// 1.5: Replaced in favor of Artist tags
     // If we weren't able to calculate a fan rating, see if the current user is listed in the AS fan data
     NSString *unk = NSLocalizedString(@"Unknown", "");
     if ([unk isEqualToString:[[artistController selection] valueForKey:@"FanRating"]]) {
@@ -341,6 +345,7 @@ static NSImage *artistImgPlaceholder = nil;
             }
         }
     }
+#endif
 }
 
 - (void)loadSimilarArtistsData:(NSXMLDocument*)xml
@@ -466,6 +471,58 @@ static NSImage *artistImgPlaceholder = nil;
     [[artistController selection] setValue:@"" forKey:@"Description"];
 }
 
+- (void)loadArtistTags:(NSXMLDocument*)xml
+{
+    @try {
+        NSArray *names = [[xml rootElement] elementsForName:@"tag"];
+        NSEnumerator *en = [names objectEnumerator];
+        NSString *tagName;
+        NSXMLElement *e;
+        NSMutableAttributedString *value = nil;
+        NSAttributedString *comma = [[[NSAttributedString alloc] initWithString:@", "] autorelease];
+        
+        while ((e = [en nextObject])) {
+            if ((tagName = [[e attributeForName:@"name"] stringValue])
+                || (tagName = [[[e elementsForName:@"name"] objectAtIndex:0] stringValue])) {
+                NSString *urlStr = nil;
+                NSURL *url = nil;
+                @try {
+                    urlStr = [[[e elementsForName:@"url"] objectAtIndex:0] stringValue];
+                    url = [NSURL URLWithString:urlStr];
+                } @catch (NSException *e) { }
+                
+                if (url) {
+                    NSMutableAttributedString *tmp = [[[NSMutableAttributedString alloc] initWithString:tagName attributes:
+                        [NSDictionary dictionaryWithObjectsAndKeys:
+                            url, NSLinkAttributeName,
+                            [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
+                            [NSColor blueColor], NSForegroundColorAttributeName,
+                            [NSCursor pointingHandCursor], NSCursorAttributeName,
+                        nil]] autorelease];
+                    if (!value)
+                        value = tmp;
+                    else {
+                        [value appendAttributedString:comma];
+                        [value appendAttributedString:tmp];
+                    }    
+                }
+            } // tagName
+        }
+        
+        NSFont *font = [[artistController selection] valueForKey:@"Font"];
+        [value addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
+            font, NSFontAttributeName,
+            // style, NSParagraphStyleAttributeName,
+            nil]
+            range:NSMakeRange(0, [value length])];
+        [[artistController selection] setValue:value forKeyPath:@"Tags"];
+    } @catch (NSException *e) {
+        [[artistController selection] setValue:[[[NSAttributedString alloc]
+            initWithString:NSLocalizedString(@"No tags found", "")] autorelease]  forKeyPath:@"Tags"];
+        ScrobLog(SCROB_LOG_ERR, @"Exception processing tags: %@", e);
+    }
+}
+
 - (void)openConnection:(NSArray*)args
 {
     NSMutableURLRequest *request = [args objectAtIndex:0];
@@ -517,7 +574,7 @@ static NSImage *artistImgPlaceholder = nil;
     [detailsProgress startAnimation:nil];
     
     detailsLoaded = 0;
-    detailsToLoad = 5;
+    detailsToLoad = 6;
     detailsData = [[NSMutableDictionary alloc] initWithCapacity:detailsToLoad+1];
     [detailsData setObject:artist forKey:@"artist"];
     
@@ -558,9 +615,12 @@ static NSImage *artistImgPlaceholder = nil;
     detailsLoaded += 2;
     #endif
     
-    MakeRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
+    MakeRequest(detailsArtistTags, @"artist/%@/toptags.xml", artist);
     
     delay += 1.0;
+    MakeRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
+    
+    delay += 0.5;
     MakeRequest(detailsSimArtists, @"artist/%@/similar.xml", artist);
     
     delay += 0.5;
@@ -605,6 +665,8 @@ static NSImage *artistImgPlaceholder = nil;
         [self loadTopFansData:xml];
     } else if (obj == detailsSimArtists) {
         [self loadSimilarArtistsData:xml];
+    } else if (obj == detailsArtistTags) {
+        [self loadArtistTags:xml];
     }
     
     } @catch (NSException *e) {

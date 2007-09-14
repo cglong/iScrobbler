@@ -59,12 +59,19 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
-		D3B19D7C0B4F31AF008F54BF /* iPodLimitations.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */; };
+		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
+		D38F6D730B535AF800230DBE /* Recommend.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6D710B535AF800230DBE /* Recommend.nib */; };
+		D38F6FB60B541A6300230DBE /* Tag.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6FB40B541A6300230DBE /* Tag.nib */; };
+		D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6FB80B541A9000230DBE /* ISTagController.m */; };
+		D38F74BB0B56CDEC00230DBE /* LoveBanList.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F74B90B56CDEC00230DBE /* LoveBanList.nib */; };
+		D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */; };
+		D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */ = {isa = PBXBuildFile; fileRef = D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */; };
 		D3B19F470B517381008F54BF /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
 		D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D394C809BC0658004E215A /* ArtistDetails.nib */; };
@@ -130,32 +137,27 @@
 		D317911F0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
 		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
 		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D31791240A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = French; path = French.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
-		D31791250A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
-		D31791260A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
-		D31791270A6A9B5C00B0F081 /* French */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = French; path = French.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D31791280A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = German; path = German.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
-		D31791290A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
-		D317912A0A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
-		D317912B0A6A9B5C00B0F081 /* German */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = German; path = German.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D317912C0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Spanish; path = Spanish.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
-		D317912D0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
-		D317912E0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
-		D317912F0A6A9B5C00B0F081 /* Spanish */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Spanish; path = Spanish.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D38F6CCD0B53514400230DBE /* ISRecommendController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRecommendController.h; sourceTree = "<group>"; };
+		D38F6CCE0B53514400230DBE /* ISRecommendController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRecommendController.m; sourceTree = "<group>"; };
+		D38F6D720B535AF800230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Recommend.nib; sourceTree = "<group>"; };
+		D38F6FB50B541A6300230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Tag.nib; sourceTree = "<group>"; };
+		D38F6FB70B541A9000230DBE /* ISTagController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISTagController.h; sourceTree = "<group>"; };
+		D38F6FB80B541A9000230DBE /* ISTagController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISTagController.m; sourceTree = "<group>"; };
+		D38F74BA0B56CDEC00230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/LoveBanList.nib; sourceTree = "<group>"; };
+		D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISLoveBanListController.h; sourceTree = "<group>"; };
+		D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISLoveBanListController.m; sourceTree = "<group>"; };
+		D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v12.m; sourceTree = "<group>"; };
+		D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v12.h; sourceTree = "<group>"; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
-		D3B19D7B0B4F31AF008F54BF /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = res/English.lproj/iPodLimitations.rtf; sourceTree = "<group>"; };
 		D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iPodUpdate.applescript; sourceTree = "<group>"; };
+		D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASXMLRPC.h; sourceTree = "<group>"; };
+		D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASXMLRPC.m; sourceTree = "<group>"; };
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScrobLog.m; sourceTree = "<group>"; };
-		D3C1125808456573000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/MainMenu.nib; sourceTree = "<group>"; };
-		D3C11260084565A5000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/Preferences.nib; sourceTree = "<group>"; };
-		D3C11263084565AF000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/StatisticsController.nib; sourceTree = "<group>"; };
-		D3C11266084565BA000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/TopLists.nib; sourceTree = "<group>"; };
-		D3C11269084565C2000AA2BC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = de.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D3CB130F07750960009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StatisticsController.nib; sourceTree = "<group>"; };
 		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
@@ -230,17 +232,22 @@
 				F575CE9702FE0E8801A80164 /* iScrobblerController.m */,
 				D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */,
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
+				D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
+				D38F6CCE0B53514400230DBE /* ISRecommendController.m */,
 				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
+				D38F6FB80B541A9000230DBE /* ISTagController.m */,
 				F575CEAA02FF7F3501A80164 /* PreferenceController.m */,
 				EB50662D03FBB239005DC01B /* keychain.m */,
 				D312EB560735548F00A2CFD5 /* QueueManager.m */,
 				D312EDA007359DE000A2CFD5 /* ProtocolManager.m */,
 				D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */,
+				D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */,
 				EB607519042A747B005DC01B /* SongData.m */,
 				D3B61DF30744151D00AF5A33 /* ScrobLog.m */,
 				D3CB1314077509D3009236FF /* StatisticsController.m */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
+				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
 			);
 			name = Classes;
@@ -321,6 +328,9 @@
 				D3CB38A207A59AE5009236FF /* TopLists.nib */,
 				D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */,
 				D3D394C809BC0658004E215A /* ArtistDetails.nib */,
+				D38F6D710B535AF800230DBE /* Recommend.nib */,
+				D38F6FB40B541A6300230DBE /* Tag.nib */,
+				D38F74B90B56CDEC00230DBE /* LoveBanList.nib */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
@@ -373,7 +383,6 @@
 		D3D7C26F080B99ED005EF5CA /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
-				D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */,
 				EB24D529040AECC8005DC01B /* CHANGE_LOG */,
 				EB16394A04080C51005DC01B /* README */,
 			);
@@ -397,8 +406,11 @@
 			children = (
 				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
+				D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D38F6CCD0B53514400230DBE /* ISRecommendController.h */,
 				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
+				D38F6FB70B541A9000230DBE /* ISTagController.h */,
 				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
 				EB50662F03FBB284005DC01B /* keychain.h */,
 				EB607518042A747B005DC01B /* SongData.h */,
@@ -406,9 +418,11 @@
 				D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */,
 				D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */,
 				D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */,
+				D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */,
 				D3B61DF20744151D00AF5A33 /* ScrobLog.h */,
 				D3CB1313077509D3009236FF /* StatisticsController.h */,
 				D3CB38A507A59AFE009236FF /* TopListsController.h */,
+				D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */,
 			);
 			name = Headers;
 			path = src;
@@ -486,7 +500,9 @@
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
 				D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */,
-				D3B19D7C0B4F31AF008F54BF /* iPodLimitations.rtf in Resources */,
+				D38F6D730B535AF800230DBE /* Recommend.nib in Resources */,
+				D38F6FB60B541A6300230DBE /* Tag.nib in Resources */,
+				D38F74BB0B56CDEC00230DBE /* LoveBanList.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -534,6 +550,11 @@
 				D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */,
 				D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */,
 				D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */,
+				D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */,
+				D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */,
+				D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */,
+				D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */,
+				D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -552,7 +573,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				29B97319FDCFA39411CA2CEA /* English */,
-				D3C1125808456573000AA2BC /* de */,
 			);
 			name = MainMenu.nib;
 			sourceTree = "<group>";
@@ -561,9 +581,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D317911D0A6A9B5C00B0F081 /* English */,
-				D31791240A6A9B5C00B0F081 /* French */,
-				D31791280A6A9B5C00B0F081 /* German */,
-				D317912C0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdate.strings;
 			sourceTree = "<group>";
@@ -572,9 +589,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D317911F0A6A9B5C00B0F081 /* English */,
-				D31791250A6A9B5C00B0F081 /* French */,
-				D31791290A6A9B5C00B0F081 /* German */,
-				D317912D0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateAsk.nib;
 			sourceTree = "<group>";
@@ -583,9 +597,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D31791210A6A9B5C00B0F081 /* English */,
-				D31791260A6A9B5C00B0F081 /* French */,
-				D317912A0A6A9B5C00B0F081 /* German */,
-				D317912E0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateDownload.nib;
 			sourceTree = "<group>";
@@ -594,19 +605,32 @@
 			isa = PBXVariantGroup;
 			children = (
 				D31791230A6A9B5C00B0F081 /* English */,
-				D31791270A6A9B5C00B0F081 /* French */,
-				D317912B0A6A9B5C00B0F081 /* German */,
-				D317912F0A6A9B5C00B0F081 /* Spanish */,
 			);
 			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
 		};
-		D3B19D7A0B4F31AF008F54BF /* iPodLimitations.rtf */ = {
+		D38F6D710B535AF800230DBE /* Recommend.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				D3B19D7B0B4F31AF008F54BF /* English */,
+				D38F6D720B535AF800230DBE /* English */,
 			);
-			name = iPodLimitations.rtf;
+			name = Recommend.nib;
+			sourceTree = "<group>";
+		};
+		D38F6FB40B541A6300230DBE /* Tag.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D38F6FB50B541A6300230DBE /* English */,
+			);
+			name = Tag.nib;
+			sourceTree = "<group>";
+		};
+		D38F74B90B56CDEC00230DBE /* LoveBanList.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D38F74BA0B56CDEC00230DBE /* English */,
+			);
+			name = LoveBanList.nib;
 			sourceTree = "<group>";
 		};
 		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {
@@ -621,7 +645,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D3CB130F07750960009236FF /* English */,
-				D3C11263084565AF000AA2BC /* de */,
 			);
 			name = StatisticsController.nib;
 			sourceTree = "<group>";
@@ -630,7 +653,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				F575CEAE02FF7FB901A80164 /* English */,
-				D3C11260084565A5000AA2BC /* de */,
 			);
 			name = Preferences.nib;
 			sourceTree = "<group>";
@@ -639,7 +661,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D3CB38A307A59AE5009236FF /* English */,
-				D3C11266084565BA000AA2BC /* de */,
 			);
 			name = TopLists.nib;
 			sourceTree = "<group>";
@@ -656,7 +677,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				D3D7BB000809A806005EF5CA /* English */,
-				D3C11269084565C2000AA2BC /* de */,
 			);
 			name = ISProfileReport.nib;
 			sourceTree = "<group>";
@@ -734,7 +754,8 @@
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_MODEL_TUNING = G5;
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
@@ -746,7 +767,8 @@
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_MODEL_TUNING = G5;
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};

@@ -102,7 +102,7 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
             d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE];
         }
         if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
-            d = [[NSString stringWithFormat:@"  **** New Session %@ (%@) ****\n",
+            d = [[NSString stringWithFormat:@"  **** New Session %@/%@ ****\n",
                     [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
                     [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]]
                 dataUsingEncoding:NSUTF8StringEncoding];

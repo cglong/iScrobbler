@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 12/18/04.
-//  Copyright 2004 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -21,7 +21,8 @@
     IBOutlet id submissionProgress;
     IBOutlet NSImageView *artworkImage, *checkImage;
     
-    id artistDetails;
+    NSMutableDictionary *toolbarItems;
+    id artistDetails, rpcreq;
 }
 
 + (StatisticsController*) sharedInstance;

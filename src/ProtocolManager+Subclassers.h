@@ -3,7 +3,7 @@
  *  iScrobbler
  *
  *  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004 Brian Bergstrand.
+//  Copyright 2004,2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -33,6 +33,11 @@
 // submissions this number will be 0.
 - (NSData*)encodeSong:(SongData*)song submissionNumber:(unsigned)submissionNumber;
 
+- (NSString*)authChallengeResponse;
+
+// optional as earlier protocol versions don't support this
+- (NSData*)nowPlayingDataForSong:(SongData*)song;
+
 @end
 
 // These are implemented in the abstract base,
@@ -59,5 +64,6 @@
 #define HS_RESPONSE_KEY_MD5 @"MD5 Challenge"
 #define HS_RESPONSE_KEY_SUBMIT_URL @"Submit URL"
 #define HS_RESPONSE_KEY_UPDATE_URL @"Update URL"
+#define HS_RESPONSE_KEY_NOWPLAYING_URL @"Now Playing URL"
 // 1.1 only
 #define HS_RESPONSE_KEY_INTERVAL @"Interval"

@@ -3,10 +3,9 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <notify.h>
@@ -15,6 +14,7 @@
 #import "ProtocolManager.h"
 #import "ProtocolManager+Subclassers.h"
 #import "ProtocolManager_v11.h"
+#import "ProtocolManager_v12.h"
 #import "keychain.h"
 #import "QueueManager.h"
 #import "SongData.h"
@@ -25,8 +25,9 @@
 /* From IRC:
    Russ​​: ...The server cuts any submission off at 1000,
    I personally recommend you don't go over 50 or 100 in a single submission */
-#define DEFAULT_MAX_TRACKS_PER_SUB 50
+#define DEFAULT_MAX_TRACKS_PER_SUB 25
 #define MAX_MISSING_VAR_ERRORS 2
+#define BADAUTH_WARN 5
 
 @interface ProtocolManager (Private)
 
@@ -38,6 +39,8 @@
 - (NSString*)md5Challenge;
 - (NSString*)submitURL;
 - (void)setIsNetworkAvailable:(BOOL)available;
+- (NSString*)protocolVersion;
+- (void)sendNowPlaying;
 
 @end
 
@@ -49,6 +52,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 
 #define NETWORK_UNAVAILABLE_MSG @"Network is not available, submissions are being queued.\n"
 
+#define PM_VERSION [[ProtocolManager sharedInstance] protocolVersion]
+
 @implementation ProtocolManager
 
 + (ProtocolManager*)sharedInstance
@@ -57,7 +62,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         if ([@"1.1" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
             g_PM = [[ProtocolManager_v11 alloc] init];
         else if ([@"1.2" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
-            g_PM = [[ProtocolManager_v11 alloc] init];
+            g_PM = [[ProtocolManager_v12 alloc] init];
         else
             ScrobLog(SCROB_LOG_CRIT, @"Unknown protocol version\n");
     }
@@ -157,22 +162,24 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 	BOOL success;
     if ((success = [self validHandshake])) {
         hsState = hs_valid;
+        subFailures = 0;
+        hsBadAuth = 0;
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
 	} else {
         if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
             // If this occurs during a handshake, the user name is invalid.
             // If it occurs during a sub, the user name is valid, but the password is not.
             //hsState = hs_needed;
-            if (lastAttemptBadAuth) {
+            ++hsBadAuth;
+            if (hsBadAuth >= BADAUTH_WARN) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
                 handshakeDelay = HANDSHAKE_DEFAULT_DELAY * 2.0f;
-                lastAttemptBadAuth = NO;
+                hsBadAuth = 0;
 			} else {
                 handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
-			    lastAttemptBadAuth = YES;
             }
         } else {
-            lastAttemptBadAuth = NO;
+            hsBadAuth = 0;
             //hsState = hs_delay;
             handshakeDelay *= 2.0f;
             if (handshakeDelay > [self handshakeMaxDelay])
@@ -184,6 +191,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
+    
+    if (success && sendNP)
+        [self sendNowPlaying];
     
     if (success && [[QueueManager sharedInstance] count])
         [self submit:nil];
@@ -207,6 +217,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     hsState = hs_inprogress;
+    npInProgress = NO;
     
     NSString* url = /*@"127.0.0.1"*/ [self handshakeURL];
     ScrobLog(SCROB_LOG_VERBOSE, @"Handshaking... %@", url);
@@ -273,12 +284,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return ([submitResult objectForKey:HS_RESPONSE_KEY_RESULT_MSG]);
 }
 
-- (BOOL) validHandshake
+- (BOOL)validHandshake
 {
     NSString *result = [self lastHandshakeResult];
     
-    return ([result isEqualToString:HS_RESULT_OK] ||
-         [result isEqualToString:HS_RESULT_UPDATE_AVAIL]);
+    return ([result isEqualToString:HS_RESULT_OK]);
 }
 
 - (unsigned)submissionAttemptsCount
@@ -312,8 +322,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     lastSongSubmitted = song;
     
     NSDictionary *d = [lastSongSubmitted songData];
-    if (d)
+    if (d) {
         [prefs setObject:d forKey:@"LastSongSubmitted"];
+        (void)[prefs synchronize];
+    }
 }
 
 - (NSString*)md5Challenge
@@ -324,6 +336,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (NSString*)submitURL
 {
     return ([hsResult objectForKey:HS_RESPONSE_KEY_SUBMIT_URL]);
+}
+
+- (NSString*)nowPlayingURL
+{
+    return ([hsResult objectForKey:HS_RESPONSE_KEY_NOWPLAYING_URL]);
 }
 
 // Defaults
@@ -341,9 +358,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     agent = [[prefs stringForKey:@"useragent"] mutableCopy];
     
 #ifdef __ppc__
-    NSString *arch = @"ppc";
+    NSString *arch = @"PPC";
 #elif defined(__i386__)
-    NSString *arch = @"i386";
+    NSString *arch = @"Intel";
 #else
 #error unknown arch
 #endif
@@ -390,7 +407,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         dataUsingEncoding:NSUTF8StringEncoding]];
     [subLog writeData:data];
     [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    } @finally {}
+    } @catch(id e) {}
 }
 
 // URLConnection callbacks
@@ -427,10 +444,17 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade)
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
 	
-    //[self changeLastResult:result];
+    if (npInProgress) {
+        [myData release];
+        myData = nil;
+        myConnection = nil;
+        npInProgress = NO;
+        ScrobLog(SCROB_LOG_VERBOSE, @"NP result: %@", result);
+        return;
+    }
+    
+    ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
     ScrobLog(SCROB_LOG_TRACE, @"Tracks in queue after submission: %d", [[QueueManager sharedInstance] count]);
-	
-	ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
     
     [self setSubmitResult:[self submitResponse:result]];
     
@@ -452,6 +476,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         
         ++successfulSubmissions;
         missingVarErrorCount = 0;
+        subBadAuth = 0;
         
         // See if there are any more entries in the queue
         if ([[QueueManager sharedInstance] count]) {
@@ -463,19 +488,19 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:myData];
         
-		hsState = hs_needed;
+        if (++subFailures >= 3)
+            hsState = hs_needed;
         
 		if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_BADAUTH]) {
-			// Send notification if we received BADAUTH twice
-			if (lastAttemptBadAuth) {
+			hsState = hs_needed;
+            ++subBadAuth;
+            // Send notification if we've hit the threshold
+			if (subBadAuth >= BADAUTH_WARN) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
-                lastAttemptBadAuth = NO;
-			} else {
-			    lastAttemptBadAuth = YES;
+                subBadAuth = 0;
 			}
 		} else {
-			lastAttemptBadAuth = NO;
-            
+			subBadAuth = 0;
             if ([[self lastSubmissionResult] isEqualToString:HS_RESULT_FAILED_MISSING_VARS]) {
                 ++missingVarErrorCount;
             } else
@@ -532,6 +557,14 @@ didFinishLoadingExit:
         return;
     }
     
+    myConnection = nil;
+    
+    if (npInProgress) {
+        npInProgress = NO;
+        ScrobLog(SCROB_LOG_INFO, @"NP Connection error: '%@'.", [reason localizedDescription]);
+        return;
+    }
+    
     [self setSubmitResult:
         [NSDictionary dictionaryWithObjectsAndKeys:
         HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
@@ -539,8 +572,6 @@ didFinishLoadingExit:
         nil]];
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
-    
-    myConnection = nil;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
     
@@ -631,31 +662,15 @@ didFinishLoadingExit:
     
     (void)[inFlight retain];
     NSMutableData *subData = [[NSMutableData alloc] init];
-
-    NSString* escapedusername=[(NSString*)
-        CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
-            NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) 	autorelease];
     
     @try {
-    [self setSubValue:escapedusername forKey:@"u" inData:subData];
-    
-    //retrieve the password from the keychain, and hash it for sending
-    NSString *pass = [[NSString alloc] initWithString:
-        [myKeyChain genericPasswordForService:@"iScrobbler" account:[prefs stringForKey:@"username"]]];
-    //ScrobTrace(@"pass: %@", pass);
-    NSString *hashedPass = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:pass]];
-    [pass release];
-    //ScrobTrace(@"hashedPass: %@", hashedPass);
-    //ScrobTrace(@"md5Challenge: %@", md5Challenge);
-    NSString *concat = [[NSString alloc] initWithString:[hashedPass stringByAppendingString:[self md5Challenge]]];
-    [hashedPass release];
-    //ScrobTrace(@"concat: %@", concat);
-    NSString *response = [[NSString alloc] initWithString:[[NSApp delegate] md5hash:concat]];
-    [concat release];
-    //ScrobTrace(@"response: %@", response);
-    
-    [self setSubValue:response forKey:@"s" inData:subData];
-    [response autorelease];
+    if ([[self protocolVersion] isEqualToString:@"1.1"]) {
+        NSString* escapedusername=[(NSString*)
+            CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
+                NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
+        [self setSubValue:escapedusername forKey:@"u" inData:subData];
+    }
+    [self setSubValue:[self authChallengeResponse] forKey:@"s" inData:subData];
     
     // Fill the dictionary with every entry in the queue, ordering them from
     // oldest to newest.
@@ -692,6 +707,7 @@ didFinishLoadingExit:
 - (NSString*)netDiagnostic
 {
     NSString *msg = nil;
+    #pragma weak CFNetDiagnosticCreateWithURL
     if (CFNetDiagnosticCreateWithURL) { // 10.4 only
         CFNetDiagnosticRef diag = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault,
             (CFURLRef)[NSURL URLWithString:[self handshakeURL]]);
@@ -767,6 +783,69 @@ didFinishLoadingExit:
     successfulSubmissions = 0;
 }
 
+static SongData *npSong = nil;
+static int npDelays = 0;
+- (void)sendNowPlaying
+{
+    sendNP = NO;
+    
+    NSMutableURLRequest *request =
+		[NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
+								cachePolicy:NSURLRequestReloadIgnoringCacheData
+							timeoutInterval:REQUEST_TIMEOUT];
+	[request setHTTPMethod:@"POST"];
+	[request setHTTPBody:[self nowPlayingDataForSong:npSong]];
+    // Set the user-agent to something Mozilla-compatible
+    [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+    
+    if (!myConnection) {
+        myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+        npInProgress = YES;
+        npDelays = 0;
+        
+        ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
+        if (SCROB_LOG_TRACE == ScrobLogLevel())
+            [self writeSubLogEntry:UINT_MAX withTrackCount:1 withData:[request HTTPBody]];
+    } else if (npDelays < 3) {
+        [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+1) * 1.0];
+    } else {
+        npDelays = 0;
+        ScrobLog(SCROB_LOG_WARN, @"Can't send NP notification as a connection to the server is already in progress.");
+    }
+}
+
+- (void)nowPlaying:(NSNotification*)note
+{
+    SongData *s = [note object];
+    BOOL repeat = NO;
+    id obj;
+    NSDictionary *userInfo = [note userInfo];
+    if (userInfo && (obj = [userInfo objectForKey:@"repeat"]))
+        repeat = [obj boolValue];
+    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length]) {
+        if (!s) {
+            [npSong release];
+            npSong = nil;
+        }
+        return;
+    }
+    
+    [npSong release];
+    npSong = [s retain];
+    
+    // We must execute a server handshake before
+    // doing anything else. If we've already handshaked, then no
+    // worries.
+    if (hs_valid != hsState) {
+		ScrobLog(SCROB_LOG_VERBOSE, @"NP: Need to handshake.\n");
+        sendNP = YES;
+		[self handshake];
+        return;
+    }
+    
+    [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:1.0];
+}
+
 - (id)init
 {
     self = [super init];
@@ -800,6 +879,9 @@ didFinishLoadingExit:
              IsNetworkUp(connectionFlags)) {
             [self setIsNetworkAvailable:YES];
         } else {
+            // XXX isNetworkAvailable is initialized to false during alloc, set it to true
+            // so [self setIsNetworkAvailable:] sends the notification that the network is down
+            isNetworkAvailable = YES;
             [self setIsNetworkAvailable:NO];
         }
         // Install a callback to get notified of iface up/down events
@@ -846,6 +928,11 @@ didFinishLoadingExit:
     
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
+    
+    if ([self respondsToSelector:@selector(nowPlayingDataForSong:)]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
+    }
 
     // We are an abstract class, only subclasses return valid objects
     return (nil);
@@ -873,8 +960,8 @@ didFinishLoadingExit:
     BOOL good = ( IsTrackTypeValid([self type])
         && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
         && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
-        [[self position] floatValue] > [pm minTimePlayed]) );
-    if (good && !reconstituted) {
+        [[self elapsedTime] floatValue] > [pm minTimePlayed] || reconstituted) );
+    if ([PM_VERSION isEqualTo:@"1.1"] && good && !reconstituted) {
         // Make sure there was no forward seek (allowing for a little fudge time)
         // This is not perfect, so some "illegal" tracks may slip through.
         NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + ([SongData songTimeFudge] * 2);
@@ -901,6 +988,9 @@ didFinishLoadingExit:
 
 - (NSTimeInterval)submitIntervalFromNow
 {
+    if ([PM_VERSION isEqualTo:@"1.2"])
+        return (PM_SUBMIT_AT_TRACK_END);
+        
     double trackTime = [[self duration] doubleValue];
     static double minTime = -1.0;
     static double quotient;
@@ -919,6 +1009,15 @@ didFinishLoadingExit:
     
     trackTime += fudge; // Add some fudge to make sure the track gets submitted when the timer fires.
     return (trackTime);
+}
+
+- (double)resubmitInterval
+{
+    if ([PM_VERSION isEqualTo:@"1.2"])
+        return (0.0);
+        
+    double interval = ([[self duration] doubleValue] - [[self position] doubleValue]) / 3.0;
+    return (interval);
 }
 
 @end

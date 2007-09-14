@@ -1,26 +1,23 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>d99871f1ee9ddf5ae693a56d6add14f5346e7348</string>
+        	<string></string>
         </dict>
         <key>Version</key>
-        <string>1.2.2b2</string>
+        <string>1.5.1b1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.2.2b2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.1b1.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- The Top Lists profile now includes the elpased time since the last profile reset.
-- Bug Fix: Top Tracks search field was mis-behaving.
-b1:
-- A profile reset now requires confirmation.
-- Bug Fix: The auto version update check is now silent if there is no update.
-- Bug Fix: It was possible for the submission countdown in the Stats window to get confused and display a completely invalid time.
-- Bug Fix: The authentication warning dialog will now display when necessary.
+                <string>- New Local Profile Chart: Top Hours
+- Growl iPod sync notification
+- Growl play notifications will be coalesced if multiples are on screen
+- Minor bug fixes
                 </string>
         </dict>
 </dict>

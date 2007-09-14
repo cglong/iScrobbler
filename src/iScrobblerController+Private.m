@@ -1,9 +1,9 @@
 //
 //  Created by Brian Bergstrand on 4/4/2005.
-//  Copyright 2005,2006 Brian Bergstrand.
+//  Copyright 2005-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  iscrobbler/res/gpl.txt
 //
 
 @interface SongData (iScrobblerControllerPrivateAdditions)
@@ -66,7 +66,7 @@
 
 // =========== iPod Support ============
 
-#define IPOD_SYNC_VALUE_COUNT 13
+#define IPOD_SYNC_VALUE_COUNT 14
 
 #define ONE_DAY 86400.0
 #define ONE_WEEK (ONE_DAY * 7.0)
@@ -96,6 +96,45 @@
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+- (void)fixIPodShuffleTimes:(NSArray*)songs withRequestDate:(NSDate*)requestEpoch
+{
+    NSArray *sorted = [songs sortedArrayUsingSelector:@selector(compareSongLastPlayedDate:)];
+    int i;
+    unsigned count = [sorted count];
+    // Shuffle plays will have a last played equal to the time the Shuffle was sync'd
+    NSTimeInterval shuffleEpoch = [[NSDate date] timeIntervalSince1970] - 1.0;
+    SongData *song;
+    for (i = 1; i < count; ++i) {
+        song = [sorted objectAtIndex:i-1];
+        SongData *nextSong = [sorted objectAtIndex:i];
+        if (NSOrderedSame != [song compareSongLastPlayedDate:nextSong]) {
+            requestEpoch = [song postDate];
+            continue;
+        }
+        
+        NSDate *shuffleBegin = [song lastPlayed];
+        shuffleEpoch = [shuffleBegin timeIntervalSince1970] - 1.0;
+        ScrobLog(SCROB_LOG_TRACE, @"Shuffle play block begins at %@", shuffleBegin);
+        for (i -= 1; i < count; ++i) {
+            song = [sorted objectAtIndex:i];
+            if (NSOrderedSame != [[song lastPlayed] compare:shuffleBegin]) {
+                i = count;
+                break;
+            }
+            [song setLastPlayed:[NSDate dateWithTimeIntervalSince1970:shuffleEpoch]];
+            shuffleEpoch -= [[song duration] doubleValue];
+            [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:shuffleEpoch]];
+            // Make sure the song passes submission rules                            
+            [song setStartTime:[NSDate dateWithTimeIntervalSince1970:shuffleEpoch]];
+            [song setPosition:[song duration]];
+        }
+    }
+    
+    if ([[NSDate dateWithTimeIntervalSince1970:shuffleEpoch] isLessThan:requestEpoch])
+        ScrobLog(SCROB_LOG_WARN, @"All iPod Shuffle tracks could not be adjusted to fit into the time period since "
+            @"the last submission. Some tracks may not be submitted or may be rejected by the last.fm servers.");
+}
+
 /*
 Validate all of the post dates. We do this, because there seems
 to be a iTunes bug that royally screws up last played times during daylight
@@ -108,9 +147,11 @@ and some of the last played dates will be very bad.
 {
     NSMutableArray *sorted = [[songs sortedArrayUsingSelector:@selector(compareSongPostDate:)] mutableCopy];
     int i;
+    unsigned count;
     
 validate:
-    for (i = 1; i < [sorted count]; ++i) {
+    count = [sorted count];
+    for (i = 1; i < count; ++i) {
         SongData *thisSong = [sorted objectAtIndex:i];
         SongData *lastSong = [sorted objectAtIndex:i-1];
         NSTimeInterval thisPost = [[thisSong postDate] timeIntervalSince1970];
@@ -138,7 +179,7 @@ validate:
         NSArray *trackList, *trackData;
         NSString *errInfo = nil, *playlist;
         NSTimeInterval now, fudge;
-        unsigned int added;
+        unsigned int added = 0;
         
         // Get our iPod update script
         if (!iPodUpdateScript) {
@@ -177,14 +218,9 @@ validate:
         // of the tracks played during the pause will be picked up (in auto-sync mode).
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission;
-        NSArray *queuedSongs = [[[QueueManager sharedInstance] songs]
-            sortedArrayUsingSelector:@selector(compareSongPostDate:)];
-        if (queuedSongs && [queuedSongs count] > 0)
-            lastSubmission = [queuedSongs lastObject];
-        else
-            lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
-        NSDate *requestDate;
+        SongData *lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted]; // XXX Bug if subs are being cached
+        NSDate *requestDate, *iPodMountEpoch;
+        iPodMountEpoch = [[[iPodMounts allValues] sortedArrayUsingSelector:@selector(compare:)] lastObject];
         if (lastSubmission) {
             requestDate = [NSDate dateWithTimeIntervalSince1970:
                 [[lastSubmission startTime] timeIntervalSince1970] +
@@ -197,6 +233,11 @@ validate:
                 [requestDate timeIntervalSince1970] + [SongData songTimeFudge]];
         } else
             requestDate = iTunesLastPlayedTime;
+        
+        // XXX: If we are not submitting (no connection or last.fm server is down), then we could get dupes from
+        // the iPod if it's sync'd more than once, since the [ProtocolManager lastSongSubmitted] will not be updating.
+        // This is generally not a problem, as the Cache Manager will discard the dupes. However, we could solve this
+        // by remembering the last sync time for each iPod (by generating a UUID that is stored on the iPod disk).
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
             requestDate);
@@ -220,6 +261,7 @@ validate:
                 scriptMsgCode = [[trackData objectAtIndex:0] intValue];
             } @catch (NSException *exception) {
                 ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript script invalid result: parsing exception %@\n.", exception);
+                errInfo = [exception description];
                 goto sync_exit_with_note;
             }
             
@@ -234,8 +276,12 @@ validate:
                     errnum = [NSNumber numberWithInt:-1];
                 }
                 // Display dialog instead of logging?
-                ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
-                    errmsg, errnum);
+                if (errnum)
+                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
+                        errmsg, errnum);
+                else
+                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: \"%@\" (%@)\n", errmsg, errnum);
+                errInfo = errmsg;
                 goto sync_exit_with_note;
             }
 
@@ -277,6 +323,7 @@ validate:
                     }
                 }
                 
+                [self fixIPodShuffleTimes:iqueue withRequestDate:requestDate];
                 iqueue = [self validateIPodSync:iqueue];
                 
                 en = [iqueue objectEnumerator];
@@ -287,6 +334,14 @@ validate:
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@.\n",
                             [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
                             requestDate);
+                        continue;
+                    }
+                    if ([[song lastPlayed] isGreaterThan:iPodMountEpoch]) {
+                        ScrobLog(SCROB_LOG_INFO,
+                            @"Discarding '%@' in the assumption that it was played after an iPod sync began.\n\t"
+                            "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@, iPodMountEpoch: %@.\n",
+                            [song brief], [song postDate], [song lastPlayed], [[song duration] doubleValue],
+                            requestDate, iPodMountEpoch);
                         continue;
                     }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
@@ -309,7 +364,12 @@ validate:
 sync_exit_with_note:
         [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_END
             object:nil
-            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:iPodMountPath, IPOD_SYNC_KEY_PATH, nil]];
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                iPodMountPath, IPOD_SYNC_KEY_PATH,
+                [NSNumber numberWithUnsignedInt:added], IPOD_SYNC_KEY_TRACK_COUNT,
+                // errInfo may be nil, so it should always be last in the arg list
+                errInfo, IPOD_SYNC_KEY_SCRIPT_MSG,
+                nil]];
         
     } // if ("Sync iPod")
 }
@@ -326,6 +386,10 @@ sync_exit_with_note:
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
         [self setValue:mountPath forKey:@"iPodMountPath"];
+        if (!iPodMounts)
+            iPodMounts = [[NSMutableDictionary alloc] init];
+        [iPodMounts setObject:[NSDate date] forKey:mountPath];
+        
         ISASSERT(iPodIcon == nil, "iPodIcon exists!");
         if ([[NSFileManager defaultManager] fileExistsAtPath:
             [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
@@ -333,6 +397,8 @@ sync_exit_with_note:
                 [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
             [iPodIcon setName:IPOD_ICON_NAME];
         }
+        ++iPodMountCount;
+        ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
     }
 }
@@ -344,12 +410,19 @@ sync_exit_with_note:
 	
     ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.\n", info);
     
-    if ([iPodMountPath isEqualToString:mountPath]) {
+    if ([iPodMounts objectForKey:mountPath]) {
         [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
         [self setValue:nil forKey:@"iPodMountPath"];
         [iPodIcon release];
         iPodIcon = nil;
-        [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
+        
+        --iPodMountCount;
+        ISASSERT(iPodMountCount > -1, "negative ipod count!");
+        [iPodMounts removeObjectForKey:mountPath];
+        if (0 == iPodMountCount) {
+            [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
+            [[QueueManager sharedInstance] submit];
+        }
     }
 }
 
@@ -388,6 +461,9 @@ bad_song_data:
         NSString *commentArg = [data objectAtIndex:12];
         if (commentArg)
             [self setComment:commentArg];
+        NSNumber *trackNum = [data objectAtIndex:13];
+        if (trackNum)
+            [self setTrackNumber:trackNum];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data: %@\n", exception);
         goto bad_song_data;
@@ -405,7 +481,8 @@ bad_song_data:
 
 - (NSDictionary *) registrationDictionaryForGrowl
 {
-    NSArray *notifications = [NSArray arrayWithObject:IS_GROWL_NOTIFICATION_TRACK_CHANGE];
+    NSArray *notifications = [NSArray arrayWithObjects:
+        IS_GROWL_NOTIFICATION_TRACK_CHANGE, IS_GROWL_NOTIFICATION_IPOD_DID_SYNC, nil];
     return ( [NSDictionary dictionaryWithObjectsAndKeys:
         notifications, GROWL_NOTIFICATIONS_ALL,
         notifications, GROWL_NOTIFICATIONS_DEFAULT,

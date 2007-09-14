@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006 Brian Bergstrand.
+* Copyright 2002,2006,2007 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -191,10 +191,12 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 }
 
 // NSWindowController
-- (void)close;
+- (void)close
 {
    [verInfo release];
+   verInfo = nil;
    [source release];
+   source = nil;
    
    [[NSUserDefaults standardUserDefaults]
       setBool:(NSOnState == [boxDontCheck state]) forKey:@"BBNetUpdateDontAutoCheckVersion"];
@@ -216,7 +218,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 
 - (void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender
 {
-   [progressBar startAnimation:self];
+   [progressBar startAnimation:nil];
    [progressBar displayIfNeeded];
 }
 
@@ -230,11 +232,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    NSData *data = [sender resourceData];
    
    if (data) {
-      CFStringRef *errstr = NULL;
+      CFStringRef errstr = NULL;
       BOOL display = NO;
       
       verInfo = (NSDictionary*)CFPropertyListCreateFromXMLData(NULL, (CFDataRef)data, 
-         kCFPropertyListImmutable, errstr);
+         kCFPropertyListImmutable, &errstr);
       if (errstr)
          CFRelease(errstr);
       
@@ -287,11 +289,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
    }
    
+   [progressBar stopAnimation:nil];
+   [progressBar displayIfNeeded];
+   
    if (![[super window] isVisible])
       [self close];
-   
-   [progressBar stopAnimation:self];
-   [progressBar displayIfNeeded];
 }
 
 - (void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes
@@ -314,7 +316,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    [buttonDownload setTitle:@"OK"];
    [buttonDownload setEnabled:YES];
    
-   [progressBar stopAnimation:self];
+   [progressBar stopAnimation:nil];
    [progressBar displayIfNeeded];
 }
 

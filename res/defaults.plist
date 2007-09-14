@@ -11,6 +11,12 @@
     <key>ASS URL</key>
 	<string>http://ws.audioscrobbler.com/ass/</string>
     
+    <key>AutoTagLovedBanned</key>
+    <false />
+    
+    <key>AutoLoveTracksRatedHigherThan</key>
+    <integer>1000000</integer>
+    
 	<key>Number of Songs to Save</key>
 	<integer>5</integer>
     
@@ -24,6 +30,9 @@
     <true />
     
     <key>Disable Local Lists</key>
+    <false />
+    
+    <key>ForcePlayCache</key>
     <false />
     
     <key>GrowlPlays</key>
@@ -43,6 +52,9 @@
     
     <key>iPod Submission Playlist</key>
     <string>Recently Played</string>
+    
+    <key>QueueSubmissionsIfiPodIsMounted</key>
+    <true />
     
     <key>Disable Update Notification</key>
     <false />
@@ -73,20 +85,23 @@
     
     <key>WS URL</key>
 	<string>http://ws.audioscrobbler.com/1.0/</string>
+    
+    <key>WS ROOT</key>
+	<string>http://ws.audioscrobbler.com/</string>
         
 	<key>clientid</key>
 	<string>osx</string>
 	
 	<key>protocol</key>
-	<string>1.1</string>
+	<string>1.2</string>
         
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/1.2.2</string>
+	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/1.5.1</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>1.2.2</string>
+	<string>1.5.1</string>
 </dict>
 </plist>

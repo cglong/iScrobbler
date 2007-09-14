@@ -4,10 +4,9 @@
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
 //  Major re-write in 2005 by Brian Bergstrand.
-//  Copyright (c) 2005,2006 Brian Bergstrand. All rights reserved.
+//  Copyright (c) 2005-2007 Brian Bergstrand. All rights reserved.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <sys/types.h>
@@ -61,6 +60,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 {
     [super init];
 
+    iTunes = YES;
     // set the id
     songID = g_songID;
     IncrementAtomic((SInt32*)&g_songID);
@@ -78,6 +78,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     // initialize with current time
     [self setStartTime:[NSDate date]];
     [self setLastPlayed:[NSDate date]];
+    [self setPausedTime:[NSNumber numberWithInt:0]];
 
     return self;
 }
@@ -100,14 +101,19 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     [copy setPausedTime:[self pausedTime]];
     [copy setPostDate:[self postDate]];
     [copy setLastPlayed:[self lastPlayed]];
+    [copy setLoved:(BOOL)loved];
+    [copy setBanned:(BOOL)banned];
+    [copy setTrackNumber:[self trackNumber]];
+    
+    copy->iTunes = self->iTunes;
 
     return (copy);
 }
 
 - (NSString*)description
 {
-    return ([NSString stringWithFormat:@"<SongData: %p> %@ (id: %u)",
-        self, [self brief], songID]);
+    return ([NSString stringWithFormat:@"<SongData: %p> %@ (id: %u, start=%@, dur=%@, last=%@)",
+        self, [self brief], songID, [self startTime], [self duration], [self lastPlayed]]);
 }
 
 // returns a float value between 0 and 100 indicating how much of the song
@@ -118,7 +124,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
     // The amount of time passed since the song started, divided by the duration of the song
     // times 100 to generate a percentage.
-    NSNumber * percentage = [NSNumber numberWithDouble:(([[self position] doubleValue] / [[self duration] doubleValue]) * 100)];
+    NSNumber * percentage = [NSNumber numberWithDouble:(([[self elapsedTime] doubleValue] / [[self duration] doubleValue]) * 100)];
 
     return percentage;
 }
@@ -152,6 +158,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     return ([[self postDate] compare:[song postDate]]);
 }
 
+- (NSComparisonResult)compareSongLastPlayedDate:(SongData*)song
+{
+    return ([[self lastPlayed] compare:[song lastPlayed]]);
+}
+
 // This is a dump of /dev/urandom
 #define SD_MAGIC [NSNumber numberWithUnsignedInt:0xae0da1b7]
 #define SD_KEY_MAGIC @"SDM"
@@ -168,10 +179,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 #define SD_KEY_TYPE @"Type"
 #define SD_KEY_ITUNES_DB_ID @"iTunes DB ID"
 #define SD_KEY_MBID @"MBID"
+#define SD_KEY_TRACKNUM @"Track Number"
 - (NSDictionary*)songData
 {
     NSString *ptitle, *palbum, *partist, *ppath, *pmbid;
-    NSNumber *pduration, *ptype, *pitunesid;
+    NSNumber *pduration, *ptype, *pitunesid, *ptrackNumber;
     NSDate *ppostDate, *plastPlayed, *pstartTime;
     
     ptitle = [self title];
@@ -183,7 +195,8 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     plastPlayed = [self lastPlayed];
     pstartTime = [self startTime];
     ptype = [NSNumber numberWithInt:[self type]];
-    pitunesid = [NSNumber numberWithInt:[self iTunesDatabaseID]];
+    pitunesid = [NSNumber numberWithUnsignedLongLong:[self iTunesDatabaseID]];
+    ptrackNumber = [self trackNumber];
     @try {
         if ((pmbid = [self mbid]) && [pmbid length] == 0)
             pmbid = nil;
@@ -213,6 +226,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         pstartTime, SD_KEY_STARTTIME,
         ptype, SD_KEY_TYPE,
         pitunesid, SD_KEY_ITUNES_DB_ID,
+        ptrackNumber, SD_KEY_TRACKNUM,
         pmbid, SD_KEY_MBID,
         nil];
     return (d);
@@ -244,9 +258,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         else
             [self setType:trackTypeFile]; // If missing, then we are upgrading from a pre-1.1 version
         if ((obj = [data objectForKey:SD_KEY_ITUNES_DB_ID]))
-            [self setiTunesDatabaseID:[obj intValue]];
+            [self setiTunesDatabaseID:[obj unsignedLongLongValue]];
         if ((obj = [data objectForKey:SD_KEY_MBID]))
             [self setMbid:obj];
+        if ((obj = [data objectForKey:SD_KEY_TRACKNUM]))
+            [self setTrackNumber:obj];
         reconstituted = YES;
         return (YES);
     }
@@ -256,15 +272,24 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 ////// Accessors Galore ///////
 
-- (int)iTunesDatabaseID
+- (BOOL)isPlayeriTunes
+{
+    return (iTunes);
+}
+
+- (void)setIsPlayeriTunes:(BOOL)val
+{
+    iTunes = val;
+}
+
+- (u_int64_t)iTunesDatabaseID
 {
     return (iTunesDatabaseID);
 }
 
-- (void)setiTunesDatabaseID:(int)newID
+- (void)setiTunesDatabaseID:(u_int64_t)newID
 {
-    if (newID >= 0)
-        iTunesDatabaseID = newID;
+    iTunesDatabaseID = newID;
 }
 
 // title is the title of the song
@@ -383,6 +408,27 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     [newPausedTime retain];
     [pausedTime release];
     pausedTime = newPausedTime;
+}
+
+- (void)didPause
+{
+    [self setLastPlayed:[NSDate date]];
+    isPaused = 1;
+}
+
+- (BOOL)isPaused
+{
+    return (isPaused);
+}
+
+- (void)didResumeFromPause
+{
+    NSTimeInterval elapsed = [[self lastPlayed] timeIntervalSinceNow];
+    if (elapsed < 0.0) { // should never have a future time
+        elapsed = floor(fabs(elapsed)) + [[self pausedTime] floatValue];
+        [self setPausedTime:[NSNumber numberWithDouble:elapsed]];
+    }
+    isPaused = 0;
 }
 
 // postDate is the moment in which the initial submission was attempted
@@ -552,10 +598,19 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 - (NSNumber*)elapsedTime
 {
+    NSNumber *zero = [NSNumber numberWithDouble:0.0];
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
     if (elapsed > 0.0) // We should never have a future value
-        return ([NSNumber numberWithDouble:0.0]);
-    return ([NSNumber numberWithDouble:floor(fabs(elapsed))]);
+        return (zero);
+    NSNumber *n = [NSNumber numberWithDouble:floor(fabs(elapsed)) - [[self pausedTime] floatValue]];
+    
+    if ([n floatValue] < 0.0) {
+        // This can happen if the song is scrubbed back to the beginning and the pause time is > 0
+        [self setPausedTime:zero];
+        n = zero;
+    } else if ([n isGreaterThan:[self duration]])
+        n = [self duration];
+    return (n);
 }
 
 #define KEY_LAST_HIT @"last hit"
@@ -775,6 +830,36 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     }
     
     return (ignoreMe);
+}
+
+- (BOOL)loved
+{
+    return (loved);
+}
+
+- (void)setLoved:(BOOL)isLoved
+{
+    loved = isLoved;
+}
+
+- (BOOL)banned
+{
+    return (banned);
+}
+
+- (void)setBanned:(BOOL)isBanned
+{
+    banned = isBanned;
+}
+
+- (NSNumber*)trackNumber
+{
+    return ([NSNumber numberWithUnsignedInt:trackNumber]);
+}
+
+- (void)setTrackNumber:(NSNumber*)number
+{
+    trackNumber = [number unsignedIntValue];
 }
 
 - (void)dealloc

@@ -124,7 +124,8 @@ static QueueManager *g_QManager = nil;
     // Wake the protocol mgr
     if ([songQueue count]) {
         [self syncQueue:nil];
-        [[ProtocolManager sharedInstance] submit:nil];
+        if (NO == [[NSApp delegate] queueSongsForLaterSubmission])
+            [[ProtocolManager sharedInstance] submit:nil];
     }
 }
 
@@ -295,7 +296,13 @@ static QueueManager *g_QManager = nil;
             NSString *dirPath  = (NSString*)CFURLCopyFileSystemPath((CFURLRef)url, kCFURLPOSIXPathStyle);
             [url release];
             if (dirPath) {
-                queuePath = [[dirPath stringByAppendingPathComponent:@"net_sourceforge_iscrobbler_cache.plist"] retain];
+                NSString *tmp = [dirPath stringByAppendingPathComponent:@"net_sourceforge_iscrobbler_cache.plist"];
+                if ([[NSFileManager defaultManager] fileExistsAtPath:tmp]) {
+                    (void)[[NSFileManager defaultManager] movePath:tmp
+                        toPath:[dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"]
+                        handler:nil];
+                }
+                queuePath = [[dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"] retain];
                 [dirPath release];
             }
         }

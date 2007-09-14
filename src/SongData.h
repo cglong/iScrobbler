@@ -4,7 +4,9 @@
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
 //  Copyright (c) 2003 Sam Ley. All rights reserved.
-//  Copyright 2004-2006 Brian Bergstrand.
+//  Copyright 2004-2007 Brian Bergstrand.
+//
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
@@ -22,7 +24,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 @interface SongData : NSObject <NSCopying> {
     unsigned int songID; // Internal id #
-    int iTunesDatabaseID; // iTunes track id
+    u_int64_t iTunesDatabaseID; // iTunes track id
     NSString * title;
     NSNumber * duration;
     NSNumber * position;
@@ -40,11 +42,16 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSString *comment;
     NSString *mbid;
     TrackType_t trackType;
-    BOOL isPodcast;
-    BOOL hasQueued;
-    BOOL hasSeeked;
-    BOOL reconstituted;
-    BOOL passedFilters;
+    unsigned trackNumber;
+    unsigned isPodcast : 1;
+    unsigned hasQueued : 1;
+    unsigned hasSeeked : 1;
+    unsigned reconstituted : 1;
+    unsigned passedFilters : 1;
+    unsigned loved : 1;
+    unsigned banned : 1;
+    unsigned iTunes : 1;
+    unsigned isPaused : 1;
 }
 
 // Value to pad time calculations with
@@ -66,10 +73,15 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (NSComparisonResult) compareSongPostDate:(SongData*)song;
 
+- (NSComparisonResult)compareSongLastPlayedDate:(SongData*)song;
+
 ////// Accessors Galore ///////
 
-- (int)iTunesDatabaseID;
-- (void)setiTunesDatabaseID:(int)newID;
+- (BOOL)isPlayeriTunes;
+- (void)setIsPlayeriTunes:(BOOL)val;
+
+- (u_int64_t)iTunesDatabaseID;
+- (void)setiTunesDatabaseID:(u_int64_t)newID;
 
 // title is the title of the song
 - (NSString *)title;
@@ -106,6 +118,10 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 // pausedTime is the total length of time the song has been paused for
 - (NSNumber *)pausedTime;
 - (void)setPausedTime:(NSNumber *)newPausedTime;
+
+- (void)didPause;
+- (BOOL)isPaused;
+- (void)didResumeFromPause;
 
 // postDate is the moment in which the initial submission was attempted
 - (NSDate *)postDate;
@@ -163,6 +179,15 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (void)setMbid:(NSString*)newMBID;
 
 - (BOOL)ignore;
+
+- (BOOL)loved;
+- (void)setLoved:(BOOL)isLoved;
+
+- (BOOL)banned;
+- (void)setBanned:(BOOL)isBanned;
+
+- (NSNumber*)trackNumber;
+- (void)setTrackNumber:(NSNumber*)number;
 
 @end
 

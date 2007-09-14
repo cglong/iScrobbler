@@ -3,12 +3,15 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Feb 14, 2003.
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//
+//  Released under the GPL, license details available res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
+#ifndef __LP64__
+// Growl not 64bit yet
 #import <Growl/Growl.h>
+#endif
 
 @class PreferenceController;
 @class SongData;
@@ -21,6 +24,8 @@
 
     //the menu attached to the status item
     IBOutlet NSMenu *theMenu;
+    // a sub-menu attached to recently played songs
+    NSMenu *songActionMenu;
 
     //the script to get information from iTunes
     NSAppleScript *script;
@@ -31,10 +36,10 @@
     // Song that iTunes is currently playing (or pausing)
     SongData *currentSong;
     NSTimer *currentSongQueueTimer;
+    BOOL currentSongPaused;
 
     //the preferences window controller
     PreferenceController *preferenceController;
-    
     // Preferences tracking object
     NSUserDefaults *prefs;
 
@@ -45,11 +50,13 @@
     
     // iPod sync management
     NSString *iPodMountPath;
+    NSMutableDictionary *iPodMounts;
     NSImage *iPodIcon;
-    BOOL isIPodMounted;
     NSDate *iTunesLastPlayedTime;
+    int iPodMountCount;
     NSArray *iTunesPlaylists;
     
+    BOOL badAuthAlertIsOpen;
     // Temporarily disable submissions
     BOOL submissionsDisabled;
 }
@@ -85,11 +92,17 @@
 
 -(SongData*)nowPlaying;
 
+- (BOOL)queueSongsForLaterSubmission;
+
 -(NSString*)stringByEncodingURIChars:(NSString*)str;
 -(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
 
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
+
+// Bindings
+- (BOOL)isIPodMounted;
+- (void)setIsIPodMounted:(BOOL)val;
 
 @end
 
@@ -124,6 +137,8 @@ if (0 == (condition)) { \
 #define IPOD_SYNC_KEY_PATH @"Path"
 #define IPOD_SYNC_KEY_ICON @"Icon"
 #define IPOD_ICON_NAME @"iPod Icon"
+#define IPOD_SYNC_KEY_TRACK_COUNT @"Track Count"
+#define IPOD_SYNC_KEY_SCRIPT_MSG @"Script Msg"
 
 #define RESET_PROFILE @"org.bergstrand.iscrobbler.resetProfile"
 
