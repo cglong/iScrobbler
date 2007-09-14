@@ -13,6 +13,12 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v1.5.1 (BDB)
+- New Local Profile Chart: Top Hours - play counts and time broken down by hour
+- Growl iPod sync notification
+- Growl play notifications will be coalesced if multiples are on screen
+- Bug Fix: If submissions are paused while a song is playing, it won't be submitted.
+
 v1.5 (BDB)
 - iPod Shuffle support (courtesy of a donation from patsyfreer).
 - You can now Love, Ban, Tag and Recommend the currently playing track and tracks in the Top Lists window (10.4+ only). To clear all tags associated with an item, set the mode to Overwrite and leave the tags empty.
