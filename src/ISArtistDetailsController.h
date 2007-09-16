@@ -28,7 +28,6 @@
     id delegate;
 }
 
-+ (BOOL)canLoad; // Determine if this class can be used on the current system
 + (ISArtistDetailsController*)artistDetailsWithDelegate:(id)obj;
 
 - (IBAction)openDetails:(id)sender;

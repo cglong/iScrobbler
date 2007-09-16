@@ -932,58 +932,56 @@ player_info_exit:
         enableMenu = YES;
     [self enableStatusItemMenu:enableMenu];
     
-    if ([ASXMLRPC isAvailable]) {
-        // Setup the action menu template
-        songActionMenu = [[NSMenu alloc] init];
-        [songActionMenu setAutoenablesItems:NO];
-        NSMenuItem *item;
-        NSString *title;
-        title = [NSString stringWithFormat:@"%C ", 0x2665];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Love", "")]
-            action:@selector(loveTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_LOVE_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        title = [NSString stringWithFormat:@"%C ", 0x2298];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
-            action:@selector(banTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_BAN_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        title = [NSString stringWithFormat:@"%C ", 0x270E];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
-            action:@selector(tagTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_TAG_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        title = [NSString stringWithFormat:@"%C ", 0x2709];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]
-            action:@selector(recommendTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_RECOMEND_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        #ifdef notyet
-        item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play", "")
-            action:@selector(playSong:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_PLAY_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        #endif
-    }
+    // Setup the action menu template
+    songActionMenu = [[NSMenu alloc] init];
+    [songActionMenu setAutoenablesItems:NO];
+    NSMenuItem *item;
+    NSString *title;
+    title = [NSString stringWithFormat:@"%C ", 0x2665];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Love", "")]
+        action:@selector(loveTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_LOVE_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x2298];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
+        action:@selector(banTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_BAN_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x270E];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
+        action:@selector(tagTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_TAG_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x2709];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]
+        action:@selector(recommendTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_RECOMEND_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    #ifdef notyet
+    item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play", "")
+        action:@selector(playSong:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_PLAY_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    #endif
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification

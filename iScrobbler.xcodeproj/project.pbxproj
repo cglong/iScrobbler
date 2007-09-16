@@ -684,7 +684,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		D328477F08566B30009B4D14 /* Development */ = {
+		D328477F08566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -716,9 +716,9 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Development;
+			name = Debug;
 		};
-		D328478008566B30009B4D14 /* Deployment */ = {
+		D328478008566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -746,33 +746,31 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Deployment;
+			name = Release;
 		};
-		D328478308566B30009B4D14 /* Development */ = {
+		D328478308566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_MODEL_TUNING = G5;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Development;
+			name = Debug;
 		};
-		D328478408566B30009B4D14 /* Deployment */ = {
+		D328478408566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_MODEL_TUNING = G5;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Deployment;
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -780,20 +778,20 @@
 		D328477E08566B30009B4D14 /* Build configuration list for PBXNativeTarget "iScrobbler" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D328477F08566B30009B4D14 /* Development */,
-				D328478008566B30009B4D14 /* Deployment */,
+				D328477F08566B30009B4D14 /* Debug */,
+				D328478008566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
+			defaultConfigurationName = Debug;
 		};
 		D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D328478308566B30009B4D14 /* Development */,
-				D328478408566B30009B4D14 /* Deployment */,
+				D328478308566B30009B4D14 /* Debug */,
+				D328478408566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

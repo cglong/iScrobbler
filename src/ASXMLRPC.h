@@ -18,8 +18,6 @@
     id adelegate, conn, representedObj;
 }
 
-+ (BOOL)isAvailable;
-
 - (NSString*)method;
 - (void)setMethod:(NSString*)method;
 
