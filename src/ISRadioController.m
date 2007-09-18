@@ -10,6 +10,7 @@
 
 #import "ISRadioController.h"
 #import "iScrobblerController.h"
+#import "SongData.h"
 #import "ASWebServices.h"
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
@@ -276,10 +277,19 @@
 {
     static NSTimer *ping = nil;
     
+    [ping invalidate];
+    [ping release];
+    ping = nil;
+    
     // emulate an iTunes Play event
     NSDictionary *np = [note userInfo];
-    
     NSString *state = np && (NSOrderedSame == [[np objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) ? @"Playing" : @"Stopped";
+    
+    if ([state isEqualToString:@"Stopped"]) {
+        SongData *s = [[NSApp delegate] nowPlaying];
+        if (!s || ![s isLastFmRadio])
+            return;
+    }
     
     int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -299,9 +309,6 @@
         //@"Track Number",
         nil];
     
-    [ping invalidate];
-    [ping release];
-    ping = nil;
     if (duration > 0) {
         int progress = [[np objectForKey:@"trackprogress"] intValue];
         duration -= progress;
@@ -327,8 +334,8 @@
 
 - (void)nowPlaying:(NSNotification*)note
 {
-    if (![note object] && [[ASWebServices sharedInstance] nowPlayingInfo]) {
-        [[ASWebServices sharedInstance] updateNowPlaying];
+    if (![note object] || ![[note object] isLastFmRadio]) {
+        [[ASWebServices sharedInstance] stop];
     }
 }
 
