@@ -28,6 +28,7 @@
 - (void)setDiscovery:(BOOL)state;
 - (void)tuneStation:(NSString*)station;
 - (void)exec:(NSString*)command;
+- (void)stop;
 
 - (NSString*)station:(NSString*)type forUser:(NSString*)user;
 - (NSString*)stationForCurrentUser:(NSString*)type;

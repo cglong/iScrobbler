@@ -259,6 +259,15 @@ static NSMutableDictionary *connData = nil;
     }
 }
 
+- (void)stop
+{
+    [nowplaying release];
+    nowplaying = nil;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:@"false", @"streaming", nil]];
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)uresponse
 {
     if (needHandshake) {
