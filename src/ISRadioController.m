@@ -224,7 +224,7 @@
     [GrowlApplicationBridge
             notifyWithTitle:NSLocalizedString(@"Failed to tune station", "")
             description:@""
-            notificationName:@"error"
+            notificationName:IS_GROWL_NOTIFICATION_ALERTS
             iconData:nil
             priority:0.0
             isSticky:YES
