@@ -10,6 +10,10 @@ if [ ! -d ./build ]; then
 fi
 
 BIN=./build/Release # XCode 2.1 default
+if [ ! -z $1 ] && [ "$1" == "-d" ]; then
+	BIN=./build/Debug
+fi
+
 if [ ! -d ${BIN} ]; then
 	BIN=./build/Deployment
 	if [ ! -d ${BIN} ]; then
