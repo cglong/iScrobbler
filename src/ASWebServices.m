@@ -93,7 +93,7 @@ static NSMutableDictionary *connData = nil;
     [hstimer invalidate];
     hstimer = nil;
     hstimer = [NSTimer scheduledTimerWithTimeInterval:handshakeDelay
-        target:self selector:@selector(handshake:) userInfo:nil repeats:NO];
+        target:self selector:@selector(handshake) userInfo:nil repeats:NO];
     if (handshakeDelay < 3600.0f)
         handshakeDelay += 60.0f;
 }
