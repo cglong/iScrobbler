@@ -5,20 +5,17 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>4884dd509ddd77948e247ac837b0600244c44246</string>
+        	<string>42b739468551e8ff1c1d25855c034b54814338d7</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0</string>
+        <string>2.0.0a1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.0.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a1.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- iPod Shuffle support.
-- Love, Ban, Tag and Recommend support (10.4+ only).
-- Audioscrobbler Protocol 1.2 is now supported (and the default).
-- New icon courtesy of einsteinbqat.
-- Many other minor enhancements and bug fixes.
+                <string> - Requires 10.4
+- Last.fm Radio support! (Plays through iTunes.)
                 </string>
         </dict>
 </dict>

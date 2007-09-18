@@ -178,7 +178,11 @@ __private_extern__ scrob_log_level_t ScrobLogLevel(void)
 {
     CreateStringToLevelDict();
     NSNumber *lev =  [string_to_scrob_level objectForKey:
+#ifndef ISDEBUG
         [[NSUserDefaults standardUserDefaults] objectForKey:@"Log Level"]];
+#else
+        @"TRACE"];
+#endif
     if (lev)
         return ([lev intValue]);
     

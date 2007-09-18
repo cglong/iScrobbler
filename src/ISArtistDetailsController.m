@@ -52,12 +52,6 @@ static NSImage *artistImgPlaceholder = nil;
     return (self);
 }
 
-+ (BOOL)canLoad
-{
-    // 10.4+ only
-    return (nil !=  NSClassFromString(@"NSXMLDocument"));
-}
-
 + (ISArtistDetailsController*)artistDetailsWithDelegate:(id)obj
 {
     return ([[[ISArtistDetailsController alloc] initWithDelegate:obj] autorelease]);
@@ -103,13 +97,12 @@ static NSImage *artistImgPlaceholder = nil;
     [similarArtistsTable setTarget:self];
     [similarArtistsTable setDoubleAction:@selector(handleSimilarDoubleClick:)];
     
-    Class nsLevel = NSClassFromString(@"NSLevelIndicatorCell");
-    id obj = [nsLevel new];
+    id obj = [[NSLevelIndicatorCell alloc] initWithLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
     [obj setMaxValue:100.0];
     [obj setMinValue:0.0]; 
-    [obj setLevelIndicatorStyle:NSRelevancyLevelIndicatorStyle];
     [[similarArtistsTable tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
     [obj setEnabled:NO];
+    [obj release];
     [similarArtistsTable setAutosaveName:[[delegate windowFrameAutosaveName] stringByAppendingString:@"Artist Details"]];
     
     [self setDetails:nil];
@@ -636,8 +629,7 @@ static NSImage *artistImgPlaceholder = nil;
         goto loadDetailsExit;
     
     NSError *err;
-    Class xmlClass = NSClassFromString(@"NSXMLDocument");
-    NSXMLDocument *xml = [[xmlClass alloc] initWithData:data
+    NSXMLDocument *xml = [[NSXMLDocument alloc] initWithData:data
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
             error:&err];
     

@@ -79,8 +79,7 @@
     NSError *err = nil;
     NSXMLDocument *xml = nil;
     if (responseData) {
-        Class xmlDoc = NSClassFromString(@"NSXMLDocument");
-        xml = [[xmlDoc alloc] initWithData:responseData
+        xml = [[NSXMLDocument alloc] initWithData:responseData
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
             error:&err];
     } else

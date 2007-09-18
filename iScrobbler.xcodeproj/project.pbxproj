@@ -17,6 +17,7 @@
 				D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */,
 				D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */,
 				D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */,
+				D3C3FD620C9EA0E2001AEFEA /* iTunesPlayURL.applescript in AppleScript */,
 			);
 			isSharedContext = 0;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,6 +74,9 @@
 		D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
+		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
+		D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */; };
+		D3C3FD620C9EA0E2001AEFEA /* iTunesPlayURL.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
 		D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D394C809BC0658004E215A /* ArtistDetails.nib */; };
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
@@ -159,6 +163,11 @@
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScrobLog.m; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASWebServices.h; sourceTree = "<group>"; };
+		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASWebServices.m; sourceTree = "<group>"; };
+		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRadioController.h; sourceTree = "<group>"; };
+		D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRadioController.m; sourceTree = "<group>"; };
+		D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlayURL.applescript; sourceTree = "<group>"; };
 		D3CB130F07750960009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StatisticsController.nib; sourceTree = "<group>"; };
 		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
 		D3CB1314077509D3009236FF /* StatisticsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = StatisticsController.m; sourceTree = "<group>"; };
@@ -234,6 +243,7 @@
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
 				D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
+				D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */,
 				D38F6CCE0B53514400230DBE /* ISRecommendController.m */,
 				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
 				D38F6FB80B541A9000230DBE /* ISTagController.m */,
@@ -248,6 +258,7 @@
 				D3CB1314077509D3009236FF /* StatisticsController.m */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
 				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
+				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
 			);
 			name = Classes;
@@ -375,6 +386,7 @@
 				D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */,
 				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
 				D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */,
+				D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */,
 			);
 			name = Scripts;
 			path = src;
@@ -408,6 +420,7 @@
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
 				D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */,
 				D38F6CCD0B53514400230DBE /* ISRecommendController.h */,
 				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
 				D38F6FB70B541A9000230DBE /* ISTagController.h */,
@@ -423,6 +436,7 @@
 				D3CB1313077509D3009236FF /* StatisticsController.h */,
 				D3CB38A507A59AFE009236FF /* TopListsController.h */,
 				D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */,
+				D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */,
 			);
 			name = Headers;
 			path = src;
@@ -555,6 +569,8 @@
 				D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */,
 				D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */,
 				D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */,
+				D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */,
+				D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -684,7 +700,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		D328477F08566B30009B4D14 /* Development */ = {
+		D328477F08566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -716,9 +732,9 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Development;
+			name = Debug;
 		};
-		D328478008566B30009B4D14 /* Deployment */ = {
+		D328478008566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -746,33 +762,33 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Deployment;
+			name = Release;
 		};
-		D328478308566B30009B4D14 /* Development */ = {
+		D328478308566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_FAST_OBJC_DISPATCH = NO;
 				GCC_MODEL_TUNING = G5;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Development;
+			name = Debug;
 		};
-		D328478408566B30009B4D14 /* Deployment */ = {
+		D328478408566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_FAST_OBJC_DISPATCH = NO;
 				GCC_MODEL_TUNING = G5;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Deployment;
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -780,20 +796,20 @@
 		D328477E08566B30009B4D14 /* Build configuration list for PBXNativeTarget "iScrobbler" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D328477F08566B30009B4D14 /* Development */,
-				D328478008566B30009B4D14 /* Deployment */,
+				D328477F08566B30009B4D14 /* Debug */,
+				D328478008566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
+			defaultConfigurationName = Debug;
 		};
 		D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D328478308566B30009B4D14 /* Development */,
-				D328478408566B30009B4D14 /* Deployment */,
+				D328478308566B30009B4D14 /* Debug */,
+				D328478408566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
