@@ -47,6 +47,9 @@
     <key>GrowlPlayFormat</key>
     <string>%a%n%A%n%r</string>
     
+    <key>GrowlLastFMCommunications</key>
+    <false />
+    
     <key>Sync iPod</key>
     <true />
     

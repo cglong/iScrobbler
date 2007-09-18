@@ -35,6 +35,7 @@
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
 #define IS_GROWL_NOTIFICATION_IPOD_WILL_SYNC @"iPod Sync Begin"
 #define IS_GROWL_NOTIFICATION_IPOD_DID_SYNC @"iPod Sync Finished"
+#define IS_GROWL_NOTIFICATION_PROTOCOL @"Last.fm Communications"
 
 // UTF16 barred eigth notes
 #define MENU_TITLE_CHAR 0x266B
@@ -120,6 +121,22 @@ static void handlesig (int sigraised)
     return (color ? color : [NSColor blackColor]);
 }
 
+- (void)growlProtocolEvent:(NSString *)msg
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlLastFMCommunications"]) {
+        #ifndef __LP64__
+        [GrowlApplicationBridge
+            notifyWithTitle:msg
+            description:@""
+            notificationName:IS_GROWL_NOTIFICATION_PROTOCOL
+            iconData:nil
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
+        #endif
+    }
+}
+
 - (void)updateStatusWithColor:(NSColor*)color withMsg:msg
 {
     NSAttributedString *newTitle =
@@ -173,7 +190,9 @@ static void handlesig (int sigraised)
     NSString *msg = nil;
     if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
+        [self growlProtocolEvent:NSLocalizedString(@"Handshake successful", "")];
     } else {
+        [self growlProtocolEvent:NSLocalizedString(@"Handshake failed", "")];
         msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %u)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];
@@ -197,8 +216,10 @@ static void handlesig (int sigraised)
     ProtocolManager *pm = [note object];
     NSString *msg = nil;
     if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
+        [self growlProtocolEvent:NSLocalizedString(@"Submission successful", "")];
         status = YES;
     } else {
+        [self growlProtocolEvent:NSLocalizedString(@"Submission failed", "")];
         msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %u)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];;

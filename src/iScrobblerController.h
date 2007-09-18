@@ -100,6 +100,9 @@
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
 
+// For last.fm communication events
+- (void)growlProtocolEvent:(NSString *)msg;
+
 // Bindings
 - (BOOL)isIPodMounted;
 - (void)setIsIPodMounted:(BOOL)val;
@@ -149,6 +152,8 @@ if (0 == (condition)) { \
 #else
 #define ISASSERT(condition,msg) {}
 #endif
+
+#define IS_GROWL_NOTIFICATION_ALERTS @"Alerts"
 
 #define IPOD_SYNC_BEGIN @"org.bergstrand.iscrobbler.ipod.sync.begin"
 #define IPOD_SYNC_END @"org.bergstrand.iscrobbler.ipod.sync.end"
