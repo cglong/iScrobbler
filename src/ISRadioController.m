@@ -141,7 +141,7 @@
     if (!stopScript) {
         stopScript = [[NSAppleScript alloc] initWithSource:@"tell application \"iTunes\" to stop"];
         if (!stopScript || ![stopScript compileAndReturnError:nil]) {
-            ScrobLog(SCROB_LOG_CRIT, @"Could create iTunes stop script!");
+            ScrobLog(SCROB_LOG_CRIT, @"Could not create iTunes stop script!");
             [[NSApp delegate] showApplicationIsDamagedDialog];
             return;
         }
