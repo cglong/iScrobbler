@@ -93,6 +93,15 @@
             
             [m addItem:[NSMenuItem separatorItem]];
             
+            NSString *title = [NSString stringWithFormat:@"%C ", 0x25FC];
+            item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Stop", "")]
+                action:@selector(stop) keyEquivalent:@""];
+            [item setTarget:self];
+            [item setTag:MACTION_STOP];
+            [item setEnabled:NO];
+            [m addItem:item];
+            [item release];
+            
             item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Scrobble Radio Plays", "")
                 action:@selector(setRecordToProfile:) keyEquivalent:@""];
             [item setTarget:self];
@@ -128,7 +137,21 @@
 
 - (void)stop
 {
-
+    static NSAppleScript *stopScript = nil;
+    if (!stopScript) {
+        stopScript = [[NSAppleScript alloc] initWithSource:@"tell application \"iTunes\" to stop"];
+        if (!stopScript || ![stopScript compileAndReturnError:nil]) {
+            ScrobLog(SCROB_LOG_CRIT, @"Could create iTunes stop script!");
+            [[NSApp delegate] showApplicationIsDamagedDialog];
+            return;
+        }
+    }
+    
+    @try {
+        (void)[stopScript executeAndReturnError:nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't stop iTunes -- script error: %@.", exception);
+    }
 }
 
 - (void)playStation:(id)sender
@@ -198,7 +221,6 @@
 - (void)wsStationTuned:(NSNotification*)note
 {
     static NSAppleScript *playURLScript = nil;
-    
     if (!playURLScript) {
         NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
                     stringByAppendingPathComponent:@"Scripts/iTunesPlayURL.scpt"]];
@@ -286,10 +308,12 @@
     NSString *state = np && (NSOrderedSame == [[np objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) ? @"Playing" : @"Stopped";
     
     if ([state isEqualToString:@"Stopped"]) {
+        [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:NO];
         SongData *s = [[NSApp delegate] nowPlaying];
         if (!s || ![s isLastFmRadio])
             return;
-    }
+    } else
+        [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:YES];
     
     int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
