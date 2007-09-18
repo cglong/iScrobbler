@@ -487,8 +487,10 @@ if (currentSong) { \
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
-    if (!song)
+    if (!song) {
+        [self updateMenu];
         goto player_info_exit;
+    }
     
     BOOL didInfoUpdate;
     if (isPlayeriTunes)
