@@ -115,6 +115,24 @@
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds);
 
+// Track Extended Menu
+enum {
+    MACTION_LOVE_TAG = 99999,
+    MACTION_BAN_TAG,
+    MACTION_TAG_TAG,
+    MACTION_RECOMEND_TAG,
+    MACTION_PLAY,
+    MACTION_SKIP,
+    MACTION_DISCOVERY, // subscriber only
+    MACTION_SCROBRADIO,
+    MSTATION_INIT,
+    MSTATION_RECOMMENDED,
+    MSTATION_MYRADIO,  // subscriber only
+    MSTATION_MYLOVED, // subscriber only
+    MSTATION_MYNEIGHBORHOOD,
+    MSTATION_SEARCH
+};
+
 #ifdef __ppc__
 #define trap() asm volatile("trap")
 #elif __i386__

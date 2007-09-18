@@ -208,7 +208,14 @@ static NSImage *prevIcon = nil;
     switch (g_cycleState) {
         case title:
             rating = [g_nowPlaying starRating];
-            if ([rating length] > 0)
+            if ([g_nowPlaying isLastFmRadio]) {
+                unsigned int days, hours, minutes, seconds;
+                ISDurationsFromTime([[g_nowPlaying duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
+                if (0 == hours)
+                    msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%u:%02u)", minutes, seconds];
+                else
+                    msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%u:%02u:%02u)", hours, minutes, seconds];
+            } else  if ([rating length] > 0)
                 msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%@)", rating];
             else
                 msg = [g_nowPlaying title];

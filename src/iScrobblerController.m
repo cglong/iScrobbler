@@ -28,6 +28,7 @@
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
+#import "ISRadioController.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -39,14 +40,6 @@
 #define MENU_TITLE_CHAR 0x266B
 // UTF16 sharp note 
 #define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
-
-enum {
-    MACTION_LOVE_TAG = 99999,
-    MACTION_BAN_TAG,
-    MACTION_TAG_TAG,
-    MACTION_RECOMEND_TAG,
-    MACTION_PLAY_TAG
-};
 
 static int drainArtworkCacheFlag = 0, forcePlayCacheFlag = 0;
 
@@ -83,8 +76,8 @@ static void handlesig (int sigraised)
     - (float)minTimePlayed;
 @end
 
-#define CLEAR_MENUITEM_TAG          1
 #define SUBMIT_IPOD_MENUITEM_TAG    4
+#define RADIO_MENUITEM_TAG 5
 
 @interface SongData (iScrobblerControllerAdditions)
     - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
@@ -712,6 +705,8 @@ player_info_exit:
 
 - (void)enableStatusItemMenu:(BOOL)enable
 {
+    ISRadioController *rc = [ISRadioController sharedInstance];
+    
     if (enable) {
         if (!statusItem) {
             statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
@@ -727,8 +722,11 @@ player_info_exit:
             [statusItem setHighlightMode:YES];
             [statusItem setMenu:theMenu];
             [statusItem setEnabled:YES];
+            
+            [rc setRootMenu:[theMenu itemWithTag:RADIO_MENUITEM_TAG]];
         }
     } else if (statusItem) {
+        [rc setRootMenu:nil];
         [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
         [statusItem setMenu:nil];
         [statusItem release];
@@ -824,6 +822,11 @@ player_info_exit:
         // Register for iTunes track change notifications
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
+            object:nil];
+        
+        // Internal last.fm stream now playing info
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.bergstrand.iscrobbler.lasfm.playerInfo"
             object:nil];
         
         #ifdef notyet
@@ -1089,7 +1092,7 @@ player_info_exit:
     int songsToDisplay = [prefs integerForKey:@"Number of Songs to Save"];
     while ((song = [enumerator nextObject]) && addedSongs < songsToDisplay) {
         item = [[[NSMenuItem alloc] initWithTitle:[song title]
-                                           action:@selector(playSong:)
+                                    action:![song isLastFmRadio] ? @selector(playSong:) : nil
                                     keyEquivalent:@""] autorelease];
         
         [item setTarget:self];
@@ -1100,13 +1103,29 @@ player_info_exit:
     }
     
     if (addedSongs) {
-        if (songActionMenu && [self nowPlaying]) {
+        if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
-            NSMenuItem *item = [theMenu itemAtIndex:0];
             NSMenu *m = [songActionMenu copy];
-            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:[item representedObject]];
+            NSMenuItem *item;
+            if ([song isLastFmRadio]) {
+                NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
+                item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
+                    action:@selector(skip) keyEquivalent:@""];
+                [item setTarget:[ISRadioController sharedInstance]];
+                [item setTag:MACTION_SKIP];
+                [item setEnabled:YES];
+                [m addItem:item];
+                [item release];
+                
+                // Use the radio ban instead of the XML one so that the track is skipped as well as banned
+                item = [m itemWithTag:MACTION_BAN_TAG];
+                [item setAction:@selector(ban)];
+                [item setTarget:[ISRadioController sharedInstance]];
+            }
+            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
             
             item = [theMenu itemAtIndex:0];
+            ISASSERT(song == [item representedObject], "songs don't match!");
             [item setAction:nil];
             [item setSubmenu:m];
             [m release];
@@ -1661,11 +1680,15 @@ exit:
     igenre = [dict objectForKey:@"Genre"];
     itrackNumber = [dict objectForKey:@"Track Number"];
     
-    if (ipath)
+    if (ipath) {
+        @try {
         location = [NSURL URLWithString:ipath];
+        } @catch(id e) {location = nil;}
+    }
     
     if (!iname || !iartist || !iduration /*|| (location && ![location isFileURL])*/) {
-        //if (!(location && [location isFileURL]))
+        //if (!(location && [location isFileURL])) // don't allow streaming URLs
+        if (!location || [location isFileURL])
             ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
         [self dealloc];
         return (nil);
@@ -1689,6 +1712,14 @@ exit:
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     
+    // extra data from a last.fm stream
+    id o = [dict objectForKey:@"last.fm"];
+    if (o) {
+        isLastFmRadio = YES;
+        [self setHasQueued:YES];
+        ScrobDebug(@"created '%@' track from last.fm radio", [self brief]);
+    }
+    
     return (self);
 }
 
@@ -1697,6 +1728,8 @@ exit:
     [self setPosition:[song position]];
     [self setRating:[song rating]];
     [self setIsPlayeriTunes:[song isPlayeriTunes]];
+    if (isLastFmRadio = [song isLastFmRadio])
+        [self setHasQueued:YES];
 }
 
 - (NSString*)growlDescriptionWithFormat:(NSString*)format

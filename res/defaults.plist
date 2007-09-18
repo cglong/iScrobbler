@@ -88,7 +88,10 @@
     
     <key>WS ROOT</key>
 	<string>http://ws.audioscrobbler.com/</string>
-        
+    
+    <key>RadioPlaysScrobbled</key>
+    <true />
+    
 	<key>clientid</key>
 	<string>osx</string>
 	

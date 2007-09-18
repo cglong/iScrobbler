@@ -106,6 +106,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     [copy setTrackNumber:[self trackNumber]];
     
     copy->iTunes = self->iTunes;
+    copy->isLastFmRadio = self->isLastFmRadio;
 
     return (copy);
 }
@@ -850,6 +851,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 - (void)setBanned:(BOOL)isBanned
 {
     banned = isBanned;
+}
+
+- (BOOL)isLastFmRadio
+{
+    return (isLastFmRadio);
 }
 
 - (NSNumber*)trackNumber
