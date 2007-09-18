@@ -27,6 +27,14 @@ __private_extern__ void ScrobLog (scrob_log_level_t level, NSString *fmt, ...);
     NSString *newfmt = [NSString stringWithFormat:@"%s:%ld -- %@", __PRETTY_FUNCTION__, __LINE__, (fmt)]; \
     ScrobLog (SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
 } while (0)
+#ifdef ISDEBUG
+#define ScrobDebug(fmt, ...) do { \
+    NSString *newfmt = [NSString stringWithFormat:@"%s:%ld -- %@", __PRETTY_FUNCTION__, __LINE__, (fmt)]; \
+    ScrobLog (SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
+} while (0)
+#else
+#define ScrobDebug(fmt, ...)
+#endif
 
 // ScrobLogCreateFlags
 #define SCROB_LOG_OPT_SESSION_MARKER 0x00000001
