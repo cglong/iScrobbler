@@ -64,6 +64,15 @@
             [m addItem:item];
             [item release];
             
+            item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"My Playlist", "")
+                action:@selector(playStation:) keyEquivalent:@""];
+            [item setTarget:self];
+            [item setTag:MSTATION_MYPLAYLIST];
+            [item setEnabled:NO];
+            [item setRepresentedObject:[ws stationForCurrentUser:@"playlist"]];
+            [m addItem:item];
+            [item release];
+            
             item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"My Recommendations", "")
                 action:@selector(playStation:) keyEquivalent:@""];
             [item setTarget:self];
@@ -263,6 +272,7 @@
     NSMenu *m = [rootMenu submenu];
     [[m itemWithTag:MSTATION_MYRADIO] setEnabled:NO];
     [[m itemWithTag:MSTATION_MYLOVED] setEnabled:NO];
+    [[m itemWithTag:MSTATION_MYPLAYLIST] setEnabled:NO];
     [[m itemWithTag:MSTATION_RECOMMENDED] setEnabled:NO];
     [[m itemWithTag:MSTATION_MYNEIGHBORHOOD] setEnabled:NO];
     [[m itemWithTag:MSTATION_SEARCH] setEnabled:NO];
@@ -277,6 +287,7 @@
     NSMenu *m = [rootMenu submenu];
     [[m itemWithTag:MSTATION_RECOMMENDED] setEnabled:YES];
     [[m itemWithTag:MSTATION_MYNEIGHBORHOOD] setEnabled:YES];
+    [[m itemWithTag:MSTATION_MYPLAYLIST] setEnabled:YES];
     [[m itemWithTag:MACTION_SCROBRADIO] setEnabled:YES];
     // TOODO: [[rootMenu itemWithTag:MSTATION_SEARCH] setEnabled:YES];
     
