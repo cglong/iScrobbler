@@ -253,9 +253,40 @@
 - (void)wsStationTuneFailure:(NSNotification*)note
 {
     #ifndef __LP64__
+    int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
+    NSString *msg = @"";
+    switch (err) {
+        case 0:
+            msg = NSLocalizedString(@"Network error.", "");
+            break;
+        case 1:
+            msg = NSLocalizedString(@"Not enough content.", "");
+        break;
+        case 2:
+            msg = NSLocalizedString(@"Not enough group members.", "");
+        break;
+        case 3:
+            msg = NSLocalizedString(@"Not enough artist fans.", "");
+        break;
+        case 4:
+            msg = NSLocalizedString(@"Not available for streaming.", "");
+        break;
+        case 5:
+            msg = NSLocalizedString(@"You are not a subscriber.", "");
+        break;
+        case 6:
+            msg = NSLocalizedString(@"Not enough neighbors.", "");
+        break;
+        case 7:
+            msg = NSLocalizedString(@"Stopped stream. Please try another station.", "");
+        break;
+        default:
+            msg = NSLocalizedString(@"Unknown error.", "");
+        break;
+    }
     [GrowlApplicationBridge
             notifyWithTitle:NSLocalizedString(@"Failed to tune station", "")
-            description:@""
+            description:msg
             notificationName:IS_GROWL_NOTIFICATION_ALERTS
             iconData:nil
             priority:0.0

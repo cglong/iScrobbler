@@ -349,7 +349,8 @@ static NSMutableDictionary *connData = nil;
             ScrobLog(SCROB_LOG_TRACE, @"ASWS station tuned\n");
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationDidTune object:self];
         } else {
-            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self userInfo:
+                [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:err], @"error", nil]];
             ScrobLog(SCROB_LOG_ERR, @"ASWS tuning failure: %@\n", d);
         }
         return;
