@@ -140,14 +140,12 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
 
     data = [entry dataUsingEncoding:NSUTF8StringEncoding];
     [entry release];
-    NS_DURING
+    @try {
     [scrobLogFile writeData:data];
-#ifdef notyet
+#ifdef ISDEBUG
     [scrobLogFile synchronizeFile];
 #endif
-    NS_HANDLER
-    // Write failed
-    NS_ENDHANDLER
+    } @catch(id e) {}
 }
 
 __private_extern__ void ScrobLogTruncate(void)
