@@ -15,13 +15,6 @@
 #import "ScrobLog.h"
 #import "ISArtistDetailsController.h"
 
-#ifdef obsolete
-static NSXMLDocument *profileCache = nil;
-static NSDate *profileNextUpdate = nil;
-static NSXMLDocument *topArtistsCache = nil;
-static NSDate *topArtistsNextUpdate = nil;
-static NSTimeInterval topArtistsCachePeriod = 7200.0; // 2 hrs
-#endif
 static NSImage *artistImgPlaceholder = nil;
 #if 0
 #define dbgprint printf
@@ -178,91 +171,6 @@ static NSImage *artistImgPlaceholder = nil;
     }
 }
 
-#ifdef obsolete
-- (void)setCurrentRating
-{
-    int total = [[[artistController content] valueForKey:@"totalPlaycount"] intValue];
-    int artistPlays = [[[artistController content] valueForKey:@"artistPlaycount"] intValue];
-    if (total && artistPlays) {
-        float rating = 10000.0 * (float)artistPlays / ((float)total + 10000.0);
-        NSNumberFormatter *floatFmt = [[NSNumberFormatter alloc] init];
-        [floatFmt setFormat:@"0.00"];
-        [[artistController selection] setValue:[NSString stringWithFormat:@"%@ (%d / %d)",
-            [floatFmt stringForObjectValue:[NSNumber numberWithFloat:rating]], artistPlays, total]
-            forKeyPath:@"FanRating"];
-        [floatFmt release];
-    }
-}
-
-// Right after the release of 1.2, last.fm change top fans to a simple count of plays for the last week
-- (void)loadProfileData:(NSXMLDocument*)xml
-{
-    NSXMLElement *e = [xml rootElement];
-    NSArray *all = [e elementsForName:@"playcount"];
-    if (!all || [all count] <= 0)
-        return;
-    
-    e = [all objectAtIndex:0];
-    int ct = [[e stringValue] intValue];
-    if (ct) {
-        [[artistController selection] setValue:[NSNumber numberWithInt:ct] forKeyPath:@"totalPlaycount"];
-        [self setCurrentRating];
-        
-        if (xml && xml != profileCache) {
-            [profileCache release];
-            profileCache = [xml retain];
-            [profileNextUpdate release];
-            profileNextUpdate = [[NSDate dateWithTimeIntervalSinceNow:900.0 /* 15 minutes */] retain];
-            ScrobLog(SCROB_LOG_TRACE, @"Caching profile for %d seconds.\n", 900);
-            
-            // The smaller the play count, the more often the top artists can generate...
-            if (ct > 10000)
-                topArtistsCachePeriod = 21600.0; // 6 hrs
-            else if (ct > 1000)
-                topArtistsCachePeriod = 14400.0;
-            else if (ct > 100)
-                topArtistsCachePeriod = 7200.0;
-            else
-                topArtistsCachePeriod = 3600.0; // 1 hr
-        }
-    }
-}
-
-- (void)loadTopArtistsData:(NSXMLDocument*)xml artist:(NSString*)artist
-{
-    NSXMLElement *e = [xml rootElement];
-    NSArray *all = [e elementsForName:@"artist"];
-    if (!all || [all count] <= 0)
-        return;
-    
-    NSEnumerator *en = [all objectEnumerator];
-    while ((e = [en nextObject])) {
-        NSArray *values = [e elementsForName:@"name"];
-        if (values && [values count] > 0
-            && NSOrderedSame == [artist caseInsensitiveCompare:[[values objectAtIndex:0] stringValue]]) {
-            values = [e elementsForName:@"playcount"];
-            if (values && [values count] > 0) {
-                int ct = [[[values objectAtIndex:0] stringValue] intValue];
-                if (ct) {
-                    [[artistController selection] setValue:[NSNumber numberWithInt:ct] forKeyPath:@"artistPlaycount"];
-                    [self setCurrentRating];
-                }
-            }
-            break;
-        }
-    }
-    
-    if (artist && xml && xml != topArtistsCache) {
-        [topArtistsCache release];
-        topArtistsCache = [xml retain];
-        [topArtistsNextUpdate release];
-        topArtistsNextUpdate = [[NSDate dateWithTimeIntervalSinceNow:topArtistsCachePeriod] retain];
-        ScrobLog(SCROB_LOG_TRACE, @"Caching top artists for %.0f seconds.\n", topArtistsCachePeriod);
-    }
-}
-#endif
-
-
 - (void)loadTopFansData:(NSXMLDocument*)xml
 {
     NSXMLElement *e = [xml rootElement];
@@ -316,29 +224,6 @@ static NSImage *artistImgPlaceholder = nil;
             range:NSMakeRange(0, [value length])];
         [[artistController selection] setValue:value forKeyPath:@"TopFan"];
     }
-    
-#ifdef obsolete
-// 1.5: Replaced in favor of Artist tags
-    // If we weren't able to calculate a fan rating, see if the current user is listed in the AS fan data
-    NSString *unk = NSLocalizedString(@"Unknown", "");
-    if ([unk isEqualToString:[[artistController selection] valueForKey:@"FanRating"]]) {
-        NSString *curUser = [[ProtocolManager sharedInstance] userName];
-        all = [[xml rootElement] elementsForName:@"user"];
-        NSEnumerator *en = [all objectEnumerator];
-        while ((e = [en nextObject])) {
-            if ((user = [[[e attributeForName:@"username"] stringValue]
-                stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding])
-                && NSOrderedSame == [user caseInsensitiveCompare:curUser]) {
-                if ((all = [e elementsForName:@"weight"]) && [all count] > 0) {
-                    NSString *rating = [[all objectAtIndex:0] stringValue];
-                    if (rating)
-                        [[artistController selection] setValue:rating forKeyPath:@"FanRating"];
-                }
-                break;
-            }
-        }
-    }
-#endif
 }
 
 - (void)loadSimilarArtistsData:(NSXMLDocument*)xml
@@ -580,33 +465,8 @@ static NSImage *artistImgPlaceholder = nil;
     
     artist = [[NSApp delegate] stringByEncodingURIChars:artist];
     
-    #ifdef obsolete
-    NSDate *now = [NSDate date];
-    NSString *user = [[[ProtocolManager sharedInstance] userName]
-        stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    
-    if (!profileCache || !profileNextUpdate || [profileNextUpdate isLessThan:now]) {
-        MakeRequest(detailsProfile, @"user/%@/profile.xml", user);
-        delay = 0.5;
-    } else {
-        ++detailsLoaded;
-        ScrobLog(SCROB_LOG_TRACE, @"Loading profile from cache. Next load from net: %@.\n", profileNextUpdate);
-        [self loadProfileData:profileCache];
-    }
-    
-    if (!topArtistsCache || !topArtistsNextUpdate || [topArtistsNextUpdate isLessThan:now]) {
-        MakeRequest(detailsTopArtists, @"user/%@/topartists.xml", user);
-        delay += 0.5;
-    } else {
-        ++detailsLoaded;
-        ScrobLog(SCROB_LOG_TRACE, @"Loading top artists from cache. Next load from net: %@.\n", topArtistsNextUpdate);
-        // Use unescaped artist name
-        [self loadTopArtistsData:topArtistsCache artist:[detailsData objectForKey:@"artist"]];
-    }
-    #else
     // account for missing profile loads
     detailsLoaded += 2;
-    #endif
     
     MakeRequest(detailsArtistTags, @"artist/%@/toptags.xml", artist);
     
@@ -646,13 +506,6 @@ static NSImage *artistImgPlaceholder = nil;
     
     @try {
     
-    #ifdef obsolete
-    if (obj == detailsProfile) {
-        [self loadProfileData:xml];
-    } else if (obj == detailsTopArtists) {
-        [self loadTopArtistsData:xml artist:[detailsData objectForKey:@"artist"]];
-    } else
-    #endif
     if (obj == detailsTopFans) {
         [self loadTopFansData:xml];
     } else if (obj == detailsSimArtists) {
