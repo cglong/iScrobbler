@@ -17,6 +17,10 @@
 
 + (ASWebServices*)sharedInstance;
 
++ (NSURL*)currentUserTagsURL;
++ (NSURL*)currentUserFriendsURL;
++ (NSURL*)currentUserNeighborsURL;
+
 - (void)handshake;
 - (NSURL*)streamURL;
 - (BOOL)subscriber;

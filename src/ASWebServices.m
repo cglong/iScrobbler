@@ -402,6 +402,32 @@ static NSMutableDictionary *connData = nil;
 }
 #endif
 
++ (NSURL*)currentUserTagsURL
+{
+    NSString *user = [[[ProtocolManager sharedInstance] userName]
+        stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
+        stringByAppendingFormat:@"user/%@/tags.xml", user];
+    return ([NSURL URLWithString:url]);
+}
++ (NSURL*)currentUserFriendsURL
+{
+    NSString *user = [[[ProtocolManager sharedInstance] userName]
+        stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
+        stringByAppendingFormat:@"user/%@/friends.xml", user];
+    return ([NSURL URLWithString:url]);
+}
+
++ (NSURL*)currentUserNeighborsURL
+{
+    NSString *user = [[[ProtocolManager sharedInstance] userName]
+        stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
+        stringByAppendingFormat:@"user/%@/neighbours.xml", user];
+    return ([NSURL URLWithString:url]);
+}
+
 // Singleton support
 - (id)copyWithZone:(NSZone *)zone
 {
