@@ -35,18 +35,34 @@
 - (void)setRootMenu:(NSMenuItem*)menu
 {
     if (menu != rootMenu) {
+        [stationBeingTuned release];
+        stationBeingTuned = nil;
+        
         (void)[menu retain];
         [rootMenu release];
         if ((rootMenu = menu)) {
             ASWebServices *ws = [ASWebServices sharedInstance];
             
-            if (![ws streamURL])
-                [rootMenu setToolTip:NSLocalizedString(@"Radio not connected", "")];
-            
-             // Build and insert the Radio menu
+            // Build and insert the Radio menu
             NSMenu *m = [[NSMenu alloc] init];
             [m setAutoenablesItems:NO];
-            NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"My Radio", "") // sub only
+            NSMenuItem *item;
+            
+            if (![ws streamURL]) {
+                if (![[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
+                    item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Connect", "")
+                        action:@selector(handshake) keyEquivalent:@""];
+                    [item setTarget:ws];
+                    [item setTag:MACTION_CONNECTRADIO];
+                    [item setEnabled:YES];
+                    [m addItem:item];
+                    [item release];
+                }
+                
+                [rootMenu setToolTip:NSLocalizedString(@"Radio not connected", "")];
+            }
+            
+            item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"My Radio", "") // sub only
                 action:@selector(playStation:) keyEquivalent:@""];
             [item setTarget:self];
             [item setTag:MSTATION_MYRADIO];
@@ -129,9 +145,18 @@
             
             [rootMenu setSubmenu:m];
             
-            [ws handshake];
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"])
+                [ws handshake];
         }
     }
+}
+
+- (void)tuneStationWithName:(NSString*)name url:(NSString*)url
+{
+    [stationBeingTuned release];
+    stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:url, @"url", name ? name : url, @"name", nil];
+    
+    [[ASWebServices sharedInstance] tuneStation:url];
 }
 
 - (void)skip
@@ -160,6 +185,9 @@
     
     @try {
         (void)[stopScript executeAndReturnError:nil];
+        [stationBeingTuned release];
+        stationBeingTuned = nil;
+        [self performSelector:@selector(setNowPlayingStation:) withObject:nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't stop iTunes -- script error: %@.", exception);
     }
@@ -168,9 +196,10 @@
 - (void)playStation:(id)sender
 {
     if ([sender respondsToSelector:@selector(representedObject)]) {
+        
         id o = [sender representedObject];
         if (o && [o isKindOfClass:[NSString class]])
-            [[ASWebServices sharedInstance] tuneStation:o];
+            [self tuneStationWithName:[sender title] url:o];
     }
 }
 
@@ -218,10 +247,75 @@
             return;
     }
     
-    
     [sender setState:enabled ? NSOnState : NSOffState];
     [sender setToolTip:enabled ? NSLocalizedString(@"Play all music.", "") : NSLocalizedString(@"Play only music not in your profile.", "")];
     [[ASWebServices sharedInstance] setDiscovery:enabled];
+}
+
+- (NSArray*)history
+{
+    return ([[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"]);
+}
+
+// private once more
+
+- (void)setNowPlayingStation:(NSDictionary*)station
+{
+    #define MACTION_NPRADIO MACTION_CONNECTRADIO
+    NSMenu *m = [rootMenu submenu];
+    NSMenuItem *item = [m itemWithTag:MACTION_NPRADIO];
+    if (station) {
+        NSString *title = [NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"Now Playing", ""), [station objectForKey:@"name"]];
+        if (!item) {
+            item = [[NSMenuItem alloc] initWithTitle:title
+                action:nil keyEquivalent:@""];
+            [item setTag:MACTION_NPRADIO];
+            [item setEnabled:NO];
+            [m insertItem:item atIndex:0];
+            [item release];
+            
+            [m insertItem:[NSMenuItem separatorItem] atIndex:1];
+        } else
+            [item setTitle:title];
+    } else if (item) {
+        int i = [m indexOfItem:item] + 1;
+        if (i < [m numberOfItems] && [[m itemAtIndex:i] isSeparatorItem])
+            [m removeItemAtIndex:i];
+        [m removeItem:item];
+    }
+        
+}
+
+- (void)addStationToHistory:(NSDictionary*)station
+{
+    if (station) {
+        @try {
+        
+        NSMutableArray *history = [[[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"] mutableCopy];
+        if ([history count] >= [[NSUserDefaults standardUserDefaults] integerForKey:@"Number of Songs to Save"])
+            [history removeLastObject];
+        
+        // see if we already exist
+        int count = [history count];
+        int i = 0;
+        NSString *match = [station objectForKey:@"url"];
+        for (; i < count; ++i) {
+            if (NSOrderedSame == [[[history objectAtIndex:i] objectForKey:@"url"] caseInsensitiveCompare:match])
+                break;
+        }
+        if (i < count)
+            [history removeObjectAtIndex:i];
+        
+        // add to front
+        [history insertObject:station atIndex:0];
+        
+        [[NSUserDefaults standardUserDefaults] setObject:history forKey:@"RadioStationHistory"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
+        } @catch (id e) {
+            ScrobLog(SCROB_LOG_ERR, @"exception adding radio station to history: %@", e);
+        }
+    }
 }
 
 - (void)pingNowPlaying:(NSTimer*)timer
@@ -250,10 +344,21 @@
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
     }
+    
+    if (stationBeingTuned) {
+        [self setNowPlayingStation:stationBeingTuned];
+        [self addStationToHistory:stationBeingTuned];
+        [stationBeingTuned release];
+        stationBeingTuned = nil;
+    }
 }
 
 - (void)wsStationTuneFailure:(NSNotification*)note
 {
+    [self setNowPlayingStation:nil];
+    [stationBeingTuned release];
+    stationBeingTuned = nil;
+    
     #ifndef __LP64__
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
     NSString *msg = @"";
@@ -303,6 +408,7 @@
         NSLocalizedString(@"Radio connecting", ""), 0x2026 /*...*/]];
     
     NSMenu *m = [rootMenu submenu];
+    [[m itemWithTag:MACTION_CONNECTRADIO] setEnabled:NO];
     [[m itemWithTag:MSTATION_MYRADIO] setEnabled:NO];
     [[m itemWithTag:MSTATION_MYLOVED] setEnabled:NO];
     [[m itemWithTag:MSTATION_MYPLAYLIST] setEnabled:NO];
@@ -318,6 +424,11 @@
     [rootMenu setToolTip:NSLocalizedString(@"Radio connected", "")];
     
     NSMenu *m = [rootMenu submenu];
+    
+    NSMenuItem *item = [m itemWithTag:MACTION_CONNECTRADIO];
+    if (item)
+        [m removeItem:item];
+    
     [[m itemWithTag:MSTATION_RECOMMENDED] setEnabled:YES];
     [[m itemWithTag:MSTATION_MYNEIGHBORHOOD] setEnabled:YES];
     [[m itemWithTag:MSTATION_MYPLAYLIST] setEnabled:YES];
@@ -332,6 +443,14 @@
     }
     
     [self setRecordToProfile:nil];
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
+        NSArray *history = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"];
+        if (history && [history count] > 0) {
+            NSDictionary *d = [history objectAtIndex:0];
+            [self tuneStationWithName:[d objectForKey:@"name"] url:[d objectForKey:@"url"]];
+        }
+    }
 }
 
 - (void)wsFailedHandShake:(NSNotification*)note
@@ -402,9 +521,11 @@
 
 - (void)nowPlaying:(NSNotification*)note
 {
-    if (![note object] || ![[note object] isLastFmRadio]) {
+    if ((![note object] && ![[[note userInfo] objectForKey:@"isPlaying"] boolValue])
+        || ![[note object] isLastFmRadio]) {
         [[ASWebServices sharedInstance] stop];
-    }
+    } else if (![note object])
+        [[ASWebServices sharedInstance] updateNowPlaying];
 }
 
 - (id)init

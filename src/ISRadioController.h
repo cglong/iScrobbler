@@ -12,15 +12,17 @@
 
 @interface ISRadioController : NSObject {
     NSMenuItem *rootMenu;
+    NSDictionary *stationBeingTuned;
 }
 
 + (ISRadioController*)sharedInstance;
-
 - (void)setRootMenu:(NSMenuItem*)menu;
 
-//- (BOOL)isPlaying;
+- (void)tuneStationWithName:(NSString*)name url:(NSString*)url;
 - (void)skip;
 - (void)ban;
 - (void)stop;
+
+- (NSArray*)history;
 
 @end

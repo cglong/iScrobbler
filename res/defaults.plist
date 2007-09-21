@@ -11,6 +11,9 @@
     <key>ASS URL</key>
 	<string>http://ws.audioscrobbler.com/ass/</string>
     
+    <key>AutoTuneLastRadioStation</key>
+    <false />
+    
     <key>AutoTagLovedBanned</key>
     <false />
     
@@ -82,6 +85,10 @@
     
     <key>Now Playing Detail</key>
     <true />
+    
+    <key>RadioStationHistory</key>
+    <array>
+    </array>
     
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
