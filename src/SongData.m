@@ -853,6 +853,16 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
     banned = isBanned;
 }
 
+- (BOOL)skipped
+{
+    return (skipped);
+}
+
+- (void)setSkipped:(BOOL)isSkipped
+{
+    skipped = isSkipped;
+}
+
 - (BOOL)isLastFmRadio
 {
     return (isLastFmRadio);
