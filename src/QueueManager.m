@@ -75,7 +75,8 @@ static QueueManager *g_QManager = nil;
     if ([song isLastFmRadio]) {
         // Don't actually submit it, but fake a queued event so our local stats are updated
         if ([[ISRadioController sharedInstance] scrobbleRadioPlays]
-            && (![song banned] || ![song skipped]) && [song canSubmit]) {
+            && (![song banned] || ![song skipped])
+            && [[song elapsedTime] floatValue] >= ([[song duration] floatValue] - [SongData songTimeFudge])) {
             [[NSNotificationCenter defaultCenter]
                 postNotificationName:QM_NOTIFICATION_SONG_QUEUED
                 object:self
@@ -83,6 +84,7 @@ static QueueManager *g_QManager = nil;
             [song setPostDate:[song startTime]];
             [song setHasQueued:YES];
         }
+        return (kqSuccess);
     }
     
     if (![song canSubmit]) {
