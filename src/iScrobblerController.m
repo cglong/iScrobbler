@@ -1157,6 +1157,16 @@ player_info_exit:
             ISASSERT(song == [item representedObject], "songs don't match!");
             [item setAction:nil];
             [item setSubmenu:m];
+            if ([song isLastFmRadio]) {
+                NSString *tip;
+                unsigned int days, hours, minutes, seconds;
+                ISDurationsFromTime([[song duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
+                if (0 == hours)
+                    tip = [NSString stringWithFormat:@"%@: %u:%02u", NSLocalizedString(@"Duration", ""), minutes, seconds];
+                else
+                    tip = [NSString stringWithFormat:@"%@: %u:%02u:%02u", NSLocalizedString(@"Duration", ""), hours, minutes, seconds];
+                [item setToolTip:tip];
+            }
             [m release];
             
         }
