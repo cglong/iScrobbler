@@ -130,6 +130,9 @@ static NSMutableDictionary *connData = nil;
 
 - (NSURL*)radioURLWithService:(NSString*)service
 {
+    if (!service)
+        return (nil);
+    
     NSString *path = [NSString stringWithFormat:@"http://%@%@/adjust.php?session=%@&url=%@&debug=%d",
         [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"],
         sessionid, service, 0];
