@@ -50,6 +50,7 @@ static NSMutableDictionary *xmlCache = nil;
     NSMutableArray *keysToRemove = [NSMutableArray array];
     NSDate *now = [NSDate date];
     while ((key = [en nextObject])) {
+        d = [xmlCache objectForKey:key];
         if ([now isGreaterThanOrEqualTo:[d objectForKey:@"expires"]])
             [keysToRemove addObject:key];
     }
