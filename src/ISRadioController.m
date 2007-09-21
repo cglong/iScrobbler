@@ -161,11 +161,17 @@
 
 - (void)skip
 {
+    SongData *s = [[NSApp delegate] nowPlaying];
+    ISASSERT([s isLastFmRadio], "not a radio track!");
+    [s setSkipped:YES];
     [[ASWebServices sharedInstance] exec:@"skip"];
 }
 
 - (void)ban
 {
+    SongData *s = [[NSApp delegate] nowPlaying];
+    ISASSERT([s isLastFmRadio], "not a radio track!");
+    [s setBanned:YES];
     [[ASWebServices sharedInstance] exec:@"ban"];
 }
 
