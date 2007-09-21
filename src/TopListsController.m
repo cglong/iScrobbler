@@ -18,6 +18,8 @@
 #import "ISArtistDetailsController.h"
 #import "ProtocolManager.h"
 #import "ASXMLRPC.h"
+#import "ASXMLFile.h"
+#import "ASWebServices.h"
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
@@ -734,7 +736,8 @@ exit:
         tag = @"loved";
     } else if ([method isEqualToString:@"banTrack"]) {
         tag = @"banned";
-    }
+    } else if ([method hasPrefix:@"tag"])
+        [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
     
     id obj = [request representedObject];
     ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",

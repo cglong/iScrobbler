@@ -24,7 +24,9 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 #import "BBNetUpdate/BBNetUpdateVersionCheckController.h"
+#import "ASXMLFile.h"
 #import "ASXMLRPC.h"
+#import "ASWebServices.h"
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
@@ -42,12 +44,12 @@
 // UTF16 sharp note 
 #define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
 
-static int drainArtworkCacheFlag = 0, forcePlayCacheFlag = 0;
+static int drainCachesFlag = 0, forcePlayCacheFlag = 0;
 
 static void handlesig (int sigraised)
 {
     if (SIGUSR1 == sigraised) {
-        drainArtworkCacheFlag = 1;
+        drainCachesFlag = 1;
     } else if (SIGUSR2 == sigraised) {
         forcePlayCacheFlag = 1;
     }
@@ -714,9 +716,10 @@ player_info_exit:
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
     
-    if (drainArtworkCacheFlag) {
-        drainArtworkCacheFlag = 0;
+    if (drainCachesFlag) {
+        drainCachesFlag = 0;
         [SongData drainArtworkCache];
+        [ASXMLFile expireAllCacheEntries];
     }
 }
 
@@ -1609,7 +1612,8 @@ exit:
     } else if ([method isEqualToString:@"banTrack"]) {
         [[request representedObject] setBanned:YES];
         tag = @"banned";
-    }
+    } else if ([method hasPrefix:@"tag"])
+        [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
     
     ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
         method, [request representedObject]);

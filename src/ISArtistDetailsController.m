@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 3/5/06.
-//  Copyright 2006 Brian Bergstrand.
+//  Copyright 2006-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -12,8 +12,9 @@
 #import "iScrobblerController.h"
 #import "SongData.h"
 #import "ProtocolManager.h"
-#import "ScrobLog.h"
 #import "ISArtistDetailsController.h"
+#import "ASXMLFile.h"
+#import "ASWebServices.h"
 
 static NSImage *artistImgPlaceholder = nil;
 #if 0
@@ -130,16 +131,22 @@ static NSImage *artistImgPlaceholder = nil;
     [self setDetails:nil];
     
     [detailsProfile cancel];
+    [detailsProfile release];
     detailsProfile = nil;
     [detailsTopArtists cancel];
+    [detailsTopArtists release];
     detailsTopArtists = nil;
     [detailsTopFans cancel];
+    [detailsTopFans release];
     detailsTopFans = nil;
     [detailsSimArtists cancel];
+    [detailsSimArtists release];
     detailsSimArtists = nil;
     [detailsArtistData cancel];
+    [detailsArtistData release];
     detailsArtistData = nil; 
     [detailsArtistTags cancel];
+    [detailsArtistTags release];
     detailsArtistTags = nil;
     
     [imageRequest cancel];
@@ -169,6 +176,7 @@ static NSImage *artistImgPlaceholder = nil;
     } else if (conn == detailsArtistTags) {
         detailsArtistTags = nil;
     }
+    [conn release];
 }
 
 - (void)loadTopFansData:(NSXMLDocument*)xml
@@ -403,22 +411,29 @@ static NSImage *artistImgPlaceholder = nil;
 
 - (void)openConnection:(NSArray*)args
 {
-    NSMutableURLRequest *request = [args objectAtIndex:0];
-    NSURLConnection **p = [[args objectAtIndex:1] pointerValue];
+    NSURL *url = [args objectAtIndex:0];
+    NSConnection **p = [[args objectAtIndex:1] pointerValue];
     
-    *p = [NSURLConnection connectionWithRequest:request delegate:self];
-    ScrobLog(SCROB_LOG_TRACE, @"Requesting %@ (%p)", [[request URL] absoluteString], *p);
+    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
+    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
+    *p = [[NSURLConnection connectionWithRequest:req delegate:self] retain];
 }
 
-#define MakeRequest(req, to, res) do { \
+- (void)openXML:(NSArray*)args
+{
+    NSURL *url = [args objectAtIndex:0];
+    ASXMLFile **p = [[args objectAtIndex:1] pointerValue];
+    
+    *p = [[ASXMLFile xmlFileWithURL:url delegate:self cachedForSeconds:requestCacheSeconds] retain];
+}
+
+#define MakeXMLRequest(req, to, res) do { \
     urlStr = [[[urlBase stringByAppendingFormat:(to), (res)] mutableCopy] autorelease]; \
     /* Last.fm uses '+' instead of %20 */ \
     [urlStr replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [urlStr length])]; \
     url = [NSURL URLWithString:urlStr]; \
-    request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0]; \
-    [request setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"]; \
-    NSArray *args = [NSArray arrayWithObjects:request, [NSValue valueWithPointer:(&(req))], nil]; \
-    [self performSelector:@selector(openConnection:) withObject:args afterDelay:delay]; \
+    NSArray *args = [NSArray arrayWithObjects:url, [NSValue valueWithPointer:(&(req))], nil]; \
+    [self performSelector:@selector(openXML:) withObject:args afterDelay:delay]; \
 } while(0)
 
 - (void)loadDetails:(NSString*)artist
@@ -459,39 +474,50 @@ static NSImage *artistImgPlaceholder = nil;
     NSString *urlBase = [[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"];
     
     NSMutableString *urlStr;
-    NSMutableURLRequest *request;
     // According to the webservices wiki, we are not supposed to make more than 1 req/sec
     NSTimeInterval delay = 0.0;
     
     artist = [[NSApp delegate] stringByEncodingURIChars:artist];
     
-    // account for missing profile loads
-    detailsLoaded += 2;
+    detailsLoaded += 2; // account for missing profile loads
     
-    MakeRequest(detailsArtistTags, @"artist/%@/toptags.xml", artist);
+    requestCacheSeconds = 60*30;
+    MakeXMLRequest(detailsSimArtists, @"artist/%@/similar.xml", artist);
     
     delay += 1.0;
-    MakeRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
+    MakeXMLRequest(detailsArtistTags, @"artist/%@/toptags.xml", artist);
     
     delay += 0.5;
-    MakeRequest(detailsSimArtists, @"artist/%@/similar.xml", artist);
+    MakeXMLRequest(detailsTopFans, @"artist/%@/fans.xml", artist);
     
     delay += 0.5;
     urlBase = [[NSUserDefaults standardUserDefaults] stringForKey:@"ASS URL"];
-    MakeRequest(detailsArtistData, @"artistmetadata.php?artist=%@", artist);
+    urlStr = [[[urlBase stringByAppendingFormat:@"artistmetadata.php?artist=%@", artist] mutableCopy] autorelease];
+    /* Last.fm uses '+' instead of %20 */
+    [urlStr replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [urlStr length])];
+    url = [NSURL URLWithString:urlStr];
+    NSArray *args = [NSArray arrayWithObjects:url, [NSValue valueWithPointer:(&detailsArtistData)], nil];
+    [self performSelector:@selector(openConnection:) withObject:args afterDelay:delay];
 }
 
 - (void)loadDetailsDidFinish:(id)obj
 {
     NSValue *key = [NSValue valueWithPointer:obj];
-    NSData  *data = [detailsData objectForKey:key];
-    if (!data || 0 == [data length])
-        goto loadDetailsExit;
-    
+    NSXMLDocument *xml = nil;
+    NSData  *data = nil;
     NSError *err;
-    NSXMLDocument *xml = [[NSXMLDocument alloc] initWithData:data
+    
+    if ([[detailsData objectForKey:key] isKindOfClass:[NSXMLDocument class]]) {
+        xml = [[detailsData objectForKey:key] retain];
+    } else {
+        data = [detailsData objectForKey:key];
+        if (!data || 0 == [data length])
+            goto loadDetailsExit;
+    
+        xml = [[NSXMLDocument alloc] initWithData:data
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
             error:&err];
+    }
     
     if (!xml) {
         if (obj == detailsArtistData) {
@@ -566,8 +592,27 @@ loadDetailsExit:
     [super dealloc];
 }
 
-// URLConnection callbacks
+// ASXMLFile callbacks
+- (void)xmlFileDidFinishLoading:(ASXMLFile*)connection
+{
+    //dbgprint("Finished loading for %p\n", connection);
+    NSValue *key = [NSValue valueWithPointer:connection];
+    ISASSERT(nil == [detailsData objectForKey:key], "data exists where it shouldn't!");
+    
+    id xml = [connection xml];
+    if (xml)
+        [detailsData setObject:xml forKey:key];
+    ++detailsLoaded;
+    [self loadDetailsDidFinish:connection];
+}
 
+- (void)xmlFile:(ASXMLFile*)connection didFailWithError:(NSError *)reason
+{
+    ISASSERT(nil == [connection xml], "xml data exists for an error!");
+    [self xmlFileDidFinishLoading:connection];
+}
+
+// URLConnection callbacks
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     if (detailsData) {
@@ -582,8 +627,8 @@ loadDetailsExit:
         }
         [recvdData appendData:data];
     } else {
-        [self releaseConnection:connection];
         [connection cancel];
+        [self releaseConnection:connection];
     }
 }
 

@@ -18,6 +18,8 @@
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
+#import "ASXMLFile.h"
+#import "ASWebServices.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -691,7 +693,8 @@ exit:
     } else if ([method isEqualToString:@"banTrack"]) {
         [[request representedObject] setBanned:YES];
         tag = @"banned";
-    }
+    } else if ([method hasPrefix:@"tag"])
+        [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
     
     ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
         method, [request representedObject]);

@@ -23,6 +23,8 @@ typedef enum {
 
 #define ISTagDidEnd @"ISTagDidEnd" 
 
+@class ASXMLFile;
+
 @interface ISTagController : NSWindowController {
     IBOutlet NSArrayController *userTags;
     IBOutlet NSArrayController *globalTags;
@@ -30,8 +32,7 @@ typedef enum {
     
     int what, mode, lastGlobalTags;
     NSString *tagData;
-    NSMutableData *responseData;
-    NSURLConnection *userConn, *globalConn;
+    ASXMLFile *userConn, *globalConn;
     id representedObj;
     BOOL send, artistEnabled, trackEnabled, albumEnabled;
 }
