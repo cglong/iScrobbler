@@ -497,12 +497,12 @@
         // album_url
     // iTunes keys
         state, @"Player State",
-        [np objectForKey:@"track"], @"Name",
-        [np objectForKey:@"album"], @"Album",
-        [np objectForKey:@"artist"], @"Artist",
+        [np objectForKey:@"track"], @"Name", // Required
+        [np objectForKey:@"artist"], @"Artist", // ditto
+        [NSNumber numberWithLongLong:(long  long)duration * 1000LL], @"Total Time", // ditto, iTunes gives this in milliseconds
         [[[ASWebServices sharedInstance] streamURL] path], @"Location",
         [NSNumber numberWithInt:0], @"Rating",
-        [NSNumber numberWithLongLong:(long  long)duration * 1000LL], @"Total Time", // iTunes gives this in milliseconds
+        [np objectForKey:@"album"], @"Album", // may be missing and thus nil
         @"", @"Genre",
         //@"Track Number",
         nil];
