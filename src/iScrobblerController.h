@@ -138,22 +138,7 @@ enum {
     MSTATION_SEARCH
 };
 
-#ifdef __ppc__
-#define trap() asm volatile("trap")
-#elif __i386__
-#define trap() asm volatile("int $3")
-#else
-#error unknown arch
-#endif
 
-#ifdef ISDEBUG
-#define ISASSERT(condition,msg) do { \
-if (0 == (condition)) { \
-    trap(); \
-} } while(0)
-#else
-#define ISASSERT(condition,msg) {}
-#endif
 
 #define IS_GROWL_NOTIFICATION_ALERTS @"Alerts"
 
@@ -166,5 +151,3 @@ if (0 == (condition)) { \
 #define IPOD_SYNC_KEY_SCRIPT_MSG @"Script Msg"
 
 #define RESET_PROFILE @"org.bergstrand.iscrobbler.resetProfile"
-
-#import "ScrobLog.h"
