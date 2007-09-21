@@ -706,7 +706,10 @@ notify_growl:
 player_info_exit:
     if (song)
         [song release];
-    NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObject:[NSNumber numberWithBool:isRepeat] forKey:@"repeat"];
+    NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+        [NSNumber numberWithBool:isRepeat], @"repeat",
+        [NSNumber numberWithBool:isiTunesPlaying], @"isPlaying",
+        nil];
     if (isiTunesPlaying && currentSongQueueTimer)
         [userInfo setObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
