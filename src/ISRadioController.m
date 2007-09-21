@@ -148,7 +148,9 @@
 {
     static NSAppleScript *stopScript = nil;
     if (!stopScript) {
-        stopScript = [[NSAppleScript alloc] initWithSource:@"tell application \"iTunes\" to stop"];
+        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
+                    stringByAppendingPathComponent:@"Scripts/iTunesStop.scpt"]];
+        stopScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
         if (!stopScript || ![stopScript compileAndReturnError:nil]) {
             ScrobLog(SCROB_LOG_CRIT, @"Could not create iTunes stop script!");
             [[NSApp delegate] showApplicationIsDamagedDialog];
