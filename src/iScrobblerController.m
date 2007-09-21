@@ -1746,7 +1746,7 @@ exit:
     id o = [dict objectForKey:@"last.fm"];
     if (o) {
         isLastFmRadio = YES;
-        [self setHasQueued:YES];
+        [self setType:trackTypeShared];
         ScrobDebug(@"created '%@' track from last.fm radio", [self brief]);
     }
     
@@ -1758,8 +1758,8 @@ exit:
     [self setPosition:[song position]];
     [self setRating:[song rating]];
     [self setIsPlayeriTunes:[song isPlayeriTunes]];
-    if (isLastFmRadio = [song isLastFmRadio])
-        [self setHasQueued:YES];
+    if ((isLastFmRadio = [song isLastFmRadio]))
+        [self setType:trackTypeShared];
 }
 
 - (NSString*)growlDescriptionWithFormat:(NSString*)format

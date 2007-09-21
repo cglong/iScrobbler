@@ -23,6 +23,7 @@
 - (void)ban;
 - (void)stop;
 
+- (BOOL)scrobbleRadioPlays;
 - (NSArray*)history;
 
 @end

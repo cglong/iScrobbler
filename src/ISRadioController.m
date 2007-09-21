@@ -258,6 +258,11 @@
     [[ASWebServices sharedInstance] setDiscovery:enabled];
 }
 
+- (BOOL)scrobbleRadioPlays
+{
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"RadioPlaysScrobbled"]);
+}
+
 - (NSArray*)history
 {
     return ([[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"]);
