@@ -105,7 +105,7 @@
             [item release];
             
             item = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"%@%C",
-                NSLocalizedString(@"Search for a Station", ""), 0x2026 /*...*/]
+                NSLocalizedString(@"Find a Station", ""), 0x2026 /*...*/]
                 action:@selector(showWindow:) keyEquivalent:@""];
             [item setTarget:[ISRadioSearchController sharedController]];
             [item setTag:MSTATION_SEARCH];
