@@ -153,7 +153,13 @@
     [stationBeingTuned release];
     stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:url, @"radioURL", name ? name : url, @"name", nil];
     
-    [[ASWebServices sharedInstance] tuneStation:url];
+    ASWebServices *ws = [ASWebServices sharedInstance];
+    if (![ws streamURL]) {
+        [ws handshake];
+        return;
+    }
+    
+    [ws tuneStation:url];
 }
 
 - (void)skip
@@ -487,12 +493,16 @@ exitHistory:
     
     [[NSApp delegate] growlProtocolEvent:NSLocalizedString(@"Connected to Last.fm Radio", "")];
     
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
+    if (!stationBeingTuned && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
         NSArray *history = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"];
         if (history && [history count] > 0) {
             NSDictionary *d = [history objectAtIndex:0];
             [self tuneStationWithName:[d objectForKey:@"name"] url:[d objectForKey:@"radioURL"]];
         }
+    } else if (stationBeingTuned) {
+        // station waiting for handshaked, tune it
+        [[ASWebServices sharedInstance] tuneStation:[stationBeingTuned objectForKey:@"radioURL"]];
+        // leave 'stationBeingTuned' in tact for NP/history updates
     }
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH]) {

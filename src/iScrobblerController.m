@@ -1024,6 +1024,10 @@ player_info_exit:
 
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
+    // Register to handle URLs
+    [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
+        forEventClass:kInternetEventClass andEventID:kAEGetURL];
+    
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
@@ -1060,6 +1064,13 @@ player_info_exit:
         // Check every 72 hours
         [NSTimer scheduledTimerWithTimeInterval:259200.0 target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES];
     }
+}
+
+
+- (void)getUrl:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+	NSString *url = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
+    [[ISRadioController sharedInstance] tuneStationWithName:nil url:url];
 }
 
 -(IBAction)checkForUpdate:(id)sender
