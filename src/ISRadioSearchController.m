@@ -80,7 +80,7 @@
     [v setSelectable:YES];
     [v setDelegate:self];
     
-    NSFont *font = [[NSFontManager sharedFontManager] convertFont:[NSFont userFontOfSize:[NSFont systemFontSize]] toHaveTrait:NSBoldFontMask];
+    NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
     NSCursor *urlCursor = [NSCursor pointingHandCursor];
     NSNumber *underline = [NSNumber numberWithInt:1];
@@ -162,11 +162,9 @@
     
     [splitView replaceSubview:cview with:v];
     if ([v acceptsFirstResponder]) {
-        BOOL x = [[self window] makeFirstResponder:v];
-        ScrobDebug(@"v is firstResponder: %d", x);
+        (void)[[self window] makeFirstResponder:v];
     }
     [[v textStorage] setAttributedString:value];
-    //[[self window] resetCursorRects];
     [v release];
 }
 
@@ -181,7 +179,7 @@
     [v setSelectable:YES];
     [v setDelegate:self];
     
-    NSFont *font = [[NSFontManager sharedFontManager] convertFont:[NSFont userFontOfSize:[NSFont systemFontSize]] toHaveTrait:NSBoldFontMask];
+    NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
     NSCursor *urlCursor = [NSCursor pointingHandCursor];
     NSNumber *underline = [NSNumber numberWithInt:1];
@@ -246,11 +244,9 @@
     
     [splitView replaceSubview:cview with:v];
     if ([v acceptsFirstResponder]) {
-        BOOL x = [[self window] makeFirstResponder:v];
-        ScrobDebug(@"v is firstResponder: %d", x);
+        (void)[[self window] makeFirstResponder:v];
     }
     [[v textStorage] setAttributedString:value];
-    //[[self window] resetCursorRects];
     [v release];
 }
 
