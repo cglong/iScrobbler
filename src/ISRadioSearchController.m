@@ -14,6 +14,9 @@
 #import "ASXMLFile.h"
 #import "ASWebServices.h"
 
+// XXX: We don't atually search for anything currently, for now we just attempt to play what every the user enters
+#define PLAY_NOT_SEARCH
+
 @implementation ISRadioSearchController
 
 - (void)tuneStation:(id)selection
@@ -50,10 +53,33 @@
 - (IBAction)search:(id)sender
 {
     NSString *searchFor = [searchText stringValue];
-    if (!searchFor || ![searchFor length])
+    if (!searchFor || ![searchFor length] || !currentSearchType) {
+        NSBeep();
         return;
+    }
+    #ifndef PLAY_NOT_SEARCH
     [searchButton setEnabled:NO];
     [searchProgress startAnimation:nil];
+    #endif
+    
+    ASWebServices *ws = [ASWebServices sharedInstance];
+    NSString *url, *name;
+    if ([currentSearchType objectForKey:@"artist"]) {
+        url = [ws stationForArtist:searchFor];
+        name = [NSString stringWithFormat:NSLocalizedString(@"%@ Artist Radio", ""), searchFor];
+    } else if ([currentSearchType objectForKey:@"tag"]) {
+        url = [ws stationForGlobalTag:searchFor];
+        name = [NSString stringWithFormat:NSLocalizedString(@"%@ Tag Radio", ""), searchFor];
+    } else if ([currentSearchType objectForKey:@"group"]) {
+        url = [ws stationForGroup:searchFor];
+        name = [NSString stringWithFormat:NSLocalizedString(@"%@ Group Radio", ""), searchFor];
+    } else {
+        NSBeep();
+        return;
+    }
+    
+    [self tuneStation:[NSDictionary dictionaryWithObjectsAndKeys:
+        url, @"radioURL", name, @"name", nil]];
 }
 
 - (void)showSearchPanel:(id)selection
@@ -63,6 +89,18 @@
         [searchView setFrame:[cview frame]];
         [splitView replaceSubview:cview with:searchView];
     }
+    
+    currentSearchType = selection;
+    
+    NSString *name;
+    if ([currentSearchType objectForKey:@"artist"]) {
+        name = NSLocalizedString(@"Enter a Artist", "");
+    } else if ([currentSearchType objectForKey:@"tag"]) {
+        name = NSLocalizedString(@"Enter a Tag", "");
+    } else if ([currentSearchType objectForKey:@"group"]) {
+        name = NSLocalizedString(@"Enter a Group", "");
+    }
+    [[searchText cell] setPlaceholderString:name];
     
     [searchText setStringValue:@""];
     [searchButton setEnabled:YES];
@@ -210,7 +248,7 @@
     
     prompt = [NSString stringWithFormat:NSLocalizedString(@"Play All Music Tagged as '%@'", ""), name];
     urlspec = [NSDictionary dictionaryWithObjectsAndKeys:
-        [ws globalTagStation:name], @"radioURL",
+        [ws stationForGlobalTag:name], @"radioURL",
         [NSString stringWithFormat:NSLocalizedString(@"%@ Tag Radio", ""), name], @"name",
         nil];
     tmp = [[[NSMutableAttributedString alloc] initWithString:prompt attributes:
@@ -262,6 +300,8 @@
 
 - (void)selectionDidChange:(NSNotification*)note
 {
+    currentSearchType = nil;
+    
     @try {
     NSArray *all = [sourceListController selectedObjects];
     if (![all count])
@@ -411,23 +451,31 @@
     initList = 0;
     
     NSNumber *yes = [NSNumber numberWithBool:YES];
-    NSNumber *no = [NSNumber numberWithBool:NO];
     NSString *title;
     
+    #ifdef PLAY_NOT_SEARCH
+    title = NSLocalizedString(@"Play a Station", "");
+    #else
     title = NSLocalizedString(@"Search", "");
+    #endif
     NSString *action = NSStringFromSelector(@selector(showSearchPanel:));
     search = [NSMutableDictionary dictionaryWithObjectsAndKeys:
         yes,  @"isSourceGroup",
         title, @"name",
         [NSMutableArray arrayWithObjects:
             [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                NSLocalizedString(@"Artists", ""), @"name",
-                yes, @"artistSearch",
+                NSLocalizedString(@"Artist", ""), @"name",
+                yes, @"artist",
                 action,  @"action",
                 nil],
             [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                NSLocalizedString(@"Tags", ""), @"name",
-                no, @"artistSearch",
+                NSLocalizedString(@"Tag", ""), @"name",
+                yes, @"tag",
+                action,  @"action",
+                nil],
+            [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                NSLocalizedString(@"Group", ""), @"name",
+                yes, @"group",
                 action,  @"action",
                 nil],
             nil], @"children",
@@ -518,6 +566,10 @@
 
 - (void)windowDidLoad
 {
+    #ifdef PLAY_NOT_SEARCH
+    [searchButton setTitle:NSLocalizedString(@"Play", "")];
+    #endif
+
     // retain our views so we don't lose them when they are replaced
     (void)[placeholderView retain];
     (void)[searchView retain];

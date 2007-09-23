@@ -26,6 +26,7 @@
     
     NSMutableDictionary *search, *tags, *friends, *neighbors, *history;
     ASXMLFile *friendsConn, *neighborsConn, *tagsConn;
+    id currentSearchType;
 }
 
 + (ISRadioSearchController*)sharedController;
