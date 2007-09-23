@@ -362,6 +362,14 @@
         [tagsConn autorelease];
         tagsConn = nil;
     }
+    
+    static int initState = 1;
+    
+    if (initState && !friendsConn && !neighborsConn && !tagsConn) {
+        // restore source list expansion state after all initial data has loaded
+        initState = 0;
+        [self performSelector:@selector(restoreSourceListState) withObject:nil afterDelay:0.0];
+    }
 }
 
 - (void)xmlFileDidFinishLoading:(ASXMLFile *)connection
@@ -399,12 +407,12 @@
 
 - (void)initSourceList
 {
-    static int doit = 1;
+    static int initList = 1;
     
-    if (!doit)
+    if (!initList)
         return;
     
-    doit = 0;
+    initList = 0;
     
     NSNumber *yes = [NSNumber numberWithBool:YES];
     NSNumber *no = [NSNumber numberWithBool:NO];
@@ -467,17 +475,43 @@
         [NSNotification notificationWithName:ISRadioHistoryDidUpdateNotification object:[ISRadioController sharedInstance]]];
 }
 
+- (void)restoreSourceListState
+{
+    @try {
+    
+    NSArray *state = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioSourceListExpansionState"];
+    int count;
+    if (state && (count = [state count]) == [sourceList numberOfRows]) {
+        id item;
+        for (int i = 0; i < count; ++i) {
+            item = [sourceList itemAtRow:i];
+            if (0 == [sourceList levelForItem:item] && [[state objectAtIndex:i] boolValue])
+                [sourceList expandItem:item];
+        }
+    } 
+    
+    } @catch (id e){}
+}
+
+- (void)saveSourceListState
+{
+    int count = [sourceList numberOfRows];
+    NSMutableArray *state = [NSMutableArray arrayWithCapacity:count];
+    id item;
+    for (int i = 0; i < count; ++i) {
+        item = [sourceList itemAtRow:i];
+        if (0 == [sourceList levelForItem:item])
+            [state addObject:[NSNumber numberWithBool:[sourceList isItemExpanded:item]]];
+    }
+    [[NSUserDefaults standardUserDefaults] setObject:state forKey:@"RadioSourceListExpansionState"];
+}
+
 - (IBAction)showWindow:(id)sender
 {
     if (![[self window] isVisible]) {
         [self initSourceList];
         
         [sourceList deselectAll:nil];
-        #if 0
-        @try {
-        [sourceList expandItem:[sourceList itemAtRow:0]];
-        } @catch (id e) {}
-        #endif
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(radioHistoryDidUpdate:)
             name:ISRadioHistoryDidUpdateNotification object:nil];
@@ -521,6 +555,8 @@
         [placeholderView setFrame:[cview frame]];
         [splitView replaceSubview:cview with:placeholderView];
     }
+    
+    [self saveSourceListState];
 }
 
 - (void)awakeFromNib
