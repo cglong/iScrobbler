@@ -84,6 +84,7 @@
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
 		D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */; };
 		D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesStop.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */; };
 		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
 		D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */; };
 		D3C3FD620C9EA0E2001AEFEA /* iTunesPlayURL.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -189,6 +190,7 @@
 		D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASXMLFile.m; sourceTree = "<group>"; };
 		D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPrefix.h; sourceTree = "<group>"; };
 		D3C309970CA3D317001AEFEA /* iTunesStop.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesStop.applescript; sourceTree = "<group>"; };
+		D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = ISRadioSearch.nib; sourceTree = "<group>"; };
 		D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASWebServices.h; sourceTree = "<group>"; };
 		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASWebServices.m; sourceTree = "<group>"; };
 		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRadioController.h; sourceTree = "<group>"; };
@@ -371,6 +373,7 @@
 				D38F6D710B535AF800230DBE /* Recommend.nib */,
 				D38F6FB40B541A6300230DBE /* Tag.nib */,
 				D38F74B90B56CDEC00230DBE /* LoveBanList.nib */,
+				D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
@@ -569,6 +572,7 @@
 				D38F74BB0B56CDEC00230DBE /* LoveBanList.nib in Resources */,
 				D3C3042D0CA28879001AEFEA /* highlight_blue.tiff in Resources */,
 				D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */,
+				D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -825,6 +829,7 @@
 		D328478308566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_FAST_OBJC_DISPATCH = NO;
@@ -840,6 +845,7 @@
 		D328478408566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_FAST_OBJC_DISPATCH = NO;
