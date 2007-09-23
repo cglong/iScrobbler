@@ -385,7 +385,7 @@ static NSMutableDictionary *connData = nil;
         
         if (NSOrderedSame == [[d objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) {
             nowplaying = [d retain];
-            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self];
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:d];
         } else {
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
             ScrobLog(SCROB_LOG_ERR, @"ASWS now playing failure: not streaming\n", d);
