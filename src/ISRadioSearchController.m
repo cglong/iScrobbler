@@ -556,8 +556,8 @@
 
 - (IBAction)showWindow:(id)sender
 {
-    currentSearchType = nil;
     if (![[self window] isVisible]) {
+        currentSearchType = nil;
         [self initSourceList];
         
         [sourceList deselectAll:nil];
