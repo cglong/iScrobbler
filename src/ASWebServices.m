@@ -202,6 +202,24 @@ static NSMutableDictionary *connData = nil;
     return ([self station:type forUser:[[ProtocolManager sharedInstance] userName]]);
 }
 
+- (NSString*)tagStation:(NSString*)tag forUser:(NSString*)user
+{
+    return ([NSString stringWithFormat:@"lastfm://usertags/%@/%@",
+                [user stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
+                [tag stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]);
+}
+
+- (NSString*)tagStationForCurrentUser:(NSString*)tag
+{
+    return ([self tagStation:tag forUser:[[ProtocolManager sharedInstance] userName]]);
+}
+
+- (NSString*)globalTagStation:(NSString*)tag
+{
+    return ([NSString stringWithFormat:@"lastfm://globaltags/%@",
+                [tag stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]);
+}
+
 #ifdef notyet
 - (BOOL)discovery
 {
@@ -350,7 +368,7 @@ static NSMutableDictionary *connData = nil;
         int err = [[d objectForKey:@"error"] intValue];
         if (!err) {
             ScrobLog(SCROB_LOG_TRACE, @"ASWS station tuned\n");
-            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationDidTune object:self];
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationDidTune object:self userInfo:d];
         } else {
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self userInfo:
                 [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:err], @"error", nil]];
@@ -367,7 +385,7 @@ static NSMutableDictionary *connData = nil;
         
         if (NSOrderedSame == [[d objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) {
             nowplaying = [d retain];
-            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:d];
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self];
         } else {
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
             ScrobLog(SCROB_LOG_ERR, @"ASWS now playing failure: not streaming\n", d);

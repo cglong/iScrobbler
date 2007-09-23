@@ -36,6 +36,10 @@
 
 - (NSString*)station:(NSString*)type forUser:(NSString*)user;
 - (NSString*)stationForCurrentUser:(NSString*)type;
+
+- (NSString*)tagStation:(NSString*)tag forUser:(NSString*)user;
+- (NSString*)tagStationForCurrentUser:(NSString*)tag;
+- (NSString*)globalTagStation:(NSString*)tag;
 @end
 
 #define ASWSWillHandshake @"ASWSWillHandshake"
