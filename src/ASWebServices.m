@@ -214,10 +214,22 @@ static NSMutableDictionary *connData = nil;
     return ([self tagStation:tag forUser:[[ProtocolManager sharedInstance] userName]]);
 }
 
-- (NSString*)globalTagStation:(NSString*)tag
+- (NSString*)stationForGlobalTag:(NSString*)tag
 {
     return ([NSString stringWithFormat:@"lastfm://globaltags/%@",
                 [tag stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]);
+}
+
+- (NSString*)stationForArtist:(NSString*)artist
+{
+    return ([NSString stringWithFormat:@"lastfm://artist/%@",
+                [artist stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]);
+}
+
+- (NSString*)stationForGroup:(NSString*)group
+{
+    return ([NSString stringWithFormat:@"lastfm://group/%@",
+                [group stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]);
 }
 
 #ifdef notyet

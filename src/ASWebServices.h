@@ -36,10 +36,11 @@
 
 - (NSString*)station:(NSString*)type forUser:(NSString*)user;
 - (NSString*)stationForCurrentUser:(NSString*)type;
-
 - (NSString*)tagStation:(NSString*)tag forUser:(NSString*)user;
 - (NSString*)tagStationForCurrentUser:(NSString*)tag;
-- (NSString*)globalTagStation:(NSString*)tag;
+- (NSString*)stationForGlobalTag:(NSString*)tag;
+- (NSString*)stationForArtist:(NSString*)artist;
+- (NSString*)stationForGroup:(NSString*)group;
 @end
 
 #define ASWSWillHandshake @"ASWSWillHandshake"
