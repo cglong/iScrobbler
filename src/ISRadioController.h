@@ -29,3 +29,5 @@
 @end
 
 #define ISRadioHistoryDidUpdateNotification @"ISRadioHistoryDidUpdateNotification"
+
+#define OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH @"Find Stations Window Open"

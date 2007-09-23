@@ -494,6 +494,10 @@ exitHistory:
             [self tuneStationWithName:[d objectForKey:@"name"] url:[d objectForKey:@"radioURL"]];
         }
     }
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH]) {
+        [[ISRadioSearchController sharedController] showWindow:nil];
+    }
 }
 
 - (void)wsFailedHandShake:(NSNotification*)note

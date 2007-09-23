@@ -561,6 +561,8 @@
         
         [sourceList deselectAll:nil];
         
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH];
+        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(radioHistoryDidUpdate:)
             name:ISRadioHistoryDidUpdateNotification object:nil];
     }
@@ -588,6 +590,8 @@
 
 - (void)windowWillClose:(NSNotification*)note
 {
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:ISRadioHistoryDidUpdateNotification object:nil];
     
     [searchProgress stopAnimation:nil];
