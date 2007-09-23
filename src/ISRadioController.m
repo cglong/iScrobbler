@@ -299,12 +299,26 @@
     if (station) {
         @try {
         
-        NSMutableArray *history = [[[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"] mutableCopy];
-        if ([history count] >= [[NSUserDefaults standardUserDefaults] integerForKey:@"Number of Songs to Save"])
+        NSMutableArray *history = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"] mutableCopy] autorelease];
+        unsigned count;
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:@"Radio Station History Limit"])
+            count = [[NSUserDefaults standardUserDefaults] integerForKey:@"Radio Station History Limit"];
+        else
+            count = [[NSUserDefaults standardUserDefaults] integerForKey:@"Number of Songs to Save"];
+        
+        if (!count) {
+            if (0 == [history count])
+                return;
+            
+            [history removeAllObjects];
+            goto exitHistory;
+        }
+        
+        if ([history count] >= count)
             [history removeLastObject];
         
         // see if we already exist
-        int count = [history count];
+        count = [history count];
         int i = 0;
         NSString *match = [station objectForKey:@"radioURL"];
         for (; i < count; ++i) {
@@ -317,6 +331,7 @@
         // add to front
         [history insertObject:station atIndex:0];
         
+exitHistory:
         [[NSUserDefaults standardUserDefaults] setObject:history forKey:@"RadioStationHistory"];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
