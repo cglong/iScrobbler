@@ -527,10 +527,14 @@
     int count;
     if (state && (count = [state count]) == [sourceList numberOfRows]) {
         id item;
-        for (int i = 0; i < count; ++i) {
+        for (int i = 0, j = 0; i < count; ++i) {
             item = [sourceList itemAtRow:i];
-            if (0 == [sourceList levelForItem:item] && [[state objectAtIndex:i] boolValue])
-                [sourceList expandItem:item];
+            if (0 == [sourceList levelForItem:item]) {
+                if ([[state objectAtIndex:j] boolValue])
+                    // we delay this until the next event loop so the list count does not change on us in mid-loop
+                    [sourceList performSelector:@selector(expandItem:) withObject:item afterDelay:0.0];
+                ++j;
+            }   
         }
     } 
     
