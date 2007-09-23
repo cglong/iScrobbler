@@ -353,6 +353,9 @@
         [self pingNowPlaying:nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
+        NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed
+            object:self userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:999999] forKey:@"error"]];
+        [self performSelector:@selector(wsStationTuneFailure:) withObject:n afterDelay:0.0];
         return;
     }
     
@@ -406,6 +409,9 @@
         break;
         case 7:
             msg = NSLocalizedString(@"Stopped stream. Please try another station.", "");
+        break;
+        case 999999:
+            msg = NSLocalizedString(@"iTunes received an error attempting to play the station. Please try another station.", "");
         break;
         default:
             msg = NSLocalizedString(@"Unknown error.", "");
