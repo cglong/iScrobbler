@@ -14,6 +14,17 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+a2:
+- Added Radio support for Friends, Neighbors, Tags, Global Tags, Groups and Artists stations.
+- Added Radio history (limited by the "Number of Recent Tracks" pref).
+- iScrobbler will not auto-connect to the Last.fm Radio during launch unless the "Auto Tune Last Playd Radio Station" pref is checked.
+- Added Connect item to the Radio submenu to start a connection when the Auto-Tune pref is not checked.
+- Added "Now Playing" station to the Last.fm submenu.
+- Added "My Playlist" station item to the Radio submenu.
+- Played Radio tracks are recorded to the local profile.
+- iScrobbler can handle external requests for lastfm:// URLs (for instance the "Play In Software" links on the last.fm website).
+- When playing a Radio track, the duration of the track is part of the track title in the Stats window and is a tooltip for the song in the Notes menu.
+a1:
 - Requires 10.4.0 or later
 - Radio support! (Plays through iTunes.)
 
