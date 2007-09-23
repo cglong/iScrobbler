@@ -12,6 +12,7 @@
 #import "iScrobblerController.h"
 #import "SongData.h"
 #import "ASWebServices.h"
+#import "ISRadioSearchController.h"
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 
@@ -27,10 +28,6 @@
     static ISRadioController *shared = nil;
     return (shared ? shared : (shared = [[ISRadioController alloc] init]));
 }
-
-     // SEARCH: window: itunes sidebar (my tags, friends, neighbours search),
-    // main panel: play this station, play only music you tagged as "loved" (sub only), go to tag page
-    // play user radio, play user neighborhood, play user loved tracks (sub only), go to profile
 
 - (void)setRootMenu:(NSMenuItem*)menu
 {
@@ -109,8 +106,8 @@
             
             item = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"%@%C",
                 NSLocalizedString(@"Search for a Station", ""), 0x2026 /*...*/]
-                action:@selector(openStationSearch:) keyEquivalent:@""];
-            [item setTarget:self];
+                action:@selector(showWindow:) keyEquivalent:@""];
+            [item setTarget:[ISRadioSearchController sharedController]];
             [item setTag:MSTATION_SEARCH];
             [item setEnabled:NO];
             [m addItem:item];
@@ -154,7 +151,7 @@
 - (void)tuneStationWithName:(NSString*)name url:(NSString*)url
 {
     [stationBeingTuned release];
-    stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:url, @"url", name ? name : url, @"name", nil];
+    stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:url, @"radioURL", name ? name : url, @"name", nil];
     
     [[ASWebServices sharedInstance] tuneStation:url];
 }
@@ -309,9 +306,9 @@
         // see if we already exist
         int count = [history count];
         int i = 0;
-        NSString *match = [station objectForKey:@"url"];
+        NSString *match = [station objectForKey:@"radioURL"];
         for (; i < count; ++i) {
-            if (NSOrderedSame == [[[history objectAtIndex:i] objectForKey:@"url"] caseInsensitiveCompare:match])
+            if (NSOrderedSame == [[[history objectAtIndex:i] objectForKey:@"radioURL"] caseInsensitiveCompare:match])
                 break;
         }
         if (i < count)
@@ -322,6 +319,8 @@
         
         [[NSUserDefaults standardUserDefaults] setObject:history forKey:@"RadioStationHistory"];
         [[NSUserDefaults standardUserDefaults] synchronize];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:ISRadioHistoryDidUpdateNotification object:self];
         
         } @catch (id e) {
             ScrobLog(SCROB_LOG_ERR, @"exception adding radio station to history: %@", e);
@@ -354,11 +353,21 @@
         [self pingNowPlaying:nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
+        return;
     }
     
+    // use the station info from last.fm if possible
+    NSDictionary *d = [note userInfo];
+    NSString *sname = [d objectForKey:@"stationname"];
+    NSString *surl = [d objectForKey:@"url"];
+    if (sname && surl) {
+        [stationBeingTuned release];
+        stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:surl, @"radioURL", sname, @"name", nil];
+    }
     if (stationBeingTuned) {
         [self setNowPlayingStation:stationBeingTuned];
         [self addStationToHistory:stationBeingTuned];
+        
         [stationBeingTuned release];
         stationBeingTuned = nil;
     }
@@ -444,7 +453,7 @@
     [[m itemWithTag:MSTATION_MYNEIGHBORHOOD] setEnabled:YES];
     [[m itemWithTag:MSTATION_MYPLAYLIST] setEnabled:YES];
     [[m itemWithTag:MACTION_SCROBRADIO] setEnabled:YES];
-    // TOODO: [[rootMenu itemWithTag:MSTATION_SEARCH] setEnabled:YES];
+    [[m itemWithTag:MSTATION_SEARCH] setEnabled:YES];
     
     if ([[ASWebServices sharedInstance] subscriber]) {
         [[m itemWithTag:MSTATION_MYRADIO] setEnabled:YES];
@@ -459,7 +468,7 @@
         NSArray *history = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"];
         if (history && [history count] > 0) {
             NSDictionary *d = [history objectAtIndex:0];
-            [self tuneStationWithName:[d objectForKey:@"name"] url:[d objectForKey:@"url"]];
+            [self tuneStationWithName:[d objectForKey:@"name"] url:[d objectForKey:@"radioURL"]];
         }
     }
 }

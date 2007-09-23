@@ -27,3 +27,5 @@
 - (NSArray*)history;
 
 @end
+
+#define ISRadioHistoryDidUpdateNotification @"ISRadioHistoryDidUpdateNotification"
