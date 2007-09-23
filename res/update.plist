@@ -5,17 +5,19 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>42b739468551e8ff1c1d25855c034b54814338d7</string>
+        	<string>7cb5e6a6ebfac8cc890a848ef0f940e39d303c70</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0a1</string>
+        <string>2.0.0a2</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a2.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string> - Requires 10.4
-- Last.fm Radio support! (Plays through iTunes.)
+                <string>- Added Radio support for Friends, Neighbors, Tags, Global Tags, Groups and Artists stations.
+- Added Radio history.
+- Played Radio tracks are recorded to the local profile.
+- Other Radio related changes.
                 </string>
         </dict>
 </dict>
