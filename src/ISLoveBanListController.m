@@ -10,8 +10,8 @@
 
 #import "ISLoveBanListController.h"
 #import "ProtocolManager.h"
-#import "ScrobLog.h"
 #import "ASXMLRPC.h"
+#import "ASXMLFile.h"
 
 @implementation ISLoveBanListController
 
@@ -53,61 +53,36 @@
     } @catch (id e) {}
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+-(void)xmlFile:(ASXMLFile *)connection didFailWithError:(NSError *)reason
 {
-    if (!responseData) {
-        responseData = [[NSMutableData alloc] initWithData:data];
-    } else {
-        [responseData appendData:data];
-    }
-}
-
--(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
-{
-    ScrobLog(SCROB_LOG_TRACE, @"Connection failure: %@\n", reason);
-    [responseData release];
-    responseData = nil;
-    if (connection == loveConn)
+    if (connection == loveConn) {
+        [loveConn autorelease];
         loveConn = nil;
-    else
+    } else {
+        [banConn autorelease];
         banConn = nil;
+    }
     [progress stopAnimation:nil];
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+- (void)xmlFileDidFinishLoading:(ASXMLFile *)connection
 {
-    NSError *err = nil;
-    NSXMLDocument *xml = nil;
-    if (responseData) {
-        Class xmlDoc = NSClassFromString(@"NSXMLDocument");
-        xml = [[xmlDoc alloc] initWithData:responseData
-            options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err];
-    } else
-        err = [NSError errorWithDomain:NSPOSIXErrorDomain code:ENOENT userInfo:nil];
-    if (err) {
-        [self connection:connection didFailWithError:err];
-        return;
-    }
-    
-    [responseData release];
-    responseData = nil;
-    
+    NSXMLDocument *xml = [connection xml];
     NSArrayController *data;
     if (connection == loveConn) {
         data = loved;
+        [loveConn autorelease];
         loveConn = nil;
         // Get the banned list now
         NSString *user = [[[ProtocolManager sharedInstance] userName]
             stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
             stringByAppendingFormat:@"user/%@/recentbannedtracks.xml", user];
-        NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-            cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-        [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-        banConn = [NSURLConnection connectionWithRequest:req delegate:self];
+        ISASSERT(nil == banConn, "banConn is not nil!");
+        banConn = [[ASXMLFile xmlFileWithURL:[NSURL URLWithString:url] delegate:self] retain];
     } else {
         data = banned;
+        [banConn autorelease];
         banConn = nil;
     }
     
@@ -222,11 +197,11 @@
         name:NSTableViewSelectionDidChangeNotification object:nil];
     [rpcreq release];
     rpcreq = nil;
-    [responseData release];
-    responseData = nil;
     [loveConn cancel];
+    [loveConn release];
     loveConn = nil;
     [banConn cancel];
+    [banConn release];
     banConn = nil;
     [[self window] close];
     [[NSNotificationCenter defaultCenter] postNotificationName:ISLoveBanListDidEnd object:self];
@@ -256,10 +231,7 @@
             stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
             stringByAppendingFormat:@"user/%@/recentlovedtracks.xml", user];
-        NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-            cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-        [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-        loveConn = [NSURLConnection connectionWithRequest:req delegate:self];
+        loveConn = [[ASXMLFile xmlFileWithURL:[NSURL URLWithString:url] delegate:self] retain];
     }
 }
 
@@ -272,9 +244,10 @@
 - (void)dealloc
 {
     [rpcreq release];
-    [responseData release];
     [loveConn cancel];
+    [loveConn release];
     [banConn cancel];
+    [banConn release];
     [super dealloc];
 }
 #endif

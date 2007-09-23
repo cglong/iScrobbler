@@ -10,6 +10,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class ASXMLFile;
+
 #define ISLoveBanListDidEnd @"ISLoveBanListDidEnd"
 
 @interface ISLoveBanListController : NSWindowController {
@@ -20,8 +22,7 @@
     IBOutlet NSProgressIndicator *progress;
     IBOutlet NSButton *reverse;
     
-    NSMutableData *responseData;
-    NSURLConnection *loveConn, *banConn;
+    ASXMLFile *loveConn, *banConn;
     id rpcreq;
 }
 

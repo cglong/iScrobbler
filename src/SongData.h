@@ -52,6 +52,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     unsigned banned : 1;
     unsigned iTunes : 1;
     unsigned isPaused : 1;
+    unsigned isLastFmRadio: 1;
+    unsigned skipped : 1;
 }
 
 // Value to pad time calculations with
@@ -185,6 +187,11 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (BOOL)banned;
 - (void)setBanned:(BOOL)isBanned;
+
+- (BOOL)skipped;
+- (void)setSkipped:(BOOL)isSkipped;
+
+- (BOOL)isLastFmRadio;
 
 - (NSNumber*)trackNumber;
 - (void)setTrackNumber:(NSNumber*)number;

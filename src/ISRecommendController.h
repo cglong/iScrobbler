@@ -10,6 +10,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class ASXMLFile;
+
 typedef enum {
     rt_track = 0,
     rt_artist,
@@ -25,8 +27,7 @@ typedef enum {
     int what;
     NSString *toUser;
     NSString *msg;
-    NSMutableData *responseData;
-    NSURLConnection *conn;
+    ASXMLFile *conn;
     id representedObj;
     BOOL send, artistEnabled, trackEnabled, albumEnabled;
 }

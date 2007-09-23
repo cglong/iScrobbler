@@ -10,7 +10,7 @@
 
 #import "ISRecommendController.h"
 #import "ProtocolManager.h"
-#import "ScrobLog.h"
+#import "ASXMLFile.h"
 
 @implementation ISRecommendController
 
@@ -59,42 +59,18 @@
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+-(void)xmlFile:(ASXMLFile *)connection didFailWithError:(NSError *)reason
 {
-    if (!responseData) {
-        responseData = [[NSMutableData alloc] initWithData:data];
-    } else {
-        [responseData appendData:data];
-    }
-}
-
--(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
-{
-    ScrobLog(SCROB_LOG_TRACE, @"Connection failure: %@\n", reason);
-    [responseData release];
-    responseData = nil;
+    [conn autorelease];
     conn = nil;
     [progress stopAnimation:nil];
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+- (void)xmlFileDidFinishLoading:(ASXMLFile *)connection
 {
-    NSError *err = nil;
-    NSXMLDocument *xml = nil;
-    if (responseData) {
-        Class xmlDoc = NSClassFromString(@"NSXMLDocument");
-        xml = [[xmlDoc alloc] initWithData:responseData
-            options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err];
-    } else
-        err = [NSError errorWithDomain:NSPOSIXErrorDomain code:ENOENT userInfo:nil];
-    if (err) {
-        [self connection:connection didFailWithError:err];
-        return;
-    }
-    
-    [responseData release];
-    responseData = nil;
+    NSXMLDocument *xml = [connection xml];
+
+    [conn autorelease];
     conn = nil;
     
     @try {
@@ -170,10 +146,7 @@
         stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
         stringByAppendingFormat:@"user/%@/friends.xml", user];
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-        cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-    conn = [NSURLConnection connectionWithRequest:req delegate:self];
+    conn = [[ASXMLFile xmlFileWithURL:[NSURL URLWithString:url] delegate:self cachedForSeconds:600] retain];
 }
 
 - (void)setArtistEnabled:(BOOL)enabled
@@ -199,9 +172,8 @@
 
 - (void)dealloc
 {
-    [representedObj release];
-    [responseData release];
     [conn cancel];
+    [conn release];
     [toUser release];
     [msg release];
     [super dealloc];

@@ -10,8 +10,11 @@
 
 #import "ISTagController.h"
 #import "ProtocolManager.h"
-#import "ScrobLog.h"
 #import "SongData.h"
+#import "ASXMLFile.h"
+#import "ASWebServices.h"
+
+#define TAG_CACHE_TTL 600
 
 @implementation ISTagController
 
@@ -88,8 +91,11 @@
         || (lastGlobalTags == tt_artist && what == tt_album))
         return;
     
-    if (globalConn)
+    if (globalConn) {
         [globalConn cancel];
+        [globalConn release];
+        globalConn = nil;
+    }
     
     NSString *type = @"tag/toptags.xml";
     if (representedObj && [representedObj isKindOfClass:[SongData class]]) {
@@ -112,89 +118,9 @@
     
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
             stringByAppendingString:type];
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-        cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     
     [progress startAnimation:nil];
-    globalConn = [NSURLConnection connectionWithRequest:req delegate:self];
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
-{
-    if (!responseData) {
-        responseData = [[NSMutableData alloc] initWithData:data];
-    } else {
-        [responseData appendData:data];
-    }
-}
-
--(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
-{
-    ScrobLog(SCROB_LOG_TRACE, @"Connection failure: %@\n", reason);
-    [responseData release];
-    responseData = nil;
-    if (connection == userConn)
-        userConn = nil;
-    else
-        globalConn = nil;
-    [progress stopAnimation:nil];
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
-{
-    NSError *err = nil;
-    NSXMLDocument *xml = nil;
-    if (responseData) {
-        Class xmlDoc = NSClassFromString(@"NSXMLDocument");
-        xml = [[xmlDoc alloc] initWithData:responseData
-            options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err];
-    } else
-        err = [NSError errorWithDomain:NSPOSIXErrorDomain code:ENOENT userInfo:nil];
-    if (err) {
-        [self connection:connection didFailWithError:err];
-        return;
-    }
-    
-    [responseData release];
-    responseData = nil;
-    
-    NSArrayController *data;
-    if (connection == userConn) {
-        data = userTags;
-        userConn = nil;
-        // Get the global tags now
-       [self getGlobalTags];
-    } else {
-        data = globalTags;
-        globalConn = nil;
-    }
-    
-    @try {
-        if ([[data content] count])
-            [data removeObjects:[data content]];
-            
-        NSArray *names = [[xml rootElement] elementsForName:@"tag"];
-        NSEnumerator *en = [names objectEnumerator];
-        NSString *tagName;
-        NSXMLElement *e;
-        while ((e = [en nextObject])) {
-            if ((tagName = [[e attributeForName:@"name"] stringValue])
-                || (tagName = [[[e elementsForName:@"name"] objectAtIndex:0] stringValue])) {
-                NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                    [tagName stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding], @"name",
-                    nil];
-                [data addObject:entry];
-            }
-        }
-        [data rearrangeObjects];
-    } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception processing tags: %@", e);
-    }
-    
-    if (!globalConn)
-        [progress stopAnimation:nil];
+    globalConn = [[ASXMLFile xmlFileWithURL:[NSURL URLWithString:url] delegate:self cachedForSeconds:TAG_CACHE_TTL*3] retain];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification*)note
@@ -238,6 +164,14 @@
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self
         name:NSTableViewSelectionDidChangeNotification object:nil];
+    
+    [userConn cancel];
+    [userConn release];
+    userConn = nil;
+    [globalConn cancel];
+    [globalConn release];
+    globalConn = nil;
+    
     if ([[self window] isSheet])
         [NSApp endSheet:[self window]];
     [[self window] close];
@@ -269,14 +203,7 @@
     [self addObserver:self forKeyPath:@"what" options:0 context:nil];
     
     lastGlobalTags = -1;
-    NSString *user = [[[ProtocolManager sharedInstance] userName]
-        stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS URL"]
-        stringByAppendingFormat:@"user/%@/tags.xml", user];
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-        cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-    userConn = [NSURLConnection connectionWithRequest:req delegate:self];
+    userConn = [[ASXMLFile xmlFileWithURL:[ASWebServices currentUserTagsURL] delegate:self cachedForSeconds:TAG_CACHE_TTL] retain];
 }
 
 - (void)setArtistEnabled:(BOOL)enabled
@@ -294,6 +221,56 @@
     albumEnabled = enabled;
 }
 
+- (void)xmlFileDidFinishLoading:(ASXMLFile*)connection
+{
+    NSArrayController *data;
+    if (connection == userConn) {
+        data = userTags;
+        [userConn autorelease]; // we are going to use the object via connection
+        userConn = nil;
+        // Get the global tags now
+       [self getGlobalTags];
+    } else {
+        data = globalTags;
+        [globalConn autorelease]; // ditto
+        globalConn = nil;
+    }
+    
+    @try {
+        if ([[data content] count])
+            [data removeObjects:[data content]];
+            
+        NSArray *tags = [connection tags];
+        NSEnumerator *en = [tags objectEnumerator];
+        NSString *tagName;
+        NSDictionary *e;
+        while ((e = [en nextObject])) {
+            if ((tagName = [e objectForKey:@"name"])) {
+                NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:tagName, @"name", nil];
+                [data addObject:entry];
+            }
+        }
+        [data rearrangeObjects];
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception processing tags: %@", e);
+    }
+    
+    if (!globalConn)
+        [progress stopAnimation:nil];
+}
+
+- (void)xmlFile:(ASXMLFile*)connection didFailWithError:(NSError *)reason
+{
+    if (connection == userConn) {
+        [userConn release];
+        userConn = nil;
+    } else {
+        [globalConn release];
+        globalConn = nil;
+    }
+    [progress stopAnimation:nil];
+}
+
 - (id)init
 {
     artistEnabled = trackEnabled = albumEnabled = YES;
@@ -303,10 +280,11 @@
 - (void)dealloc
 {
     [representedObj release];
-    [responseData release];
     [tagData release];
     [userConn cancel];
+    [userConn release];
     [globalConn cancel];
+    [globalConn release];
     [super dealloc];
 }
 

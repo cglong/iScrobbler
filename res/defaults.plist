@@ -11,6 +11,9 @@
     <key>ASS URL</key>
 	<string>http://ws.audioscrobbler.com/ass/</string>
     
+    <key>AutoTuneLastRadioStation</key>
+    <false />
+    
     <key>AutoTagLovedBanned</key>
     <false />
     
@@ -47,6 +50,9 @@
     <key>GrowlPlayFormat</key>
     <string>%a%n%A%n%r</string>
     
+    <key>GrowlLastFMCommunications</key>
+    <false />
+    
     <key>Sync iPod</key>
     <true />
     
@@ -80,6 +86,10 @@
     <key>Now Playing Detail</key>
     <true />
     
+    <key>RadioStationHistory</key>
+    <array>
+    </array>
+    
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
     
@@ -88,7 +98,10 @@
     
     <key>WS ROOT</key>
 	<string>http://ws.audioscrobbler.com/</string>
-        
+    
+    <key>RadioPlaysScrobbled</key>
+    <true />
+    
 	<key>clientid</key>
 	<string>osx</string>
 	
@@ -96,12 +109,12 @@
 	<string>1.2</string>
         
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/1.5.1</string>
+	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.0</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>1.5.1</string>
+	<string>2.0</string>
 </dict>
 </plist>

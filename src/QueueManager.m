@@ -13,6 +13,7 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 #import "ProtocolManager.h"
+#import "ISRadioController.h"
 
 static QueueManager *g_QManager = nil;
 
@@ -70,6 +71,21 @@ static QueueManager *g_QManager = nil;
 {
     SongData *found;
     NSEnumerator *en = [songQueue objectEnumerator];
+    
+    if ([song isLastFmRadio]) {
+        // Don't actually submit it, but fake a queued event so our local stats are updated
+        if ([[ISRadioController sharedInstance] scrobbleRadioPlays]
+            && (![song banned] || ![song skipped])
+            && [[song elapsedTime] floatValue] >= ([[song duration] floatValue] - [SongData songTimeFudge])) {
+            [[NSNotificationCenter defaultCenter]
+                postNotificationName:QM_NOTIFICATION_SONG_QUEUED
+                object:self
+                userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_USERINFO_KEY_SONG]]; 
+            [song setPostDate:[song startTime]];
+            [song setHasQueued:YES];
+        }
+        return (kqSuccess);
+    }
     
     if (![song canSubmit]) {
         ScrobLog(SCROB_LOG_TRACE, @"Track '%@ [%@ of %@]' failed submission rules. Not queuing.\n",

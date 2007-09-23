@@ -17,12 +17,6 @@
 
 @implementation ASXMLRPC
 
-+ (BOOL)isAvailable
-{
-    // 10.4+ only
-    return (nil != NSClassFromString(@"NSXMLDocument"));
-}
-
 - (NSString*)method
 {
     @try {
@@ -36,8 +30,7 @@
 - (void)setMethod:(NSString*)method
 {
     NSXMLElement *root = [request rootElement];
-    Class xmlNode = NSClassFromString(@"NSXMLNode");
-    [root addChild:[xmlNode elementWithName:@"methodName" stringValue:method]];
+    [root addChild:[NSXMLNode elementWithName:@"methodName" stringValue:method]];
 }
 
 - (NSMutableArray*)standardParams
@@ -57,28 +50,27 @@
 - (void)setParameters:(NSMutableArray*)params
 {
     NSXMLElement *root = [request rootElement];
-    Class xmlNode = NSClassFromString(@"NSXMLNode");
-    NSXMLElement *xparams = [xmlNode elementWithName:@"params"];
+    NSXMLElement *xparams = [NSXMLNode elementWithName:@"params"];
     
     NSEnumerator *en = [params objectEnumerator];
     id p;
     while ((p = [en nextObject])) {
-        NSXMLElement *e = [xmlNode elementWithName:@"param"];
-        NSXMLElement *v = [xmlNode elementWithName:@"value"];
+        NSXMLElement *e = [NSXMLNode elementWithName:@"param"];
+        NSXMLElement *v = [NSXMLNode elementWithName:@"value"];
         NSXMLElement *a;
         if ([p isKindOfClass:[NSArray class]]) {
-            a = [xmlNode elementWithName:@"array"];
-            NSXMLElement *d = [xmlNode elementWithName:@"data"];
+            a = [NSXMLNode elementWithName:@"array"];
+            NSXMLElement *d = [NSXMLNode elementWithName:@"data"];
             NSEnumerator *aen = [p objectEnumerator];
             id obj;
             while ((obj = [aen nextObject])) {
-                NSXMLElement *v2 = [xmlNode elementWithName:@"value"];
-                [v2 addChild:[xmlNode elementWithName:@"string" stringValue:obj]];
+                NSXMLElement *v2 = [NSXMLNode elementWithName:@"value"];
+                [v2 addChild:[NSXMLNode elementWithName:@"string" stringValue:obj]];
                 [d addChild:v2];
             }
             [a addChild:d];
         } else
-            a = [xmlNode elementWithName:@"string" stringValue:p];
+            a = [NSXMLNode elementWithName:@"string" stringValue:p];
         
         [v addChild:a];
         [e addChild:v];
@@ -185,8 +177,7 @@
 {
     NSError *err = nil;
     if (responseData) {
-        Class xmlDoc = NSClassFromString(@"NSXMLDocument");
-        response = [[xmlDoc alloc] initWithData:responseData
+        response = [[NSXMLDocument alloc] initWithData:responseData
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
             error:&err];
     } else
@@ -212,10 +203,8 @@
 {
     self = [super init];
     
-    Class xmlElem = NSClassFromString(@"NSXMLElement");
-    NSXMLElement *root = [[xmlElem alloc] initWithName:@"methodCall"];
-    Class xmlDoc = NSClassFromString(@"NSXMLDocument");
-    request = [[xmlDoc alloc] initWithRootElement:root];
+    NSXMLElement *root = [[NSXMLElement alloc] initWithName:@"methodCall"];
+    request = [[NSXMLDocument alloc] initWithRootElement:root];
     [root release];
     
     [request setVersion:@"1.0"];
