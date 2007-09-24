@@ -139,6 +139,34 @@ static void handlesig (int sigraised)
     }
 }
 
+- (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
+{
+#ifndef __LP64__
+    [GrowlApplicationBridge
+            notifyWithTitle:title
+            description:msg
+            notificationName:IS_GROWL_NOTIFICATION_ALERTS
+            iconData:nil
+            priority:0.0
+            isSticky:YES
+            clickContext:nil];
+#endif            
+}
+
+- (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
+{
+#ifndef __LP64__
+    [GrowlApplicationBridge
+            notifyWithTitle:title
+            description:msg
+            notificationName:IS_GROWL_NOTIFICATION_ALERTS
+            iconData:nil
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
+#endif    
+}
+
 - (void)updateStatusWithColor:(NSColor*)color withMsg:msg
 {
     NSAttributedString *newTitle =
