@@ -8,6 +8,7 @@
             OUTLETS = {
                 placeholderView = id; 
                 searchButton = NSButton; 
+                searchOption = NSButton; 
                 searchProgress = NSProgressIndicator; 
                 searchText = NSTextField; 
                 searchView = NSView; 

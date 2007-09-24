@@ -23,6 +23,7 @@
     IBOutlet NSTextField *searchText;
     IBOutlet NSButton *searchButton;
     IBOutlet NSProgressIndicator *searchProgress;
+    IBOutlet NSButton *searchOption;
     
     NSMutableDictionary *search, *tags, *friends, *neighbors, *history;
     ASXMLFile *friendsConn, *neighborsConn, *tagsConn;

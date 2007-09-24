@@ -67,6 +67,8 @@
     if ([currentSearchType objectForKey:@"artist"]) {
         url = [ws stationForArtist:searchFor];
         name = [NSString stringWithFormat:NSLocalizedString(@"%@ Artist Radio", ""), searchFor];
+        if (![searchOption isHidden] && NSOnState == [searchOption state])
+            url = [url stringByAppendingString:@"/fans"];
     } else if ([currentSearchType objectForKey:@"tag"]) {
         url = [ws stationForGlobalTag:searchFor];
         name = [NSString stringWithFormat:NSLocalizedString(@"%@ Tag Radio", ""), searchFor];
@@ -95,6 +97,8 @@
     NSString *name;
     if ([currentSearchType objectForKey:@"artist"]) {
         name = NSLocalizedString(@"Enter a Artist", "");
+        [searchOption setTitle:NSLocalizedString(@"Play Artist Top Fans Radio", "")];
+        [searchOption setHidden:NO];
     } else if ([currentSearchType objectForKey:@"tag"]) {
         name = NSLocalizedString(@"Enter a Tag", "");
     } else if ([currentSearchType objectForKey:@"group"]) {
@@ -301,6 +305,7 @@
 - (void)selectionDidChange:(NSNotification*)note
 {
     currentSearchType = nil;
+    [searchOption setHidden:YES];
     
     @try {
     NSArray *all = [sourceListController selectedObjects];
@@ -580,6 +585,7 @@
     // retain our views so we don't lose them when they are replaced
     (void)[placeholderView retain];
     (void)[searchView retain];
+    [searchOption setHidden:YES];
     
     [[self window] setTitle:
         [@"iScrobbler: " stringByAppendingString:NSLocalizedString(@"Find a Radio Station", "")]];
