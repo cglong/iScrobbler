@@ -403,7 +403,6 @@ exitHistory:
     [stationBeingTuned release];
     stationBeingTuned = nil;
     
-    #ifndef __LP64__
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
     NSString *msg = @"";
     switch (err) {
@@ -438,15 +437,7 @@ exitHistory:
             msg = NSLocalizedString(@"Unknown error.", "");
         break;
     }
-    [GrowlApplicationBridge
-            notifyWithTitle:NSLocalizedString(@"Failed to tune station", "")
-            description:msg
-            notificationName:IS_GROWL_NOTIFICATION_ALERTS
-            iconData:nil
-            priority:0.0
-            isSticky:YES
-            clickContext:nil];
-    #endif
+    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to tune station", "") message:msg];
 }
 
 - (void)wsWillHandShake:(NSNotification*)note
