@@ -29,6 +29,11 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 - (NSComparisonResult)compareLastHitDate:(NSMutableDictionary*)entry;
 @end
 
+#define SCOREBOARD_ALBUMART_CACHE
+#ifdef SCOREBOARD_ALBUMART_CACHE
+static unsigned int artScorePerHit = 12; // For 1 play of an album, this will give a TTL of almost 4hrs
+#endif
+
 @implementation SongData
 
 + (float)songTimeFudge
@@ -616,6 +621,32 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 #define KEY_LAST_HIT @"last hit"
 #define KEY_IMAGE @"image"
+#ifdef SCOREBOARD_ALBUMART_CACHE
++ (void)scanArtworkCache
+{
+    NSMutableArray *rem = [NSMutableArray array];
+    
+    NSMutableDictionary *d;
+    NSString *key;
+    NSEnumerator *en = [artworkCache keyEnumerator];
+    int score;
+    while ((key = [en nextObject])) {
+        d = [artworkCache objectForKey:key];
+        score = [[d objectForKey:@"score"] unsignedIntValue];
+        if (!score) {
+            [rem addObject:key];
+            ScrobLog(SCROB_LOG_TRACE, @"Scoreboard cache: Removed %@ which entered at %@. Last hit was %@.",
+                key, [d objectForKey:@"entryDate"], [d objectForKey:KEY_LAST_HIT]);
+            continue;
+        }
+        
+        [d setObject:[NSNumber numberWithUnsignedInt:score-1] forKey:@"score"];
+    }
+    
+    [artworkCache removeObjectsForKeys:rem];
+}
+#endif
+
 - (NSImage*)artwork
 {
     static NSAppleScript *iTunesArtworkScript = nil;
@@ -625,6 +656,15 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         return (nil);
     
     if (!artworkCache) {
+#ifdef SCOREBOARD_ALBUMART_CACHE
+        artworkCache = [[NSMutableDictionary alloc] init];
+        artworkCacheMax = [[NSUserDefaults standardUserDefaults] integerForKey:@"AlbumArtCacheScore"];
+        if (artworkCacheMax > 1 && artworkCacheMax < 50)
+            artScorePerHit = artworkCacheMax;
+        artworkCacheMax = INT_MAX;
+        [NSTimer scheduledTimerWithTimeInterval:(float)artScorePerHit * 1.5f * 60
+            target:[SongData class] selector:@selector(scanArtworkCache) userInfo:nil repeats:YES];
+#else
         if ((artworkCacheMax = [[NSUserDefaults standardUserDefaults] integerForKey:@"Artwork Cache Size"]) < 8) {
             u_int64_t mem = 0;
             int mib[2] = {CTL_HW, HW_MEMSIZE};
@@ -639,6 +679,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         }
         
         artworkCache = [[NSMutableDictionary alloc] initWithCapacity:artworkCacheMax];
+#endif        
     }
     
     if (!iTunesArtworkScript) {
@@ -665,6 +706,10 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         artworkCacheHits += 1.0;
         image = [entry objectForKey:KEY_IMAGE];
         [entry setObject:[NSDate date] forKey:KEY_LAST_HIT];
+#ifdef SCOREBOARD_ALBUMART_CACHE
+        unsigned score = [[entry objectForKey:@"score"] unsignedIntValue] + artScorePerHit;
+        [entry setObject:[NSNumber numberWithUnsignedInt:score] forKey:@"score"];
+#endif
         ScrobLog(SCROB_LOG_TRACE, @"Artwork cache hit. Lookups: %.0f (%u/%u), Hits: %.0f (%.02f%%)",
             artworkCacheLookups, [artworkCache count], artworkCacheMax, artworkCacheHits,
             (artworkCacheHits / artworkCacheLookups) * 100.0);
@@ -706,6 +751,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
             artworkCacheLookups, misses, (misses / artworkCacheLookups) * 100.0);
         
         // Add to cache
+#ifndef SCOREBOARD_ALBUMART_CACHE
         unsigned count = [artworkCache count];
         if (count == artworkCacheMax) {
             // Remove oldest entry
@@ -714,9 +760,18 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
             [artworkCache removeObjectForKey:remKey];
             ScrobLog(SCROB_LOG_TRACE, @"Artwork '%@' removed from cache.", remKey);
         }
+#endif
         
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:image, KEY_IMAGE,
-            [NSDate date], KEY_LAST_HIT, nil];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            image, KEY_IMAGE,
+            [NSDate date], KEY_LAST_HIT,
+#ifdef SCOREBOARD_ALBUMART_CACHE
+            [NSNumber numberWithUnsignedInt:artScorePerHit], @"score",
+            #ifdef ISDEBUG
+            [NSDate date], @"entryDate",
+            #endif
+#endif
+            nil];
         [artworkCache setObject:entry forKey:key];
     }
     return (image);
