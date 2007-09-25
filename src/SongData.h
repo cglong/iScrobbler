@@ -41,6 +41,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSString *genre;
     NSString *comment;
     NSString *mbid;
+    NSMutableData *albumArtData;
+    NSURLConnection *conn;
     TrackType_t trackType;
     unsigned trackNumber;
     unsigned isPodcast : 1;
@@ -195,6 +197,8 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 
 - (NSNumber*)trackNumber;
 - (void)setTrackNumber:(NSNumber*)number;
+
+- (void)loadAlbumArtFromURL:(NSURL*)url;
 
 @end
 

@@ -18,6 +18,7 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 #import "MBID.h"
+#import "ProtocolManager.h"
 
 static unsigned int g_songID = 0;
 static float songTimeFudge;
@@ -621,6 +622,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
 
 #define KEY_LAST_HIT @"last hit"
 #define KEY_IMAGE @"image"
+#define MakeAlbumCacheKey() ([[NSString stringWithFormat:@"%@_%@", [self artist], [self album]] lowercaseString])
 #ifdef SCOREBOARD_ALBUMART_CACHE
 + (void)scanArtworkCache
 {
@@ -630,8 +632,11 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     NSString *key;
     NSEnumerator *en = [artworkCache keyEnumerator];
     int score;
+    NSNull *null = [NSNull null];
     while ((key = [en nextObject])) {
-        d = [artworkCache objectForKey:key];
+        if ([(d = [artworkCache objectForKey:key]) isEqualTo:null])
+            continue;
+        
         score = [[d objectForKey:@"score"] unsignedIntValue];
         if (!score) {
             [rem addObject:key];
@@ -647,12 +652,43 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
 }
 #endif
 
+- (void)cacheArtwork:(NSImage*)art withScore:(int)score
+{
+    float misses = artworkCacheLookups - artworkCacheHits;
+    ScrobLog(SCROB_LOG_TRACE, @"Artwork cache miss. Lookups: %.0f, Misses: %.0f (%.02f%%)",
+        artworkCacheLookups, misses, (misses / artworkCacheLookups) * 100.0);
+    
+    // Add to cache
+#ifndef SCOREBOARD_ALBUMART_CACHE
+    unsigned count = [artworkCache count];
+    if (count == artworkCacheMax) {
+        // Remove oldest entry
+        NSString *remKey = [[artworkCache keysSortedByValueUsingSelector:@selector(compareLastHitDate:)]
+            objectAtIndex:0];
+        [artworkCache removeObjectForKey:remKey];
+        ScrobLog(SCROB_LOG_TRACE, @"Artwork '%@' removed from cache.", remKey);
+    }
+#endif
+    
+    NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+        art, KEY_IMAGE,
+        [NSDate date], KEY_LAST_HIT,
+#ifdef SCOREBOARD_ALBUMART_CACHE
+        [NSNumber numberWithUnsignedInt:score], @"score",
+        #ifdef ISDEBUG
+        [NSDate date], @"entryDate",
+        #endif
+#endif
+        nil];
+    [artworkCache setObject:entry forKey:MakeAlbumCacheKey()];
+}
+
 - (NSImage*)artwork
 {
     static NSAppleScript *iTunesArtworkScript = nil;
     static int artworkCacheMax;
     
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"] || [self isLastFmRadio] /*XXX: temp*/)
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"])
         return (nil);
     
     if (!artworkCache) {
@@ -692,17 +728,12 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
             return (nil);
         }
     }
-	
-    if (![self sourceName]) {
-        ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
-        return (nil);
-    }
     
-    NSString* const key = [[NSString stringWithFormat:@"%@_%@", [self artist], [self album]] lowercaseString];
+    NSString* const key = MakeAlbumCacheKey();
     NSMutableDictionary *entry = [artworkCache objectForKey:key];
     NSImage *image;
     artworkCacheLookups += 1.0;
-    if (entry) {
+    if (entry && [entry isNotEqualTo:[NSNull null]]) {
         artworkCacheHits += 1.0;
         image = [entry objectForKey:KEY_IMAGE];
         [entry setObject:[NSDate date] forKey:KEY_LAST_HIT];
@@ -714,6 +745,11 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
             artworkCacheLookups, [artworkCache count], artworkCacheMax, artworkCacheHits,
             (artworkCacheHits / artworkCacheLookups) * 100.0);
         return (image);
+    }
+    
+    if (![self sourceName]) {
+        ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
+        return (nil);
     }
     
     BOOL cache = YES;
@@ -746,33 +782,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
         return (nil);
     
     if (cache) {
-        float misses = artworkCacheLookups - artworkCacheHits;
-        ScrobLog(SCROB_LOG_TRACE, @"Artwork cache miss. Lookups: %.0f, Misses: %.0f (%.02f%%)",
-            artworkCacheLookups, misses, (misses / artworkCacheLookups) * 100.0);
-        
-        // Add to cache
-#ifndef SCOREBOARD_ALBUMART_CACHE
-        unsigned count = [artworkCache count];
-        if (count == artworkCacheMax) {
-            // Remove oldest entry
-            NSString *remKey = [[artworkCache keysSortedByValueUsingSelector:@selector(compareLastHitDate:)]
-                objectAtIndex:0];
-            [artworkCache removeObjectForKey:remKey];
-            ScrobLog(SCROB_LOG_TRACE, @"Artwork '%@' removed from cache.", remKey);
-        }
-#endif
-        
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            image, KEY_IMAGE,
-            [NSDate date], KEY_LAST_HIT,
-#ifdef SCOREBOARD_ALBUMART_CACHE
-            [NSNumber numberWithUnsignedInt:artScorePerHit], @"score",
-            #ifdef ISDEBUG
-            [NSDate date], @"entryDate",
-            #endif
-#endif
-            nil];
-        [artworkCache setObject:entry forKey:key];
+        [self cacheArtwork:image withScore:artScorePerHit];
     }
     return (image);
 }
@@ -933,8 +943,61 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     trackNumber = [number unsignedIntValue];
 }
 
+- (void)loadAlbumArtFromURL:(NSURL*)url
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"] || [artworkCache objectForKey:MakeAlbumCacheKey()])
+        return;
+    
+    ISASSERT(conn == nil, "conn is still active!");
+    // set a placeholder so no other object attempts to download the image
+    [artworkCache setObject:[NSNull null] forKey:MakeAlbumCacheKey()];
+    
+     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url
+        cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
+    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
+    conn = [[NSURLConnection connectionWithRequest:req delegate:self] retain];
+    ScrobDebug(@"loading", MakeAlbumCacheKey());
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    if (!albumArtData) {
+        albumArtData = [[NSMutableData alloc] initWithData:data];
+    } else {
+        [albumArtData appendData:data];
+    }
+}
+
+-(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
+{
+    ScrobLog(SCROB_LOG_TRACE, @"Connection failure: %@\n", reason);
+    [artworkCache removeObjectForKey:MakeAlbumCacheKey()]; // remove the placeholder
+    [albumArtData release];
+    albumArtData = nil;
+    [conn autorelease];
+    conn = nil;
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    [conn autorelease];
+    conn = nil;
+    NSImage *img = [[NSImage alloc] initWithData:albumArtData];
+    if (img) {
+        ScrobDebug(@"loaded", MakeAlbumCacheKey());
+        [self cacheArtwork:img withScore:artScorePerHit*10 /*since it's from the net, give it a cache boost*/];
+    } else
+        [artworkCache removeObjectForKey:MakeAlbumCacheKey()]; // remove the placeholder
+}
+
 - (void)dealloc
 {
+    if (conn) {
+        [conn cancel];
+        [conn release];
+        conn = nil;
+        [artworkCache removeObjectForKey:MakeAlbumCacheKey()]; // remove the placeholder
+    }
     [title release];
     [duration release];
     [position release];

@@ -1709,6 +1709,16 @@ exit:
     if (o) {
         isLastFmRadio = YES;
         [self setType:trackTypeShared];
+        
+        // Load artwork if possible
+        @try {
+        if (!(ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_medium"]))
+            ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_small"];
+        
+        if (ialbum)
+            [self loadAlbumArtFromURL:[NSURL URLWithString:ialbum]];
+        } @catch (id e) {}
+        
         ScrobDebug(@"created '%@' track from last.fm radio", [self brief]);
     }
     
