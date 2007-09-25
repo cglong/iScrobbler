@@ -104,6 +104,8 @@
 // For last.fm communication events
 - (void)growlProtocolEvent:(NSString *)msg;
 
+- (void)displayNowPlayingWithMsg:(NSString*)msg;
+- (void)displayNowPlaying;
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg;
 - (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg;
 

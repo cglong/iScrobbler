@@ -103,6 +103,47 @@ static void handlesig (int sigraised)
     }
 }
 
+- (void)displayNowPlayingWithMsg:(NSString*)msg
+{
+#ifndef __LP64__    
+    SongData *s;
+    NSData *artwork = nil;
+    NSString *npInfo = nil, *title = nil;
+
+    if ((s = [self nowPlaying]) && [GrowlApplicationBridge isGrowlRunning]) {
+        @try {
+        artwork = [[s artwork] TIFFRepresentation];
+        } @catch (NSException* e) {}
+        
+        title = [currentSong growlTitle];
+        npInfo = [currentSong growlDescription];
+    } else if (msg)
+        title = NSLocalizedString(@"Status", "");
+    
+    if (!title)
+        return;
+    
+    if (npInfo)
+        msg = msg ? [npInfo stringByAppendingFormat:@"\n%@", msg] : npInfo;
+    
+    [GrowlApplicationBridge
+        notifyWithTitle:title
+        description:msg
+        notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
+        iconData:artwork
+        priority:0.0
+        isSticky:NO
+        clickContext:nil
+        identifier:@"iscrobbler.play"];
+#endif
+}
+
+- (void)displayNowPlaying
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"])
+        [self displayNowPlayingWithMsg:nil];
+}
+
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
 {
 #ifndef __LP64__
@@ -628,28 +669,7 @@ if (currentSong) { \
         
         // Notify Growl
 notify_growl:
-#ifndef __LP64__
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
-        NSData *artwork = nil;
-        if ([GrowlApplicationBridge isGrowlRunning]) {
-            @try {
-            artwork = [[currentSong artwork] TIFFRepresentation];
-            } @catch (NSException*) {
-            }
-        }
-        [GrowlApplicationBridge
-            notifyWithTitle:[currentSong growlTitle]
-            description:[currentSong growlDescription]
-            notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
-            iconData:artwork
-            priority:0.0
-            isSticky:NO
-            clickContext:nil
-            identifier:@"iscrobbler.play"];
-        } // GrowlPlays
-#else
-; // Growl not 64bit yet
-#endif
+        [self displayNowPlaying];
     }
     
 player_info_exit:
