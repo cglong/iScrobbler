@@ -135,7 +135,7 @@
     if (displayTimer)
         return;
     
-    NSTimeInterval ti = 800 / 1000.0f;
+    NSTimeInterval ti = [[NSUserDefaults standardUserDefaults] floatForKey:@"MenuNPInfoDelay"] / 1000.0f;
     displayTimer = [NSTimer scheduledTimerWithTimeInterval:ti target:self selector:@selector(displayInfo:) userInfo:nil repeats:NO];
 }
 

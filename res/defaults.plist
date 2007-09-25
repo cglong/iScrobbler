@@ -53,6 +53,9 @@
     <key>GrowlLastFMCommunications</key>
     <false />
     
+    <key>MenuNPInfoDelay</key>
+    <integer>1000</integer>
+    
     <key>Sync iPod</key>
     <true />
     
