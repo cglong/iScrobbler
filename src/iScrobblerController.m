@@ -1754,6 +1754,28 @@ exit:
         if (NSNotFound != r.location)
             [fmt replaceCharactersInRange:r withString:[self artist]];
         
+        r = [fmt rangeOfString:@"%d"];
+        if (NSNotFound != r.location) {
+            NSString *d, *e;
+            unsigned time = [[self duration] unsignedIntValue];
+            unsigned days, hours, mins, secs;
+            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+            
+            if (time < 3600)
+                d = [NSString stringWithFormat:@"%u:%02u", mins, secs];
+            else
+                d = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+            
+            time = [[self elapsedTime] unsignedIntValue];
+            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+            if (time < 3600)
+                e = [NSString stringWithFormat:@"%u:%02u", mins, secs];
+            else
+                e = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+            
+            [fmt replaceCharactersInRange:r withString:[NSString stringWithFormat:@"%@/%@", e, d]];
+        }
+        
         [fmt replaceOccurrencesOfString:@"%n" withString:@"\n" options:0 range:NSMakeRange(0, [fmt length])];
         
         if ([fmt hasSuffix:@"\n"])
@@ -1776,7 +1798,10 @@ exit:
 
 - (NSString*)growlTitle
 {
-    return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]]);
+    NSString *f = [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"];
+    if ([self isLastFmRadio] && NSNotFound == [f rangeOfString:@"%d"].location)
+        f = [f stringByAppendingString:@" (%d)"];
+    return ([self growlDescriptionWithFormat:f]);
 }
 
 @end
