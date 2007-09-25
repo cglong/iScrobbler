@@ -482,7 +482,7 @@ exitHistory:
     
     [self setRecordToProfile:nil];
     
-    [[NSApp delegate] growlProtocolEvent:NSLocalizedString(@"Connected to Last.fm Radio", "")];
+    [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Connected to Last.fm Radio", "")];
     
     if (!stationBeingTuned && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
         NSArray *history = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"];
@@ -504,7 +504,7 @@ exitHistory:
 - (void)wsFailedHandShake:(NSNotification*)note
 {
     [rootMenu setToolTip:NSLocalizedString(@"Radio not connected (failed)", "")];
-    [[NSApp delegate] growlProtocolEvent:NSLocalizedString(@"Failed to connect to Last.fm Radio", "")];
+    [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Failed to connect to Last.fm Radio", "")];
 }
 
 - (void)wsNowPlayingUpdate:(NSNotification*)note

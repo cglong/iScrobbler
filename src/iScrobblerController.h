@@ -102,7 +102,7 @@
 - (void)showBadCredentialsDialog;
 
 // For last.fm communication events
-- (void)growlProtocolEvent:(NSString *)msg;
+- (void)displayProtocolEvent:(NSString *)msg;
 
 - (void)displayNowPlayingWithMsg:(NSString*)msg;
 - (void)displayNowPlaying;

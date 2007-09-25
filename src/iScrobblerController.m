@@ -87,7 +87,7 @@ static void handlesig (int sigraised)
 
 @implementation iScrobblerController
 
-- (void)growlProtocolEvent:(NSString *)msg
+- (void)displayProtocolEvent:(NSString *)msg
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlLastFMCommunications"]) {
         #ifndef __LP64__
@@ -182,9 +182,9 @@ static void handlesig (int sigraised)
     NSString *msg = nil;
     if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
-        [self growlProtocolEvent:NSLocalizedString(@"Handshake successful", "")];
+        [self displayProtocolEvent:NSLocalizedString(@"Handshake successful", "")];
     } else {
-        [self growlProtocolEvent:NSLocalizedString(@"Handshake failed", "")];
+        [self displayProtocolEvent:NSLocalizedString(@"Handshake failed", "")];
         msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %u)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];
@@ -208,10 +208,10 @@ static void handlesig (int sigraised)
     ProtocolManager *pm = [note object];
     NSString *msg = nil;
     if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
-        [self growlProtocolEvent:NSLocalizedString(@"Submission successful", "")];
+        [self displayProtocolEvent:NSLocalizedString(@"Submission successful", "")];
         status = YES;
     } else {
-        [self growlProtocolEvent:NSLocalizedString(@"Submission failed", "")];
+        [self displayProtocolEvent:NSLocalizedString(@"Submission failed", "")];
         msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %u)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];;
