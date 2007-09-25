@@ -10,8 +10,14 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class ISStatusItemView;
+
 @interface ISStatusItem : NSObject {
     NSStatusItem *statusItem;
+    ISStatusItemView *itemView;
+    NSTimer *displayTimer;
+    NSString *tip;
+    NSTrackingRectTag tag;
 }
 
 - (id)initWithMenu:(NSMenu*)menu;

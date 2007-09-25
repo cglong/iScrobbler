@@ -9,7 +9,9 @@
 //
 
 #import "ISStatusItem.h"
-#import "QueueManager.h"ur
+#import "ISStatusItemView.h"
+#import "iScrobblerController.h"
+#import "QueueManager.h"
 
 // UTF16 barred eigth notes
 #define MENU_TITLE_CHAR 0x266B
@@ -52,14 +54,6 @@
 
 - (void)updateStatusWithColor:(NSColor*)color withMsg:(NSString*)msg
 {
-    NSAttributedString *newTitle =
-        [[NSAttributedString alloc] initWithString:[statusItem title]
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
-            // If we don't specify this, the font defaults to Helvitica 12
-            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
-    [newTitle release];
-    
     unsigned tracksQueued;
     if (msg) {
         // Get rid of extraneous protocol information
@@ -74,7 +68,17 @@
                 NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
         }
     }
-    [statusItem setToolTip:msg];
+    
+    [tip release];
+    tip = [msg retain];
+    
+    NSAttributedString *newTitle =
+        [[NSAttributedString alloc] initWithString:[itemView title]
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
+            // If we don't specify this, the font defaults to Helvitica 12
+            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
+    [itemView setAttributedTitle:newTitle];
+    [newTitle release];
 }
 
 - (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:(NSString*)msg
@@ -95,7 +99,7 @@
 
 - (NSColor*)color
 {
-    NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
+    NSColor *color = [[itemView titleAttributes] objectForKey:NSForegroundColorAttributeName];
     if (!color)
         color = [self defaultStatusColor];
     return (color);
@@ -108,39 +112,69 @@
         ch = MENU_TITLE_SUB_DISABLED_CHAR;
     else
         ch = MENU_TITLE_CHAR;
-    NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
+    NSColor *color = [[itemView titleAttributes] objectForKey:NSForegroundColorAttributeName];
     
     NSAttributedString *newTitle =
         [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1]
             attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
             // If we don't specify this, the font defaults to Helvitica 12
             [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
+    [itemView setAttributedTitle:newTitle];
     [newTitle release];
+}
+
+- (void)displayInfo:(NSTimer*)timer
+{
+    displayTimer = nil;
+    if (![itemView menuIsShowing])
+        [[NSApp delegate] displayNowPlayingWithMsg:tip];
+}
+
+- (void)mouseEntered:(NSEvent *)ev
+{
+    if (displayTimer)
+        return;
+    
+    NSTimeInterval ti = 800 / 1000.0f;
+    displayTimer = [NSTimer scheduledTimerWithTimeInterval:ti target:self selector:@selector(displayInfo:) userInfo:nil repeats:NO];
+}
+
+- (void)mouseExited:(NSEvent *)ev
+{
+    [displayTimer invalidate];
+    displayTimer = nil;
 }
 
 - (id)initWithMenu:(NSMenu*)menu
 {
     statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
-            
+    itemView = [[ISStatusItemView alloc] initWithController:self menu:menu];
+    [statusItem setView:itemView];
+    // view now has a correct frame, so we can set the tracking rect
+    tag = [itemView addTrackingRect:[itemView frame] owner:self userData:nil assumeInside:NO];
+    
     NSAttributedString *newTitle =
         [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]
             attributes:[NSDictionary dictionaryWithObjectsAndKeys:[self defaultStatusColor], NSForegroundColorAttributeName,
             // If we don't specify this, the font defaults to Helvitica 12
             [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
+    [itemView setAttributedTitle:newTitle];
     [newTitle release];
     
-    [statusItem setHighlightMode:YES];
-    [statusItem setMenu:menu];
-    [statusItem setEnabled:YES];
     return (self);
 }
 
 - (void)dealloc
 {
+    if (tag)
+		[itemView removeTrackingRect:tag];
+    [displayTimer invalidate];
+    
     [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
     [statusItem setMenu:nil];
+    [statusItem setView:nil];
+    [itemView release];
+    [tip release];
     [statusItem release];
     [super dealloc];
 }
