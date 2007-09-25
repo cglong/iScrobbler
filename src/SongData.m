@@ -748,7 +748,8 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     }
     
     if (![self sourceName]) {
-        ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
+        if (![self isLastFmRadio])
+            ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
         return (nil);
     }
     
