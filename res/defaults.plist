@@ -45,10 +45,10 @@
     <false />
     
     <key>GrowlPlayTitle</key>
-    <string>%t (%d)</string>
+    <string>%t</string>
     
     <key>GrowlPlayFormat</key>
-    <string>%a%n%A%n%r</string>
+    <string>%d%n%a%n%A%n%r</string>
     
     <key>GrowlLastFMCommunications</key>
     <false />

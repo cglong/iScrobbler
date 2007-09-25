@@ -1798,15 +1798,16 @@ exit:
 
 - (NSString*)growlDescription
 {
-    return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"]]);
+    NSString *f = [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"];
+    if ([self isLastFmRadio] && NSNotFound == [f rangeOfString:@"%d"].location)
+        f = [@"%d%n" stringByAppendingString:f];
+    return ([self growlDescriptionWithFormat:f]);
 }
 
 - (NSString*)growlTitle
 {
-    NSString *f = [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"];
-    if ([self isLastFmRadio] && NSNotFound == [f rangeOfString:@"%d"].location)
-        f = [f stringByAppendingString:@" (%d)"];
-    return ([self growlDescriptionWithFormat:f]);
+    
+    return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]]);
 }
 
 @end
