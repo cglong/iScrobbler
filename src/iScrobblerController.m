@@ -1756,24 +1756,29 @@ exit:
         
         r = [fmt rangeOfString:@"%d"];
         if (NSNotFound != r.location) {
-            NSString *d, *e;
+            NSString *timeStr;
             unsigned time = [[self duration] unsignedIntValue];
             unsigned days, hours, mins, secs;
             ISDurationsFromTime(time, &days, &hours, &mins, &secs);
             
             if (time < 3600)
-                d = [NSString stringWithFormat:@"%u:%02u", mins, secs];
+                timeStr = [NSString stringWithFormat:@"%u:%02u", mins, secs];
             else
-                d = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+                timeStr = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
             
             time = [[self elapsedTime] unsignedIntValue];
-            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
-            if (time < 3600)
-                e = [NSString stringWithFormat:@"%u:%02u", mins, secs];
-            else
-                e = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+            if (time > 0) {
+                NSString *tmp;
+                ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+                if (time < 3600)
+                    tmp = [NSString stringWithFormat:@"%u:%02u", mins, secs];
+                else
+                    tmp = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+                
+                timeStr = [NSString stringWithFormat:@"%@/%@", tmp, timeStr];
+            }
             
-            [fmt replaceCharactersInRange:r withString:[NSString stringWithFormat:@"%@/%@", e, d]];
+            [fmt replaceCharactersInRange:r withString:timeStr];
         }
         
         [fmt replaceOccurrencesOfString:@"%n" withString:@"\n" options:0 range:NSMakeRange(0, [fmt length])];
