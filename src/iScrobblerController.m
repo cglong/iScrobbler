@@ -1755,6 +1755,10 @@ exit:
             [fmt replaceCharactersInRange:r withString:[self artist]];
         
         [fmt replaceOccurrencesOfString:@"%n" withString:@"\n" options:0 range:NSMakeRange(0, [fmt length])];
+        
+        if ([fmt hasSuffix:@"\n"])
+            [fmt deleteCharactersInRange:NSMakeRange([fmt length]-1, 1)];
+        
         return ([fmt autorelease]);
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"%s: -Exception- %@ while processing %@\n", __FUNCTION__, e,
