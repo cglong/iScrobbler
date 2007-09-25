@@ -61,6 +61,8 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
+		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
+		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
 		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
 		D38F6D730B535AF800230DBE /* Recommend.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6D710B535AF800230DBE /* Recommend.nib */; };
 		D38F6FB60B541A6300230DBE /* Tag.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6FB40B541A6300230DBE /* Tag.nib */; };
@@ -155,6 +157,10 @@
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D376EC690CA8E21900C04863 /* ISStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItem.h; sourceTree = "<group>"; };
+		D376EC6A0CA8E21900C04863 /* ISStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItem.m; sourceTree = "<group>"; };
+		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
+		D376EE930CA9153E00C04863 /* ISStatusItemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItemView.m; sourceTree = "<group>"; };
 		D38F6CCD0B53514400230DBE /* ISRecommendController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRecommendController.h; sourceTree = "<group>"; };
 		D38F6CCE0B53514400230DBE /* ISRecommendController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRecommendController.m; sourceTree = "<group>"; };
 		D38F6D720B535AF800230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Recommend.nib; sourceTree = "<group>"; };
@@ -275,6 +281,8 @@
 				D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */,
 				D38F6CCE0B53514400230DBE /* ISRecommendController.m */,
 				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
+				D376EC6A0CA8E21900C04863 /* ISStatusItem.m */,
+				D376EE930CA9153E00C04863 /* ISStatusItemView.m */,
 				D38F6FB80B541A9000230DBE /* ISTagController.m */,
 				F575CEAA02FF7F3501A80164 /* PreferenceController.m */,
 				EB50662D03FBB239005DC01B /* keychain.m */,
@@ -475,6 +483,8 @@
 				D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */,
 				D38F6CCD0B53514400230DBE /* ISRecommendController.h */,
 				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
+				D376EC690CA8E21900C04863 /* ISStatusItem.h */,
+				D376EE920CA9153E00C04863 /* ISStatusItemView.h */,
 				D38F6FB70B541A9000230DBE /* ISTagController.h */,
 				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
 				EB50662F03FBB284005DC01B /* keychain.h */,
@@ -633,6 +643,8 @@
 				D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */,
 				D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */,
 				D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */,
+				D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */,
+				D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
