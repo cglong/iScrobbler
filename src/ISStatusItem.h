@@ -20,7 +20,7 @@
 - (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:(NSString*)msg;
 
 - (NSColor*)color; // current color
-- (NSColor*)primaryColor; // the color for the "default" state
+- (NSColor*)defaultStatusColor; // the color for the "default" state
 - (void)setSubmissionsEnabled:(BOOL)enabled;
 
 @end

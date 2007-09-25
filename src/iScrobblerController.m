@@ -206,7 +206,7 @@ static void handlesig (int sigraised)
             [statusItem updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
             isOrange = YES;
         } else if (isOrange) {
-            [statusItem updateStatusWithColor:[statusItem primaryColor] withMsg:nil];
+            [statusItem updateStatusWithColor:[statusItem defaultStatusColor] withMsg:nil];
             isOrange = NO;
         }
     } else if (createTimer) {

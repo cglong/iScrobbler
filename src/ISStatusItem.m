@@ -18,7 +18,7 @@
 
 @implementation ISStatusItem
 
-- (NSColor*)primaryColor
+- (NSColor*)defaultStatusColor
 {
     static NSSet *validColors = nil;
 #if 1
@@ -84,7 +84,7 @@
         color = [NSColor greenColor];
     else {
         if (opSuccess)
-            color = [self primaryColor];
+            color = [self defaultStatusColor];
         else {
             color = [NSColor redColor];
         }
@@ -97,7 +97,7 @@
 {
     NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
     if (!color)
-        color = [self primaryColor];
+        color = [self defaultStatusColor];
     return (color);
 }
 
@@ -125,7 +125,7 @@
             
     NSAttributedString *newTitle =
         [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:[self primaryColor], NSForegroundColorAttributeName,
+            attributes:[NSDictionary dictionaryWithObjectsAndKeys:[self defaultStatusColor], NSForegroundColorAttributeName,
             // If we don't specify this, the font defaults to Helvitica 12
             [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
     [statusItem setAttributedTitle:newTitle];
@@ -141,6 +141,7 @@
 {
     [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
     [statusItem setMenu:nil];
+    [statusItem release];
     [super dealloc];
 }
 
