@@ -31,6 +31,7 @@
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
 #import "ISRadioController.h"
+#import "ISStatusItem.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -38,11 +39,6 @@
 #define IS_GROWL_NOTIFICATION_IPOD_WILL_SYNC @"iPod Sync Begin"
 #define IS_GROWL_NOTIFICATION_IPOD_DID_SYNC @"iPod Sync Finished"
 #define IS_GROWL_NOTIFICATION_PROTOCOL @"Last.fm Communications"
-
-// UTF16 barred eigth notes
-#define MENU_TITLE_CHAR 0x266B
-// UTF16 sharp note 
-#define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
 
 static int drainCachesFlag = 0, forcePlayCacheFlag = 0;
 
@@ -91,38 +87,6 @@ static void handlesig (int sigraised)
 
 @implementation iScrobblerController
 
-- (NSColor*)primaryMenuColor
-{
-    static NSSet *validColors = nil;
-#if 1
-    // Disable if this is ever made a GUI accessible pref
-    static NSColor *color = nil;
-    
-    if (color)
-        return (color);
-#endif
-
-    if (!validColors) {
-        validColors = [[NSSet alloc] initWithArray:[NSArray arrayWithObjects:
-            @"blackColor", @"darkGrayColor", @"lightGrayColor", @"whiteColor", @"grayColor", @"blueColor",
-            @"cyanColor", @"yellowColor", @"magentaColor", @"purpleColor", @"brownColor", nil]];
-    }
-    
-    NSString *method = [[NSUserDefaults standardUserDefaults] stringForKey:@"PrimaryMenuColor"];
-    if (!method || ![validColors containsObject:method]) {
-        if (method)
-            ScrobLog(SCROB_LOG_TRACE, @"\"%@\" is not a valid menu color. Valid colors are: %@", method, validColors);
-        return ([NSColor blackColor]);
-    }
-    
-    @try {
-    color = [[NSColor performSelector:NSSelectorFromString(method)] retain];
-    } @catch (id e) {}
-    
-    
-    return (color ? color : [NSColor blackColor]);
-}
-
 - (void)growlProtocolEvent:(NSString *)msg
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlLastFMCommunications"]) {
@@ -167,49 +131,6 @@ static void handlesig (int sigraised)
 #endif    
 }
 
-- (void)updateStatusWithColor:(NSColor*)color withMsg:msg
-{
-    NSAttributedString *newTitle =
-        [[NSAttributedString alloc] initWithString:[statusItem title]
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
-            // If we don't specify this, the font defaults to Helvitica 12
-            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
-    [newTitle release];
-    
-    unsigned tracksQueued;
-    if (msg) {
-        // Get rid of extraneous protocol information
-        NSArray *items = [msg componentsSeparatedByString:@"\n"];
-        if (items && [items count] > 0)
-            msg = [items objectAtIndex:0];
-    } else {
-        msg = [NSString stringWithFormat:@"%@: %u",
-                NSLocalizedString(@"Tracks Sub'd", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
-        if (tracksQueued = [[QueueManager sharedInstance] count]) {
-            msg = [msg stringByAppendingFormat:@", %@: %u",
-                NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
-        }
-    }
-    [statusItem setToolTip:msg];
-}
-
-- (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:msg
-{
-    NSColor *color;
-    if (opBegin)
-        color = [NSColor greenColor];
-    else {
-        if (opSuccess)
-            color = [self primaryMenuColor];
-        else {
-            color = [NSColor redColor];
-        }
-    }
-    
-    [self updateStatusWithColor:color withMsg:msg];
-}
-
 // PM notifications
 
 - (void)handshakeCompleteHandler:(NSNotification*)note
@@ -227,7 +148,7 @@ static void handlesig (int sigraised)
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];
     }
-    [self updateStatus:status withOperation:NO withMsg:msg];
+    [statusItem updateStatus:status withOperation:NO withMsg:msg];
 }
 
 - (void)badAuthHandler:(NSNotification*)note
@@ -237,7 +158,7 @@ static void handlesig (int sigraised)
 
 - (void)handshakeStartHandler:(NSNotification*)note
 {
-    [self updateStatus:YES withOperation:YES withMsg:nil];
+    [statusItem updateStatus:YES withOperation:YES withMsg:nil];
 }
 
 - (void)submitCompleteHandler:(NSNotification*)note
@@ -254,12 +175,12 @@ static void handlesig (int sigraised)
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];;
     }
-    [self updateStatus:status withOperation:NO withMsg:msg];
+    [statusItem updateStatus:status withOperation:NO withMsg:msg];
 }
 
 - (void)submitStartHandler:(NSNotification*)note
 {
-    [self updateStatus:YES withOperation:YES withMsg:nil];
+    [statusItem updateStatus:YES withOperation:YES withMsg:nil];
 }
 
 - (void)networkStatusHandler:(id)obj // NSNotification OR NSTimer
@@ -282,10 +203,10 @@ static void handlesig (int sigraised)
             NSString *msg = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY];
             if (!msg || 0 == [msg length])
                 msg = NSLocalizedString(@"Network is not available.", "");
-            [self updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
+            [statusItem updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
             isOrange = YES;
         } else if (isOrange) {
-            [self updateStatusWithColor:[self primaryMenuColor] withMsg:nil];
+            [statusItem updateStatusWithColor:[statusItem primaryColor] withMsg:nil];
             isOrange = NO;
         }
     } else if (createTimer) {
@@ -766,26 +687,11 @@ player_info_exit:
     
     if (enable) {
         if (!statusItem) {
-            statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
-            
-            NSAttributedString *newTitle =
-                [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]
-                    attributes:[NSDictionary dictionaryWithObjectsAndKeys:[self primaryMenuColor], NSForegroundColorAttributeName,
-                    // If we don't specify this, the font defaults to Helvitica 12
-                    [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-            [statusItem setAttributedTitle:newTitle];
-            [newTitle release];
-            
-            [statusItem setHighlightMode:YES];
-            [statusItem setMenu:theMenu];
-            [statusItem setEnabled:YES];
-            
+            statusItem = [[ISStatusItem alloc] initWithMenu:theMenu];
             [rc setRootMenu:[theMenu itemWithTag:RADIO_MENUITEM_TAG]];
         }
     } else if (statusItem) {
         [rc setRootMenu:nil];
-        [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
-        [statusItem setMenu:nil];
         [statusItem release];
         statusItem = nil;
     }
@@ -1112,27 +1018,14 @@ player_info_exit:
 
 -(IBAction)enableDisableSubmissions:(id)sender
 {
-    unichar ch;
     if (!submissionsDisabled) {
         submissionsDisabled = YES;
-        ch = MENU_TITLE_SUB_DISABLED_CHAR;
         [sender setTitle:NSLocalizedString(@"Resume Submissions", "")];
     } else {
         submissionsDisabled = NO;
-        ch = MENU_TITLE_CHAR;
         [sender setTitle:NSLocalizedString(@"Pause Submissions", "")];
     }
-    NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
-    if (!color)
-        color = [self primaryMenuColor];
-    
-    NSAttributedString *newTitle =
-        [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1]
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
-            // If we don't specify this, the font defaults to Helvitica 12
-            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
-    [newTitle release];
+    [statusItem setSubmissionsEnabled:!submissionsDisabled];
 }
 
 - (void)updateMenu

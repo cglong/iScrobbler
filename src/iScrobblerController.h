@@ -15,12 +15,13 @@
 
 @class PreferenceController;
 @class SongData;
+@class ISStatusItem;
 
 @interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate>
 {
 
     //the status item that will be added to the system status bar
-    NSStatusItem *statusItem;
+    ISStatusItem *statusItem;
 
     //the menu attached to the status item
     IBOutlet NSMenu *theMenu;
