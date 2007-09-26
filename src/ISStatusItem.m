@@ -108,7 +108,7 @@
 - (void)setSubmissionsEnabled:(BOOL)enabled
 {
     unichar ch;
-    if (enabled)
+    if (!enabled)
         ch = MENU_TITLE_SUB_DISABLED_CHAR;
     else
         ch = MENU_TITLE_CHAR;
