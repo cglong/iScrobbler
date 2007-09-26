@@ -577,6 +577,71 @@ exitHistory:
         [[ASWebServices sharedInstance] updateNowPlaying];
 }
 
+- (BOOL)isDefaultLastFMRadioPlayer
+{
+    NSString* defaultID = (NSString*)LSCopyDefaultHandlerForURLScheme(CFSTR("lastfm"));
+    if (defaultID) {
+        NSString *myID = [[NSBundle mainBundle] bundleIdentifier];
+        [defaultID autorelease];
+        return (NSOrderedSame == [myID caseInsensitiveCompare:defaultID]);
+    }
+    
+    return (NO);
+}
+
+- (void)setDefaultLastFMRadioPlayer:(BOOL)handler
+{
+    if (handler)
+        (void)LSSetDefaultHandlerForURLScheme(CFSTR("lastfm"), (CFStringRef)[[NSBundle mainBundle] bundleIdentifier]);
+}
+
+- (void)registerAsDefaultLastFMRadioPlayer:(id)context
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:context object:nil];
+    
+    NSAlert *a = [NSAlert alertWithMessageText:NSLocalizedString(@"Default Last.fm Radio Player", "")
+        defaultButton:NSLocalizedString(@"Make Default", "")
+        alternateButton:NSLocalizedString(@"Cancel and Don't Check Again","")
+        otherButton:NSLocalizedString(@"Cancel","")
+        informativeTextWithFormat:
+        NSLocalizedString(@"iScrobbler is not currently your default Last.fm Radio Player. Would you like to make it the default?", ""), nil];
+    switch ([a runModal]) {
+        case NSAlertDefaultReturn:
+            [self setDefaultLastFMRadioPlayer:YES];
+        break;
+        case NSAlertAlternateReturn:
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"CheckDefaultRadioPlayer"];
+        break;
+        case NSAlertOtherReturn:
+        default:
+        break;
+    }
+}
+
+- (void)defaultRadioPlayerCheck
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"CheckDefaultRadioPlayer"]
+        && ![self isDefaultLastFMRadioPlayer]) {
+#ifndef __LP64__ 
+        if ([GrowlApplicationBridge isGrowlRunning]) {
+            id context = [NSStringFromClass([self class]) stringByAppendingString:
+                NSStringFromSelector(@selector(registerAsDefaultLastFMRadioPlayer:))];
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(registerAsDefaultLastFMRadioPlayer:)
+                name:context object:nil];
+            
+            [GrowlApplicationBridge
+                notifyWithTitle:NSLocalizedString(@"Default Last.fm Radio Player", "")
+                description:NSLocalizedString(@"iScrobbler is not currently your default Last.fm Radio Player. Click here for further options.", "")
+                notificationName:IS_GROWL_NOTIFICATION_ALERTS
+                iconData:nil
+                priority:0.0
+                isSticky:YES
+                clickContext:context];
+        }
+#endif
+    }
+}
+
 - (id)init
 {
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -590,6 +655,9 @@ exitHistory:
     [nc addObserver:self selector:@selector(wsExecComplete:) name:ASWSExecDidComplete object:nil];
     
     [nc addObserver:self selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
+    
+    [self defaultRadioPlayerCheck];
+    
     return (self);
 }
 
