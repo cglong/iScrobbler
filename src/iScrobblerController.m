@@ -976,6 +976,21 @@ player_info_exit:
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+- (void)checkForOtherScrobblers
+{
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"CheckForOtherScrobblers"]) {
+        NSEnumerator *en = [[[NSWorkspace sharedWorkspace] launchedApplications] objectEnumerator];
+        NSDictionary *d;
+        while ((d = [en nextObject])) {
+            if ([[d objectForKey:@"NSApplicationBundleIdentifier"] hasPrefix:@"fm.last"]) {
+                [self displayErrorWithTitle:NSLocalizedString(@"Another Last.FM Client is Active", "")
+                    message:NSLocalizedString(@"Multiple active Last.FM clients may cause duplicate submissions or other problems.", "")];
+                break;
+            }
+        }
+    }
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
     // Register to handle URLs
@@ -1011,6 +1026,9 @@ player_info_exit:
             [self volumeDidMount:note];
         }
     }
+    
+    // warn user if last.fm app is running
+    [self checkForOtherScrobblers];
     
     // Check the version
     if (NO == [ud boolForKey:@"Disable Update Notification"]) {
