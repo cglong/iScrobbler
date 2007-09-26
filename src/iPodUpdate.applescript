@@ -67,6 +67,12 @@ on UpdateiPod(thePlaylistName, theDate)
 							set songAlbum to album of theTrack as Unicode text
 							set songLastPlayed to played date of theTrack
 							set songRating to rating of theTrack
+							try
+								-- iTunes 7.4+ only
+								if rating kind of theTrack is equal to computed then
+									set songRating to 0
+								end if
+							end try
 							set songGenre to ""
 							if genre of theTrack is not missing value then
 								set songGenre to genre of theTrack as Unicode text

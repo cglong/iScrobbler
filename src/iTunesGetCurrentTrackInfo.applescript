@@ -45,6 +45,12 @@ tell application "iTunes"
 			set trackRating to rating of theTrack
 		end try
 		try
+			-- iTunes 7.4+ only
+			if rating kind of theTrack is equal to computed then
+				set trackRating to 0
+			end if
+		end try
+		try
 			set trackLastPlayed to played date
 		end try
 		set trackPlaylistID to index of the container of theTrack
