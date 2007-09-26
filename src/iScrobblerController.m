@@ -1646,6 +1646,12 @@ exit:
     // just here, so KVO notifications work
 }
 
+- (void)growlNotificationWasClicked:(id)context
+{
+    ISASSERT([context isKindOfClass:[NSString class]], @"click context is not a string!");
+    [[NSNotificationCenter defaultCenter] postNotificationName:context object:nil];
+}
+
 @end
 
 @implementation SongData (iScrobblerControllerAdditions)
