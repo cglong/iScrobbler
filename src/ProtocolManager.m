@@ -789,16 +789,19 @@ static int npDelays = 0;
 {
     sendNP = NO;
     
-    NSMutableURLRequest *request =
-		[NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
-								cachePolicy:NSURLRequestReloadIgnoringCacheData
-							timeoutInterval:REQUEST_TIMEOUT];
-	[request setHTTPMethod:@"POST"];
-	[request setHTTPBody:[self nowPlayingDataForSong:npSong]];
-    // Set the user-agent to something Mozilla-compatible
-    [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+    if (!npSong)
+        return; // we missed it, oh well...
     
     if (!myConnection) {
+        NSMutableURLRequest *request =
+            [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
+                cachePolicy:NSURLRequestReloadIgnoringCacheData
+                timeoutInterval:REQUEST_TIMEOUT];
+        [request setHTTPMethod:@"POST"];
+        [request setHTTPBody:[self nowPlayingDataForSong:npSong]];
+        // Set the user-agent to something Mozilla-compatible
+        [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+        
         myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
         npInProgress = YES;
         npDelays = 0;
