@@ -1032,9 +1032,9 @@ player_info_exit:
     
     // Check the version
     if (NO == [ud boolForKey:@"Disable Update Notification"]) {
-        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:NO];
-        // Check every 72 hours
-        [NSTimer scheduledTimerWithTimeInterval:259200.0 target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES];
+        // Check now and then every 72 hours
+        [[NSTimer scheduledTimerWithTimeInterval:259200.0
+            target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES] fire];
     }
 }
 
@@ -1047,8 +1047,14 @@ player_info_exit:
 
 -(IBAction)checkForUpdate:(id)sender
 {
-    if ([sender isKindOfClass:[NSTimer class]])
+    if ([sender isKindOfClass:[NSTimer class]]) {
+        //automatic check - make sure we have an inet connection
+        if (NO == [[ProtocolManager sharedInstance] isNetworkAvailable]) {
+            ScrobLog(SCROB_LOG_TRACE, @"Network not available, skipping version check.");
+            return;
+        }
         sender = nil;
+    }
     if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Update Notification"]) {
         [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
     }
