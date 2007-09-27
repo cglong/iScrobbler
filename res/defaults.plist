@@ -68,7 +68,7 @@
     <key>QueueSubmissionsIfiPodIsMounted</key>
     <true />
     
-    <key>Disable Update Notification</key>
+    <key>BBNetUpdateDontAutoCheckVersion</key>
     <false />
     
     <key>Use Batch Submission</key>

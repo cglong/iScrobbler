@@ -1030,9 +1030,8 @@ player_info_exit:
     // warn user if last.fm app is running
     [self checkForOtherScrobblers];
     
-    // Check the version
-    if (NO == [ud boolForKey:@"Disable Update Notification"]) {
-        // Check now and then every 72 hours
+    if (NO == [ud boolForKey:@"BBNetUpdateDontAutoCheckVersion"]) {
+        // Check the version now and then every 72 hours
         [[NSTimer scheduledTimerWithTimeInterval:259200.0
             target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES] fire];
     }
@@ -1055,9 +1054,7 @@ player_info_exit:
         }
         sender = nil;
     }
-    if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Update Notification"]) {
-        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
-    }
+    [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
 }
 
 -(IBAction)enableDisableSubmissions:(id)sender
