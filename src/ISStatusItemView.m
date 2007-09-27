@@ -92,8 +92,8 @@
     if (!menuIsShowing)
         d = attrs;
     else {
-        d = [attrs mutableCopy]
-        [d setObject:[NSColor whiteColor] forKey:NSForegroundColorAttributeName];
+        d = [attrs mutableCopy];
+        [(NSMutableDictionary*)d setObject:[NSColor whiteColor] forKey:NSForegroundColorAttributeName];
         [d autorelease];
     }
     [title drawAtPoint:NSMakePoint(8,3) withAttributes:d];
