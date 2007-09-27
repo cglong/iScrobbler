@@ -18,18 +18,20 @@
 
 @interface ISStatusItem (ISStatusItemViewEx)
 - (NSStatusItem*)nsStatusItem;
+- (void)itemMenuWillShow:(id)context;
 @end
 
 @implementation ISStatusItemView
 
 - (void)mouseDown:(NSEvent *)ev
 {
-	//[[NSNotificationCenter defaultCenter] postNotificationName:@"mouseDown" object:self];
-	menuIsShowing = YES;
-	[self setNeedsDisplay:YES];
-	[[sitem nsStatusItem] popUpStatusItemMenu:menu];
-	menuIsShowing = NO;
+	//[[NSNotificationCenter defaultCenter] postNotificationName:@"StatusItemMenuWillShow" object:self];
+    [sitem itemMenuWillShow:nil];
+    menuIsShowing = YES;
 	[self display];
+    [[sitem nsStatusItem] popUpStatusItemMenu:menu];
+	menuIsShowing = NO;
+	[self setNeedsDisplay:YES];
 }
 
 - (id)initWithController:(ISStatusItem*)item menu:(NSMenu*)m
@@ -108,6 +110,12 @@
 - (NSStatusItem*)nsStatusItem
 {
     return (statusItem);
+}
+
+- (void)itemMenuWillShow:(id)context
+{
+    [displayTimer invalidate];
+    displayTimer = nil;
 }
 
 @end
