@@ -87,12 +87,16 @@
 
 - (void)drawRect:(NSRect)r
 {
-    NSMutableDictionary *d = [attrs mutableCopy];
+    NSDictionary *d;
     [[sitem nsStatusItem] drawStatusBarBackgroundInRect:[self frame] withHighlight:menuIsShowing];
-    if (menuIsShowing)
+    if (!menuIsShowing)
+        d = attrs;
+    else {
+        d = [attrs mutableCopy]
         [d setObject:[NSColor whiteColor] forKey:NSForegroundColorAttributeName];
+        [d autorelease];
+    }
     [title drawAtPoint:NSMakePoint(8,3) withAttributes:d];
-    [d release];
 }
 
 -(void)dealloc
