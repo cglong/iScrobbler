@@ -677,7 +677,7 @@ exitHistory:
 
 - (NSString*)name
 {
-    return (AS_RADIO_UUID);
+    return (@"lastfm radio controller");
 }
 
 - (BOOL)connected
