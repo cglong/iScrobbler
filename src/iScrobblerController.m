@@ -1673,12 +1673,6 @@ exit:
     ScrobDebug(@"name: %@, key: %@", name, key);
     return (nil);
 }
-
-- (id)stopPlayingScript:(NSScriptCommand*)cmd
-{
-    ScrobDebug(@"");
-    return (nil);
-}
 #endif
 
 - (id)valueWithUniqueID:(id)uniqueID inPropertyWithKey:(NSString *)key
