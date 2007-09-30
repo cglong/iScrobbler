@@ -40,16 +40,13 @@
 #define IS_GROWL_NOTIFICATION_IPOD_DID_SYNC @"iPod Sync Finished"
 #define IS_GROWL_NOTIFICATION_PROTOCOL @"Last.fm Communications"
 
-static int drainCachesFlag = 0, forcePlayCacheFlag = 0;
+#if 0
+@interface NSScriptCommand (ISExtensions)
 
-static void handlesig (int sigraised)
-{
-    if (SIGUSR1 == sigraised) {
-        drainCachesFlag = 1;
-    } else if (SIGUSR2 == sigraised) {
-        forcePlayCacheFlag = 1;
-    }
-}
+- (id)evaluatedDirectParameters;
+
+@end
+#endif
 
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
@@ -451,13 +448,6 @@ if (currentSong) { \
     BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]];
     BOOL isRepeat = NO;
     
-    if (forcePlayCacheFlag) {
-        forcePlayCacheFlag = 0;
-        BOOL forceCache = ![[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"];
-        [[NSUserDefaults standardUserDefaults] setBool:forceCache forKey:@"ForcePlayCache"];
-        ScrobLog(SCROB_LOG_TRACE, @"ForcePlayCache %@\n", forceCache ? @"set" : @"unset");
-    }
-    
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
     // Even if subs are disabled, we still have to update the iTunes play time, as the user
@@ -687,12 +677,6 @@ player_info_exit:
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
-    
-    if (drainCachesFlag) {
-        drainCachesFlag = 0;
-        [SongData drainArtworkCache];
-        [ASXMLFile expireAllCacheEntries];
-    }
 }
 
 - (void)retryInfoHandler:(NSTimer*)timer
@@ -875,9 +859,6 @@ player_info_exit:
                 [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Added to Login"];
         }
     }
-    
-    signal(SIGUSR1, handlesig);
-    signal(SIGUSR2, handlesig);
     
     return self;
 }
@@ -1417,11 +1398,6 @@ player_info_exit:
 	[NSApp terminate:self];
 }
 
-- (BOOL)application:(NSApplication *)sender delegateHandlesKey:(NSString *)key
-{
-    return (NO);
-}
-
 // WS support
 
 - (IBAction)loveTrack:(id)sender
@@ -1673,6 +1649,87 @@ exit:
     [[NSNotificationCenter defaultCenter] postNotificationName:context object:nil];
 }
 
+// AppleScript support
+// Useful debug info: defaults write NSGlobalDomain NSScriptingDebugLogLevel 1
+- (BOOL)application:(NSApplication *)sender delegateHandlesKey:(NSString *)key
+{
+    ScrobDebug(@"wants key: %@", key);
+    return ([key isEqualToString:@"lastfmUser"]
+        || [key isEqualToString:@"queueSubmissions"]
+        || [key isEqualToString:@"scrobbleTracks"]
+        || [key isEqualToString:@"queueSubmissions"]
+        || [key isEqualToString:@"radioController"]);
+}
+
+#ifdef ISDEBUG
+- (id)valueForUndefinedKey:(NSString*)key
+{
+    ScrobDebug(@"%@", key);
+    return (nil);
+}
+
+- (id)valueWithName:(NSString *)name inPropertyWithKey:(NSString *)key
+{
+    ScrobDebug(@"name: %@, key: %@", name, key);
+    return (nil);
+}
+
+- (id)stopPlayingScript:(NSScriptCommand*)cmd
+{
+    ScrobDebug(@"");
+    return (nil);
+}
+#endif
+
+- (id)valueWithUniqueID:(id)uniqueID inPropertyWithKey:(NSString *)key
+{
+    ScrobDebug(@"uuid: %@, key: %@", uniqueID, key);
+    return ([key isEqualToString:@"radioController"] ? [ISRadioController sharedInstance] : nil);
+}
+
+- (id)radioController
+{
+    return ([ISRadioController sharedInstance]);
+}
+
+- (NSString*)lastfmUser
+{
+    return ([[ProtocolManager sharedInstance] userName]);
+}
+
+- (BOOL)queueSubmissions
+{
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"]);
+}
+
+- (void)setQueueSubmissions:(BOOL)queue
+{
+    BOOL forceCache = ![[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"];
+    [[NSUserDefaults standardUserDefaults] setBool:forceCache forKey:@"ForcePlayCache"];
+    ScrobLog(SCROB_LOG_TRACE, @"ForcePlayCache %@\n", forceCache ? @"set" : @"unset");
+}
+
+- (BOOL)scrobbleTracks
+{
+    return (!submissionsDisabled);
+}
+
+- (void)setScrobbleTracks:(BOOL)scrob
+{
+    submissionsDisabled = !scrob;
+}
+
+// commands
+
+- (id)flushCaches:(NSScriptCommand*)command
+{
+    [SongData drainArtworkCache];
+    [ASXMLFile expireAllCacheEntries];
+    return (nil);
+}
+
+// End AppleScript
+
 @end
 
 @implementation SongData (iScrobblerControllerAdditions)
@@ -1866,6 +1923,24 @@ exit:
     return (nil);
 }
 @end
+
+#if 0
+@implementation NSScriptCommand (ISExtensions)
+
+- (id) evaluatedDirectParameters
+{
+    id param = [self directParameter];
+    if ([param isKindOfClass: [NSScriptObjectSpecifier class]])
+    {
+        NSScriptObjectSpecifier *spec = (NSScriptObjectSpecifier *)param;
+        id container = [[spec containerSpecifier] objectsByEvaluatingSpecifier];
+        param = [spec objectsByEvaluatingWithContainers: container];
+    }
+    return param;
+}
+
+@end
+#endif
 
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)

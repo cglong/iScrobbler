@@ -285,12 +285,15 @@
                 action:nil keyEquivalent:@""];
             [item setTag:MACTION_NPRADIO];
             [item setEnabled:NO];
+            [item setRepresentedObject:station];
             [m insertItem:item atIndex:0];
             [item release];
             
             [m insertItem:[NSMenuItem separatorItem] atIndex:1];
-        } else
+        } else {
             [item setTitle:title];
+            [item setRepresentedObject:station];
+        }
     } else if (item) {
         int i = [m indexOfItem:item] + 1;
         if (i < [m numberOfItems] && [[m itemAtIndex:i] isSeparatorItem])
@@ -642,6 +645,112 @@ exitHistory:
     }
 }
 
+// AppleScript
+#ifdef ISDEBUG
+- (id)valueForUndefinedKey:(NSString*)key
+{
+    ScrobDebug(@"%@", key);
+    return (nil);
+}
+#endif
+
+#define AS_RADIO_UUID @"5482A787-CF01-46D3-875C-706488F9058E"
+- (NSScriptObjectSpecifier *)objectSpecifier
+{
+    static NSScriptObjectSpecifier *spec = nil;
+    
+    if (spec)
+        return (spec);
+    
+    //spec = [[NSPropertySpecifier alloc]
+    spec = [[NSUniqueIDSpecifier alloc]
+        initWithContainerClassDescription:(NSScriptClassDescription *)[NSApp classDescription]
+        containerSpecifier:nil key:@"radioController"
+        uniqueID:AS_RADIO_UUID];
+    return (spec);
+}
+
+- (NSString*)uniqueID
+{
+    return (AS_RADIO_UUID);
+}
+
+- (NSString*)name
+{
+    return (AS_RADIO_UUID);
+}
+
+- (BOOL)connected
+{
+    return (nil != [[ASWebServices sharedInstance] streamURL]);
+}
+
+- (void)setConnected:(BOOL)connect
+{
+    if (connect)
+        [[ASWebServices sharedInstance] handshake];
+}
+
+- (BOOL)subscribed
+{
+    return ([[ASWebServices sharedInstance] subscriber]);
+}
+
+- (BOOL)scriptDiscoveryMode
+{
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"RadioDiscoveryMode"]);
+}
+
+- (void)setScriptDiscoveryMode:(BOOL)discover
+{
+    if ([self subscribed]) {
+        [[NSUserDefaults standardUserDefaults] setBool:discover forKey:@"RadioDiscoveryMode"];
+        [self setDiscoveryMode:nil];
+    }
+}
+
+- (BOOL)scriptScrobblePlays
+{
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"RadioPlaysScrobbled"]);
+}
+
+- (void)setScriptScrobblePlays:(BOOL)scrob
+{
+    if ([self subscribed]) {
+        [[NSUserDefaults standardUserDefaults] setBool:scrob forKey:@"RadioPlaysScrobbled"];
+        [self setDiscoveryMode:nil];
+    }
+}
+
+- (NSString*)currentStation
+{
+    NSMenuItem *item = [[rootMenu submenu] itemWithTag:MACTION_NPRADIO];
+    return ([[item representedObject] objectForKey:@"name"]);
+}
+
+// Commands
+
+- (id)tuneStationScript:(NSScriptCommand*)cmd
+{
+    NSString *s = [cmd directParameter];
+    ScrobDebug(@"%@", s);
+    @try {
+        [self tuneStationWithName:nil url:[NSURL URLWithString:s]];
+    } @catch (id e) {}
+    return (nil);
+}
+
+- (id)stopPlayingScript:(NSScriptCommand*)cmd
+{
+    ScrobDebug(@"");
+    NSMenuItem *item = [[rootMenu submenu] itemWithTag:MACTION_STOP];
+    if (item && [item isEnabled])
+        [self performSelector:@selector(stop) withObject:nil afterDelay:0.0];
+    return (nil);
+}
+
+// End AppleScript
+
 - (id)init
 {
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -688,3 +797,29 @@ exitHistory:
 
 @end
 
+@interface ISScriptCommand : NSScriptCommand {
+}
+@end
+
+@implementation ISScriptCommand
+
+- (id)performDefaultImplementation
+{
+    // XXX - this is a hackish way to handle commands to a direct object
+    // since our radio controller is a singleton, we just assume the following events go to it
+    // http://cocoadev.com/index.pl?DirectParametersAsValues
+    switch ([[self commandDescription] appleEventCode]) {
+        case 'Tstn': // tune station
+            [[ISRadioController sharedInstance] tuneStationScript:self];
+        break;
+        case 'STop': // stop playing
+            [[ISRadioController sharedInstance] stopPlayingScript:self];
+        break;
+        default:
+            ScrobLog(SCROB_LOG_TRACE, @"ISScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
+        break;
+    }
+    return (nil);
+}
+
+@end

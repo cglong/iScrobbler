@@ -34,7 +34,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>2.0</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>iSCb</string>
 	<key>CFBundleVersion</key>
 	<string>svn</string>
 	<key>LSMinimumSystemVersion</key>
@@ -47,5 +47,7 @@
 	<string>NSApplication</string>
     <key>NSAppleScriptEnabled</key>
     <string>YES</string>
+    <key>OSAScriptingDefinition</key>
+    <string>iScrobbler.sdef</string>
 </dict>
 </plist>
