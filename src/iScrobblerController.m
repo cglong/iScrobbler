@@ -1726,6 +1726,27 @@ exit:
 
 @end
 
+@interface ISAppScriptCommand : NSScriptCommand {
+}
+@end
+
+@implementation ISAppScriptCommand
+
+- (id)performDefaultImplementation
+{
+    switch ([[self commandDescription] appleEventCode]) {
+        case 'Fcch': // flush caches
+            [[NSApp delegate] performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
+        break;
+        default:
+            ScrobLog(SCROB_LOG_TRACE, @"ISAppScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
+        break;
+    }
+    return (nil);
+}
+
+@end
+
 @implementation SongData (iScrobblerControllerAdditions)
 
 - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict

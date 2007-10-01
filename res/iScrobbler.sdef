@@ -32,7 +32,7 @@
 				<cocoa method="handleQuitScriptCommand:"/>
 			</responds-to>
 			<responds-to name="flush caches">
-				<cocoa method="flushCaches:"/>
+				<cocoa method=""/>
 			</responds-to>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
@@ -62,13 +62,24 @@
 				<cocoa method="stopPlayingScript:"/>
 			</responds-to>
 		</class>
+		<class name="item" code="cobj" description="A scriptable object.">
+			<cocoa class="AbstractObject"/>
+			<property name="class" code="pcls" description="The class of the object." type="type" access="r">
+				<cocoa key="classCode"/>
+			</property>
+			<property name="properties" code="pALL" description="All of the object&apos;s properties." type="record">
+				<cocoa key="scriptingProperties"/>
+			</property>
+		</class>
 		<command name="quit" code="aevtquit" description="Quit the application.">
 			<cocoa class="NSQuitCommand"/>
 			<parameter name="saving" code="savo" description="Whether or not changed documents should be saved before closing." type="save options" optional="yes">
 				<cocoa key="SaveOptions"/>
 			</parameter>
 		</command>
-		<command name="flush caches" code="iSCbFcch" description="flush memory caches"/>
+		<command name="flush caches" code="iSCbFcch" description="flush memory caches">
+			<cocoa class="ISAppScriptCommand"/>
+		</command>
 		<command name="tune station" code="iSCbTstn" description="tune a radio station">
 			<cocoa class="ISScriptCommand"/>
 			<direct-parameter description="lastfm:// URL" type="text"/>
