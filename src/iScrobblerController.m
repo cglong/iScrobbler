@@ -24,40 +24,29 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 #import "BBNetUpdate/BBNetUpdateVersionCheckController.h"
+#import "ASXMLFile.h"
 #import "ASXMLRPC.h"
+#import "ASWebServices.h"
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
+#import "ISRadioController.h"
+#import "ISStatusItem.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
 #define IS_GROWL_NOTIFICATION_IPOD_WILL_SYNC @"iPod Sync Begin"
 #define IS_GROWL_NOTIFICATION_IPOD_DID_SYNC @"iPod Sync Finished"
+#define IS_GROWL_NOTIFICATION_PROTOCOL @"Last.fm Communications"
 
-// UTF16 barred eigth notes
-#define MENU_TITLE_CHAR 0x266B
-// UTF16 sharp note 
-#define MENU_TITLE_SUB_DISABLED_CHAR 0x266F
+#if 0
+@interface NSScriptCommand (ISExtensions)
 
-enum {
-    MACTION_LOVE_TAG = 99999,
-    MACTION_BAN_TAG,
-    MACTION_TAG_TAG,
-    MACTION_RECOMEND_TAG,
-    MACTION_PLAY_TAG
-};
+- (id)evaluatedDirectParameters;
 
-static int drainArtworkCacheFlag = 0, forcePlayCacheFlag = 0;
-
-static void handlesig (int sigraised)
-{
-    if (SIGUSR1 == sigraised) {
-        drainArtworkCacheFlag = 1;
-    } else if (SIGUSR2 == sigraised) {
-        forcePlayCacheFlag = 1;
-    }
-}
+@end
+#endif
 
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
@@ -83,8 +72,8 @@ static void handlesig (int sigraised)
     - (float)minTimePlayed;
 @end
 
-#define CLEAR_MENUITEM_TAG          1
 #define SUBMIT_IPOD_MENUITEM_TAG    4
+#define RADIO_MENUITEM_TAG 5
 
 @interface SongData (iScrobblerControllerAdditions)
     - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
@@ -95,79 +84,89 @@ static void handlesig (int sigraised)
 
 @implementation iScrobblerController
 
-- (NSColor*)primaryMenuColor
+- (void)displayProtocolEvent:(NSString *)msg
 {
-    static NSSet *validColors = nil;
-#if 1
-    // Disable if this is ever made a GUI accessible pref
-    static NSColor *color = nil;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlLastFMCommunications"]) {
+        #ifndef __LP64__
+        [GrowlApplicationBridge
+            notifyWithTitle:msg
+            description:@""
+            notificationName:IS_GROWL_NOTIFICATION_PROTOCOL
+            iconData:nil
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
+        #endif
+    }
+}
+
+- (void)displayNowPlayingWithMsg:(NSString*)msg
+{
+#ifndef __LP64__    
+    SongData *s;
+    NSData *artwork = nil;
+    NSString *npInfo = nil, *title = nil;
+
+    if ((s = [self nowPlaying]) && [GrowlApplicationBridge isGrowlRunning]) {
+        @try {
+        artwork = [[s artwork] TIFFRepresentation];
+        } @catch (NSException* e) {}
+        
+        title = [currentSong growlTitle];
+        npInfo = [currentSong growlDescription];
+    } else if (msg)
+        title = NSLocalizedString(@"Status", "");
     
-    if (color)
-        return (color);
+    if (!title)
+        return;
+    
+    if (npInfo)
+        msg = msg ? [npInfo stringByAppendingFormat:@"\n%@", msg] : npInfo;
+    
+    [GrowlApplicationBridge
+        notifyWithTitle:title
+        description:msg
+        notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
+        iconData:artwork
+        priority:0.0
+        isSticky:NO
+        clickContext:nil
+        identifier:@"iscrobbler.play"];
 #endif
-
-    if (!validColors) {
-        validColors = [[NSSet alloc] initWithArray:[NSArray arrayWithObjects:
-            @"blackColor", @"darkGrayColor", @"lightGrayColor", @"whiteColor", @"grayColor", @"blueColor",
-            @"cyanColor", @"yellowColor", @"magentaColor", @"purpleColor", @"brownColor", nil]];
-    }
-    
-    NSString *method = [[NSUserDefaults standardUserDefaults] stringForKey:@"PrimaryMenuColor"];
-    if (!method || ![validColors containsObject:method]) {
-        if (method)
-            ScrobLog(SCROB_LOG_TRACE, @"\"%@\" is not a valid menu color. Valid colors are: %@", method, validColors);
-        return ([NSColor blackColor]);
-    }
-    
-    @try {
-    color = [[NSColor performSelector:NSSelectorFromString(method)] retain];
-    } @catch (id e) {}
-    
-    
-    return (color ? color : [NSColor blackColor]);
 }
 
-- (void)updateStatusWithColor:(NSColor*)color withMsg:msg
+- (void)displayNowPlaying
 {
-    NSAttributedString *newTitle =
-        [[NSAttributedString alloc] initWithString:[statusItem title]
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
-            // If we don't specify this, the font defaults to Helvitica 12
-            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
-    [newTitle release];
-    
-    unsigned tracksQueued;
-    if (msg) {
-        // Get rid of extraneous protocol information
-        NSArray *items = [msg componentsSeparatedByString:@"\n"];
-        if (items && [items count] > 0)
-            msg = [items objectAtIndex:0];
-    } else {
-        msg = [NSString stringWithFormat:@"%@: %u",
-                NSLocalizedString(@"Tracks Sub'd", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
-        if (tracksQueued = [[QueueManager sharedInstance] count]) {
-            msg = [msg stringByAppendingFormat:@", %@: %u",
-                NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
-        }
-    }
-    [statusItem setToolTip:msg];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"])
+        [self displayNowPlayingWithMsg:nil];
 }
 
-- (void)updateStatus:(BOOL)opSuccess withOperation:(BOOL)opBegin withMsg:msg
+- (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
 {
-    NSColor *color;
-    if (opBegin)
-        color = [NSColor greenColor];
-    else {
-        if (opSuccess)
-            color = [self primaryMenuColor];
-        else {
-            color = [NSColor redColor];
-        }
-    }
-    
-    [self updateStatusWithColor:color withMsg:msg];
+#ifndef __LP64__
+    [GrowlApplicationBridge
+            notifyWithTitle:title
+            description:msg
+            notificationName:IS_GROWL_NOTIFICATION_ALERTS
+            iconData:nil
+            priority:0.0
+            isSticky:YES
+            clickContext:nil];
+#endif            
+}
+
+- (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
+{
+#ifndef __LP64__
+    [GrowlApplicationBridge
+            notifyWithTitle:title
+            description:msg
+            notificationName:IS_GROWL_NOTIFICATION_ALERTS
+            iconData:nil
+            priority:0.0
+            isSticky:NO
+            clickContext:nil];
+#endif    
 }
 
 // PM notifications
@@ -180,12 +179,14 @@ static void handlesig (int sigraised)
     NSString *msg = nil;
     if ([[pm lastHandshakeResult] isEqualToString:HS_RESULT_OK]) {
         status = YES;
+        [self displayProtocolEvent:NSLocalizedString(@"Handshake successful", "")];
     } else {
+        [self displayProtocolEvent:NSLocalizedString(@"Handshake failed", "")];
         msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %u)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];
     }
-    [self updateStatus:status withOperation:NO withMsg:msg];
+    [statusItem updateStatus:status withOperation:NO withMsg:msg];
 }
 
 - (void)badAuthHandler:(NSNotification*)note
@@ -195,7 +196,7 @@ static void handlesig (int sigraised)
 
 - (void)handshakeStartHandler:(NSNotification*)note
 {
-    [self updateStatus:YES withOperation:YES withMsg:nil];
+    [statusItem updateStatus:YES withOperation:YES withMsg:nil];
 }
 
 - (void)submitCompleteHandler:(NSNotification*)note
@@ -204,18 +205,20 @@ static void handlesig (int sigraised)
     ProtocolManager *pm = [note object];
     NSString *msg = nil;
     if ([[pm lastSubmissionResult] isEqualToString:HS_RESULT_OK]) {
+        [self displayProtocolEvent:NSLocalizedString(@"Submission successful", "")];
         status = YES;
     } else {
+        [self displayProtocolEvent:NSLocalizedString(@"Submission failed", "")];
         msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %u)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];;
     }
-    [self updateStatus:status withOperation:NO withMsg:msg];
+    [statusItem updateStatus:status withOperation:NO withMsg:msg];
 }
 
 - (void)submitStartHandler:(NSNotification*)note
 {
-    [self updateStatus:YES withOperation:YES withMsg:nil];
+    [statusItem updateStatus:YES withOperation:YES withMsg:nil];
 }
 
 - (void)networkStatusHandler:(id)obj // NSNotification OR NSTimer
@@ -238,10 +241,10 @@ static void handlesig (int sigraised)
             NSString *msg = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY];
             if (!msg || 0 == [msg length])
                 msg = NSLocalizedString(@"Network is not available.", "");
-            [self updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
+            [statusItem updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
             isOrange = YES;
         } else if (isOrange) {
-            [self updateStatusWithColor:[self primaryMenuColor] withMsg:nil];
+            [statusItem updateStatusWithColor:[statusItem defaultStatusColor] withMsg:nil];
             isOrange = NO;
         }
     } else if (createTimer) {
@@ -445,13 +448,6 @@ if (currentSong) { \
     BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]];
     BOOL isRepeat = NO;
     
-    if (forcePlayCacheFlag) {
-        forcePlayCacheFlag = 0;
-        BOOL forceCache = ![[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"];
-        [[NSUserDefaults standardUserDefaults] setBool:forceCache forKey:@"ForcePlayCache"];
-        ScrobLog(SCROB_LOG_TRACE, @"ForcePlayCache %@\n", forceCache ? @"set" : @"unset");
-    }
-    
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
     // Even if subs are disabled, we still have to update the iTunes play time, as the user
@@ -473,8 +469,10 @@ if (currentSong) { \
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
-    if (!song)
+    if (!song) {
+        [self updateMenu];
         goto player_info_exit;
+    }
     
     BOOL didInfoUpdate;
     if (isPlayeriTunes)
@@ -661,34 +659,16 @@ if (currentSong) { \
         
         // Notify Growl
 notify_growl:
-#ifndef __LP64__
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
-        NSData *artwork = nil;
-        if ([GrowlApplicationBridge isGrowlRunning]) {
-            @try {
-            artwork = [[currentSong artwork] TIFFRepresentation];
-            } @catch (NSException*) {
-            }
-        }
-        [GrowlApplicationBridge
-            notifyWithTitle:[currentSong growlTitle]
-            description:[currentSong growlDescription]
-            notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
-            iconData:artwork
-            priority:0.0
-            isSticky:NO
-            clickContext:nil
-            identifier:@"iscrobbler.play"];
-        } // GrowlPlays
-#else
-; // Growl not 64bit yet
-#endif
+        [self displayNowPlaying];
     }
     
 player_info_exit:
     if (song)
         [song release];
-    NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObject:[NSNumber numberWithBool:isRepeat] forKey:@"repeat"];
+    NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+        [NSNumber numberWithBool:isRepeat], @"repeat",
+        [NSNumber numberWithBool:isiTunesPlaying], @"isPlaying",
+        nil];
     if (isiTunesPlaying && currentSongQueueTimer)
         [userInfo setObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
@@ -697,11 +677,6 @@ player_info_exit:
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
-    
-    if (drainArtworkCacheFlag) {
-        drainArtworkCacheFlag = 0;
-        [SongData drainArtworkCache];
-    }
 }
 
 - (void)retryInfoHandler:(NSTimer*)timer
@@ -712,25 +687,15 @@ player_info_exit:
 
 - (void)enableStatusItemMenu:(BOOL)enable
 {
+    ISRadioController *rc = [ISRadioController sharedInstance];
+    
     if (enable) {
         if (!statusItem) {
-            statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
-            
-            NSAttributedString *newTitle =
-                [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", MENU_TITLE_CHAR]
-                    attributes:[NSDictionary dictionaryWithObjectsAndKeys:[self primaryMenuColor], NSForegroundColorAttributeName,
-                    // If we don't specify this, the font defaults to Helvitica 12
-                    [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-            [statusItem setAttributedTitle:newTitle];
-            [newTitle release];
-            
-            [statusItem setHighlightMode:YES];
-            [statusItem setMenu:theMenu];
-            [statusItem setEnabled:YES];
+            statusItem = [[ISStatusItem alloc] initWithMenu:theMenu];
+            [rc setRootMenu:[theMenu itemWithTag:RADIO_MENUITEM_TAG]];
         }
     } else if (statusItem) {
-        [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
-        [statusItem setMenu:nil];
+        [rc setRootMenu:nil];
         [statusItem release];
         statusItem = nil;
     }
@@ -826,6 +791,11 @@ player_info_exit:
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
             object:nil];
         
+        // Internal last.fm stream now playing info
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.bergstrand.iscrobbler.lasfm.playerInfo"
+            object:nil];
+        
         #ifdef notyet
         // Doesn't work yet, as "Total Time" is not included in the note
         // Register for PandoraBoy track change notifications
@@ -890,9 +860,6 @@ player_info_exit:
         }
     }
     
-    signal(SIGUSR1, handlesig);
-    signal(SIGUSR2, handlesig);
-    
     return self;
 }
 
@@ -932,58 +899,56 @@ player_info_exit:
         enableMenu = YES;
     [self enableStatusItemMenu:enableMenu];
     
-    if ([ASXMLRPC isAvailable]) {
-        // Setup the action menu template
-        songActionMenu = [[NSMenu alloc] init];
-        [songActionMenu setAutoenablesItems:NO];
-        NSMenuItem *item;
-        NSString *title;
-        title = [NSString stringWithFormat:@"%C ", 0x2665];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Love", "")]
-            action:@selector(loveTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_LOVE_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        title = [NSString stringWithFormat:@"%C ", 0x2298];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
-            action:@selector(banTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_BAN_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        title = [NSString stringWithFormat:@"%C ", 0x270E];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
-            action:@selector(tagTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_TAG_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        title = [NSString stringWithFormat:@"%C ", 0x2709];
-        item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]
-            action:@selector(recommendTrack:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_RECOMEND_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        
-        #ifdef notyet
-        item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play", "")
-            action:@selector(playSong:) keyEquivalent:@""];
-        [item setTarget:self];
-        [item setTag:MACTION_PLAY_TAG];
-        [item setEnabled:YES];
-        [songActionMenu addItem:item];
-        [item release];
-        #endif
-    }
+    // Setup the action menu template
+    songActionMenu = [[NSMenu alloc] init];
+    [songActionMenu setAutoenablesItems:NO];
+    NSMenuItem *item;
+    NSString *title;
+    title = [NSString stringWithFormat:@"%C ", 0x2665];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Love", "")]
+        action:@selector(loveTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_LOVE_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x2298];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
+        action:@selector(banTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_BAN_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x270E];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
+        action:@selector(tagTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_TAG_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x2709];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]
+        action:@selector(recommendTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_RECOMEND_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    #ifdef notyet
+    item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play", "")
+        action:@selector(playSong:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_PLAY_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    #endif
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -992,8 +957,27 @@ player_info_exit:
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+- (void)checkForOtherScrobblers
+{
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"CheckForOtherScrobblers"]) {
+        NSEnumerator *en = [[[NSWorkspace sharedWorkspace] launchedApplications] objectEnumerator];
+        NSDictionary *d;
+        while ((d = [en nextObject])) {
+            if ([[d objectForKey:@"NSApplicationBundleIdentifier"] hasPrefix:@"fm.last"]) {
+                [self displayErrorWithTitle:NSLocalizedString(@"Another Last.FM Client is Active", "")
+                    message:NSLocalizedString(@"Multiple active Last.FM clients may cause duplicate submissions or other problems.", "")];
+                break;
+            }
+        }
+    }
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
+    // Register to handle URLs
+    [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
+        forEventClass:kInternetEventClass andEventID:kAEGetURL];
+    
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
@@ -1024,46 +1008,46 @@ player_info_exit:
         }
     }
     
-    // Check the version
-    if (NO == [ud boolForKey:@"Disable Update Notification"]) {
-        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:NO];
-        // Check every 72 hours
-        [NSTimer scheduledTimerWithTimeInterval:259200.0 target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES];
+    // warn user if last.fm app is running
+    [self checkForOtherScrobblers];
+    
+    if (NO == [ud boolForKey:@"BBNetUpdateDontAutoCheckVersion"]) {
+        // Check the version now and then every 72 hours
+        [[NSTimer scheduledTimerWithTimeInterval:259200.0
+            target:self selector:@selector(checkForUpdate:) userInfo:nil repeats:YES] fire];
     }
+}
+
+
+- (void)getUrl:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+	NSString *url = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
+    [[ISRadioController sharedInstance] tuneStationWithName:nil url:url];
 }
 
 -(IBAction)checkForUpdate:(id)sender
 {
-    if ([sender isKindOfClass:[NSTimer class]])
+    if ([sender isKindOfClass:[NSTimer class]]) {
+        //automatic check - make sure we have an inet connection
+        if (NO == [[ProtocolManager sharedInstance] isNetworkAvailable]) {
+            ScrobLog(SCROB_LOG_TRACE, @"Network not available, skipping version check.");
+            return;
+        }
         sender = nil;
-    if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Update Notification"]) {
-        [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
     }
+    [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
 }
 
 -(IBAction)enableDisableSubmissions:(id)sender
 {
-    unichar ch;
     if (!submissionsDisabled) {
         submissionsDisabled = YES;
-        ch = MENU_TITLE_SUB_DISABLED_CHAR;
         [sender setTitle:NSLocalizedString(@"Resume Submissions", "")];
     } else {
         submissionsDisabled = NO;
-        ch = MENU_TITLE_CHAR;
         [sender setTitle:NSLocalizedString(@"Pause Submissions", "")];
     }
-    NSColor *color = [[statusItem attributedTitle] attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nil];
-    if (!color)
-        color = [self primaryMenuColor];
-    
-    NSAttributedString *newTitle =
-        [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1]
-            attributes:[NSDictionary dictionaryWithObjectsAndKeys:color, NSForegroundColorAttributeName,
-            // If we don't specify this, the font defaults to Helvitica 12
-            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName, nil]];
-    [statusItem setAttributedTitle:newTitle];
-    [newTitle release];
+    [statusItem setSubmissionsEnabled:!submissionsDisabled];
 }
 
 - (void)updateMenu
@@ -1091,7 +1075,7 @@ player_info_exit:
     int songsToDisplay = [prefs integerForKey:@"Number of Songs to Save"];
     while ((song = [enumerator nextObject]) && addedSongs < songsToDisplay) {
         item = [[[NSMenuItem alloc] initWithTitle:[song title]
-                                           action:@selector(playSong:)
+                                    action:![song isLastFmRadio] ? @selector(playSong:) : nil
                                     keyEquivalent:@""] autorelease];
         
         [item setTarget:self];
@@ -1102,15 +1086,41 @@ player_info_exit:
     }
     
     if (addedSongs) {
-        if (songActionMenu && [self nowPlaying]) {
+        if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
-            NSMenuItem *item = [theMenu itemAtIndex:0];
             NSMenu *m = [songActionMenu copy];
-            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:[item representedObject]];
+            NSMenuItem *item;
+            if ([song isLastFmRadio]) {
+                NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
+                item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
+                    action:@selector(skip) keyEquivalent:@""];
+                [item setTarget:[ISRadioController sharedInstance]];
+                [item setTag:MACTION_SKIP];
+                [item setEnabled:YES];
+                [m addItem:item];
+                [item release];
+                
+                // Use the radio ban instead of the XML one so that the track is skipped as well as banned
+                item = [m itemWithTag:MACTION_BAN_TAG];
+                [item setAction:@selector(ban)];
+                [item setTarget:[ISRadioController sharedInstance]];
+            }
+            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
             
             item = [theMenu itemAtIndex:0];
+            ISASSERT(song == [item representedObject], "songs don't match!");
             [item setAction:nil];
             [item setSubmenu:m];
+            if ([song isLastFmRadio]) {
+                NSString *tip;
+                unsigned int days, hours, minutes, seconds;
+                ISDurationsFromTime([[song duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
+                if (0 == hours)
+                    tip = [NSString stringWithFormat:@"%@: %u:%02u", NSLocalizedString(@"Duration", ""), minutes, seconds];
+                else
+                    tip = [NSString stringWithFormat:@"%@: %u:%02u:%02u", NSLocalizedString(@"Duration", ""), hours, minutes, seconds];
+                [item setToolTip:tip];
+            }
             [m release];
             
         }
@@ -1388,11 +1398,6 @@ player_info_exit:
 	[NSApp terminate:self];
 }
 
-- (BOOL)application:(NSApplication *)sender delegateHandlesKey:(NSString *)key
-{
-    return (NO);
-}
-
 // WS support
 
 - (IBAction)loveTrack:(id)sender
@@ -1569,7 +1574,8 @@ exit:
     } else if ([method isEqualToString:@"banTrack"]) {
         [[request representedObject] setBanned:YES];
         tag = @"banned";
-    }
+    } else if ([method hasPrefix:@"tag"])
+        [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
     
     ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
         method, [request representedObject]);
@@ -1637,6 +1643,111 @@ exit:
     // just here, so KVO notifications work
 }
 
+- (void)growlNotificationWasClicked:(id)context
+{
+    ISASSERT([context isKindOfClass:[NSString class]], @"click context is not a string!");
+    [[NSNotificationCenter defaultCenter] postNotificationName:context object:nil];
+}
+
+// AppleScript support
+// Useful debug info: defaults write NSGlobalDomain NSScriptingDebugLogLevel 1
+- (BOOL)application:(NSApplication *)sender delegateHandlesKey:(NSString *)key
+{
+    ScrobDebug(@"wants key: %@", key);
+    return ([key isEqualToString:@"lastfmUser"]
+        || [key isEqualToString:@"queueSubmissions"]
+        || [key isEqualToString:@"scrobbleTracks"]
+        || [key isEqualToString:@"queueSubmissions"]
+        || [key isEqualToString:@"radioController"]);
+}
+
+#ifdef ISDEBUG
+- (id)valueForUndefinedKey:(NSString*)key
+{
+    ScrobDebug(@"%@", key);
+    return (nil);
+}
+
+- (id)valueWithName:(NSString *)name inPropertyWithKey:(NSString *)key
+{
+    ScrobDebug(@"name: %@, key: %@", name, key);
+    return (nil);
+}
+#endif
+
+- (id)valueWithUniqueID:(id)uniqueID inPropertyWithKey:(NSString *)key
+{
+    ScrobDebug(@"uuid: %@, key: %@", uniqueID, key);
+    return ([key isEqualToString:@"radioController"] ? [ISRadioController sharedInstance] : nil);
+}
+
+- (id)radioController
+{
+    return ([ISRadioController sharedInstance]);
+}
+
+- (NSString*)lastfmUser
+{
+    return ([[ProtocolManager sharedInstance] userName]);
+}
+
+- (BOOL)queueSubmissions
+{
+    return ([[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"]);
+}
+
+- (void)setQueueSubmissions:(BOOL)queue
+{
+    BOOL forceCache = ![[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"];
+    [[NSUserDefaults standardUserDefaults] setBool:forceCache forKey:@"ForcePlayCache"];
+    ScrobLog(SCROB_LOG_TRACE, @"ForcePlayCache %@\n", forceCache ? @"set" : @"unset");
+    
+    if (!forceCache)
+        [[QueueManager sharedInstance] performSelector:@selector(submit) withObject:nil afterDelay:0.0];
+}
+
+- (BOOL)scrobbleTracks
+{
+    return (!submissionsDisabled);
+}
+
+- (void)setScrobbleTracks:(BOOL)scrob
+{
+    submissionsDisabled = !scrob;
+}
+
+// commands
+
+- (id)flushCaches:(NSScriptCommand*)command
+{
+    [SongData drainArtworkCache];
+    [ASXMLFile expireAllCacheEntries];
+    return (nil);
+}
+
+// End AppleScript
+
+@end
+
+@interface ISAppScriptCommand : NSScriptCommand {
+}
+@end
+
+@implementation ISAppScriptCommand
+
+- (id)performDefaultImplementation
+{
+    switch ([[self commandDescription] appleEventCode]) {
+        case 'Fcch': // flush caches
+            [[NSApp delegate] performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
+        break;
+        default:
+            ScrobLog(SCROB_LOG_TRACE, @"ISAppScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
+        break;
+    }
+    return (nil);
+}
+
 @end
 
 @implementation SongData (iScrobblerControllerAdditions)
@@ -1663,11 +1774,15 @@ exit:
     igenre = [dict objectForKey:@"Genre"];
     itrackNumber = [dict objectForKey:@"Track Number"];
     
-    if (ipath)
+    if (ipath) {
+        @try {
         location = [NSURL URLWithString:ipath];
+        } @catch(id e) {location = nil;}
+    }
     
     if (!iname || !iartist || !iduration /*|| (location && ![location isFileURL])*/) {
-        //if (!(location && [location isFileURL]))
+        //if (!(location && [location isFileURL])) // don't allow streaming URLs
+        if (!location || [location isFileURL])
             ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
         [self dealloc];
         return (nil);
@@ -1691,6 +1806,24 @@ exit:
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     
+    // extra data from a last.fm stream
+    id o = [dict objectForKey:@"last.fm"];
+    if (o) {
+        isLastFmRadio = YES;
+        [self setType:trackTypeShared];
+        
+        // Load artwork if possible
+        @try {
+        if (!(ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_medium"]))
+            ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_small"];
+        
+        if (ialbum)
+            [self loadAlbumArtFromURL:[NSURL URLWithString:ialbum]];
+        } @catch (id e) {}
+        
+        ScrobDebug(@"created '%@' track from last.fm radio", [self brief]);
+    }
+    
     return (self);
 }
 
@@ -1699,6 +1832,8 @@ exit:
     [self setPosition:[song position]];
     [self setRating:[song rating]];
     [self setIsPlayeriTunes:[song isPlayeriTunes]];
+    if ((isLastFmRadio = [song isLastFmRadio]))
+        [self setType:trackTypeShared];
 }
 
 - (NSString*)growlDescriptionWithFormat:(NSString*)format
@@ -1721,7 +1856,38 @@ exit:
         if (NSNotFound != r.location)
             [fmt replaceCharactersInRange:r withString:[self artist]];
         
+        r = [fmt rangeOfString:@"%d"];
+        if (NSNotFound != r.location) {
+            NSString *timeStr;
+            unsigned time = [[self duration] unsignedIntValue];
+            unsigned days, hours, mins, secs;
+            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+            
+            if (time < 3600)
+                timeStr = [NSString stringWithFormat:@"%u:%02u", mins, secs];
+            else
+                timeStr = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+            
+            time = [[self elapsedTime] unsignedIntValue];
+            if (time > 0) {
+                NSString *tmp;
+                ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+                if (time < 3600)
+                    tmp = [NSString stringWithFormat:@"%u:%02u", mins, secs];
+                else
+                    tmp = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
+                
+                timeStr = [NSString stringWithFormat:@"%@/%@", tmp, timeStr];
+            }
+            
+            [fmt replaceCharactersInRange:r withString:timeStr];
+        }
+        
         [fmt replaceOccurrencesOfString:@"%n" withString:@"\n" options:0 range:NSMakeRange(0, [fmt length])];
+        
+        if ([fmt hasSuffix:@"\n"])
+            [fmt deleteCharactersInRange:NSMakeRange([fmt length]-1, 1)];
+        
         return ([fmt autorelease]);
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"%s: -Exception- %@ while processing %@\n", __FUNCTION__, e,
@@ -1734,11 +1900,15 @@ exit:
 
 - (NSString*)growlDescription
 {
-    return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"]]);
+    NSString *f = [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"];
+    if ([self isLastFmRadio] && NSNotFound == [f rangeOfString:@"%d"].location)
+        f = [@"%d%n" stringByAppendingString:f];
+    return ([self growlDescriptionWithFormat:f]);
 }
 
 - (NSString*)growlTitle
 {
+    
     return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]]);
 }
 
@@ -1771,6 +1941,24 @@ exit:
     return (nil);
 }
 @end
+
+#if 0
+@implementation NSScriptCommand (ISExtensions)
+
+- (id) evaluatedDirectParameters
+{
+    id param = [self directParameter];
+    if ([param isKindOfClass: [NSScriptObjectSpecifier class]])
+    {
+        NSScriptObjectSpecifier *spec = (NSScriptObjectSpecifier *)param;
+        id container = [[spec containerSpecifier] objectsByEvaluatingSpecifier];
+        param = [spec objectsByEvaluatingWithContainers: container];
+    }
+    return param;
+}
+
+@end
+#endif
 
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)

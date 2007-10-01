@@ -51,7 +51,11 @@ on UpdateiPod(thePlaylistName, theDate)
 							set songTitle to name of theTrack as Unicode text
 							-- iTunes 7 changed the song duration to a real number which broke all iPod submissions
 							-- on eariler versions we'll be converting to a real and rounding just to get back to an integer
-							set songLength to (round (duration of theTrack as real) rounding down) as integer
+							try
+								set songLength to (round (duration of theTrack as real) rounding down) as integer
+							on error errDescription number errnum
+								set songLength to 0
+							end try
 							set songPosition to 0 -- the song has already played, so player pos will not be returned 
 							set songArtist to artist of theTrack as Unicode text
 							set songLocation to ""
@@ -63,6 +67,12 @@ on UpdateiPod(thePlaylistName, theDate)
 							set songAlbum to album of theTrack as Unicode text
 							set songLastPlayed to played date of theTrack
 							set songRating to rating of theTrack
+							try
+								-- iTunes 7.4+ only
+								if rating kind of theTrack is equal to computed then
+									set songRating to 0
+								end if
+							end try
 							set songGenre to ""
 							if genre of theTrack is not missing value then
 								set songGenre to genre of theTrack as Unicode text

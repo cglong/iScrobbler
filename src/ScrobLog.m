@@ -140,14 +140,12 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
 
     data = [entry dataUsingEncoding:NSUTF8StringEncoding];
     [entry release];
-    NS_DURING
+    @try {
     [scrobLogFile writeData:data];
-#ifdef notyet
+#ifdef ISDEBUG
     [scrobLogFile synchronizeFile];
 #endif
-    NS_HANDLER
-    // Write failed
-    NS_ENDHANDLER
+    } @catch(id e) {}
 }
 
 __private_extern__ void ScrobLogTruncate(void)
@@ -178,7 +176,11 @@ __private_extern__ scrob_log_level_t ScrobLogLevel(void)
 {
     CreateStringToLevelDict();
     NSNumber *lev =  [string_to_scrob_level objectForKey:
+#ifndef ISDEBUG
         [[NSUserDefaults standardUserDefaults] objectForKey:@"Log Level"]];
+#else
+        @"TRACE"];
+#endif
     if (lev)
         return ([lev intValue]);
     

@@ -11,6 +11,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class ASXMLFile;
+
 @interface ISArtistDetailsController : NSObject {
     IBOutlet id artistController, similarArtistsController;
     IBOutlet NSDrawer *detailsDrawer;
@@ -18,17 +20,18 @@
     IBOutlet NSImageView *artistImage;
     IBOutlet NSTableView *similarArtistsTable;
     
-    NSURLConnection *detailsProfile, *detailsTopArtists,
-        *detailsTopFans, *detailsSimArtists, *detailsArtistData, *detailsArtistTags;
+    ASXMLFile *detailsProfile, *detailsTopArtists,
+        *detailsTopFans, *detailsSimArtists, *detailsArtistTags;
     NSMutableDictionary *detailsData;
+    NSURLConnection *detailsArtistData;
     NSURLDownload *imageRequest;
     NSString *imagePath;
     int detailsToLoad, detailsLoaded;
+    int requestCacheSeconds;
     BOOL detailsOpen;
     id delegate;
 }
 
-+ (BOOL)canLoad; // Determine if this class can be used on the current system
 + (ISArtistDetailsController*)artistDetailsWithDelegate:(id)obj;
 
 - (IBAction)openDetails:(id)sender;

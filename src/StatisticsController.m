@@ -18,6 +18,8 @@
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
+#import "ASXMLFile.h"
+#import "ASWebServices.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -109,8 +111,7 @@ enum {
     } else
         [selection setValue:[NSColor redColor] forKey:@"Server Response Color"];
     
-    if ([ASXMLRPC isAvailable] && !rpcreq
-        && g_nowPlaying && ![g_nowPlaying loved] && [[g_nowPlaying scaledRating] intValue]
+    if (!rpcreq && g_nowPlaying && ![g_nowPlaying loved] && [[g_nowPlaying scaledRating] intValue]
         > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
         ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", g_nowPlaying);
         [self performSelector:@selector(loveTrack:) withObject:nil];
@@ -209,7 +210,14 @@ static NSImage *prevIcon = nil;
     switch (g_cycleState) {
         case title:
             rating = [g_nowPlaying starRating];
-            if ([rating length] > 0)
+            if ([g_nowPlaying isLastFmRadio]) {
+                unsigned int days, hours, minutes, seconds;
+                ISDurationsFromTime([[g_nowPlaying duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
+                if (0 == hours)
+                    msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%u:%02u)", minutes, seconds];
+                else
+                    msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%u:%02u:%02u)", hours, minutes, seconds];
+            } else  if ([rating length] > 0)
                 msg = [[g_nowPlaying title] stringByAppendingFormat:@" (%@)", rating];
             else
                 msg = [g_nowPlaying title];
@@ -270,7 +278,7 @@ static NSImage *prevIcon = nil;
         }
         
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Now Playing Detail"]) {
-            if (!artistDetails && [ISArtistDetailsController canLoad])
+            if (!artistDetails)
                 artistDetails = [[ISArtistDetailsController artistDetailsWithDelegate:self] retain];
             if (artistDetails)
                 [artistDetails setArtist:[g_nowPlaying artist]];
@@ -411,86 +419,84 @@ static NSImage *prevIcon = nil;
     [checkImage setHidden:YES];
     [artworkImage setImage:[NSApp applicationIconImage]];
     
-    if ([ASXMLRPC isAvailable]) {
-        // Create toolbar
-        toolbarItems = [[NSMutableDictionary alloc] init];
-        
-        NSToolbar *tb = [[NSToolbar alloc] initWithIdentifier:@"stats"];
-        [tb setDisplayMode:NSToolbarDisplayModeLabelOnly]; // XXX
-        [tb setSizeMode:NSToolbarSizeModeSmall];
-        [tb setDelegate:self];
-        [tb setAllowsUserCustomization:NO];
-        [tb setAutosavesConfiguration:NO];
-        #ifdef looksalittleweird
-        [tb setShowsBaselineSeparator:NO]; // 10.4 only, but ASXMLRPC won't load w/o it
-        #endif
-        
-        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];
-        title = [NSString stringWithFormat:@"%C ", 0x2665];
-        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Love", "")]];
-        [item setToolTip:NSLocalizedString(@"Love the currently playing track.", "")];
-        [item setPaletteLabel:[item label]];
-        [item setTarget:self];
-        [item setAction:@selector(loveTrack:)];
-        // [item setImage:[NSImage imageNamed:@""]];
-        [item setTag:kTBItemRequiresSong|kTBItemSongNotLovedBanned];
-        [toolbarItems setObject:item forKey:@"love"];
-        [item release];
-        
-        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"ban"];
-        title = [NSString stringWithFormat:@"%C ", 0x2298];
-        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]];
-        [item setToolTip:NSLocalizedString(@"Ban the currently playing track from last.fm.", "")];
-        [item setPaletteLabel:[item label]];
-        [item setTarget:self];
-        [item setAction:@selector(banTrack:)];
-        // [item setImage:[NSImage imageNamed:@""]];
-        [item setTag:kTBItemRequiresSong|kTBItemSongNotLovedBanned];
-        [toolbarItems setObject:item forKey:@"ban"];
-        [item release];
-        
-        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
-        title = [NSString stringWithFormat:@"%C ", 0x2709];
-        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
-        [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
-        [item setPaletteLabel:[item label]];
-        [item setTarget:self];
-        [item setAction:@selector(recommend:)];
-        // [item setImage:[NSImage imageNamed:@""]];
-        [item setTag:kTBItemRequiresSong];
-        [toolbarItems setObject:item forKey:@"recommend"];
-        [item release];
-        
-        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
-        title = [NSString stringWithFormat:@"%C ", 0x270E];
-        [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
-        [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
-        [item setPaletteLabel:[item label]];
-        [item setTarget:self];
-        [item setAction:@selector(tag:)];
-        // [item setImage:[NSImage imageNamed:@""]];
-        [item setTag:kTBItemRequiresSong];
-        [toolbarItems setObject:item forKey:@"tag"];
-        [item release];
-        
-        item = [[NSToolbarItem alloc] initWithItemIdentifier:@"showloveban"];
-        [item setLabel:NSLocalizedString(@"Show Loved/Banned", "")];
-        [item setToolTip:NSLocalizedString(@"Show recently Loved or Banned tracks.", "")];
-        [item setPaletteLabel:[item label]];
-        [item setTarget:self];
-        [item setAction:@selector(showLovedBanned:)];
-        // [item setImage:[NSImage imageNamed:@""]];
-        [item setTag:0];
-        [toolbarItems setObject:item forKey:@"showloveban"];
-        [item release];
-        
-        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
-        [toolbarItems setObject:[NSNull null] forKey:NSToolbarFlexibleSpaceItemIdentifier];
-        [toolbarItems setObject:[NSNull null] forKey:NSToolbarSpaceItemIdentifier];
-        
-        [[self window] setToolbar:tb];
-        [tb release];
-    } // [ASXMLRPC isAvailable])
+    // Create toolbar
+    toolbarItems = [[NSMutableDictionary alloc] init];
+    
+    NSToolbar *tb = [[NSToolbar alloc] initWithIdentifier:@"stats"];
+    [tb setDisplayMode:NSToolbarDisplayModeLabelOnly]; // XXX
+    [tb setSizeMode:NSToolbarSizeModeSmall];
+    [tb setDelegate:self];
+    [tb setAllowsUserCustomization:NO];
+    [tb setAutosavesConfiguration:NO];
+    #ifdef looksalittleweird
+    [tb setShowsBaselineSeparator:NO]; // 10.4 only, but ASXMLRPC won't load w/o it
+    #endif
+    
+    NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];
+    title = [NSString stringWithFormat:@"%C ", 0x2665];
+    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Love", "")]];
+    [item setToolTip:NSLocalizedString(@"Love the currently playing track.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(loveTrack:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:kTBItemRequiresSong|kTBItemSongNotLovedBanned];
+    [toolbarItems setObject:item forKey:@"love"];
+    [item release];
+    
+    item = [[NSToolbarItem alloc] initWithItemIdentifier:@"ban"];
+    title = [NSString stringWithFormat:@"%C ", 0x2298];
+    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]];
+    [item setToolTip:NSLocalizedString(@"Ban the currently playing track from last.fm.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(banTrack:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:kTBItemRequiresSong|kTBItemSongNotLovedBanned];
+    [toolbarItems setObject:item forKey:@"ban"];
+    [item release];
+    
+    item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
+    title = [NSString stringWithFormat:@"%C ", 0x2709];
+    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
+    [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(recommend:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:kTBItemRequiresSong];
+    [toolbarItems setObject:item forKey:@"recommend"];
+    [item release];
+    
+    item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
+    title = [NSString stringWithFormat:@"%C ", 0x270E];
+    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
+    [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(tag:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:kTBItemRequiresSong];
+    [toolbarItems setObject:item forKey:@"tag"];
+    [item release];
+    
+    item = [[NSToolbarItem alloc] initWithItemIdentifier:@"showloveban"];
+    [item setLabel:NSLocalizedString(@"Show Loved/Banned", "")];
+    [item setToolTip:NSLocalizedString(@"Show recently Loved or Banned tracks.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(showLovedBanned:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:0];
+    [toolbarItems setObject:item forKey:@"showloveban"];
+    [item release];
+    
+    [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
+    [toolbarItems setObject:[NSNull null] forKey:NSToolbarFlexibleSpaceItemIdentifier];
+    [toolbarItems setObject:[NSNull null] forKey:NSToolbarSpaceItemIdentifier];
+    
+    [[self window] setToolbar:tb];
+    [tb release];
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
         [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
@@ -687,7 +693,8 @@ exit:
     } else if ([method isEqualToString:@"banTrack"]) {
         [[request representedObject] setBanned:YES];
         tag = @"banned";
-    }
+    } else if ([method hasPrefix:@"tag"])
+        [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
     
     ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
         method, [request representedObject]);

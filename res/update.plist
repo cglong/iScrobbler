@@ -5,20 +5,21 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>4884dd509ddd77948e247ac837b0600244c44246</string>
+        	<string>dab5bfd49df00056774534e80f9ea3bfee88d35b</string>
         </dict>
         <key>Version</key>
-        <string>1.5.0</string>
+        <string>2.0.0a3</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.0.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a3.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- iPod Shuffle support.
-- Love, Ban, Tag and Recommend support (10.4+ only).
-- Audioscrobbler Protocol 1.2 is now supported (and the default).
-- New icon courtesy of einsteinbqat.
-- Many other minor enhancements and bug fixes.
+                <string>- AppleScript support, including Radio control.
+- Added option to tune an Artist's top fans radio instead of their similar artists radio.
+- The Growl 'Now playing' notificiaton can be displayed at any time by hovering the mouse over the menu.
+- Elapsed and total track time are now included in the default track Growl display
+- Album art for Radio tracks is displayed if possible.
+- Bug fixes related to Radio track detection/display.
                 </string>
         </dict>
 </dict>

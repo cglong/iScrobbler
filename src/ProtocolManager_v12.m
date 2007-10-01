@@ -66,7 +66,9 @@
         hresult = HS_RESULT_FAILED;
     else if ([result hasPrefix:@"BADTIME"]) {
         hresult = HS_RESULT_FAILED;
-        ScrobLog(SCROB_LOG_WARN, @"Your computer clock may be wrong. Please check the time, month and year.");
+        [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Your computer clock may be wrong.", "")
+            message:NSLocalizedString(@"Last.fm submissions are disabled. Please verify the time, day of month, month and year.", "")];
+        ScrobLog(SCROB_LOG_WARN, @"Your computer clock may be wrong. Please verify the time, day of month, month and year.");
     } else
         hresult = HS_RESULT_UNKNOWN;
     

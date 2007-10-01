@@ -482,7 +482,9 @@ bad_song_data:
 - (NSDictionary *) registrationDictionaryForGrowl
 {
     NSArray *notifications = [NSArray arrayWithObjects:
-        IS_GROWL_NOTIFICATION_TRACK_CHANGE, IS_GROWL_NOTIFICATION_IPOD_DID_SYNC, nil];
+        IS_GROWL_NOTIFICATION_TRACK_CHANGE, IS_GROWL_NOTIFICATION_IPOD_DID_SYNC,
+        IS_GROWL_NOTIFICATION_PROTOCOL, IS_GROWL_NOTIFICATION_ALERTS,
+        nil];
     return ( [NSDictionary dictionaryWithObjectsAndKeys:
         notifications, GROWL_NOTIFICATIONS_ALL,
         notifications, GROWL_NOTIFICATIONS_DEFAULT,

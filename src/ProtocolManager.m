@@ -789,16 +789,19 @@ static int npDelays = 0;
 {
     sendNP = NO;
     
-    NSMutableURLRequest *request =
-		[NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
-								cachePolicy:NSURLRequestReloadIgnoringCacheData
-							timeoutInterval:REQUEST_TIMEOUT];
-	[request setHTTPMethod:@"POST"];
-	[request setHTTPBody:[self nowPlayingDataForSong:npSong]];
-    // Set the user-agent to something Mozilla-compatible
-    [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+    if (!npSong)
+        return; // we missed it, oh well...
     
     if (!myConnection) {
+        NSMutableURLRequest *request =
+            [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
+                cachePolicy:NSURLRequestReloadIgnoringCacheData
+                timeoutInterval:REQUEST_TIMEOUT];
+        [request setHTTPMethod:@"POST"];
+        [request setHTTPBody:[self nowPlayingDataForSong:npSong]];
+        // Set the user-agent to something Mozilla-compatible
+        [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
+        
         myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
         npInProgress = YES;
         npDelays = 0;
@@ -822,7 +825,7 @@ static int npDelays = 0;
     NSDictionary *userInfo = [note userInfo];
     if (userInfo && (obj = [userInfo objectForKey:@"repeat"]))
         repeat = [obj boolValue];
-    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length]) {
+    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length] || [s isLastFmRadio]) {
         if (!s) {
             [npSong release];
             npSong = nil;

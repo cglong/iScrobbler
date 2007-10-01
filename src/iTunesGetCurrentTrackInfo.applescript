@@ -36,13 +36,19 @@ tell application "iTunes"
 		end if
 		
 		try
-			set trackID to persistent ID of theTrack -- 6.0.2+
-		on error
+			-- 'persistent ID' would be better, but iScrobbler expects an int and this is a string
+			-- since this is only used to play a track, it's not worth the QA effort to change iScrobbler (yet)
 			set trackID to database ID of theTrack
 		end try
 		set trackPostion to player position
 		try
 			set trackRating to rating of theTrack
+		end try
+		try
+			-- iTunes 7.4+ only
+			if rating kind of theTrack is equal to computed then
+				set trackRating to 0
+			end if
 		end try
 		try
 			set trackLastPlayed to played date

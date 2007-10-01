@@ -15,12 +15,13 @@
 
 @class PreferenceController;
 @class SongData;
+@class ISStatusItem;
 
 @interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate>
 {
 
     //the status item that will be added to the system status bar
-    NSStatusItem *statusItem;
+    ISStatusItem *statusItem;
 
     //the menu attached to the status item
     IBOutlet NSMenu *theMenu;
@@ -100,6 +101,14 @@
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
 
+// For last.fm communication events
+- (void)displayProtocolEvent:(NSString *)msg;
+
+- (void)displayNowPlayingWithMsg:(NSString*)msg;
+- (void)displayNowPlaying;
+- (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg;
+- (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg;
+
 // Bindings
 - (BOOL)isIPodMounted;
 - (void)setIsIPodMounted:(BOOL)val;
@@ -115,22 +124,30 @@
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds);
 
-#ifdef __ppc__
-#define trap() asm volatile("trap")
-#elif __i386__
-#define trap() asm volatile("int $3")
-#else
-#error unknown arch
-#endif
+// Track Extended Menu
+enum {
+    MACTION_LOVE_TAG = 99999,
+    MACTION_BAN_TAG,
+    MACTION_TAG_TAG,
+    MACTION_RECOMEND_TAG,
+    MACTION_PLAY,
+    MACTION_SKIP,
+    MACTION_STOP,
+    MACTION_DISCOVERY, // subscriber only
+    MACTION_SCROBRADIO,
+    MACTION_CONNECTRADIO,
+    MSTATION_INIT,
+    MSTATION_RECOMMENDED,
+    MSTATION_MYRADIO,  // subscriber only
+    MSTATION_MYLOVED, // subscriber only
+    MSTATION_MYPLAYLIST,
+    MSTATION_MYNEIGHBORHOOD,
+    MSTATION_SEARCH
+};
 
-#ifdef ISDEBUG
-#define ISASSERT(condition,msg) do { \
-if (0 == (condition)) { \
-    trap(); \
-} } while(0)
-#else
-#define ISASSERT(condition,msg) {}
-#endif
+
+
+#define IS_GROWL_NOTIFICATION_ALERTS @"Alerts"
 
 #define IPOD_SYNC_BEGIN @"org.bergstrand.iscrobbler.ipod.sync.begin"
 #define IPOD_SYNC_END @"org.bergstrand.iscrobbler.ipod.sync.end"
@@ -141,5 +158,3 @@ if (0 == (condition)) { \
 #define IPOD_SYNC_KEY_SCRIPT_MSG @"Script Msg"
 
 #define RESET_PROFILE @"org.bergstrand.iscrobbler.resetProfile"
-
-#import "ScrobLog.h"

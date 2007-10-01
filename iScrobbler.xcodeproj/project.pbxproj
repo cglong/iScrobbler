@@ -17,6 +17,8 @@
 				D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */,
 				D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */,
 				D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */,
+				D3C3FD620C9EA0E2001AEFEA /* iTunesPlayURL.applescript in AppleScript */,
+				D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */,
 			);
 			isSharedContext = 0;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -59,6 +61,9 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
+		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
+		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
+		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
 		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
 		D38F6D730B535AF800230DBE /* Recommend.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6D710B535AF800230DBE /* Recommend.nib */; };
 		D38F6FB60B541A6300230DBE /* Tag.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6FB40B541A6300230DBE /* Tag.nib */; };
@@ -73,6 +78,19 @@
 		D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
+		D3C3042D0CA28879001AEFEA /* highlight_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D3C304230CA28879001AEFEA /* highlight_blue.tiff */; };
+		D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D3C304240CA28879001AEFEA /* highlight_grey.tiff */; };
+		D3C304300CA28879001AEFEA /* LNSSourceListCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C304260CA28879001AEFEA /* LNSSourceListCell.m */; };
+		D3C304320CA28879001AEFEA /* LNSSourceListColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C304280CA28879001AEFEA /* LNSSourceListColumn.m */; };
+		D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */; };
+		D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */; };
+		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
+		D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */; };
+		D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesStop.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */; };
+		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
+		D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */; };
+		D3C3FD620C9EA0E2001AEFEA /* iTunesPlayURL.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
 		D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D394C809BC0658004E215A /* ArtistDetails.nib */; };
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
@@ -140,6 +158,11 @@
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D376EC690CA8E21900C04863 /* ISStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItem.h; sourceTree = "<group>"; };
+		D376EC6A0CA8E21900C04863 /* ISStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItem.m; sourceTree = "<group>"; };
+		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
+		D376EE930CA9153E00C04863 /* ISStatusItemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItemView.m; sourceTree = "<group>"; };
+		D376FC690CAD00A000C04863 /* iScrobbler.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; path = iScrobbler.sdef; sourceTree = "<group>"; };
 		D38F6CCD0B53514400230DBE /* ISRecommendController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRecommendController.h; sourceTree = "<group>"; };
 		D38F6CCE0B53514400230DBE /* ISRecommendController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRecommendController.m; sourceTree = "<group>"; };
 		D38F6D720B535AF800230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Recommend.nib; sourceTree = "<group>"; };
@@ -159,6 +182,28 @@
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScrobLog.m; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D3C304230CA28879001AEFEA /* highlight_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = highlight_blue.tiff; sourceTree = "<group>"; };
+		D3C304240CA28879001AEFEA /* highlight_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = highlight_grey.tiff; sourceTree = "<group>"; };
+		D3C304250CA28879001AEFEA /* LNSSourceListCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListCell.h; sourceTree = "<group>"; };
+		D3C304260CA28879001AEFEA /* LNSSourceListCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListCell.m; sourceTree = "<group>"; };
+		D3C304270CA28879001AEFEA /* LNSSourceListColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListColumn.h; sourceTree = "<group>"; };
+		D3C304280CA28879001AEFEA /* LNSSourceListColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListColumn.m; sourceTree = "<group>"; };
+		D3C304290CA28879001AEFEA /* LNSSourceListSourceGroupCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListSourceGroupCell.h; sourceTree = "<group>"; };
+		D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListSourceGroupCell.m; sourceTree = "<group>"; };
+		D3C3042B0CA28879001AEFEA /* LNSSourceListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListView.h; sourceTree = "<group>"; };
+		D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListView.m; sourceTree = "<group>"; };
+		D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRadioSearchController.h; sourceTree = "<group>"; };
+		D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRadioSearchController.m; sourceTree = "<group>"; };
+		D3C304490CA291E2001AEFEA /* ASXMLFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASXMLFile.h; sourceTree = "<group>"; };
+		D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASXMLFile.m; sourceTree = "<group>"; };
+		D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPrefix.h; sourceTree = "<group>"; };
+		D3C309970CA3D317001AEFEA /* iTunesStop.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesStop.applescript; sourceTree = "<group>"; };
+		D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = ISRadioSearch.nib; sourceTree = "<group>"; };
+		D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASWebServices.h; sourceTree = "<group>"; };
+		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASWebServices.m; sourceTree = "<group>"; };
+		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRadioController.h; sourceTree = "<group>"; };
+		D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRadioController.m; sourceTree = "<group>"; };
+		D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlayURL.applescript; sourceTree = "<group>"; };
 		D3CB130F07750960009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StatisticsController.nib; sourceTree = "<group>"; };
 		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
 		D3CB1314077509D3009236FF /* StatisticsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = StatisticsController.m; sourceTree = "<group>"; };
@@ -234,8 +279,12 @@
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
 				D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
+				D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */,
+				D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */,
 				D38F6CCE0B53514400230DBE /* ISRecommendController.m */,
 				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
+				D376EC6A0CA8E21900C04863 /* ISStatusItem.m */,
+				D376EE930CA9153E00C04863 /* ISStatusItemView.m */,
 				D38F6FB80B541A9000230DBE /* ISTagController.m */,
 				F575CEAA02FF7F3501A80164 /* PreferenceController.m */,
 				EB50662D03FBB239005DC01B /* keychain.m */,
@@ -247,7 +296,9 @@
 				D3B61DF30744151D00AF5A33 /* ScrobLog.m */,
 				D3CB1314077509D3009236FF /* StatisticsController.m */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
+				D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */,
 				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
+				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
 			);
 			name = Classes;
@@ -304,6 +355,7 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				D3C304220CA28879001AEFEA /* LNSourceList */,
 				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
 				D3EC7C98080858F800392110 /* KFASAdditions */,
 				D3EE9CC50A144A470024A013 /* MBID.c */,
@@ -322,6 +374,7 @@
 				D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */,
 				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
+				D376FC690CAD00A000C04863 /* iScrobbler.sdef */,
 				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
 				D3CB13A1077514A7009236FF /* Preferences.nib */,
 				D3CB130E07750960009236FF /* StatisticsController.nib */,
@@ -331,6 +384,7 @@
 				D38F6D710B535AF800230DBE /* Recommend.nib */,
 				D38F6FB40B541A6300230DBE /* Tag.nib */,
 				D38F74B90B56CDEC00230DBE /* LoveBanList.nib */,
+				D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
@@ -370,14 +424,33 @@
 		D3B19CB00B4F3049008F54BF /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
+				D3C309970CA3D317001AEFEA /* iTunesStop.applescript */,
 				D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */,
 				D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */,
 				D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */,
 				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
 				D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */,
+				D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */,
 			);
 			name = Scripts;
 			path = src;
+			sourceTree = "<group>";
+		};
+		D3C304220CA28879001AEFEA /* LNSourceList */ = {
+			isa = PBXGroup;
+			children = (
+				D3C304230CA28879001AEFEA /* highlight_blue.tiff */,
+				D3C304240CA28879001AEFEA /* highlight_grey.tiff */,
+				D3C304250CA28879001AEFEA /* LNSSourceListCell.h */,
+				D3C304260CA28879001AEFEA /* LNSSourceListCell.m */,
+				D3C304270CA28879001AEFEA /* LNSSourceListColumn.h */,
+				D3C304280CA28879001AEFEA /* LNSSourceListColumn.m */,
+				D3C304290CA28879001AEFEA /* LNSSourceListSourceGroupCell.h */,
+				D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */,
+				D3C3042B0CA28879001AEFEA /* LNSSourceListView.h */,
+				D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */,
+			);
+			path = LNSourceList;
 			sourceTree = "<group>";
 		};
 		D3D7C26F080B99ED005EF5CA /* Documentation */ = {
@@ -404,12 +477,17 @@
 		EB50663103FBB296005DC01B /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */,
 				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
 				D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */,
+				D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */,
 				D38F6CCD0B53514400230DBE /* ISRecommendController.h */,
 				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
+				D376EC690CA8E21900C04863 /* ISStatusItem.h */,
+				D376EE920CA9153E00C04863 /* ISStatusItemView.h */,
 				D38F6FB70B541A9000230DBE /* ISTagController.h */,
 				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
 				EB50662F03FBB284005DC01B /* keychain.h */,
@@ -422,7 +500,9 @@
 				D3B61DF20744151D00AF5A33 /* ScrobLog.h */,
 				D3CB1313077509D3009236FF /* StatisticsController.h */,
 				D3CB38A507A59AFE009236FF /* TopListsController.h */,
+				D3C304490CA291E2001AEFEA /* ASXMLFile.h */,
 				D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */,
+				D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */,
 			);
 			name = Headers;
 			path = src;
@@ -503,6 +583,10 @@
 				D38F6D730B535AF800230DBE /* Recommend.nib in Resources */,
 				D38F6FB60B541A6300230DBE /* Tag.nib in Resources */,
 				D38F74BB0B56CDEC00230DBE /* LoveBanList.nib in Resources */,
+				D3C3042D0CA28879001AEFEA /* highlight_blue.tiff in Resources */,
+				D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */,
+				D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */,
+				D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -555,6 +639,16 @@
 				D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */,
 				D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */,
 				D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */,
+				D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */,
+				D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */,
+				D3C304300CA28879001AEFEA /* LNSSourceListCell.m in Sources */,
+				D3C304320CA28879001AEFEA /* LNSSourceListColumn.m in Sources */,
+				D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */,
+				D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */,
+				D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */,
+				D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */,
+				D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */,
+				D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -684,7 +778,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		D328477F08566B30009B4D14 /* Development */ = {
+		D328477F08566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -716,9 +810,9 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Development;
+			name = Debug;
 		};
-		D328478008566B30009B4D14 /* Deployment */ = {
+		D328478008566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -746,33 +840,39 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Deployment;
+			name = Release;
 		};
-		D328478308566B30009B4D14 /* Development */ = {
+		D328478308566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_FAST_OBJC_DISPATCH = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Development;
+			name = Debug;
 		};
-		D328478408566B30009B4D14 /* Deployment */ = {
+		D328478408566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_FAST_OBJC_DISPATCH = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Deployment;
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -780,20 +880,20 @@
 		D328477E08566B30009B4D14 /* Build configuration list for PBXNativeTarget "iScrobbler" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D328477F08566B30009B4D14 /* Development */,
-				D328478008566B30009B4D14 /* Deployment */,
+				D328477F08566B30009B4D14 /* Debug */,
+				D328478008566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
+			defaultConfigurationName = Debug;
 		};
 		D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D328478308566B30009B4D14 /* Development */,
-				D328478408566B30009B4D14 /* Deployment */,
+				D328478308566B30009B4D14 /* Debug */,
+				D328478408566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Development;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

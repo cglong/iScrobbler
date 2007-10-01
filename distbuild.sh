@@ -10,6 +10,10 @@ if [ ! -d ./build ]; then
 fi
 
 BIN=./build/Release # XCode 2.1 default
+if [ ! -z $1 ] && [ "$1" == "-d" ]; then
+	BIN=./build/Debug
+fi
+
 if [ ! -d ${BIN} ]; then
 	BIN=./build/Deployment
 	if [ ! -d ${BIN} ]; then
@@ -32,7 +36,8 @@ echo "Enter the iScrobbler version number:"
 read VER
 
 IMAGE=/tmp/scrobbuild_$$.dmg
-VOLUME="iScrobbler ${VER}"
+#VOLUME="iScrobbler ${VER}"
+VOLUME="iScrobbler"
 hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
@@ -40,6 +45,13 @@ cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
 cp ./CHANGE_LOG "/Volumes/${VOLUME}"/
 cp ./res/English.lproj/Readme.webarchive "/Volumes/${VOLUME}/"
 cp ./res/gpl.txt "/Volumes/${VOLUME}/LICENSE"
+
+ln -sf /Applications "/Volumes/${VOLUME}/Applications"
+
+mkdir "/Volumes/${VOLUME}/hidden"
+/Developer/Tools/SetFile -a V "/Volumes/${VOLUME}/hidden"
+cp res/bg_DS_Store "/Volumes/${VOLUME}/.DS_Store"
+cp res/bg.png "/Volumes/${VOLUME}/hidden/"
 
 #create src zipball of HEAD
 echo "Exporting source..."
