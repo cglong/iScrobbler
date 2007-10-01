@@ -1701,6 +1701,9 @@ exit:
     BOOL forceCache = ![[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"];
     [[NSUserDefaults standardUserDefaults] setBool:forceCache forKey:@"ForcePlayCache"];
     ScrobLog(SCROB_LOG_TRACE, @"ForcePlayCache %@\n", forceCache ? @"set" : @"unset");
+    
+    if (!forceCache)
+        [[QueueManager sharedInstance] performSelector:@selector(submit) withObject:nil afterDelay:0.0];
 }
 
 - (BOOL)scrobbleTracks
