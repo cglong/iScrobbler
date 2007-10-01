@@ -14,6 +14,14 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+a3:
+- AppleScript support, including Radio control.
+- Added option to tune an Artist's top fans radio instead of their similar artists radio.
+- The Growl 'Now playing' notificiaton can be displayed at any time by hovering the mouse over the menu.
+- Elapsed and total track time are now included in the default track Growl display
+- Album art for Radio tracks is displayed if possible.
+- A revised album artwork cache now expires entries based on time and use and no longer has a fixed size. This should result in less memory use.
+- iScrobbler will warn you (via Growl) if another Last.fm client application is running.
 a2:
 - Added Radio support for Friends, Neighbors, Tags, Global Tags, Groups and Artists stations.
 - Added Radio history (limited by the "Number of Recent Tracks" pref).
