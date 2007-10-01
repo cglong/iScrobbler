@@ -16,40 +16,38 @@
 				<cocoa key="isActive"/>
 			</property>
 			<property name="version" code="vers" description="The version of the application." type="text" access="r"/>
-			<property name="queue submissions" code="pQSB" description="queue local track (non radio) plays" type="boolean">
+			<property name="queue submissions" code="pQSB" description="Are local track (non radio) plays queued for submission?" type="boolean">
 				<cocoa key="queueSubmissions"/>
 			</property>
-			<property name="radio controller" code="pRdC" description="the application radio controller" type="radio" access="r">
+			<property name="radio controller" code="pRdC" description="The application radio controller." type="radio" access="r">
 				<cocoa key="radioController"/>
 			</property>
-			<property name="scrobble track plays" code="pSCB" description="are local plays recorded (scrobbled) to the users profile" type="boolean">
+			<property name="scrobble track plays" code="pSCB" description="Are local track plays recorded (scrobbled) to the users profile?" type="boolean">
 				<cocoa key="scrobbleTracks"/>
 			</property>
-			<property name="lastfm user" code="pUSR" description="the last.fm user name" type="text" access="r">
+			<property name="lastfm user" code="pUSR" description="The last.fm user name." type="text" access="r">
 				<cocoa key="lastfmUser"/>
 			</property>
 			<responds-to name="quit">
 				<cocoa method="handleQuitScriptCommand:"/>
 			</responds-to>
-			<responds-to name="flush caches">
-				<cocoa method=""/>
-			</responds-to>
+			<responds-to name="flush caches"/>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
 			<cocoa class="ISRadioController"/>
-			<property name="connected" code="pCNC" description="is the radio connected" type="boolean">
+			<property name="connected" code="pCNC" description="is the radio connected?" type="boolean">
 				<cocoa key="connected"/>
 			</property>
-			<property name="current station" code="pCST" description="the currently playing radio station" type="text" access="r">
+			<property name="current station" code="pCST" description="The currently playing radio station." type="text" access="r">
 				<cocoa key="currentStation"/>
 			</property>
-			<property name="subscribed" code="pSCD" description="is the radio user a subscriber" type="boolean" access="r">
+			<property name="subscribed" code="pSCD" description="Is the last.fm user a subscriber?" type="boolean" access="r">
 				<cocoa key="subscribed"/>
 			</property>
-			<property name="discovery mode" code="pDSC" description="is discovery mode active (can only be set if subscribed is true)" type="boolean">
+			<property name="discovery mode" code="pDSC" description="Is discovery mode active (can only be set if subscribed is true)?" type="boolean">
 				<cocoa key="scriptDiscoveryMode"/>
 			</property>
-			<property name="scrobble track plays" code="pSCB" description="are radio plays recorded (scrobbled) to the radio users profile" type="boolean">
+			<property name="scrobble track plays" code="pSCB" description="Are radio plays recorded (scrobbled) to the radio users profile?" type="boolean">
 				<cocoa key="scriptScrobblePlays"/>
 			</property>
 			<property hidden="yes" name="id" code="ID  " type="text" access="r">
@@ -77,14 +75,14 @@
 				<cocoa key="SaveOptions"/>
 			</parameter>
 		</command>
-		<command name="flush caches" code="iSCbFcch" description="flush memory caches">
+		<command name="flush caches" code="iSCbFcch" description="Flush memory caches.">
 			<cocoa class="ISAppScriptCommand"/>
 		</command>
-		<command name="tune station" code="iSCbTstn" description="tune a radio station">
+		<command name="tune station" code="iSCbTstn" description="Tune a radio station.">
 			<cocoa class="ISScriptCommand"/>
 			<direct-parameter description="lastfm:// URL" type="text"/>
 		</command>
-		<command name="stop playing" code="iSCbSTop" description="stop playing tracks ">
+		<command name="stop playing" code="iSCbSTop" description="Stop playing tracks.">
 			<cocoa class="ISScriptCommand"/>
 			<direct-parameter type="any"/>
 		</command>
