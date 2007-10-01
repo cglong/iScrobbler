@@ -5,19 +5,21 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>7cb5e6a6ebfac8cc890a848ef0f940e39d303c70</string>
+        	<string>dab5bfd49df00056774534e80f9ea3bfee88d35b</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0a2</string>
+        <string>2.0.0a3</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a3.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- Added Radio support for Friends, Neighbors, Tags, Global Tags, Groups and Artists stations.
-- Added Radio history.
-- Played Radio tracks are recorded to the local profile.
-- Other Radio related changes.
+                <string>- AppleScript support, including Radio control.
+- Added option to tune an Artist's top fans radio instead of their similar artists radio.
+- The Growl 'Now playing' notificiaton can be displayed at any time by hovering the mouse over the menu.
+- Elapsed and total track time are now included in the default track Growl display
+- Album art for Radio tracks is displayed if possible.
+- Bug fixes related to Radio track detection/display.
                 </string>
         </dict>
 </dict>
