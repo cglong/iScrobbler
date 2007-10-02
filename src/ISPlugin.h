@@ -20,5 +20,6 @@
 
 - (id)initWithAppProxy:(id<ISPluginProxy>)proxy;
 - (NSString*)description;
+- (void)applicationWillTerminate;
 
 @end
