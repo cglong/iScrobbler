@@ -639,7 +639,6 @@ if (currentSong) { \
                 break;
             }
         }
-        //ScrobTrace(@"Found = %i",j);
 
         // If the track wasn't found anywhere in the list, we add a new item
         if (found) {
@@ -661,7 +660,6 @@ if (currentSong) { \
         
         [self updateMenu];
         
-        // Notify Growl
 notify_growl:
         [self displayNowPlaying];
     }
