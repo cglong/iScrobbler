@@ -30,13 +30,15 @@ static NSMutableArray *allPlugins = nil;
 {
     NSMutableArray *plugs = [NSMutableArray array];
     
-    NSDirectoryEnumerator *den = [[NSFileManager defaultManager] enumeratorAtPath:[[NSBundle mainBundle] builtInPlugInsPath]];
+    NSString *pluginsPath = [[NSBundle mainBundle] builtInPlugInsPath];
+    NSDirectoryEnumerator *den = [[NSFileManager defaultManager] enumeratorAtPath:pluginsPath];
     NSString *path;
     NSBundle *bundle;
     id plug;
     while ((path = [den nextObject])) {
+        [den skipDescendents];
         @try {
-            if ((bundle = [NSBundle bundleWithPath:path])) {
+            if ((bundle = [NSBundle bundleWithPath:[pluginsPath stringByAppendingPathComponent:path]])) {
                 Class c = [bundle principalClass];
                 if ([c conformsToProtocol:@protocol(ISPlugin)]) {
                     if ((plug = [[c alloc] initWithAppProxy:self])) {
@@ -55,13 +57,26 @@ static NSMutableArray *allPlugins = nil;
     }
     
     [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:plugs waitUntilDone:NO];
-    //[NSThread exit];
+#ifdef THREADED_LOAD
+    [NSThread exit];
+#endif
+}
+
+- (void)appWillTerm:(NSNotification*)note
+{
+    [allPlugins makeObjectsPerformSelector:@selector(applicationWillTerminate)];
 }
 
 - (id)init
 {
-    //[NSThread detachNewThreadSelector:@selector(loadPlugins:) toTarget:self withObject:nil];
+#ifdef THREADED_LOAD
+    [NSThread detachNewThreadSelector:@selector(loadPlugins:) toTarget:self withObject:nil];
+#else
     [self loadPlugins:nil];
+#endif
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillTerm:)
+        name:NSApplicationWillTerminateNotification object:NSApp];
     return (self);
 }
 
