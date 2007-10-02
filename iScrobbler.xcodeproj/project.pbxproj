@@ -61,6 +61,7 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
+		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
 		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
 		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
 		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
@@ -158,6 +159,9 @@
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPlugin.h; sourceTree = "<group>"; };
+		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPluginController.h; sourceTree = "<group>"; };
+		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISPluginController.m; sourceTree = "<group>"; };
 		D376EC690CA8E21900C04863 /* ISStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItem.h; sourceTree = "<group>"; };
 		D376EC6A0CA8E21900C04863 /* ISStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItem.m; sourceTree = "<group>"; };
 		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
@@ -278,6 +282,7 @@
 				D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */,
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
 				D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */,
+				D37605560CB18BF700C04863 /* ISPluginController.m */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
 				D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */,
 				D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */,
@@ -481,6 +486,8 @@
 				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
 				D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */,
+				D37605540CB18BF700C04863 /* ISPlugin.h */,
+				D37605550CB18BF700C04863 /* ISPluginController.h */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
 				D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */,
 				D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */,
@@ -649,6 +656,7 @@
 				D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */,
 				D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */,
 				D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */,
+				D37605590CB18BF700C04863 /* ISPluginController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

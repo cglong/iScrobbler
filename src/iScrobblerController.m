@@ -32,6 +32,7 @@
 #import "ISLoveBanListController.h"
 #import "ISRadioController.h"
 #import "ISStatusItem.h"
+#import "ISPluginController.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -977,6 +978,8 @@ player_info_exit:
     // Register to handle URLs
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
         forEventClass:kInternetEventClass andEventID:kAEGetURL];
+    
+    (void)[ISPluginController sharedInstance]; // load plugins
     
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
