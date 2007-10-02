@@ -82,7 +82,7 @@
 - (void)nowPlaying:(NSNotification*)note
 {
     [currentSong release];
-    currentSong = [note object];
+    currentSong = [[note object] retain];
     [self setStatusMessageWithSong:currentSong];
 }
 
