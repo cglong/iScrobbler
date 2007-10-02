@@ -62,6 +62,10 @@
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
+		D376063F0CB230E300C04863 /* ChatStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D37606340CB2307F00C04863 /* ChatStatus.m */; };
+		D37606650CB2363F00C04863 /* ChatStatus.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D376063A0CB230A900C04863 /* ChatStatus.plugin */; };
+		D37606790CB236A900C04863 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		D37606AD0CB236CD00C04863 /* InstantMessage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37606AC0CB236CD00C04863 /* InstantMessage.framework */; };
 		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
 		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
 		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
@@ -117,7 +121,27 @@
 		};
 /* End PBXBuildRule section */
 
+/* Begin PBXContainerItemProxy section */
+		D37606610CB2360400C04863 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D37606390CB230A900C04863 /* iChatStatus */;
+			remoteInfo = iChatStatus;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
+		D37606630CB2362D00C04863 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D37606650CB2363F00C04863 /* ChatStatus.plugin in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D3EC730D0804F70F00392110 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -162,6 +186,10 @@
 		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPlugin.h; sourceTree = "<group>"; };
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPluginController.h; sourceTree = "<group>"; };
 		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISPluginController.m; sourceTree = "<group>"; };
+		D37606340CB2307F00C04863 /* ChatStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatStatus.m; sourceTree = "<group>"; };
+		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatStatus.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		D376063B0CB230A900C04863 /* ChatStatus-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "ChatStatus-Info.plist"; sourceTree = "<group>"; };
+		D37606AC0CB236CD00C04863 /* InstantMessage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InstantMessage.framework; path = /System/Library/Frameworks/InstantMessage.framework; sourceTree = "<absolute>"; };
 		D376EC690CA8E21900C04863 /* ISStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItem.h; sourceTree = "<group>"; };
 		D376EC6A0CA8E21900C04863 /* ISStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItem.m; sourceTree = "<group>"; };
 		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
@@ -272,6 +300,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D37606380CB230A900C04863 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D37606790CB236A900C04863 /* Cocoa.framework in Frameworks */,
+				D37606AD0CB236CD00C04863 /* InstantMessage.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -338,6 +375,7 @@
 			isa = PBXGroup;
 			children = (
 				D3191CC907E3A51700821D03 /* iScrobbler.app */,
+				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -348,6 +386,7 @@
 				080E96DDFE201D6D7F000001 /* Classes */,
 				EB50663103FBB296005DC01B /* Headers */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				D37606320CB2307F00C04863 /* Plugins */,
 				D3B19CB00B4F3049008F54BF /* Scripts */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				D3D7C26F080B99ED005EF5CA /* Documentation */,
@@ -424,6 +463,25 @@
 				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
 			);
 			path = BBNetUpdate;
+			sourceTree = "<group>";
+		};
+		D37606320CB2307F00C04863 /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				D37606330CB2307F00C04863 /* ChatStatus */,
+			);
+			name = Plugins;
+			path = src/Plugins;
+			sourceTree = "<group>";
+		};
+		D37606330CB2307F00C04863 /* ChatStatus */ = {
+			isa = PBXGroup;
+			children = (
+				D37606340CB2307F00C04863 /* ChatStatus.m */,
+				D376063B0CB230A900C04863 /* ChatStatus-Info.plist */,
+				D37606AC0CB236CD00C04863 /* InstantMessage.framework */,
+			);
+			path = ChatStatus;
 			sourceTree = "<group>";
 		};
 		D3B19CB00B4F3049008F54BF /* Scripts */ = {
@@ -523,6 +581,7 @@
 			buildConfigurationList = D328477E08566B30009B4D14 /* Build configuration list for PBXNativeTarget "iScrobbler" */;
 			buildPhases = (
 				D3EC730D0804F70F00392110 /* CopyFiles */,
+				D37606630CB2362D00C04863 /* CopyFiles */,
 				D3191C9807E3A51700821D03 /* AppleScript */,
 				D3191CA907E3A51700821D03 /* Resources */,
 				D3191CB307E3A51700821D03 /* Sources */,
@@ -533,12 +592,30 @@
 				D3B2742D0826BC5800B8E08B /* PBXBuildRule */,
 			);
 			dependencies = (
+				D37606620CB2360400C04863 /* PBXTargetDependency */,
 			);
 			name = iScrobbler;
 			productInstallPath = "$(HOME)/Applications";
 			productName = iScrobbler;
 			productReference = D3191CC907E3A51700821D03 /* iScrobbler.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D37606390CB230A900C04863 /* ChatStatus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */;
+			buildPhases = (
+				D37606360CB230A900C04863 /* Resources */,
+				D37606370CB230A900C04863 /* Sources */,
+				D37606380CB230A900C04863 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChatStatus;
+			productName = iChatStatus;
+			productReference = D376063A0CB230A900C04863 /* ChatStatus.plugin */;
+			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
 
@@ -559,6 +636,7 @@
 			projectDirPath = "";
 			targets = (
 				D3191C9707E3A51700821D03 /* iScrobbler */,
+				D37606390CB230A900C04863 /* ChatStatus */,
 			);
 		};
 /* End PBXProject section */
@@ -594,6 +672,13 @@
 				D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */,
 				D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */,
 				D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D37606360CB230A900C04863 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -660,7 +745,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D37606370CB230A900C04863 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D376063F0CB230E300C04863 /* ChatStatus.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D37606620CB2360400C04863 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D37606390CB230A900C04863 /* ChatStatus */;
+			targetProxy = D37606610CB2360400C04863 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
@@ -789,89 +890,76 @@
 		D328477F08566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
-				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_ENABLE_PASCAL_STRINGS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_CPU = "";
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				OPTIMIZATION_CFLAGS = "-O0";
-				OTHER_CFLAGS = "-DISDEBUG";
-				PREBINDING = NO;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DISDEBUG",
+				);
 				PRODUCT_NAME = iScrobbler;
-				STRIP_INSTALLED_PRODUCT = NO;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
 			};
 			name = Debug;
 		};
 		D328478008566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
-				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_ENABLE_PASCAL_STRINGS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				PREBINDING = NO;
 				PRODUCT_NAME = iScrobbler;
-				STRIP_INSTALLED_PRODUCT = NO;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
 		D328478308566B30009B4D14 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = (
+					i386,
+					ppc,
+				);
+				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_FAST_OBJC_DISPATCH = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
 		};
 		D328478408566B30009B4D14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = (
+					i386,
+					ppc,
+				);
+				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_FAST_OBJC_DISPATCH = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -879,6 +967,51 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				STRIP_INSTALLED_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		D376063D0CB230AA00C04863 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "src/Plugins/ChatStatus/ChatStatus-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DISPLUGIN",
+				);
+				PRODUCT_NAME = ChatStatus;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Debug;
+		};
+		D376063E0CB230AA00C04863 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "src/Plugins/iChatStatus/ChatStatus-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DISPLUGIN",
+				);
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PRODUCT_NAME = iChatStatus;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
 		};
@@ -899,6 +1032,15 @@
 			buildConfigurations = (
 				D328478308566B30009B4D14 /* Debug */,
 				D328478408566B30009B4D14 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D376063D0CB230AA00C04863 /* Debug */,
+				D376063E0CB230AA00C04863 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
