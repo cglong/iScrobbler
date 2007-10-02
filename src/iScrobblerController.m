@@ -647,10 +647,13 @@ if (currentSong) { \
             [songList removeObjectAtIndex:found];
         } else
             ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
-        [songList push:song];
+        [songList pushSong:song];
         
-        while ([songList count] > [prefs integerForKey:@"Number of Songs to Save"])
-            [songList pop];
+        if ((count = [songList count] - [prefs integerForKey:@"Number of Songs to Save"]) > 0) {
+            NSRange r = NSMakeRange([prefs integerForKey:@"Number of Songs to Save"], count);
+            ISASSERT((r.location + r.length) == [songList count], "invalid range!");
+            [songList removeObjectsInRange:r];
+        }
         
         ReleaseCurrentSong();
         currentSong = song;
@@ -1918,30 +1921,12 @@ exit:
 @end
 
 @implementation NSMutableArray (iScrobblerContollerFifoAdditions)
-- (void)push:(id)obj
+- (void)pushSong:(id)obj
 {
     if ([self count])
         [self insertObject:obj atIndex:0];
     else
         [self addObject:obj];
-}
-
-- (void)pop
-{
-    unsigned idx = [self count] - 1;
-    
-    if (idx >= 0)
-        [self removeObjectAtIndex:idx];
-}
-
-- (id)peek
-{
-    unsigned idx = [self count] - 1;
-    
-    if (idx >= 0)
-        return ([self objectAtIndex:idx]);
-    
-    return (nil);
 }
 @end
 

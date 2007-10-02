@@ -116,9 +116,7 @@
 @end
 
 @interface NSMutableArray (iScrobblerContollerFifoAdditions)
-    - (void)push:(id)obj;
-    - (void)pop;
-    - (id)peek;
+- (void)pushSong:(id)obj;
 @end
 
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
