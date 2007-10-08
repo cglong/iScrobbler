@@ -26,6 +26,8 @@
 if (0 == (condition)) { \
     trap(); \
 } } while(0)
+#define ISDEBUG_ONLY
 #else
 #define ISASSERT(condition,msg) {}
+#define ISDEBUG_ONLY __unused
 #endif
