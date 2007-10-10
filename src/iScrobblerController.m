@@ -285,7 +285,7 @@
         if ([result numberOfItems] > 1) {
             TrackType_t trackType = trackTypeUnknown;
             u_int64_t trackiTunesDatabaseID = 0;
-            NSNumber *trackPosition, *trackRating, *trackPlaylistID, *trackPodcast;
+            NSNumber *trackPosition, *trackRating, *trackPlaylistID, *trackPodcast, *trackPlayCount;
             NSDate *trackLastPlayed = nil;
             NSString *trackSourceName = nil, *trackComment;
             NSArray *values;
@@ -300,6 +300,7 @@
                 trackSourceName = [values objectAtIndex:6];
                 trackPodcast = [values objectAtIndex:7];
                 trackComment = [values objectAtIndex:8];
+                trackPlayCount = [values objectAtIndex:9]; 
             } @catch (NSException *exception) {
                 ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: parsing exception %@\n.", exception);
                 return (NO);
@@ -326,6 +327,7 @@
                     [song setIsPodcast:YES];
                 if (trackComment)
                     [song setComment:trackComment];
+                [song setPlayCount:trackPlayCount];
                 return (YES);
             } else {
                 ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
