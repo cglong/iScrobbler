@@ -64,7 +64,9 @@ tell application "iTunes"
 		try
 			set trackComment to comment of theTrack
 		end try
-		set trackPlayCount to played count of theTrack
+		if (played count of theTrack is not missing value) then
+			set trackPlayCount to played count of theTrack
+		end if
 	end try
 	
 end tell
