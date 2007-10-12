@@ -572,6 +572,7 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(radioHistoryDidUpdate:)
             name:ISRadioHistoryDidUpdateNotification object:nil];
     }
+    [NSApp activateIgnoringOtherApps:YES];
     [super showWindow:sender];
     [self performSelector:@selector(initConnections) withObject:nil afterDelay:0.0];
 }
