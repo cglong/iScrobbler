@@ -13,14 +13,14 @@
 	@abstract <tt>NDRunLoopMessenger</tt> exception
 	@discussion An exception that can be thrown when sending a message by means of <tt>NDRunLoopMessenger</tt>. This includes any messages forwarded by the proxy returned from the methods <tt>target:</tt> and <tt>target:withResult:</tt>.
  */
-extern NSString		* kSendMessageException;
+__private_extern__ NSString		* kSendMessageException;
 
 /*!
  	@const kConnectionDoesNotExistsException
 	@abstract <tt>NDRunLoopMessenger</tt> exception
 	@discussion An exception that can be thrown when sending a message by means of <tt>NDRunLoopMessenger</tt>. This includes any messages forwarded by the proxy returned from the methods <tt>target:</tt> and <tt>target:withResult:</tt>.
   */
-extern NSString		* kConnectionDoesNotExistsException;
+__private_extern__ NSString		* kConnectionDoesNotExistsException;
 
 /*!
 	@class NDRunLoopMessenger

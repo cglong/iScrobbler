@@ -9,7 +9,7 @@
 #import "NDRunLoopMessenger.h"
 
 static NSString		* kThreadDictionaryKey = @"NDRunLoopMessengerInstance";
-static NSString		* kSendMessageException = @"NDRunLoopMessengerSendException",
+__private_extern__ NSString		* kSendMessageException = @"NDRunLoopMessengerSendException",
 							* kConnectionDoesNotExistsException = @"NDRunLoopMessengerConnectionNoLongerExistsException";
 /*
  * struct message
@@ -405,6 +405,7 @@ void sendData( NSData * aData, NSPort * aPort )
 {
 	[targetObject release];
 	[owner release];
+    [super dealloc];
 }
 
 /*
