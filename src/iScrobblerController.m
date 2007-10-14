@@ -1747,6 +1747,9 @@ exit:
         case 'Fcch': // flush caches
             [[NSApp delegate] performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
         break;
+        case 'NPly': // show now playing
+            [[NSApp delegate] performSelector:@selector(displayNowPlaying) withObject:nil afterDelay:0.0];
+        break;
         default:
             ScrobLog(SCROB_LOG_TRACE, @"ISAppScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
         break;

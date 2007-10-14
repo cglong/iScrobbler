@@ -34,6 +34,9 @@
 			<responds-to name="flush caches">
 				<cocoa method=""/>
 			</responds-to>
+			<responds-to name="show now playing">
+				<cocoa method=""/>
+			</responds-to>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
 			<cocoa class="ISRadioController"/>
@@ -86,7 +89,9 @@
 		</command>
 		<command name="stop playing" code="iSCbSTop" description="Stop playing tracks.">
 			<cocoa class="ISScriptCommand"/>
-			<direct-parameter type="any"/>
+		</command>
+		<command name="show now playing" code="iSCbNPly" description="Displays information about the currently playing song.">
+			<cocoa class="ISAppScriptCommand"/>
 		</command>
 	</suite>
 </dictionary>
