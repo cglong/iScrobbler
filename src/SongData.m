@@ -33,6 +33,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 #define SCOREBOARD_ALBUMART_CACHE
 #ifdef SCOREBOARD_ALBUMART_CACHE
 static unsigned int artScorePerHit = 12; // For 1 play of an album, this will give a TTL of almost 4hrs
+#define SCORBOARD_NET_BOOST 10
 #endif
 
 @implementation SongData
@@ -764,8 +765,8 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     @try {
         image = genericImage;
         cache = NO; // Don't cache the generic image because the user could update the image later.
-        if (trackTypeFile == [self type]) {
-            // Only query local files, since iTunes (as of 4.7.1) does not support artwork over Shared sources
+        if (trackTypeFile == [self type] || trackTypeShared == [self type]) {
+            // shared library artwork is supported for the currently playing track only
             image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
                 [self artist], [self album], nil];
             if (image && !([image isEqual:[NSNull null]])) {
@@ -785,7 +786,8 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
         return (nil);
     
     if (cache) {
-        [self cacheArtwork:image withScore:artScorePerHit];
+        [self cacheArtwork:image withScore:
+            (trackTypeShared != [self type]) ? artScorePerHit : artScorePerHit * (SCORBOARD_NET_BOOST/2)];
     }
     return (image);
 }
@@ -1001,7 +1003,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     NSImage *img = [[NSImage alloc] initWithData:albumArtData];
     if (img) {
         ScrobDebug(@"loaded", MakeAlbumCacheKey());
-        [self cacheArtwork:img withScore:artScorePerHit*10 /*since it's from the net, give it a cache boost*/];
+        [self cacheArtwork:img withScore:artScorePerHit*SCORBOARD_NET_BOOST /*since it's from the net, give it a cache boost*/];
     } else
         [artworkCache removeObjectForKey:MakeAlbumCacheKey()]; // remove the placeholder
 }
