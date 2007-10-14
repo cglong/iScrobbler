@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 4/10/2005.
-//  Copyright 2005 Brian Bergstrand.
+//  Copyright 2005,2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -110,6 +110,7 @@
     [[bindingsController selection] setValue:myWebView forKey:@"myWebView"];
     
     [myWebView setCustomUserAgent:[[ProtocolManager sharedInstance] userAgent]];
+    [myWebView setMaintainsBackForwardList:NO];
 }
 
 - (void)windowWillClose:(NSNotification*)note
