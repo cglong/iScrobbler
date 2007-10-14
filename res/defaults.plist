@@ -56,6 +56,9 @@
     <key>GrowlLastFMCommunications</key>
     <false />
     
+    <key>iTunesImportSkipDisabledTrack</key>
+    <false />
+    
     <key>MenuNPInfoDelay</key>
     <integer>1000</integer>
     
