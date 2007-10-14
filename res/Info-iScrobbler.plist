@@ -38,7 +38,7 @@
 	<key>CFBundleVersion</key>
 	<string>svn</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.4.10</string>
+	<string>10.4.9</string>
 	<key>LSUIElement</key>
 	<string>1</string>
 	<key>NSMainNibFile</key>
