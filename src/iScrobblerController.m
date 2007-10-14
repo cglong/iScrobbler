@@ -961,7 +961,7 @@ player_info_exit:
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-- (void)checkForOtherScrobblers
+- (void)checkForOtherScrobblers:(id)arg
 {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"CheckForOtherScrobblers"]) {
         NSEnumerator *en = [[[NSWorkspace sharedWorkspace] launchedApplications] objectEnumerator];
@@ -1015,7 +1015,9 @@ player_info_exit:
     }
     
     // warn user if last.fm app is running
-    [self checkForOtherScrobblers];
+    [self checkForOtherScrobblers:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(checkForOtherScrobblers:) name:NSWorkspaceDidLaunchApplicationNotification object:nil];
     
     if (NO == [ud boolForKey:@"BBNetUpdateDontAutoCheckVersion"]) {
         // Check the version now and then every 72 hours
