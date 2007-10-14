@@ -933,8 +933,8 @@ static id sessionMgrProxy = nil;
     NSArray *validSongs = [moc executeFetchRequest:request error:&error];
     
     if ([validSongs count] > [invalidSongs count]) {
-        if ([invalidSongs count] > 0)
-            [self removeSongs:invalidSongs fromSession:session moc:moc];
+        [self removeSongs:invalidSongs fromSession:session moc:moc];
+        ScrobDebug(@"removed %u songs from session %@", [invalidSongs count], sessionName);
     } else {
         // it's probably more efficient to destroy everything and add the valid songs back in
         // this will probably only occur with the daily and last.fm sessions.
@@ -964,6 +964,8 @@ static id sessionMgrProxy = nil;
                 }
             }
         }
+        
+        ScrobDebug(@"recreated session %@ with %u valid songs (%u invalid)", sessionName, [validSongs count], [invalidSongs count]);
     }
     
     [session setValue:epoch forKey:@"epoch"];
