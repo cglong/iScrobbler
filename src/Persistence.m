@@ -1006,8 +1006,9 @@ static id sessionMgrProxy = nil;
             hours:(11 - [gmtNow hourOfDay]) minutes:(59 - [gmtNow minuteOfHour]) seconds:(60 - [gmtNow secondOfMinute])];
     [epoch setTimeZone:[NSTimeZone defaultTimeZone]];
     
+    BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
     (void)[self save:moc];
-    if ([self removeSongsBefore:epoch inSession:@"lastfm" moc:moc]) {
+    if (didRemove) {
 #if IS_THREAD_SESSIONMGR
         [moc reset];
         [self performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
