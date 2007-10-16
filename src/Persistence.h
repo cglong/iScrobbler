@@ -11,6 +11,7 @@
 #import <Cocoa/Cocoa.h>
 
 @class SongData;
+@class ISThreadMessenger;
 
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
 
@@ -18,6 +19,7 @@
     NSManagedObjectContext *mainMOC;
     NSTimer *lfmUpdateTimer;
     NSTimer *sUpdateTimer;
+    ISThreadMessenger *thMsgPort;
     BOOL importing;
 }
 

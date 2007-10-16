@@ -10,7 +10,6 @@
 
 #import "Persistence.h"
 #import "SongData.h"
-#import "ND/NDRunLoopMessenger.h"
 
 #ifdef ISDEBUG
 #include <mach/mach.h>
@@ -58,8 +57,10 @@ http://www.cocoadev.com/index.pl?CoreDataQuestions
 #define IS_THREAD_SESSIONMGR 1
 
 #if IS_THREAD_SESSIONMGR
-static NDRunLoopMessenger *mainMsgr = nil;
-static id sessionMgrProxy = nil;
+#import "ISThreadMessenger.h"
+#ifdef ISDEBUG
+static NSThread *mainThread = nil;
+#endif
 #endif
 
 @interface SongData (PersistentAdditions)
@@ -77,7 +78,7 @@ static id sessionMgrProxy = nil;
 @end
 
 @interface PersistentProfile (SessionManagement)
-- (void)addSongPlaysToAllSessions:(NSArray*)queue;
+- (BOOL)addSongPlaysToAllSessions:(NSArray*)queue;
 - (NSManagedObject*)sessionWithName:(NSString*)name moc:(NSManagedObjectContext*)moc;
 - (NSArray*)artistsForSession:(id)session moc:(NSManagedObjectContext*)moc;
 - (NSArray*)albumsForSession:(id)session moc:(NSManagedObjectContext*)moc;
@@ -269,8 +270,8 @@ static id sessionMgrProxy = nil;
     
     // the importer makes the assumption that no one else will modify the DB (so it doesn't have to search as much)
     if (!importing && [queue count] > 0) {
-        [self addSongPlaysToAllSessions:queue];
-        [queue removeAllObjects];
+        if ([self addSongPlaysToAllSessions:queue])
+            [queue removeAllObjects];
     }
 }
 
@@ -1094,6 +1095,8 @@ static id sessionMgrProxy = nil;
 {
     NSManagedObjectContext *moc;
 #if IS_THREAD_SESSIONMGR
+    ISASSERT(mainThread && (mainThread != [NSThread currentThread]), "wrong thread!");
+    
     moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing thread MOC!");
 #else
@@ -1126,6 +1129,7 @@ static id sessionMgrProxy = nil;
 #if IS_THREAD_SESSIONMGR
 - (void)sessionManagerUpdate
 {
+    ISASSERT(mainThread && (mainThread != [NSThread currentThread]), "wrong thread!");
     [lfmUpdateTimer fire];
     [sUpdateTimer fire];
 }
@@ -1145,32 +1149,48 @@ static id sessionMgrProxy = nil;
     [[NSTimer timerWithTimeInterval:0 target:self selector:@selector(updateLastfmSession:) userInfo:moc repeats:NO] fire];
     [[NSTimer timerWithTimeInterval:0 target:self selector:@selector(updateSessions:) userInfo:moc repeats:NO] fire];
     
-    // we should now have scheduled timers in our run loop, so start it
-    id ndmsgr = [[NDRunLoopMessenger runLoopMessengerForCurrentRunLoop] retain];
-    sessionMgrProxy = [[ndmsgr target:self] retain];
+    thMsgPort = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
     
     do {
         [pool release];
         pool = [[NSAutoreleasePool alloc] init];
+        @try {
         [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+        } @catch (id e) {
+            ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception: %@", e);
+        }
     } while (1);
     
     ISASSERT(0, "sessionManager run loop exited!");
-    [ndmsgr release];
-    [sessionMgrProxy release];
+    [thMsgPort release];
+    thMsgPort = nil;
     [pool release];
     [NSThread exit];
+}
+
+- (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object
+{
+    ISASSERT(mainThread && (mainThread == [NSThread currentThread]), "wrong thread!");
+    
+    if (![thMsgPort isKindOfClass:[NSPort class]])
+        return (NO);
+    
+    [ISThreadMessenger makeTarget:thMsgPort performSelector:selector withObject:object];
+    return (YES);
 }
 #endif
 
 - (void)pingSessionManager
 {
 #if IS_THREAD_SESSIONMGR
-    if (!mainMsgr && !importing) {
-        mainMsgr = [[NDRunLoopMessenger alloc] init];
-        [NSThread detachNewThreadSelector:@selector(sessionManager:) toTarget:self withObject:mainMsgr];
+    if (!thMsgPort && !importing) {
+        #ifdef ISDEBUG
+        mainThread = [NSThread currentThread];
+        #endif
+        thMsgPort = (id)@"thMsgPort init"; // just so there's no race while we wait for the thread to create the actual port
+        [NSThread detachNewThreadSelector:@selector(sessionManager:) toTarget:self withObject:nil];
     } else if (!importing) {
-        [mainMsgr target:sessionMgrProxy performSelector:@selector(sessionManagerUpdate) withResult:NO];
+        (void)[self performSelectorOnSessionMgrThread:@selector(sessionManagerUpdate) withObject:nil];
     }
 #else
     [self updateLastfmSession:nil];
@@ -1179,12 +1199,14 @@ static id sessionMgrProxy = nil;
 #endif
 }
 
-- (void)addSongPlaysToAllSessions:(NSArray*)queue
+- (BOOL)addSongPlaysToAllSessions:(NSArray*)queue
 {
 #if IS_THREAD_SESSIONMGR
-    [mainMsgr target:sessionMgrProxy performSelector:@selector(processSongPlays:) withObject:[queue copy] withResult:NO];
+    ISASSERT(thMsgPort != nil, "nil send port!");
+    return ([self performSelectorOnSessionMgrThread:@selector(processSongPlays:) withObject:[[queue copy] autorelease]]);
 #else
     [self processSongPlays:queue];
+    return (YES);
 #endif
 }
 
@@ -1361,4 +1383,10 @@ static id sessionMgrProxy = nil;
     [self setValue:[NSNumber numberWithUnsignedLongLong:playTime] forKey:@"playTime"];
 }
 
+@end
+
+@interface ISThreadMessage : NSObject {
+
+}
++ (void)makeTarget:(id)target performSelector:(SEL)selector withObject:(id)object;
 @end
