@@ -981,7 +981,7 @@ static id sessionMgrProxy = nil;
     NSManagedObjectContext *moc = t ? [t userInfo] : mainMOC;
     
     [lfmUpdateTimer invalidate];
-    [lfmUpdateTimer release];
+    [lfmUpdateTimer autorelease];
     lfmUpdateTimer = nil;
     
     if (importing) {
@@ -1026,7 +1026,7 @@ static id sessionMgrProxy = nil;
     NSManagedObjectContext *moc = t ? [t userInfo] : mainMOC;
     
     [sUpdateTimer invalidate];
-    [sUpdateTimer release];
+    [sUpdateTimer autorelease];
     sUpdateTimer = nil;
     
 #if 0
