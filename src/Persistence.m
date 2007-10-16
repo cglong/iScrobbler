@@ -1384,9 +1384,3 @@ static NSThread *mainThread = nil;
 }
 
 @end
-
-@interface ISThreadMessage : NSObject {
-
-}
-+ (void)makeTarget:(id)target performSelector:(SEL)selector withObject:(id)object;
-@end
