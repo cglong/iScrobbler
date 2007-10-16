@@ -505,7 +505,6 @@ static NSImage *artistImgPlaceholder = nil;
     NSValue *key = [NSValue valueWithPointer:obj];
     NSXMLDocument *xml = nil;
     NSData  *data = nil;
-    NSError *err;
     
     if ([[detailsData objectForKey:key] isKindOfClass:[NSXMLDocument class]]) {
         xml = [[detailsData objectForKey:key] retain];
@@ -514,9 +513,8 @@ static NSImage *artistImgPlaceholder = nil;
         if (!data || 0 == [data length])
             goto loadDetailsExit;
     
-        xml = [[NSXMLDocument alloc] initWithData:data
-            options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err];
+        // currently, the only document we load is the artistmetadata link which is not XML
+        // all other docuemnts (which are XML) are handled by ASXMLFile
     }
     
     if (!xml) {
