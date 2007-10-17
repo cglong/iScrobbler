@@ -57,7 +57,7 @@ typedef struct ISThreadMsg {
 
 - (void)handlePortMessage:(NSPortMessage*)portMsg
 {
-    ISASSERT([portMsg sendPort] == port, "invalid port!");
+    ISASSERT([portMsg receivePort] == port, "invalid port!");
     
     NSData *msg = [[portMsg components] objectAtIndex:0];
     ISThreadMsg *thm = *((ISThreadMsg**)[msg bytes]);
@@ -71,6 +71,7 @@ typedef struct ISThreadMsg {
 
 - (void)dealloc
 {
+    [[NSRunLoop currentRunLoop] removePort:port forMode:NSDefaultRunLoopMode];
     [port release];
     [super dealloc];
 }
