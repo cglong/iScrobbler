@@ -50,6 +50,8 @@
     
     @try {
     
+    PersistentSessionManager *sMgr = [profile sessionManager];
+    
     NSManagedObject *moSong, *mosSong;
     if (!currentArtist || NSOrderedSame != [currentArtist caseInsensitiveCompare:[song artist]]) {
         // Saving less often is a much greater performance gain (as opposed to saving after every track)
@@ -62,7 +64,7 @@
         // recreate our cached objects 
         currentArtist = [[song artist] retain];
         
-        moSession = [[profile sessionWithName:@"all" moc:moc] retain];
+        moSession = [[sMgr sessionWithName:@"all" moc:moc] retain];
         moPlayer = [[profile playerWithName:@"iTunes" moc:moc] retain];
         
         entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
@@ -126,7 +128,7 @@
          // Update song values
         moSong = [result objectAtIndex:0];
         [moSong setValue:[song lastPlayed] forKey:@"lastPlayed"];
-        [profile updateSongHistory:moSong count:playCount time:playTime moc:moc];
+        [sMgr updateSongHistory:moSong count:playCount time:playTime moc:moc];
         
         // Get the session alias, there should only be one
         NSSet *aliases = [moSong valueForKey:@"sessionAliases"];
@@ -156,7 +158,7 @@
         [moSong setValue:moArtist forKey:@"artist"];
         [moSong setValue:moAlbum forKey:@"album"];
         [moSong setValue:moPlayer forKey:@"player"];
-        [profile updateSongHistory:moSong count:playCount time:playTime moc:moc];
+        [sMgr updateSongHistory:moSong count:playCount time:playTime moc:moc];
         
         // Create the session alias
         entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
@@ -176,7 +178,7 @@
         [mosAlbum incrementPlayCountWithObject:mosSong];
         [mosAlbum incrementPlayTimeWithObject:mosSong];
     }
-    [profile incrementSessionCountsWithSong:mosSong moc:moc];
+    [sMgr incrementSessionCountsWithSong:mosSong moc:moc];
     
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"exception creating song for %@ (%@)", [song brief], e);
@@ -244,7 +246,7 @@
     
     NSCalendarDate *epoch = [NSCalendarDate dateWithTimeIntervalSince1970:[epochSecs doubleValue]];
     
-    NSManagedObject *allSession = [profile sessionWithName:@"all" moc:moc];
+    NSManagedObject *allSession = [[profile sessionManager] sessionWithName:@"all" moc:moc];
     ISASSERT(allSession != nil, "missing all session!");
     [allSession setValue:epoch forKey:@"epoch"];
     allSession = nil;
