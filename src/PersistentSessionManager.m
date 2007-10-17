@@ -201,7 +201,7 @@ __private_extern__ NSThread *mainThread;
         // we've replaced a session object, it's important other threads and class clients are notified ASAP
         [[PersistentProfile sharedInstance] save:moc withNotification:NO];
         ISASSERT(moc != [[PersistentProfile sharedInstance] mainMOC], "invalid MOC!");
-        [self performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
+        [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
 #endif
         return;
     }
@@ -427,7 +427,7 @@ __private_extern__ NSThread *mainThread;
     if (didRemove) {
 #if IS_THREAD_SESSIONMGR
         [moc reset];
-        [self performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
+        [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
 #endif
     }
     
@@ -492,7 +492,7 @@ __private_extern__ NSThread *mainThread;
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         [moc reset];
-        [self performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
+        [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
     
