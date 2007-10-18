@@ -256,11 +256,12 @@ __private_extern__ NSThread *mainThread = nil;
     // Create sessions
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:mainMOC];
     NSEnumerator *en = [[NSArray arrayWithObjects:
-        @"all", @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"pastsixmonths", @"pastyear", @"temp", nil] objectEnumerator];
+        @"all", @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"temp", nil] objectEnumerator];
     NSArray *displayNames = [NSArray arrayWithObjects:
         NSLocalizedString(@"Overall", ""), NSLocalizedString(@"Last.fm Weekly", ""),
         NSLocalizedString(@"Today", ""), NSLocalizedString(@"Past Week", ""),
-        NSLocalizedString(@"Past Month", ""), NSLocalizedString(@"Past Six Months", ""),
+        NSLocalizedString(@"Past Month", ""), NSLocalizedString(@"Past Three Months", ""),
+        NSLocalizedString(@"Past Six Months", ""),
         NSLocalizedString(@"Past Year", ""), NSLocalizedString(@"Internal", ""),
         nil];
     NSString *name;

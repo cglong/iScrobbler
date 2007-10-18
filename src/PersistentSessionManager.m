@@ -424,12 +424,12 @@ __private_extern__ NSThread *mainThread;
     
     BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
     (void)[[PersistentProfile sharedInstance] save:moc];
-    if (didRemove) {
 #if IS_THREAD_SESSIONMGR
+    if (didRemove) {
         [moc reset];
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
-#endif
     }
+#endif
     
     epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
     
@@ -478,6 +478,10 @@ __private_extern__ NSThread *mainThread;
     
     NSCalendarDate *lastMonth = [midnight dateByAddingYears:0 months:-1 days:0 hours:0 minutes:0 seconds:0];
     if ([self removeSongsBefore:lastMonth inSession:@"pastmonth" moc:moc])
+        didRemove = YES;
+    
+    NSCalendarDate *last3Months = [midnight dateByAddingYears:0 months:-3 days:0 hours:0 minutes:0 seconds:0];
+    if ([self removeSongsBefore:last3Months inSession:@"past3months" moc:moc])
         didRemove = YES;
     
     NSCalendarDate *lastSixMonths = [midnight dateByAddingYears:0 months:-6 days:0 hours:0 minutes:0 seconds:0];
