@@ -138,8 +138,10 @@
 
 - (void)displayNowPlaying
 {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"])
-        [self displayNowPlayingWithMsg:nil];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
+         NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
+        [self displayNowPlayingWithMsg:msg ? [NSString stringWithFormat:@"%@: %@", IS_RADIO_TUNEDTO_STR, msg] : nil];
+    }
 }
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
