@@ -30,4 +30,5 @@
 
 #define ISRadioHistoryDidUpdateNotification @"ISRadioHistoryDidUpdateNotification"
 
+#define IS_RADIO_TUNEDTO_STR NSLocalizedString(@"Tuned To", "")
 #define OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH @"Find Stations Window Open"

@@ -279,7 +279,7 @@
     NSMenu *m = [rootMenu submenu];
     NSMenuItem *item = [m itemWithTag:MACTION_NPRADIO];
     if (station) {
-        NSString *title = [NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"Now Playing", ""), [station objectForKey:@"name"]];
+        NSString *title = [NSString stringWithFormat:@"%@: %@", IS_RADIO_TUNEDTO_STR, [station objectForKey:@"name"]];
         if (!item) {
             item = [[NSMenuItem alloc] initWithTitle:title
                 action:nil keyEquivalent:@""];
@@ -374,7 +374,6 @@ exitHistory:
     @try {
         (void)[playURLScript executeHandler:@"PlayURL" withParameters:
             [[ASWebServices sharedInstance] streamURL], nil];
-        [self pingNowPlaying:nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
         NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed
@@ -398,6 +397,8 @@ exitHistory:
         [stationBeingTuned release];
         stationBeingTuned = nil;
     }
+    
+    [self pingNowPlaying:nil];
 }
 
 - (void)wsStationTuneFailure:(NSNotification*)note
