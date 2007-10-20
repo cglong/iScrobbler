@@ -755,6 +755,26 @@ __private_extern__ NSThread *mainThread;
     return (NO);
 }
 
+- (void)syncPersistentSong:(NSManagedObject*)psong withSong:(SongData*)song
+{
+    if (trackTypeFile == [song type] && [psong valueForKey:@"importedPlayCount"] > 0) {
+        // Make sure our play count is in sync with the player's
+        NSNumber *count = [song playCount];
+        if ([count unsignedIntValue] > 0 && [[psong valueForKey:@"playCount"] isNotEqualTo:count]) {
+            [psong setValue:count forKey:@"playCount"];
+            NSNumber *pTime = [psong valueForKey:@"duration"];
+            pTime = [NSNumber numberWithUnsignedLongLong:[pTime unsignedLongLongValue] * [count unsignedLongLongValue]];
+            [psong setValue:pTime forKey:@"playTime"];
+            // Update album and artist with the delta as well?
+        }
+        
+        count = [song rating]; // and the rating
+        if ([[psong valueForKey:@"rating"] isNotEqualTo:count]) {
+            [psong setValue:count forKey:@"rating"];
+        }
+    }
+}
+
 - (NSManagedObject*)addSongPlay:(SongData*)song withImportedPlayCount:(NSNumber*)importCount moc:(NSManagedObjectContext*)moc
 {
     NSManagedObject *psong = [song persistentSongWithContext:moc];
@@ -769,16 +789,7 @@ __private_extern__ NSThread *mainThread;
             pCount = [NSNumber numberWithUnsignedInt:1];
             pTime = [psong valueForKey:@"duration"];
             
-            // Make sure our play count is in sync with the player's
-            NSNumber *songPlayedCount = [song playCount];
-            if ([songPlayedCount unsignedIntValue] && [psong valueForKey:@"importedPlayCount"]
-                && [[psong valueForKey:@"playCount"] isNotEqualTo:songPlayedCount]) {
-                [psong setValue:songPlayedCount forKey:@"playCount"];
-                pTime = [NSNumber numberWithUnsignedLongLong:[pTime unsignedLongLongValue] * [pCount unsignedLongLongValue]];
-                [psong setValue:pTime forKey:@"playTime"];
-                // Update album and artist with the delta as well?
-                pTime = [psong valueForKey:@"duration"];
-            }
+            [self syncPersistentSong:psong withSong:song];
         } else {
             pCount = importCount;
             pTime = [NSNumber numberWithUnsignedLongLong:
