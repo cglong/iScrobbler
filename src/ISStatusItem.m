@@ -12,6 +12,7 @@
 #import "ISStatusItemView.h"
 #import "iScrobblerController.h"
 #import "QueueManager.h"
+#import "ISRadioController.h"
 
 // UTF16 barred eigth notes
 #define MENU_TITLE_CHAR 0x266B
@@ -126,8 +127,13 @@
 - (void)displayInfo:(NSTimer*)timer
 {
     displayTimer = nil;
-    if (![itemView menuIsShowing])
-        [[NSApp delegate] displayNowPlayingWithMsg:tip];
+    if (![itemView menuIsShowing]) {
+        // If listening to the radio, prefer the station over the tip
+        NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
+        if (msg)
+            msg = [NSString stringWithFormat:@"%@: %@", IS_RADIO_TUNEDTO_STR, msg];
+        [[NSApp delegate] displayNowPlayingWithMsg:msg ? msg : tip];
+    }
 }
 
 - (void)mouseEntered:(NSEvent *)ev

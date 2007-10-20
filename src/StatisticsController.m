@@ -20,6 +20,7 @@
 #import "ISLoveBanListController.h"
 #import "ASXMLFile.h"
 #import "ASWebServices.h"
+#import "ISRadioController.h"
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
@@ -300,6 +301,16 @@ static NSImage *prevIcon = nil;
     [self submitCompleteHandler:nil];
 }
 
+- (void)radioHistoryDidUpdate:(NSNotification*)note
+{
+    // If the radio is active, display that instead of the sub response
+    if ([[ISRadioController sharedInstance] performSelector:@selector(currentStation)]) {
+        id selection = [values selection];
+        [selection setValue:[NSColor blackColor] forKey:@"Server Response Color"];
+        [selection setValue:NSLocalizedString(@"Listening to Radio", "") forKey:@"Server Response"];
+    }
+}
+
 - (IBAction)showWindow:(id)sender
 {
     // Register for PM notifications
@@ -342,8 +353,10 @@ static NSImage *prevIcon = nil;
             name:IPOD_SYNC_END
             object:nil];
     
-    [nc addObserver:self
-            selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
+    [nc addObserver:self selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
+    
+    [nc addObserver:self selector:@selector(radioHistoryDidUpdate:)
+        name:ISRadioHistoryDidUpdateNotification object:nil];
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     
@@ -360,6 +373,8 @@ static NSImage *prevIcon = nil;
     // If the handshake is not valid, change the message
     if (![[[ProtocolManager sharedInstance] lastHandshakeResult] isEqualToString:HS_RESULT_OK])
         [self handshakeCompleteHandler:nil];
+    
+    [self radioHistoryDidUpdate:nil];
 }
 
 - (void)windowWillClose:(NSNotification *)aNotification
@@ -377,12 +392,9 @@ static NSImage *prevIcon = nil;
         name:PM_NOTIFICATION_SUBMIT_START object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self
         name:QM_NOTIFICATION_SONG_QUEUED object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-        name:@"Now Playing" object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-        name:IPOD_SYNC_BEGIN object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-        name:IPOD_SYNC_END object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"Now Playing" object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:IPOD_SYNC_BEGIN object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:IPOD_SYNC_END object:nil];
     
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_STATS_WINDOW_AT_LAUNCH];
     ScrobTrace(@"received\n");
