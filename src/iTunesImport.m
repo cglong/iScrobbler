@@ -196,6 +196,7 @@
 #if IS_THREAD_IMPORT
     moc = [[NSManagedObjectContext alloc] init];
     [moc setPersistentStoreCoordinator:[[profile valueForKey:@"mainMOC"] persistentStoreCoordinator]];
+    [moc setUndoManager:nil];
     double pri = [NSThread threadPriority];
     [NSThread setThreadPriority:pri - (pri * 0.20)];
 #else
