@@ -789,7 +789,7 @@ static int npDelays = 0;
 {
     sendNP = NO;
     
-    if (!npSong)
+    if (!npSong || ![self isNetworkAvailable])
         return; // we missed it, oh well...
     
     if (!myConnection) {
