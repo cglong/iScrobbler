@@ -15,6 +15,7 @@
 
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
 #define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
+#define PersistentProfileImportProgress @"ISPersistentProfileImportProgress"
 
 @interface PersistentProfile : NSObject {
     NSManagedObjectContext *mainMOC;
