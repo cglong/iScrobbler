@@ -187,6 +187,7 @@
 
 - (void)importiTunesDB:(id)obj
 {
+    u_int32_t totalTracks = 0;
     u_int32_t importedTracks = 0;
     ISElapsedTimeInit();
 
@@ -237,9 +238,7 @@
     ScrobDebug(@"Opened iTunes Library in %.4lf seconds", (abs2clockns / 1000000000.0));
     ISStartTime();
     
-#ifdef ISDEBUG
     totalTracks = [allTracks count];
-#endif
     
     NSNumber *epochSecs = [allTracks valueForKeyPath:@"Date Added.@min.timeIntervalSince1970"];
     if (!epochSecs)
@@ -258,6 +257,13 @@
     SongData *song;
     
     NSAutoreleasePool *trackPool = [[NSAutoreleasePool alloc] init];
+    
+    // begin import note
+    NSNotification *note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
+            [NSNumber numberWithUnsignedInt:0], @"imported", nil]];
+    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+    
     while ((track = [en nextObject])) {
         @try {
             song = [[[SongData alloc] initWithiTunesXMLTrack:track] autorelease];
@@ -286,13 +292,23 @@
             trackPool = [[NSAutoreleasePool alloc] init];
         }
 
-#ifdef ISDEBUG
         if (0 == (importedTracks % 250)) {
+            note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+                [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
+                    [NSNumber numberWithUnsignedInt:importedTracks], @"imported", nil]];
+            [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+#ifdef ISDEBUG
             ISEndTime();
             ScrobDebug(@"Imported %u tracks (of %u) in %.4lf seconds", importedTracks, totalTracks, (abs2clockns / 1000000000.0));
-        }
 #endif
+        }
     }
+    
+    // end import note
+    note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+        [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInt:totalTracks] forKey:@"total"]];
+    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+
     [trackPool release];
     trackPool = nil;
     
