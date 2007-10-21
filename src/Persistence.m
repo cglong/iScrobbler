@@ -103,7 +103,7 @@ __private_extern__ NSThread *mainThread = nil;
     [self save:mainMOC withNotification:NO];
     [mainMOC reset];
     // so clients can refresh themselves
-    [self postNote:PersistentProfileDidUpdateNotification];
+    [self postNote:PersistentProfileDidResetNotification];
 }
 
 - (NSManagedObjectContext*)mainMOC

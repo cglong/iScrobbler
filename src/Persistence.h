@@ -14,6 +14,7 @@
 @class PersistentSessionManager;
 
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
+#define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
 
 @interface PersistentProfile : NSObject {
     NSManagedObjectContext *mainMOC;
