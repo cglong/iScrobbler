@@ -19,11 +19,12 @@
 @interface PersistentProfile : NSObject {
     NSManagedObjectContext *mainMOC;
     PersistentSessionManager *sessionMgr;
-    BOOL importing;
+    BOOL importing, newProfile;
 }
 
 + (PersistentProfile*)sharedInstance;
 
+- (BOOL)newProfile;
 - (BOOL)importInProgress;
 - (BOOL)canApplicationTerminate;
 

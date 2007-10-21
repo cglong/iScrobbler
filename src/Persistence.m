@@ -17,7 +17,6 @@
 #include <mach/mach_time.h>
 
 #define ISElapsedTimeInit() \
-u_int32_t totalTracks = 0; \
 u_int64_t start, end, diff; \
 double abs2clockns; \
 mach_timebase_info_data_t info; \
@@ -41,6 +40,10 @@ Simple CoreDate overview: http://cocoadevcentral.com/articles/000086.php
 Important CoreData behaviors:
 http://www.cocoadev.com/index.pl?CoreDataInheritanceIssues
 http://www.cocoadev.com/index.pl?CoreDataQuestions
+
+Performance of the SQL store can be SEVERLY impacted by a slow hard disk (e.g. 4200RPM laptop drive)
+On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should help a lot
+(at the risk of data corruption if the machine crashes or loses power).
 **/
 
 #define PERSISTENT_STORE_DB \
@@ -112,6 +115,11 @@ __private_extern__ NSThread *mainThread = nil;
 }
 
 //******* public API ********//
+
+- (BOOL)newProfile
+{
+    return (newProfile);
+}
 
 - (BOOL)importInProgress
 {
@@ -330,6 +338,7 @@ __private_extern__ NSThread *mainThread = nil;
                 nil]
             forPersistentStore:mainStore];
         
+        newProfile = YES;
         [self initDB];
         NSManagedObject *allSession = [sessionMgr sessionWithName:@"all" moc:mainMOC];
         ISASSERT(allSession != nil, "missing all session!");
