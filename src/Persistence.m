@@ -356,7 +356,7 @@ __private_extern__ NSThread *mainThread = nil;
     // we don't allow the user to make changes and the session mgr background thread handles all internal changes
     [mainMOC setMergePolicy:NSRollbackMergePolicy];
 
-    [self pingSessionManager];
+    [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
         importing = YES;
