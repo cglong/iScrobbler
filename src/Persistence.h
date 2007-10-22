@@ -33,12 +33,7 @@
 - (void)addSongPlay:(SongData*)song;
 - (NSArray*)allSessions;
 - (NSArray*)songsForSession:(id)session;
-- (NSArray*)artistsForSession:(id)session;
-- (NSArray*)albumsForSession:(id)session;
 - (NSArray*)ratingsForSession:(id)session;
 - (NSArray*)hoursForSession:(id)session;
-
-- (NSArray*)playHistoryForSong:(SongData*)song ignoreAlbum:(BOOL)ignoreAlbum;
-- (u_int32_t)playCountForSong:(SongData*)song ignoreAlbum:(BOOL)ignoreAlbum;
 
 @end

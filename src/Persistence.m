@@ -164,16 +164,6 @@ __private_extern__ NSThread *mainThread = nil;
     return ([moc executeFetchRequest:request error:&error]);
 }
 
-- (NSArray*)artistsForSession:(id)session
-{
-    return ([sessionMgr artistsForSession:session moc:mainMOC]);
-}
-
-- (NSArray*)albumsForSession:(id)session
-{
-    return ([sessionMgr albumsForSession:session moc:mainMOC]);
-}
-
 - (NSArray*)ratingsForSession:(id)session
 {
     NSError *error;
@@ -198,6 +188,7 @@ __private_extern__ NSThread *mainThread = nil;
     return ([moc executeFetchRequest:request error:&error]);
 }
 
+#if 0
 - (NSArray*)playHistoryForSong:(SongData*)song ignoreAlbum:(BOOL)ignoreAlbum
 {
     NSError *error;
@@ -223,6 +214,7 @@ __private_extern__ NSThread *mainThread = nil;
 {
     return (0);
 }
+#endif
 
 //******* end public API ********//
 
