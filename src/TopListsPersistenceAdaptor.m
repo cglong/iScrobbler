@@ -64,27 +64,31 @@ topHours = nil; \
     if (windowIsVisisble) {
         // load the current session
         NSManagedObjectID *oid = [selectedSession objectID];
-        [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
+        if (oid)
+            [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
+    }
+}
+
+- (void)persistentProfileWillReset:(NSNotification*)note
+{
+    @try {
+    [sessionController setContent:[NSMutableArray array]];
+    }@catch (id e) {
+    ISASSERT(0, "exception");
     }
 }
 
 - (void)persistentProfileDidReset:(NSNotification*)note
 {
+     // reload the sessions
+    [self willChangeValueForKey:@"allSessions"];
+    [self didChangeValueForKey:@"allSessions"];
+    // finally reload the selected session data
+    //[self sessionDidChange:nil];
+
     if (persistenceTh) {
         cancelLoad = 1;
         [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(resetPersistenceManager) withObject:nil];
-        
-        // now reload the sessions
-        @try {
-        [sessionController setContent:[NSMutableArray array]];
-        }@catch (id e) {
-        ISASSERT(0, "exception");
-        }
-        
-        [self willChangeValueForKey:@"allSessions"];
-        [self didChangeValueForKey:@"allSessions"];
-        // finally reload the selected session data
-        //[self sessionDidChange:nil];
     }
 }
 
@@ -109,12 +113,17 @@ topHours = nil; \
             selector:@selector(persistentProfileDidReset:)
             name:PersistentProfileDidResetNotification
             object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileWillReset:)
+            name:PersistentProfileWillResetNotification
+            object:nil];
     }
     
     // small delay to reduce the chance of a race with the bindings updating
     // (sessionDidChange: is called twice before the load thread even starts). It's no
     // big deal, but why do an extra load if we don't have to
-    [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.50];
+    if (![self loading])
+        [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
 }
 
 - (void)sessionWillLoad:(id)arg

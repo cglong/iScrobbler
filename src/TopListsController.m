@@ -807,8 +807,10 @@ exit:
 {    
     if (!topAlbums) {
         NSManagedObjectID *oid = [selectedSession objectID];
-        [self setValue:[NSNumber numberWithBool:YES] forKey:@"loading"]; // this is cleared in [loadExtendedDidFinish];
-        [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadExtendedSessionData:) withObject:oid];
+        if (oid) {
+            [self setValue:[NSNumber numberWithBool:YES] forKey:@"loading"]; // this is cleared in [loadExtendedDidFinish];
+            [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadExtendedSessionData:) withObject:oid];
+        }
     } else
         [self generateProfileReport];
 }
