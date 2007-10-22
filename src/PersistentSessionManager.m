@@ -878,7 +878,7 @@ __private_extern__ NSThread *mainThread;
     [moSong setValue:[self postDate] forKey:@"submitted"];
     [moSong setValue:myLastPlayed forKey:@"firstPlayed"];
     [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
-    [moSong setValue:[self scaledRating] forKey:@"rating"];
+    [moSong setValue:[self rating] forKey:@"rating"];
     if ([[self trackNumber] intValue] > 0)
         [moSong setValue:[self trackNumber] forKey:@"trackNumber"];
     if ([[self mbid] length] > 0)

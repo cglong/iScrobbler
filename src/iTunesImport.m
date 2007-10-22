@@ -148,7 +148,7 @@
         [moSong setValue:[song postDate] forKey:@"submitted"];
         [moSong setValue:myLastPlayed forKey:@"firstPlayed"];
         [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
-        [moSong setValue:[song scaledRating] forKey:@"rating"];
+        [moSong setValue:[song rating] forKey:@"rating"];
         if ([[song trackNumber] intValue] > 0)
             [moSong setValue:[song trackNumber] forKey:@"trackNumber"];
         if ([[song mbid] length] > 0)
