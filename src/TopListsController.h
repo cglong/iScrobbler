@@ -11,18 +11,25 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class ISThreadMessenger;
+
 @interface TopListsController : NSWindowController
 {
     IBOutlet id topArtistsController;
     IBOutlet id topTracksController;
+    IBOutlet id sessionController;
     IBOutlet NSTableView *topArtistsTable;
     IBOutlet NSTableView *topTracksTable;
     IBOutlet NSTabView *tabView;
     
-    NSDate *startDate;
     NSMutableDictionary *toolbarItems;
     NSMutableArray *rpcreqs;
     id artistDetails;
+    // Persistence support
+    ISThreadMessenger *persistenceTh;
+    NSTimer *rearrangeTimer;
+    int sessionLoads, cancelLoad, wantLoad;
+    BOOL windowIsVisisble;
 }
 
 + (TopListsController*) sharedInstance;
@@ -32,12 +39,7 @@
 @interface TopListsController (ISProfileReportAdditions)
 
 - (IBAction)createProfileReport:(id)sender;
-- (IBAction)resetProfile:(id)sender;
-
 - (NSData*)generateHTMLReportWithCSSURL:(NSURL*)cssURL withTitle:(NSString*)profileTitle;
-
-- (void)writePersistentStore;
-- (void)restorePersistentStore;
 
 @end
 

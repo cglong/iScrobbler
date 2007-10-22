@@ -23,6 +23,9 @@
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
+#import "ISThreadMessenger.h"
+
+#import "Persistence.h"
 
 enum {
     kTBItemRequiresSelection      = 0x00000001,
@@ -36,9 +39,8 @@ void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned in
 
 static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topAlbums = nil;
-static NSCountedSet *topRatings = nil;
-static NSMutableArray *playCountPerHour = nil;
-static NSMutableArray *playTimePerHour = nil;
+static NSMutableDictionary *topRatings = nil;
+static NSMutableArray *topHours = nil;
 
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
@@ -56,8 +58,16 @@ static NSMutableArray *playTimePerHour = nil;
 - (NSComparisonResult)sortByDuration:(NSDictionary*)entry;
 @end
 
+@interface TopListsController (PersistenceAdaptor)
+- (void)sessionDidChange:(id)arg;
+- (void)resetPersistenceManager;
+@end
+
+#define selectedSession [[sessionController selectedObjects] objectAtIndex:0]
+
 @implementation TopListsController
 
+// singleton support
 + (TopListsController*)sharedInstance
 {
     if (g_topLists)
@@ -101,176 +111,71 @@ static NSMutableArray *playTimePerHour = nil;
     return (self);
 }
 
+// session support
+- (unsigned int)currentSession
+{
+    unsigned int s = [sessionController selectionIndex];
+    if (NSNotFound == s)
+        s = 0;
+    return (s);
+}
+
+- (void)setCurrentSession:(unsigned int)s
+{    
+    [sessionController setSelectionIndex:s];
+    [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
+}
+
+- (NSArray*)allSessions
+{
+    NSMutableArray *arrangedSessions = [NSMutableArray arrayWithObjects:
+        @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
+    NSEnumerator *en = [[[PersistentProfile sharedInstance] allSessions] objectEnumerator];
+    id s;
+    unsigned i;
+    while ((s = [en nextObject])) {
+        if (NSNotFound != (i = [arrangedSessions indexOfObject:[s valueForKey:@"name"]]))
+            [arrangedSessions replaceObjectAtIndex:i withObject:s];
+    }
+    
+    // make sure we only return actual session objects
+    NSMutableArray *rem = [NSMutableArray array];
+    en = [arrangedSessions objectEnumerator];
+    while ((s = [en nextObject])) {
+        if ([s isKindOfClass:[NSString class]])
+            [rem addObject:s];
+    }
+    [arrangedSessions removeObjectsInArray:rem];
+    return (arrangedSessions);
+}
+
+- (void)setAllSessions:(id)val
+{
+    // just for bindings completeness
+}
+
 #define PLAY_TIME_FORMAT @"%u:%02u:%02u:%02u"
 - (void)songQueuedHandler:(NSNotification*)note
 {
     SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
-    NSString *artist = [song artist], *track = [song title], *playTime;
-    NSMutableDictionary *entry;
-    NSEnumerator *en;
-    NSNumber *count;
-    unsigned int time, days, hours, minutes, seconds;
-    
-    
-    // Top Artists
-    en = [[topArtistsController content] objectEnumerator];
-    while ((entry = [en nextObject])) {
-        if (NSOrderedSame == [artist caseInsensitiveCompare:[entry objectForKey:@"Artist"]]) {
-            count = [entry objectForKey:@"Play Count"];
-            count = [NSNumber numberWithUnsignedInt:
-                [count unsignedIntValue] + 1];
-            [entry setValue:count forKeyPath:@"Play Count"];
-            
-            time = [[entry objectForKey:@"Total Duration"] unsignedIntValue];
-            time += [[song duration] unsignedIntValue];
-            ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
-            playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-            [entry setValue:[NSNumber numberWithUnsignedInt:time] forKeyPath:@"Total Duration"];
-            [entry setValue:playTime forKeyPath:@"Play Time"];
-            break;
-        }
-    }
-
-    if (!entry) {
-        time = [[song duration] unsignedIntValue];
-        ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
-        playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                    [song artist], @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
-                    [song duration], @"Total Duration", playTime, @"Play Time", nil];
-    } else {
-        entry = nil;
-    }
-    
-    if (![topArtistsController isSearchInProgress]) {
-        if (entry)
-            [topArtistsController addObject:entry];
-        [topArtistsController rearrangeObjects];
-    } else if (entry) {
-        // Can't alter the arrangedObjects array when a search is active
-        // So manually enter the item in the content array
-        NSMutableArray *contents = [topArtistsController content];
-        [contents addObject:entry];
-        [topArtistsController setContent:contents];
-    }
-    
-    // Top Tracks
-    id lastPlayedDate = [[song startTime] addTimeInterval:[[song duration] doubleValue]];
-    
-    #ifdef obsolete
-    if ([startDate isGreaterThan:lastPlayedDate]) {
-        // This can occur when iScrobbler is launched after the last played date of tracks on an iPod
-        [self setValue:lastPlayedDate forKey:@"startDate"];
-    }
-    #endif
-    
-    en = [[topTracksController content] objectEnumerator];
-    while ((entry = [en nextObject])) {
-        if (NSOrderedSame == [artist caseInsensitiveCompare:[entry objectForKey:@"Artist"]] &&
-             NSOrderedSame == [track caseInsensitiveCompare:[entry objectForKey:@"Track"]]) {
-            count = [entry objectForKey:@"Play Count"];
-            count = [NSNumber numberWithUnsignedInt:
-                [count unsignedIntValue] + 1];
-            [entry setValue:count forKeyPath:@"Play Count"];
-            [entry setValue:lastPlayedDate forKeyPath:@"Last Played"];
-            break;
-        }
-    }
-
-    if (!entry) {
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                    artist, @"Artist", [NSNumber numberWithUnsignedInt:1], @"Play Count",
-                    track, @"Track", lastPlayedDate, @"Last Played", nil];
-    } else {
-        entry = nil;
-    }
-    
-    if (![topTracksController isSearchInProgress]) {
-        if (entry)
-            [topTracksController addObject:entry];
-        [topTracksController rearrangeObjects];
-    } else if (entry) {
-        // Can't alter the arrangedObjects array when a search is active
-        // So manually enter the item in the content array
-        NSMutableArray *contents = [topTracksController content];
-        [contents addObject:entry];
-        [topTracksController setContent:contents];
-    }
-    
-    // The following are currently only used for Profile generation
-    NSString *album;
-    if ((album = [song album]) && [album length] > 0) {
-        if (!topAlbums)
-            topAlbums = [[NSMutableDictionary alloc] init];
-        NSString *key = [NSString stringWithFormat:@"%@" TOP_ALBUMS_KEY_TOKEN @"%@",
-            artist, album];
-        if ((entry = [topAlbums objectForKey:key])) {
-            time = [[song duration] unsignedIntValue] + [[entry objectForKey:@"Total Duration"] unsignedIntValue];
-            count = [entry objectForKey:@"Play Count"];
-            count = [NSNumber numberWithUnsignedInt:[count unsignedIntValue] + 1];
-            [entry setObject:count forKey:@"Play Count"];
-            [entry setObject:[NSNumber numberWithUnsignedInt:time] forKey:@"Total Duration"];
-        } else {
-            count = [NSNumber numberWithUnsignedInt:1];
-            entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                        count, @"Play Count",
-                        [song duration], @"Total Duration",
-                        nil];
-            [topAlbums setObject:entry forKey:key];
-        }
-    }
-    
-    NSNumber *rating;
-    if (!topRatings) {
-        // 0 - 5 stars == 6 items
-        topRatings = [[NSCountedSet alloc] initWithCapacity:6];
-    }
-    rating = [song rating] ? [song rating] : [NSNumber numberWithInt:0];
-    [topRatings addObject:rating];
-    
-    int i = 0;
-    if (!playCountPerHour) {
-        ISASSERT(playTimePerHour == nil, "playTimePerHour is not nil!");
-        playCountPerHour = [[NSMutableArray alloc] initWithCapacity:24];
-        playTimePerHour = [[NSMutableArray alloc] initWithCapacity:24];
-        
-        rating = [NSNumber numberWithInt:0];
-        for (; i < 24; ++i) {
-            [playCountPerHour addObject:rating];
-            [playTimePerHour addObject:rating];
-        }
-    }
-    @try {
-    i = [[lastPlayedDate dateWithCalendarFormat:nil timeZone:nil] hourOfDay];
-    rating = [NSNumber numberWithInt:[[playCountPerHour objectAtIndex:i] intValue] + 1];
-    [playCountPerHour replaceObjectAtIndex:i withObject:rating];
-    
-    rating = [NSNumber numberWithInt:[[playTimePerHour objectAtIndex:i] intValue] + [[song duration] unsignedIntValue]];
-    [playTimePerHour replaceObjectAtIndex:i withObject:rating];
-    } @catch (id e) {}
-    
-    [self writePersistentStore];
+    [[PersistentProfile sharedInstance] addSongPlay:song];
 }
 
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
-        startDate = [[NSDate date] retain];
-        
-        // So stats are tracked while the window is closed, load the nib to create our Array Controllers
-        // [super window] should be calling setDelegate itself, but it's not doing it for some reason.
-        // It works correctly in [StatisticsController showWindow:].
-        [[super window] setDelegate:self];
-        
+        (void)[PersistentProfile sharedInstance]; // this will start the import
+
         // Register for QM notes
         [[NSNotificationCenter defaultCenter] addObserver:self
-                selector:@selector(songQueuedHandler:)
-                name:QM_NOTIFICATION_SONG_QUEUED
-                object:nil];
+            selector:@selector(songQueuedHandler:)
+            name:QM_NOTIFICATION_SONG_QUEUED
+            object:nil];
     }
     return (self);
 }
 
+// details, table selection and IB actions
 - (void)selectionDidChange:(NSNotification*)note
 {
     @try {
@@ -307,6 +212,24 @@ static NSMutableArray *playTimePerHour = nil;
 
 - (IBAction)showWindow:(id)sender
 {
+    windowIsVisisble = YES;
+    (void)[super window];
+    
+    // start our persistence thread
+    if (!persistenceTh) {
+        persistenceTh = (id)[NSNull null]; // just to prevent any race while the thread is initializing
+        [NSThread detachNewThreadSelector:@selector(persistenceManagerThread:) toTarget:self withObject:nil];
+    } else if (![super isWindowLoaded]) {
+        [self sessionDidChange:nil];
+    }
+    
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
+        && [[PersistentProfile sharedInstance] newProfile]) {
+        [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
+            NSLocalizedString(@"The peristent chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
+    }
+    
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     
     [super showWindow:sender];
@@ -317,6 +240,9 @@ static NSMutableArray *playTimePerHour = nil;
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
+    windowIsVisisble = NO;
+    if ([[self valueForKey:@"loading"] boolValue])
+        cancelLoad = 1;
     //[rpcreqs removeAll];
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     [self hideDetails:nil];
@@ -365,7 +291,7 @@ static NSMutableArray *playTimePerHour = nil;
 }
 
 - (void)awakeFromNib
-{
+{    
     [super setWindowFrameAutosaveName:@"Top Lists"];
     
     NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
@@ -400,7 +326,6 @@ static NSMutableArray *playTimePerHour = nil;
     [topTracksTable setTarget:self];
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
     
-    [self restorePersistentStore];
     [self hideDetails:nil];
     
     // Create toolbar
@@ -842,118 +767,12 @@ exit:
     return (valid);
 }
 
-#if 0
-- (void)toolbarWillAddItem:(NSNotification *) notification
-{
-}
-
-- (void)toolbarDidRemoveItem:(NSNotification *)notification
-{
-}
-#endif
-
-
 @end
 
 #define PROFILE_DATE_FORMAT @"%Y-%m-%d %I:%M:%S %p"
 @implementation TopListsController (ISProfileReportAdditions)
 
-- (void)writePersistentStore 
-{
-    NSDictionary *d = nil;
-    @try {
-    // An NSSet is not a valid plist object, so create an archive
-    NSMutableData *rdata = [NSMutableData data];
-    NSKeyedArchiver *archiver = [[[NSKeyedArchiver alloc] initForWritingWithMutableData:rdata] autorelease];
-    [archiver encodeObject:topRatings forKey:@"object"];
-    [archiver finishEncoding];
-    
-    d = [[NSDictionary alloc] initWithObjectsAndKeys:
-        [topArtistsController content], @"artists",
-        [topTracksController content], @"tracks",
-        topAlbums, @"albums",
-        rdata, @"ratings",
-        startDate, @"since",
-        [NSNumber numberWithUnsignedInt:[[ProtocolManager sharedInstance] successfulSubmissionsCount]],
-            @"subcount",
-        playCountPerHour, @"playCountPerHour", // could be nil
-        playTimePerHour, @"playTimePerHour", // could be nil
-        nil];
-
-    NSData *data = [NSPropertyListSerialization dataFromPropertyList:d
-        format:NSPropertyListBinaryFormat_v1_0
-        errorDescription:nil];
-    [data writeToFile:TOP_LISTS_PERSISTENT_STORE atomically:YES];
-    } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while saving persistent profile: %@.", e);
-    }
-    
-    [d release];
-}
-
-- (void)restorePersistentStore
-{
-    NSData *d = nil;
-    BOOL save = NO;
-    @try {
-    d = [[NSData alloc] initWithContentsOfFile:TOP_LISTS_PERSISTENT_STORE];
-    if (!d) {
-        // Try old name
-        NSString *tmp = [@"~/Library/Caches/net.sourceforge.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath];
-        d = [[NSData alloc] initWithContentsOfFile:tmp];
-        save = YES;
-        (void)[[NSFileManager defaultManager] removeFileAtPath:tmp handler:nil];
-    }
-    if (d) {
-        NSPropertyListFormat format;
-        NSDictionary *store;
-        store = [NSPropertyListSerialization propertyListFromData:d
-            mutabilityOption:NSPropertyListMutableContainersAndLeaves
-            format:&format
-            errorDescription:nil];
-        if (NO == [store isKindOfClass:[NSDictionary class]]) {
-            @throw [NSException exceptionWithName:NSInternalInconsistencyException
-                reason:@"Top Lists store is not of the correct object type." userInfo:nil];
-        }
-        
-        id obj;
-        if ((obj = [store objectForKey:@"artists"]))
-            [topArtistsController setContent:obj];
-        if ((obj = [store objectForKey:@"tracks"]))
-            [topTracksController setContent:obj];
-        if ((obj = [store objectForKey:@"since"]))
-            [self setValue:obj forKey:@"startDate"];
-        if ((obj = [store objectForKey:@"albums"])) {
-            [topAlbums release];
-            topAlbums = [obj retain];
-        }
-        if ((obj = [store objectForKey:@"ratings"])) {
-            NSKeyedUnarchiver *unarchiver = [[[NSKeyedUnarchiver alloc] initForReadingWithData:obj] autorelease];
-            [topRatings release];
-            topRatings = [[unarchiver decodeObjectForKey:@"object"] retain];
-            
-        }
-        if ((obj = [store objectForKey:@"subcount"])) {
-        }
-        if ((obj = [store objectForKey:@"playCountPerHour"])) {
-            [playCountPerHour release];
-            playCountPerHour = [obj retain];
-        }
-        if ((obj = [store objectForKey:@"playTimePerHour"])) {
-            [playTimePerHour release];
-            playTimePerHour = [obj retain];
-        }
-        
-        if (save)
-            [self writePersistentStore];
-    }
-    } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while restoring persistent profile: %@.", e);
-    }
-    [d release];
-}
-
-- (IBAction)createProfileReport:(id)sender
+- (void)generateProfileReport
 {
     // Create html
     NSString *cssPath = [@"~/Documents/iScrobblerProfile.css" stringByExpandingTildeInPath];
@@ -969,6 +788,7 @@ exit:
             withTitle:title];
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception while generating profile report: %@.", e);
+        NSBeep();
         return;
     }
     
@@ -983,50 +803,14 @@ exit:
     }
 }
 
-- (void)resetAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (NSOKButton != returnCode)
-        return;
-   
-   [self hideDetails:nil];
-    
-    @try {
-    if ([[topArtistsController content] count])
-        [topArtistsController removeObjects:[topArtistsController content]];
-    if ([[topTracksController content] count])
-        [topTracksController removeObjects:[topTracksController content]];
-    
-    [topAlbums removeAllObjects];
-    [topRatings removeAllObjects];
-    [playCountPerHour release];
-    playCountPerHour = nil;
-    [playTimePerHour release];
-    playTimePerHour = nil;
-    [self setValue:[NSDate date] forKey:@"startDate"];
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:RESET_PROFILE object:nil];
-    
-    } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while resetting profile: %@.", e);
-        return;
-    }
-    
-    (void)[[NSFileManager defaultManager] removeFileAtPath:TOP_LISTS_PERSISTENT_STORE handler:nil];
-}
-
-- (IBAction)resetProfile:(id)sender
-{
-     NSAlert *alert = [NSAlert
-        alertWithMessageText:NSLocalizedString(@"Reset Profile?", "")
-        defaultButton:NSLocalizedString(@"Reset", "")
-        alternateButton:NSLocalizedString(@"Cancel", "")
-        otherButton:nil
-        informativeTextWithFormat:
-            NSLocalizedString(@"Resetting your profile will clear all local Top List data (your online Last.FM profile is not touched).", "")];
-    [alert setAlertStyle:NSInformationalAlertStyle];
-    [alert beginSheetModalForWindow:[self window] modalDelegate:self
-        didEndSelector:@selector(resetAlertDidEnd:returnCode:contextInfo:) contextInfo:nil];
-    return;
+- (IBAction)createProfileReport:(id)sender
+{    
+    if (!topAlbums) {
+        NSManagedObjectID *oid = [selectedSession objectID];
+        [self setValue:[NSNumber numberWithBool:YES] forKey:@"loading"]; // this is cleared in [loadExtendedDidFinish];
+        [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadExtendedSessionData:) withObject:oid];
+    } else
+        [self generateProfileReport];
 }
 
 #define HEAD @"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n" \
@@ -1092,6 +876,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     NSString *time = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
+    
+    NSDate *startDate = [selectedSession valueForKey:@"epoch"];
     
     NSTimeInterval elapsedSeconds =  [[NSDate date] timeIntervalSince1970] - [startDate timeIntervalSince1970];
     ISDurationsFromTime(elapsedSeconds, &days, &hours, &minutes, &seconds);
@@ -1264,18 +1050,12 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Ratings", ""))));
         HAdd(d, TRCLOSE);
         
-        NSNumber *rating;
         // Determine max count
-        unsigned maxCount = 0;
-        en = [topRatings objectEnumerator];
-        while ((rating = [en nextObject])) {
-            if ([topRatings countForObject:rating] > maxCount)
-                maxCount = [topRatings countForObject:rating];
-        }
+        NSNumber *rating;
+        unsigned maxCount = [[[topRatings allValues] valueForKeyPath:@"Play Count.@max.unsignedIntValue"] unsignedIntValue];
         basePlayCount = (float)maxCount;
-        keys = [topRatings allObjects];
         position = 1;
-        en = [[keys sortedArrayUsingSelector:@selector(compare:)] reverseObjectEnumerator];
+        en = [[[topRatings allKeys] sortedArrayUsingSelector:@selector(compare:)] reverseObjectEnumerator];
         SongData *dummy = [[SongData alloc] init];
         while ((rating = [en nextObject])) {
             HAdd(d, (position & 0x0000001) ? TR : TRALT);
@@ -1287,7 +1067,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             
             HAdd(d, TDEntry(TDTITLE, tmp));
             // Total Plays bar
-            float ratingCount = (float)[topRatings countForObject:rating];
+            float ratingCount = (float)[[[topRatings objectForKey:rating] objectForKey:@"Play Count"] floatValue];
             width = rintf((ratingCount / basePlayCount) * 100.0);
             percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -1303,29 +1083,17 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         [pool release];
     }
     
-    if (playCountPerHour) {
+    if (topHours) {
         pool = [[NSAutoreleasePool alloc] init];
-        ISASSERT(playTimePerHour != nil, "playTimePerHour is not valid!");
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
         HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
         HAdd(d, TRCLOSE);
         
-        NSNumber *rating;
         // Determine max count
-        unsigned maxCount = 0;
-        en = [playCountPerHour objectEnumerator];
-        while ((rating = [en nextObject])) {
-            if ([rating intValue] > maxCount)
-                maxCount = [rating intValue];
-        }
+        unsigned maxCount = [[topHours valueForKeyPath:@"Play Count.@max.unsignedIntValue"] unsignedIntValue];
         basePlayCount = (float)maxCount;
-        
-        en = [playTimePerHour objectEnumerator];
-        while ((rating = [en nextObject])) {
-            if ([rating intValue] > maxCount)
-                maxCount = [rating intValue];
-        }
+        maxCount = [[topHours valueForKeyPath:@"Total Duration.@max.unsignedLongLongValue"] unsignedIntValue];
         basePlayTime = (float)maxCount;
         position = 0;
         for (; position < 24; ++position) {
@@ -1335,7 +1103,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             
             HAdd(d, TDEntry(@"<td class=\"smalltitle\">", tmp));
             // Total Plays bar
-            float ratingCount = [[playCountPerHour objectAtIndex:position] floatValue];
+            float ratingCount = [[[topHours objectAtIndex:position] objectForKey:@"Play Count"] floatValue];
             width = rintf((ratingCount / basePlayCount) * 100.0);
             percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -1343,7 +1111,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
             
             // Total time bar
-            ratingCount = [[playTimePerHour objectAtIndex:position] floatValue];
+            ratingCount = [[[topHours objectAtIndex:position] objectForKey:@"Total Duration"] floatValue];
             width = rintf((ratingCount / basePlayTime) * 100.0);
             percentage = (ratingCount / [totalTime floatValue]) * 100.0;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -1364,6 +1132,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
 }
 
 @end
+
+#import "TopListsPersistenceAdaptor.m"
 
 @implementation NSString (ISHTMLConversion)
 
