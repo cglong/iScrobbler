@@ -103,10 +103,14 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)resetMain
 {
-    [self save:mainMOC withNotification:NO];
     [mainMOC reset];
+    
+    @try {
     // so clients can refresh themselves
     [self postNote:PersistentProfileDidResetNotification];
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_TRACE, @"reset client generated an exception: %@", e);
+    }
 }
 
 - (NSManagedObjectContext*)mainMOC
