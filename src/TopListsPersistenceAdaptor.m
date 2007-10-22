@@ -10,6 +10,8 @@
 
 #import "PersistentSessionManager.h"
 
+#define IMPORT_CHUNK 50
+
 @implementation TopListsController (PersistenceAdaptor)
 
 - (BOOL)loading
@@ -147,8 +149,10 @@ topHours = nil; \
         [controller addObjects:entries];
         // The load thread can send us thousands of entries and bog the main thread down
         // with the controller resorting to often
-        if (!rearrangeTimer) {
-            rearrangeTimer = [NSTimer scheduledTimerWithTimeInterval:0.50 target:self
+        if ([entries count] < IMPORT_CHUNK)
+            [controller rearrangeObjects]; 
+        else if (!rearrangeTimer) {
+            rearrangeTimer = [NSTimer scheduledTimerWithTimeInterval:0.30 target:self
                 selector:@selector(rearrangeEntries:) userInfo:controller repeats:NO];
         }
     } else {
@@ -195,8 +199,6 @@ topHours = nil; \
 }
 
 // methods that run on the background thread
-
-#define IMPORT_CHUNK 50
 - (void)loadInitialSessionData:(NSManagedObjectID*)sessionID
 {
     [self performSelectorOnMainThread:@selector(sessionWillLoad:) withObject:nil waitUntilDone:YES];
