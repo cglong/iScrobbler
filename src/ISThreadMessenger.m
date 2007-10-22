@@ -43,10 +43,13 @@ typedef struct ISThreadMsg {
     thm->selector = selector;
     thm->arg1 = object ? [object retain] : nil;
     msg = [NSData dataWithBytes:&thm length:sizeof(void*)];
+    portMsg = nil;
+    @try {
     portMsg = [[NSPortMessage alloc] initWithSendPort:[target port] receivePort:nil
         components:[NSMutableArray arrayWithObject:msg]];
     
     [portMsg sendBeforeDate:[NSDate distantFuture]];
+    } @catch (id e) {}
 	[portMsg release];
 }
 
