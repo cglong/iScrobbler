@@ -288,8 +288,8 @@ __private_extern__ NSThread *mainThread;
     }
     
     // Update the session totals
-    [session decrementPlayCount:playCount];
-    [session decrementPlayTime:playTime];
+    [session decrementPlayCount:totalPlayCount];
+    [session decrementPlayTime:totalPlayTime];
     
 #ifdef ISDEBUG
     // Do some validation
@@ -423,7 +423,7 @@ __private_extern__ NSThread *mainThread;
     [epoch setTimeZone:[NSTimeZone defaultTimeZone]];
     
     BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
-    (void)[[PersistentProfile sharedInstance] save:moc];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:!didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         [moc reset];
@@ -447,7 +447,7 @@ __private_extern__ NSThread *mainThread;
     
 #if 0
     NSArray *songs = [[self songsForSession:[self sessionWithName:@"pastday" moc:moc]] sortedArrayUsingDescriptors:
-        [NSArray arrayWithObject:[[NSSortDescriptor alloc] initWithKey:@"submitted" ascending:NO]]];
+        [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"submitted" ascending:NO] autorelease]]];
     NSEnumerator *en = [songs objectEnumerator];
     id obj;
     while ((obj = [en nextObject])) {
@@ -492,7 +492,7 @@ __private_extern__ NSThread *mainThread;
     if ([self removeSongsBefore:lastYear inSession:@"pastyear" moc:moc])
         didRemove = YES;
     
-    (void)[[PersistentProfile sharedInstance] save:moc];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:!didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         [moc reset];
