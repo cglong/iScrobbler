@@ -15,6 +15,7 @@
 
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
 #define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
+#define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
 #define PersistentProfileImportProgress @"ISPersistentProfileImportProgress"
 
 @interface PersistentProfile : NSObject {
