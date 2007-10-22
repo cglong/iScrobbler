@@ -426,7 +426,7 @@ loadExit: ;
     
     NSMutableArray *hourEntries = [NSMutableArray arrayWithCapacity:24];
     NSMutableDictionary *zeroHour = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-        [NSNumber numberWithInt:0], @"playCount", [NSNumber numberWithInt:0], @"playTime"];
+        [NSNumber numberWithInt:0], @"Play Count", [NSNumber numberWithInt:0], @"Total Duration"];
     for (i = 0; i < 24; ++i) {
         [hourEntries addObject:zeroHour];
     }
