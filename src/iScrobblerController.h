@@ -121,6 +121,8 @@
 
 void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds);
+void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned int *hours,
+    unsigned int *minutes, unsigned int *seconds);
 
 // Track Extended Menu
 enum {

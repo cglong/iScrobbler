@@ -1964,4 +1964,13 @@ void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *ho
     *seconds = ((time % 86400U) % 3600U) % 60U;
 }
 
+void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned int *hours,
+    unsigned int *minutes, unsigned int *seconds)
+{
+    *days = (time / 86400U);
+    *hours = (time % 86400U) / 3600U;
+    *minutes = ((time % 86400U) % 3600U) / 60U;
+    *seconds = ((time % 86400U) % 3600U) % 60U;
+}
+
 #include "iScrobblerController+Private.m"
