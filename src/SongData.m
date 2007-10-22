@@ -82,6 +82,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     [self setPlayCount:[NSNumber numberWithInt:0]];
+    [self setRating:[NSNumber numberWithInt:0]];
 
     // initialize with current time
     [self setStartTime:[NSDate date]];
