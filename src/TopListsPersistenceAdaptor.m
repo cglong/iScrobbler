@@ -102,6 +102,10 @@ topHours = nil; \
         [selectedSession didChangeValueForKey:@"playCount"];
     }
     
+    // it seems this is needed so the names will update when the underlying object is still a fault
+    [self willChangeValueForKey:@"allSessions"];
+    [self didChangeValueForKey:@"allSessions"];
+    
     [self sessionDidChange:nil];
 }
 
