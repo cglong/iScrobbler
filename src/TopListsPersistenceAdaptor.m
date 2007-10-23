@@ -96,6 +96,12 @@ topHours = nil; \
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
 {
+    // update the session bindings that we use
+    if (selectedSession) {
+        [selectedSession willChangeValueForKey:@"playCount"];
+        [selectedSession didChangeValueForKey:@"playCount"];
+    }
+    
     [self sessionDidChange:nil];
 }
 
