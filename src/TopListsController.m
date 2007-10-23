@@ -121,7 +121,7 @@ static NSMutableArray *topHours = nil;
 }
 
 - (void)setCurrentSession:(unsigned int)s
-{    
+{   
     [sessionController setSelectionIndex:s];
     [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
 }
@@ -171,6 +171,17 @@ static NSMutableArray *topHours = nil;
             selector:@selector(songQueuedHandler:)
             name:QM_NOTIFICATION_SONG_QUEUED
             object:nil];
+        
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
+            && [[PersistentProfile sharedInstance] newProfile]) {
+            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
+                NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
+            if ([[PersistentProfile sharedInstance] importInProgress]) {
+                [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"iTunes Import", "") message:
+                    NSLocalizedString(@"Your iTunes library is now being imported into the new local charts. This can take several hours of intense CPU time and should not be interrupted.", "")];
+            }
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
+        }
     }
     return (self);
 }
@@ -221,13 +232,6 @@ static NSMutableArray *topHours = nil;
         [NSThread detachNewThreadSelector:@selector(persistenceManagerThread:) toTarget:self withObject:nil];
     } else if (![super isWindowLoaded]) {
         [self sessionDidChange:nil];
-    }
-    
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
-        && [[PersistentProfile sharedInstance] newProfile]) {
-        [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
-            NSLocalizedString(@"The peristent chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
     }
     
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
