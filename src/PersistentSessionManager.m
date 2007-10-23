@@ -134,7 +134,7 @@ __private_extern__ NSThread *mainThread;
     [moc setUndoManager:nil];
     [moc setPersistentStoreCoordinator:[[mainProfile mainMOC] persistentStoreCoordinator]];
     double pri = [NSThread threadPriority];
-    [NSThread setThreadPriority:pri - (pri * 0.10)];
+    [NSThread setThreadPriority:pri - (pri * 0.20)];
     
     [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
     
@@ -222,6 +222,30 @@ __private_extern__ NSThread *mainThread;
 
 - (void)removeSongs:(NSArray*)songs fromSession:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
 {
+    {// Pre-fetch all our relationships
+        NSError *error = nil;
+        NSEntityDescription *entity;
+        NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+        // songs
+        entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+        [request setEntity:entity];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [songs valueForKeyPath:@"item.objectID"]]];
+        error = nil;
+        (void)[moc executeFetchRequest:request error:&error];
+        // albums
+        entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
+        [request setEntity:entity];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [songs valueForKeyPath:@"item.album.objectID"]]];
+        error = nil;
+        (void)[moc executeFetchRequest:request error:&error];
+        // artists
+        entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+        [request setEntity:entity];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [songs valueForKeyPath:@"item.artist.objectID"]]];
+        error = nil;
+        (void)[moc executeFetchRequest:request error:&error];
+    }
+    
     NSEnumerator *en = [songs objectEnumerator];
     NSManagedObject *sessionSong, *mobj, *sArtist, *sAlbum;
     
@@ -244,7 +268,7 @@ __private_extern__ NSThread *mainThread;
         // Artist
         artistName = [sessionSong valueForKeyPath:@"item.artist.name"];
         filter = [NSPredicate predicateWithFormat:@"item.name LIKE[cd] %@", artistName];
-        filterResults = [sessionArtists filteredArrayUsingPredicate:filter];
+        filterResults = [sessionArtists filteredArrayUsingPredicate:filter]; // very slow with many objects
         ISASSERT(1 == [filterResults count], "missing or mulitple artists!");
         sArtist = [filterResults objectAtIndex:0];
         [sArtist decrementPlayCount:playCount];
@@ -254,7 +278,7 @@ __private_extern__ NSThread *mainThread;
         if ([sessionSong valueForKeyPath:@"item.album"]) {
             filter = [NSPredicate predicateWithFormat:@"(item.name LIKE[cd] %@) AND (item.artist.name LIKE[cd] %@)",
                 [sessionSong valueForKeyPath:@"item.album.name"], artistName];
-            filterResults = [sessionAlbums filteredArrayUsingPredicate:filter];
+            filterResults = [sessionAlbums filteredArrayUsingPredicate:filter]; // very slow with many objects
             ISASSERT(1 == [filterResults count], "missing or mulitple albums!");
             sAlbum = [filterResults objectAtIndex:0];
             if (sAlbum) {
@@ -352,8 +376,8 @@ __private_extern__ NSThread *mainThread;
         [self removeSongs:invalidSongs fromSession:session moc:moc];
         ScrobDebug(@"removed %u songs from session %@", [invalidSongs count], sessionName);
     } else {
-        // it's probably more efficient to destroy everything and add the valid songs back in
-        // this will probably only occur with the daily and last.fm sessions.
+        // it's more efficient to destroy everything and add the valid songs back in,
+        // especially with the use of [filteredArrayUsingPredicate:] in [removeSongs:fromSession:moc:]
         
         NSEnumerator *en;
         NSManagedObject *item;
