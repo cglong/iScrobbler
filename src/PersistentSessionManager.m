@@ -248,16 +248,16 @@ __private_extern__ NSThread *mainThread;
     
     NSEnumerator *en = [songs objectEnumerator];
     NSManagedObject *sessionSong, *mobj, *sArtist, *sAlbum;
-    
     NSNumber *totalPlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
     NSNumber *totalPlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     NSNumber *playCount, *playTime;
     
-    NSArray *sessionArtists = [self artistsForSession:session moc:moc];
-    NSArray *sessionAlbums = [self albumsForSession:session moc:moc];
-    NSString *artistName;
+    (void)[self artistsForSession:session moc:moc]; // fault in
+    (void)[self albumsForSession:session moc:moc];
+    NSString *sessionName = [session valueForKey:@"name"];
     NSPredicate *filter;
     NSArray *filterResults;
+    NSSet *aliases; // core data collections are sets not arrays
     while ((sessionSong = [en nextObject])) {
         playCount = [sessionSong valueForKey:@"playCount"];
         playTime = [sessionSong valueForKey:@"playTime"];
@@ -266,21 +266,25 @@ __private_extern__ NSThread *mainThread;
         // Update all dependencies
         
         // Artist
-        artistName = [sessionSong valueForKeyPath:@"item.artist.name"];
-        filter = [NSPredicate predicateWithFormat:@"item.name LIKE[cd] %@", artistName];
-        filterResults = [sessionArtists filteredArrayUsingPredicate:filter]; // very slow with many objects
+        // since filteredArrayUsingPredicate is so SLOW, pair the number of items to search to the smallest possible
+        aliases = [sessionSong valueForKeyPath:@"item.artist.sessionAliases"];
+        filter = [NSPredicate predicateWithFormat:@"session.name == %@", sessionName];
+        filterResults = [[aliases allObjects] filteredArrayUsingPredicate:filter];
         ISASSERT(1 == [filterResults count], "missing or mulitple artists!");
         sArtist = [filterResults objectAtIndex:0];
+        ISASSERT([[sArtist valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
         [sArtist decrementPlayCount:playCount];
         [sArtist decrementPlayTime:playTime];
         
         // Album
         if ([sessionSong valueForKeyPath:@"item.album"]) {
-            filter = [NSPredicate predicateWithFormat:@"(item.name LIKE[cd] %@) AND (item.artist.name LIKE[cd] %@)",
-                [sessionSong valueForKeyPath:@"item.album.name"], artistName];
-            filterResults = [sessionAlbums filteredArrayUsingPredicate:filter]; // very slow with many objects
+            aliases = [sessionSong valueForKeyPath:@"item.album.sessionAliases"];
+            filter = [NSPredicate predicateWithFormat:@"session.name == %@", sessionName];
+            filterResults = [[aliases allObjects] filteredArrayUsingPredicate:filter];
             ISASSERT(1 == [filterResults count], "missing or mulitple albums!");
             sAlbum = [filterResults objectAtIndex:0];
+            ISASSERT([[sAlbum valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.album.name"]], "album names don't match!");
+            ISASSERT([[sAlbum valueForKeyPath:@"item.artist.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
             if (sAlbum) {
                 [sAlbum decrementPlayCount:playCount];
                 [sAlbum decrementPlayTime:playTime];
@@ -376,9 +380,7 @@ __private_extern__ NSThread *mainThread;
         [self removeSongs:invalidSongs fromSession:session moc:moc];
         ScrobDebug(@"removed %u songs from session %@", [invalidSongs count], sessionName);
     } else {
-        // it's more efficient to destroy everything and add the valid songs back in,
-        // especially with the use of [filteredArrayUsingPredicate:] in [removeSongs:fromSession:moc:]
-        
+        // it's more efficient to destroy everything and add the valid songs back in
         NSEnumerator *en;
         NSManagedObject *item;
         if ([validSongs count] > 0) {
