@@ -145,6 +145,7 @@ topHours = nil; \
 
 - (void)rearrangeEntries:(NSTimer*)t
 {
+    [rearrangeTimer autorelease];
     rearrangeTimer = nil;
     [[t userInfo] rearrangeObjects];
 }
@@ -155,11 +156,14 @@ topHours = nil; \
         [controller addObjects:entries];
         // The load thread can send us thousands of entries and bog the main thread down
         // with the controller resorting to often
-        if ([entries count] < IMPORT_CHUNK)
+        if ([entries count] < IMPORT_CHUNK) {
+            [rearrangeTimer invalidate];
+            [rearrangeTimer release];
+            rearrangeTimer = nil;
             [controller rearrangeObjects]; 
-        else if (!rearrangeTimer) {
-            rearrangeTimer = [NSTimer scheduledTimerWithTimeInterval:0.30 target:self
-                selector:@selector(rearrangeEntries:) userInfo:controller repeats:NO];
+        } else if (!rearrangeTimer) {
+            rearrangeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.30 target:self
+                selector:@selector(rearrangeEntries:) userInfo:controller repeats:NO] retain];
         }
     } else {
          // Can't alter the arrangedObjects array when a search is active
@@ -365,7 +369,10 @@ topHours = nil; \
         [self performSelectorOnMainThread:@selector(displayTrackEntries:) withObject:chartEntries waitUntilDone:NO];
     [entryPool release];
     
-loadExit: ;
+loadExit:
+    // fault our copy of the session, just so we are assured of good data
+    [moc refreshObject:session mergeChanges:NO];
+    
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"[loadInitialSessionData:] exception: %@", e);
     }
