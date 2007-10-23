@@ -142,6 +142,13 @@ static QueueManager *g_QManager = nil;
         [self syncQueue:nil];
         if (NO == [[NSApp delegate] queueSongsForLaterSubmission])
             [[ProtocolManager sharedInstance] submit:nil];
+        else {
+            id paths = [[NSApp delegate] valueForKey:@"iPodMounts"];
+            ScrobLog(SCROB_LOG_INFO, @"QM: Songs will not be submitted. ForcePlayCache: %u, iPodMountCount: %@, iPodMount paths: %@",
+                [[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"],
+                [[NSApp delegate] valueForKey:@"iPodMountCount"],
+                paths ? paths : @"{none}");
+        }
     }
 }
 

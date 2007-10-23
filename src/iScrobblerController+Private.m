@@ -400,6 +400,11 @@ sync_exit_with_note:
         ++iPodMountCount;
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
+        
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
+            [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
+                message:NSLocalizedString(@"An iPod has been detected. All non-radio track plays will be queued until the iPod is ejected.", "")];
+        }
     }
 }
 
