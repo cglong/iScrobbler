@@ -58,6 +58,10 @@ __private_extern__ NSThread *mainThread = nil;
 #endif
 #endif
 
+@interface NSManagedObject (ISProfileAdditions)
+- (void)refreshSelf;
+@end
+
 @interface PersistentProfileImport : NSObject {
     PersistentProfile *profile;
     NSString *currentArtist, *currentAlbum;
@@ -78,7 +82,21 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)postNote:(NSString*)name
 {
+    @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:name object:self];
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_ERR, @"exception while posting notification '%@': %e", name, e);
+    }
+}
+
+- (void)profileDidChange
+{   
+    // we assume all chnages are done from a bg thread
+    // refault sessions
+    [[self allSessions] makeObjectsPerformSelector:@selector(refreshSelf)];
+    (void)[self allSessions]; // fault the data back in
+    
+    [self postNote:PersistentProfileDidUpdateNotification];
 }
 
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify
@@ -86,7 +104,7 @@ __private_extern__ NSThread *mainThread = nil;
     NSError *error;
     if ([moc save:&error]) {
         if (notify)
-            [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileDidUpdateNotification waitUntilDone:NO];
+            [self performSelectorOnMainThread:@selector(profileDidChange) withObject:nil waitUntilDone:NO];
         return (YES);
     } else {
         ScrobLog(SCROB_LOG_ERR, @"failed to save persistent db (%@ -- %@)", error,
@@ -103,12 +121,8 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)resetMain
 {
-    @try {
-    // so clients can refresh themselves
+    // so clients can prepae to refresh themselves
     [self postNote:PersistentProfileWillResetNotification];
-    } @catch (id e) {
-        ScrobLog(SCROB_LOG_TRACE, @"resentMain: willReset client generated an exception: %@", e);
-    }
     
     @try {
     [mainMOC reset];
@@ -116,12 +130,8 @@ __private_extern__ NSThread *mainThread = nil;
         ScrobLog(SCROB_LOG_TRACE, @"resentMain: reset generated an exception: %@", e);
     }
     
-    @try {
     // so clients can refresh themselves
     [self postNote:PersistentProfileDidResetNotification];
-    } @catch (id e) {
-        ScrobLog(SCROB_LOG_TRACE, @"resentMain: didReset client generated an exception: %@", e);
-    }
 }
 
 - (NSManagedObjectContext*)mainMOC
@@ -469,6 +479,15 @@ __private_extern__ NSThread *mainThread = nil;
 - (PersistentSessionManager*)sessionManager
 {
     return (sessionMgr);
+}
+
+@end
+
+@implementation NSManagedObject (ISProfileAdditions)
+
+- (void)refreshSelf
+{
+    [[self managedObjectContext] refreshObject:self mergeChanges:NO];
 }
 
 @end
