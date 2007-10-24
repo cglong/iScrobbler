@@ -989,13 +989,13 @@ player_info_exit:
         }
         
         // display warning - don't use Growl as it may not be running if the user attemped a restart/shutdown
-         NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
-            [NSDictionary dictionaryWithObjectsAndKeys:
-                NSLocalizedString(@"Quit Cancelled", nil), NSLocalizedFailureReasonErrorKey,
-                NSLocalizedString(@"iScrobbler is busy importing data into the local charts. The import cannot be interrupted. Please wait for the import to finish.", nil),
-                    NSLocalizedDescriptionKey,
-                NSLocalizedString(@"OK", nil), @"defaultButton",
-                nil]];
+        NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:
+            NSLocalizedString(@"Quit Cancelled", nil), NSLocalizedFailureReasonErrorKey,
+            NSLocalizedString(@"iScrobbler is busy importing data into the local charts. The import cannot be interrupted. Please wait for the import to finish.", nil),
+                NSLocalizedDescriptionKey,
+            NSLocalizedString(@"OK", nil), @"defaultButton",
+            nil]];
         
         [self presentError:error withDidEndHandler:nil];
         return (NSTerminateCancel);
@@ -1066,6 +1066,20 @@ player_info_exit:
         }
     }
     
+    // warn user if Growl is not installed
+    if (![GrowlApplicationBridge isGrowlInstalled] || ![GrowlApplicationBridge isGrowlRunning]) {
+        NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:
+            NSLocalizedString(@"Growl Is Not Available", nil), NSLocalizedFailureReasonErrorKey,
+            NSLocalizedString(@"iScrobbler uses Growl for 99%% of its notification dialogs. To get the most out of iScrobbler please install or activate Growl.", nil),
+                NSLocalizedDescriptionKey,
+            NSLocalizedString(@"OK", nil), @"defaultButton",
+            NSLocalizedString(@"Open Growl Home Page", nil), @"otherButton",
+            nil]];
+        
+        [self presentError:error withDidEndHandler:@selector(noGrowlDidEnd:returnCode:contextInfo:)];
+    }
+    
     // warn user if last.fm app is running
     [self checkForOtherScrobblers:nil];
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
@@ -1096,6 +1110,16 @@ player_info_exit:
         sender = nil;
     }
     [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
+}
+
+- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+{
+    if (returnCode == NSAlertAlternateReturn) {
+        NSURL *url = [NSURL URLWithString:@"http://growl.info/"];
+        [[NSWorkspace sharedWorkspace] openURL:url];
+    }
+    
+    [(id)contextInfo performSelector:@selector(close) withObject:nil afterDelay:0.0];
 }
 
 -(IBAction)enableDisableSubmissions:(id)sender
