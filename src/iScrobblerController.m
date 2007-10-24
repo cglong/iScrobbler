@@ -10,6 +10,8 @@
 
 #import <openssl/md5.h>
 
+#import <IOKit/IOMessage.h>
+#import <IOKit/pwr_mgt/IOPMLib.h>
 #import <Carbon/Carbon.h>
 
 #import "iScrobblerController.h"
@@ -33,6 +35,7 @@
 #import "ISRadioController.h"
 #import "ISStatusItem.h"
 #import "ISPluginController.h"
+#import "Persistence.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -40,6 +43,9 @@
 #define IS_GROWL_NOTIFICATION_IPOD_WILL_SYNC @"iPod Sync Begin"
 #define IS_GROWL_NOTIFICATION_IPOD_DID_SYNC @"iPod Sync Finished"
 #define IS_GROWL_NOTIFICATION_PROTOCOL @"Last.fm Communications"
+
+static io_connect_t powerPort = (io_connect_t)0;
+static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 #if 0
 @interface NSScriptCommand (ISExtensions)
@@ -65,7 +71,8 @@
 @end
 
 @interface iScrobblerController (Private)
-    - (void)retryInfoHandler:(NSTimer*)timer;
+- (void)retryInfoHandler:(NSTimer*)timer;
+- (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector;
 @end
 
 // See iTunesPlayerInfoHandler: for why this is needed
@@ -82,6 +89,9 @@
     - (NSString*)growlDescription;
     - (NSString*)growlTitle;
 @end
+
+#define isTopListsActive (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Local Lists"] \
+&& YES == [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"])
 
 @implementation iScrobblerController
 
@@ -785,6 +795,19 @@ player_info_exit:
             selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+        
+        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+            selector:@selector(applicationWillTerminate:) name:NSWorkspaceWillPowerOffNotification object:nil];
+        // We can't prevent power off/logout via the GUI notification since we are a background app
+        // We can only prevent idle sleep via idle sleep - don't know what to do about log off and user restart/shutdown
+        // XXX: portRef, powerPort and source are all leaked objects on purpoose
+        IONotificationPortRef portRef;
+        io_object_t notifier;
+        powerPort = IORegisterForSystemPower (NULL, &portRef, iokpm_callback, &notifier);
+        if (powerPort) {
+            CFRunLoopSourceRef source = IONotificationPortGetRunLoopSource(portRef);
+            CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopDefaultMode);
+        }
 
 #ifndef __LP64__
         // Register with Growl
@@ -851,8 +874,7 @@ player_info_exit:
         
         // Create top lists controller so it will pick up subs
         // We do this after creating the QM so that queued subs are not counted.
-        if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Local Lists"]
-            && YES == [[NSUserDefaults standardUserDefaults] boolForKey:@"Display Control Menu"])
+        if (isTopListsActive)
             (void)[TopListsController sharedInstance];
     }
     
@@ -957,8 +979,37 @@ player_info_exit:
     #endif
 }
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification
+- (NSApplicationTerminateReply)applicationShouldTerminate:(id /*NSApplication**/)sender
 {
+    if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
+        if ([NSWorkspace sharedWorkspace] == sender) {
+            // documented as not implemeted, but it does work
+            int given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:(29 * 1000)];
+            ScrobDebug(@"given %d ms of delayed log out", given);
+        }
+        
+        // display warning - don't use Growl as it may not be running if the user attemped a restart/shutdown
+         NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+                NSLocalizedString(@"Quit Cancelled", nil), NSLocalizedFailureReasonErrorKey,
+                NSLocalizedString(@"iScrobbler is busy importing data into the local charts. The import cannot be interrupted. Please wait for the import to finish.", nil),
+                    NSLocalizedDescriptionKey,
+                NSLocalizedString(@"OK", nil), @"defaultButton",
+                nil]];
+        
+        [self presentError:error withDidEndHandler:nil];
+        return (NSTerminateCancel);
+    }
+    
+    return (NSTerminateNow);
+}
+
+- (void)applicationWillTerminate:(NSNotification *)note
+{
+    if ([[note name] isEqualToString:NSWorkspaceWillPowerOffNotification]) {
+        (void)[self applicationShouldTerminate:[NSWorkspace sharedWorkspace]];
+    }
+    
     [[QueueManager sharedInstance] syncQueue:nil];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
@@ -990,8 +1041,7 @@ player_info_exit:
     if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
     }
-    if ([ud boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH]
-        && NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Local Lists"]) {
+    if ([ud boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH] && isTopListsActive) {
         [self openTopLists:nil];
     }
     
@@ -1353,11 +1403,28 @@ player_info_exit:
 }
 
 - (void)showBadCredentialsDialog
-{	
-	[NSApp activateIgnoringOtherApps:YES];
-	
+{
     if (badAuthAlertIsOpen)
         return;
+    
+	// we should give them the option to ignore
+	// these messages, and only update the menu icon... -- ECS 10/30/04
+    NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:
+            NSLocalizedString(@"Authentication Failure", nil), NSLocalizedFailureReasonErrorKey,
+            NSLocalizedString(@"Last.fm did not accept your username and/or password.  Please verify your credentials are set correctly in the iScrobbler preferences.", nil),
+                NSLocalizedDescriptionKey,
+            NSLocalizedString(@"Open iScrobbler Preferences", nil), @"defaultButton",
+             NSLocalizedString(@"New Account", nil), @"alternateButton",
+            nil]];
+    
+    [self presentError:error withDidEndHandler:@selector(badCredentialsDidEnd:returnCode:contextInfo:)];
+    badAuthAlertIsOpen = YES;
+}
+
+- (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector
+{
+    [NSApp activateIgnoringOtherApps:YES];
     
     // Create a new transparent window (with click through) so that we don't block the app event loop
     NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0f, 0.0f, 100.0, 100.0)
@@ -1380,28 +1447,30 @@ player_info_exit:
     // [w setDelegate:self];
     [w center];
     
-	// we should give them the option to ignore
-	// these messages, and only update the menu icon... -- ECS 10/30/04
-    NSBeginInformationalAlertSheet(NSLocalizedString(@"Authentication Failure", nil),
-        NSLocalizedString(@"Open iScrobbler Preferences", nil),
-        NSLocalizedString(@"New Account", nil),
-        nil,
-        w,
-        self,
-        @selector(badCredentialsDidEnd:returnCode:contextInfo:),
-        nil,
-        w,
-        NSLocalizedString(@"Last.fm did not accept your username and/or password.  Please verify your credentials are set correctly in the iScrobbler preferences.", nil));
-    badAuthAlertIsOpen = YES;
+    NSDictionary *info = [error userInfo];
+    
+    // A sheet sliding out from the middle of nowhere looks weird, so set a very small delay
+    [[NSUserDefaults standardUserDefaults] setFloat:.001 forKey:@"NSWindowResizeTime"];
+    
+    NSAlert *a = [NSAlert alertWithMessageText:[info objectForKey:NSLocalizedFailureReasonErrorKey]
+        defaultButton:[info objectForKey:@"defaultButton"]
+        // the old NSBegin*AlertSheet() APIs hand the meaning of other and alternate buttons reversed
+        alternateButton:[info objectForKey:@"otherButton"]
+        otherButton:[info objectForKey:@"alternateButton"]
+        informativeTextWithFormat:
+        [info objectForKey:NSLocalizedDescriptionKey], nil];
+    [a beginSheetModalForWindow:w modalDelegate:self didEndSelector:selector contextInfo:w];
+    
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"NSWindowResizeTime"];
 }
 
 - (void)showApplicationIsDamagedDialog
 {
 	[NSApp activateIgnoringOtherApps:YES];
 	int result = NSRunCriticalAlertPanel(NSLocalizedString(@"Critical Error", nil),
-										 NSLocalizedString(@"The iScrobbler application appears to be damaged.  Please download a new copy from the iScrobbler homepage.", nil),
-										 NSLocalizedString(@"Quit", nil),
-										 NSLocalizedString(@"Open iScrobbler Homepage", nil), nil);
+        NSLocalizedString(@"The iScrobbler application appears to be damaged.  Please download a new copy from the iScrobbler homepage.", nil),
+        NSLocalizedString(@"Quit", nil),
+        NSLocalizedString(@"Open iScrobbler Homepage", nil), nil);
 	if (result == NSAlertAlternateReturn)
 		[self openScrobblerHomepage:self];
 	
@@ -1974,3 +2043,29 @@ void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned
 }
 
 #include "iScrobblerController+Private.m"
+
+static void iokpm_callback (void *myData, io_service_t service, natural_t message, void *arg)
+{
+    ScrobDebug(@"power event - code = %x", err_get_code(message));
+
+    switch(message) {
+        // must always respond to the power state change messages
+        case kIOMessageSystemWillSleep:
+        case kIOMessageCanSystemSleep:
+        // we can't prevent user initiated power off, only idle power off
+        case kIOMessageSystemWillPowerOff:
+        case kIOMessageSystemWillRestart:
+            IOAllowPowerChange(powerPort, (long)arg);
+        break;
+        
+        case kIOMessageCanSystemPowerOff:
+            if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
+                IOCancelPowerChange(powerPort, (long)arg);
+            }
+        break;
+
+        default:
+        break;
+    };
+}
+
