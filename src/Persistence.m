@@ -123,14 +123,19 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)resetMain
 {
+    // Prevent access while we are reseting
+    NSManagedObjectContext *moc = mainMOC;
+    mainMOC = nil;
+    
     // so clients can prepae to refresh themselves
     [self postNote:PersistentProfileWillResetNotification];
     
     @try {
-    [mainMOC reset];
+    [moc reset];
     } @catch (id e) {
         ScrobLog(SCROB_LOG_TRACE, @"resentMain: reset generated an exception: %@", e);
     }
+    mainMOC = moc;
     
     // so clients can refresh themselves
     [self postNote:PersistentProfileDidResetNotification];
