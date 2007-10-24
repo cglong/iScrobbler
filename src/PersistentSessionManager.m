@@ -564,13 +564,13 @@ __private_extern__ NSThread *mainThread;
         else
             [moc rollback];
     }
-    (void)[[PersistentProfile sharedInstance] save:moc];
     
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"processingSongPlays: exception %@", e);
     }
     
     [[PersistentProfile sharedInstance] setImportInProgress:NO];
+    (void)[[PersistentProfile sharedInstance] save:moc];
 #if IS_THREAD_SESSIONMGR
     // Turn the added songs into faults as we probably won't need them anytime soon
     // (we may need the artist/album/session objects though). This should save on some memory.
