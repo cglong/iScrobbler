@@ -523,7 +523,11 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)refreshSelf
 {
+    @try {
     [[self managedObjectContext] refreshObject:self mergeChanges:NO];
+    } @catch (id e) {
+        ScrobDebug(@"exception: %@", e);
+    }
 }
 
 @end
