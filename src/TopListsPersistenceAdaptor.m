@@ -8,6 +8,8 @@
 //  Released under the GPL, license details available res/gpl.txt
 //
 
+#import <libkern/OSAtomic.h>
+
 #import "PersistentSessionManager.h"
 
 #define IMPORT_CHUNK 50
@@ -29,6 +31,7 @@
     ISASSERT(sessionLoads >= 0, "gone south!");
     
     if (sessionLoads <= 0) {
+        OSMemoryBarrier();
         cancelLoad = 0;
         if (wantLoad) {
             wantLoad = 0;
@@ -55,43 +58,66 @@ topHours = nil; \
 // methods that run on the main thread
 - (void)sessionDidChange:(id)arg
 {
+    static NSManagedObjectID *lastSession = nil;
+    
+    NSManagedObjectID *oid = [selectedSession objectID];
     if ([self loading]) {
         // Make sure we don't issue a load while one is in progress or we may have duplicate entries in the controllers
-        cancelLoad = 1;
-        wantLoad = 1;
-        ScrobDebug(@"load in progress");
+        if (lastSession && oid && ![lastSession isEqualTo:oid]) {
+            OSMemoryBarrier();
+            cancelLoad = 1;
+            wantLoad = 1;
+            ScrobDebug(@"load in progress, set want");
+        }
         return;
     }
-        
-    if (windowIsVisisble) {
-        // load the current session
-        NSManagedObjectID *oid = [selectedSession objectID];
-        if (oid)
-            [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
+    if (lastSession != oid) {
+        [lastSession release];
+        lastSession = [oid retain];
+    }
+    
+    if (windowIsVisisble && oid) {
+        [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
+    } else if (!oid) {
+        ISASSERT(0, "should this be valid?");
+        #if 0
+        [topArtistsController removeObjects:[topArtistsController content]];
+        [topTracksController removeObjects:[topTracksController content]];
+        #endif
     }
 }
 
 - (void)persistentProfileWillReset:(NSNotification*)note
 {
     @try {
-    [sessionController setContent:[NSMutableArray array]];
+    [sessionController removeObjects:[sessionController content]];
     }@catch (id e) {
     ISASSERT(0, "exception");
     }
 }
 
+- (void)finishProfileReset:(NSTimer*)t
+{
+    // reload the sessions
+    if (0 == [[sessionController content] count]) {
+        [self willChangeValueForKey:@"allSessions"];
+        [self didChangeValueForKey:@"allSessions"];
+    }
+}
+
 - (void)persistentProfileDidReset:(NSNotification*)note
 {
-     // reload the sessions
-    [self willChangeValueForKey:@"allSessions"];
-    [self didChangeValueForKey:@"allSessions"];
-    // finally reload the selected session data
-    //[self sessionDidChange:nil];
-
     if (persistenceTh) {
-        cancelLoad = 1;
+        if ([self loading]) {
+            OSMemoryBarrier();
+            cancelLoad = 1;
+        }
         [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(resetPersistenceManager) withObject:nil];
     }
+    
+    // give some time for the reset to occur
+    (void)[NSTimer scheduledTimerWithTimeInterval:0.15 target:self
+        selector:@selector(finishProfileReset:) userInfo:nil repeats:NO];
 }
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
@@ -109,7 +135,14 @@ topHours = nil; \
     [self sessionDidChange:nil];
 }
 
-- (void)sessionManagerDidStart:(id)arg
+- (void)persistenceManagerDidReset:(id)arg
+{
+    // just in case it hasn't fired yet
+    [self finishProfileReset:nil];
+    [self sessionDidChange:nil];
+}
+
+- (void)persistenceManagerDidStart:(id)arg
 {
     static BOOL sinit = YES;
     
@@ -260,7 +293,12 @@ topHours = nil; \
     en = [sessionArtists objectEnumerator];
     NSAutoreleasePool *entryPool = [[NSAutoreleasePool alloc] init];
     NSMutableArray *chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
-    while ((mobj = [en nextObject]) && 0 == cancelLoad) {
+    BOOL loadCanceled = NO;
+    while ((mobj = [en nextObject])) {
+        OSMemoryBarrier();
+        if ((loadCanceled = (cancelLoad > 0)))
+            break;
+        
         secs = [[mobj valueForKey:@"playTime"] unsignedLongLongValue];
         ISDurationsFromTime64(secs, &days, &hours, &minutes, &seconds);
         playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
@@ -279,10 +317,10 @@ topHours = nil; \
             chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
         }
     }
-    if (0 == cancelLoad && [chartEntries count] > 0)
+    if (!loadCanceled && [chartEntries count] > 0)
         [self performSelectorOnMainThread:@selector(displayArtistEntries:) withObject:chartEntries waitUntilDone:NO];
     [entryPool release];
-    if (cancelLoad)
+    if (loadCanceled)
         goto loadExit;
         
     // pre-fetch the songs
@@ -328,7 +366,11 @@ topHours = nil; \
     chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
     i = 1;
     [allSongPlays addObject:[en nextObject]];
-    while ((mobj = [en nextObject]) && 0 == cancelLoad) {
+    while ((mobj = [en nextObject])) {
+        OSMemoryBarrier();
+        if ((loadCanceled = (cancelLoad > 0)))
+            break;
+            
         if ([[mobj valueForKey:@"item"] isEqualTo:[[allSongPlays objectAtIndex:0] valueForKey:@"item"]]) {
             [allSongPlays addObject:mobj];
             continue;
@@ -369,7 +411,7 @@ topHours = nil; \
         [chartEntries addObject:entry];
     }
     
-    if (0 == cancelLoad && [chartEntries count] > 0)
+    if (!loadCanceled && [chartEntries count] > 0)
         [self performSelectorOnMainThread:@selector(displayTrackEntries:) withObject:chartEntries waitUntilDone:NO];
     [entryPool release];
     
@@ -421,7 +463,12 @@ loadExit:
     NSManagedObject *mobj;
     unsigned i = 0;
     NSAutoreleasePool *entryPool = [[NSAutoreleasePool alloc] init];
-    while ((mobj = [en nextObject]) && 0 == cancelLoad) {
+    BOOL loadCanceled = NO;
+    while ((mobj = [en nextObject])) {
+        OSMemoryBarrier();
+        if ((loadCanceled = (cancelLoad > 0)))
+            break;
+        
         NSString *akey = [NSString stringWithFormat:@"%@" TOP_ALBUMS_KEY_TOKEN @"%@",
             [mobj valueForKeyPath:@"item.artist.name"], [mobj valueForKeyPath:@"item.name"]];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -436,7 +483,7 @@ loadExit:
         }
     }
     [entryPool release];
-    if (cancelLoad)
+    if (loadCanceled)
         goto loadExit;
     
     NSMutableDictionary *ratingEntries = [NSMutableDictionary dictionaryWithCapacity:5];
@@ -449,7 +496,8 @@ loadExit:
             nil];
         [ratingEntries setObject:entry forKey:[mobj valueForKey:@"rating"]];
     }
-    if (cancelLoad)
+    OSMemoryBarrier();
+    if (cancelLoad > 0)
         goto loadExit;
     
     NSMutableArray *hourEntries = [NSMutableArray arrayWithCapacity:24];
@@ -468,7 +516,8 @@ loadExit:
             nil];
         [hourEntries replaceObjectAtIndex:[[mobj valueForKey:@"hour"] unsignedIntValue] withObject:entry];
     }
-    if (cancelLoad)
+    OSMemoryBarrier();
+    if (cancelLoad > 0)
         goto loadExit;
     
     NSDictionary *results = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -489,12 +538,13 @@ loadExit: ;
 
 - (void)sendPersistenceManagerDidStart:(NSTimer*)timer
 {
-    [self performSelectorOnMainThread:@selector(sessionManagerDidStart:) withObject:nil waitUntilDone:NO];
+    [self performSelectorOnMainThread:@selector(persistenceManagerDidStart:) withObject:nil waitUntilDone:NO];
 }
 
 - (void)resetPersistenceManager
 {
     [[[[NSThread currentThread] threadDictionary] objectForKey:@"moc"] reset];
+    [self performSelectorOnMainThread:@selector(persistenceManagerDidReset:) withObject:nil waitUntilDone:NO];
 }
 
 - (void)persistenceManagerThread:(id)arg
