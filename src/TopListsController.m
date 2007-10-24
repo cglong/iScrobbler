@@ -161,6 +161,25 @@ static NSMutableArray *topHours = nil;
     [[PersistentProfile sharedInstance] addSongPlay:song];
 }
 
+- (void)persistentProfileImportProgress:(NSNotification*)note
+{
+    NSDictionary *d = [note userInfo];
+    
+    NSNumber *total = [d objectForKey:@"total"];
+    // imported will be 0 for the begin note and wil be missing for the end note
+    NSNumber *imported = [d objectForKey:@"imported"];
+    
+    NSString *msg;
+    if (!imported)
+        msg = NSLocalizedString(@"Import finished.", "");
+    else if ([imported unsignedIntValue] > 0)
+        msg = [NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "import progress"), imported, total];
+    else
+        msg = NSLocalizedString(@"Reading iTunes library.", "");
+    
+    [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Import Progress", "") message:msg];
+}
+
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
@@ -170,6 +189,11 @@ static NSMutableArray *topHours = nil;
         [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(songQueuedHandler:)
             name:QM_NOTIFICATION_SONG_QUEUED
+            object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileImportProgress:)
+            name:PersistentProfileImportProgress
             object:nil];
         
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]

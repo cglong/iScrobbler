@@ -208,6 +208,12 @@
     [profile setImportInProgress:YES];
     @try {
     
+    // begin import note
+    NSNotification *note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
+            [NSNumber numberWithUnsignedInt:0], @"imported", nil]];
+    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+    
     ISStartTime();
     
     NSString *path = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
@@ -259,13 +265,6 @@
     SongData *song;
     
     NSAutoreleasePool *trackPool = [[NSAutoreleasePool alloc] init];
-    
-    // begin import note
-    NSNotification *note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
-        [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
-            [NSNumber numberWithUnsignedInt:0], @"imported", nil]];
-    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
-    
     while ((track = [en nextObject])) {
         @try {
             song = [[[SongData alloc] initWithiTunesXMLTrack:track] autorelease];
