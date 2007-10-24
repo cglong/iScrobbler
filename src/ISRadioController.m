@@ -107,6 +107,8 @@
             [m addItem:item];
             [item release];
             
+            [m addItem:[NSMenuItem separatorItem]];
+            
             NSDictionary *d = [self lastTunedStation];
             NSString *title;
             if (d) {
