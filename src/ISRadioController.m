@@ -752,6 +752,12 @@ exitHistory:
 
 // End AppleScript
 
+- (void)applicationWillTerminate:(NSNotification*)note
+{
+    if ([self currentStation])
+        [self stop];
+}
+
 - (id)init
 {
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -765,6 +771,8 @@ exitHistory:
     [nc addObserver:self selector:@selector(wsExecComplete:) name:ASWSExecDidComplete object:nil];
     
     [nc addObserver:self selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
+    
+    [nc addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
     
     [self defaultRadioPlayerCheck];
     
