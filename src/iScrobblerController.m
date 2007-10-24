@@ -2061,7 +2061,8 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
         case kIOMessageCanSystemPowerOff:
             if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
                 IOCancelPowerChange(powerPort, (long)arg);
-            }
+            } else
+                IOAllowPowerChange(powerPort, (long)arg);
         break;
 
         default:
