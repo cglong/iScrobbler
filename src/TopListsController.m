@@ -26,6 +26,7 @@
 #import "ISThreadMessenger.h"
 
 #import "Persistence.h"
+#import "PersistentSessionManager.h"
 
 enum {
     kTBItemRequiresSelection      = 0x00000001,
@@ -62,8 +63,6 @@ static NSMutableArray *topHours = nil;
 - (void)sessionDidChange:(id)arg;
 - (void)resetPersistenceManager;
 @end
-
-#define selectedSession [[sessionController selectedObjects] objectAtIndex:0]
 
 @implementation TopListsController
 
@@ -112,17 +111,42 @@ static NSMutableArray *topHours = nil;
 }
 
 // session support
-- (unsigned int)currentSession
+- (id)selectedSession
 {
-    unsigned int s = [sessionController selectionIndex];
-    if (NSNotFound == s)
-        s = 0;
+    NSArray *a = [sessionController selectedObjects];
+    return ([a count] > 0 ? [a objectAtIndex:0] : nil);
+}
+
+- (id)currentSession
+{
+    NSString *saved = [[NSUserDefaults standardUserDefaults] stringForKey:@"LocalChartsSessionName"];
+    if (!saved)
+        saved = @"lastfm";
+    
+    id s = [self selectedSession];
+    if (s && ![s valueForKey:@"name"])
+        return (nil); // separator item
+    
+    if (!s || [[s valueForKey:@"name"] isNotEqualTo:saved]) {
+        if (nil != [s valueForKey:@"archive"]) {
+            s = [[PersistentSessionManager sharedInstance] sessionWithName:saved
+                moc:[[PersistentProfile sharedInstance] performSelector:@selector(mainMOC)]];
+        }
+        if (s) // nil can occur if the object is turned into a fault and we are called (because of KVO) in the middle of the re-fault
+            [sessionController setSelectedObjects:[NSArray arrayWithObject:s]];
+    }
     return (s);
 }
 
-- (void)setCurrentSession:(unsigned int)s
+- (void)setCurrentSession:(id)s
 {   
-    [sessionController setSelectionIndex:s];
+    if (![s valueForKey:@"name"])
+        return; // separator item
+    
+    [sessionController setSelectedObjects:[NSArray arrayWithObject:s]];
+    // Don't save archive selections, since they may disappear from the menu
+    if (nil != [s valueForKey:@"archive"])
+        [[NSUserDefaults standardUserDefaults] setObject:[s valueForKey:@"name"] forKey:@"LocalChartsSessionName"];
     [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
 }
 
@@ -133,9 +157,12 @@ static NSMutableArray *topHours = nil;
     NSEnumerator *en = [[[PersistentProfile sharedInstance] allSessions] objectEnumerator];
     id s;
     unsigned i;
+    NSMutableArray *archivedSessions = [NSMutableArray array];
     while ((s = [en nextObject])) {
         if (NSNotFound != (i = [arrangedSessions indexOfObject:[s valueForKey:@"name"]]))
             [arrangedSessions replaceObjectAtIndex:i withObject:s];
+        else if (nil!= [s valueForKey:@"archive"])
+            [archivedSessions addObject:s];
     }
     
     // make sure we only return actual session objects
@@ -146,6 +173,23 @@ static NSMutableArray *topHours = nil;
             [rem addObject:s];
     }
     [arrangedSessions removeObjectsInArray:rem];
+    
+    // finally, sort the archived sessions by ascending date and then add them
+    if ([archivedSessions count] > 0) {
+        #ifdef notyet
+        // this works, but the item is selectable and I'm not sure how to make it not selectable
+        // add a separator item
+        [arrangedSessions addObject:[NSDictionary dictionaryWithObject:[[NSMenuItem separatorItem] title] forKey:@"localizedName"]];
+        #endif
+        
+        [archivedSessions sortUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:YES] autorelease]]];
+        if ([archivedSessions count] > 10) { // make into a pref?
+            [archivedSessions removeObjectsInRange:NSMakeRange(10, [archivedSessions count]-10)];
+        }
+        [arrangedSessions addObjectsFromArray:archivedSessions];
+    }
+    
     return (arrangedSessions);
 }
 
@@ -834,7 +878,7 @@ exit:
 - (IBAction)createProfileReport:(id)sender
 {    
     if (!topAlbums) {
-        NSManagedObjectID *oid = [selectedSession objectID];
+        NSManagedObjectID *oid = [[self selectedSession] objectID];
         if (oid) {
             [self setValue:[NSNumber numberWithBool:YES] forKey:@"loading"]; // this is cleared in [loadExtendedDidFinish];
             [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadExtendedSessionData:) withObject:oid];
@@ -907,7 +951,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
     
-    NSDate *startDate = [selectedSession valueForKey:@"epoch"];
+    NSDate *startDate = [[self selectedSession] valueForKey:@"epoch"];
     
     NSTimeInterval elapsedSeconds =  [[NSDate date] timeIntervalSince1970] - [startDate timeIntervalSince1970];
     ISDurationsFromTime(elapsedSeconds, &days, &hours, &minutes, &seconds);

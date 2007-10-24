@@ -59,6 +59,9 @@
     <key>iTunesImportSkipDisabledTrack</key>
     <false />
     
+    <key>LocalChartsSessionName</key>
+    <string>lastfm</string>
+    
     <key>MenuNPInfoDelay</key>
     <integer>1000</integer>
     
