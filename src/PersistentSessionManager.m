@@ -20,6 +20,7 @@ __private_extern__ NSThread *mainThread;
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify;
 - (BOOL)save:(NSManagedObjectContext*)moc;
 - (void)resetMain;
+- (void)setImportInProgress:(BOOL)import;
 - (NSManagedObjectContext*)mainMOC;
 @end
 
@@ -548,10 +549,15 @@ __private_extern__ NSThread *mainThread;
     moc = [[PersistentProfile sharedInstance] mainMOC];
 #endif
     
-    NSEnumerator *en = [queue objectEnumerator];
-    id obj;
+    [[PersistentProfile sharedInstance] setImportInProgress:YES];
+    
+    NSEnumerator *en;
     NSManagedObject *moSong;
-    NSMutableArray *addedSongs = [NSMutableArray array];;
+    NSMutableArray *addedSongs = [NSMutableArray array];
+    @try {
+    
+    en = [queue objectEnumerator];
+    id obj;
     while ((obj = [en nextObject])) {
         if ((moSong = [self addSongPlay:obj withImportedPlayCount:nil moc:moc]))
             [addedSongs addObject:moSong];
@@ -559,6 +565,12 @@ __private_extern__ NSThread *mainThread;
             [moc rollback];
     }
     (void)[[PersistentProfile sharedInstance] save:moc];
+    
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_ERR, @"processingSongPlays: exception %@", e);
+    }
+    
+    [[PersistentProfile sharedInstance] setImportInProgress:NO];
 #if IS_THREAD_SESSIONMGR
     // Turn the added songs into faults as we probably won't need them anytime soon
     // (we may need the artist/album/session objects though). This should save on some memory.
