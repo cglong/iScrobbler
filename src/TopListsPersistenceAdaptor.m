@@ -248,6 +248,9 @@ topHours = nil; \
 // methods that run on the background thread
 - (void)loadInitialSessionData:(NSManagedObjectID*)sessionID
 {
+    if ([[PersistentProfile sharedInstance] importInProgress])
+        return;
+
     [self performSelectorOnMainThread:@selector(sessionWillLoad:) withObject:nil waitUntilDone:YES];
     
     @try {
@@ -428,6 +431,9 @@ loadExit:
 
 - (void)loadExtendedSessionData:(NSManagedObjectID*)sessionID // profile report data not seen in the GUI
 {
+    if ([[PersistentProfile sharedInstance] importInProgress])
+        return;
+    
     // loadInitial should have completed
     // this is loaded on demand mainly for memory reasons - CPU use shouldn't be too bad
     [self performSelectorOnMainThread:@selector(setLoadingWithBool:) withObject:[NSNumber numberWithBool:YES] waitUntilDone:YES];
