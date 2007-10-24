@@ -287,13 +287,11 @@
         (void)[profile save:moc withNotification:NO];
         #endif
         [[moc persistentStoreCoordinator] unlock];
-        
-        if (0 == (++importedTracks % 5)) {
+
+        if (importedTracks > 0 && 0 == (importedTracks % 100)) {
             [trackPool release];
             trackPool = [[NSAutoreleasePool alloc] init];
-        }
-
-        if (0 == (importedTracks % 250)) {
+            
             note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
                 [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
                     [NSNumber numberWithUnsignedInt:importedTracks], @"imported", nil]];
