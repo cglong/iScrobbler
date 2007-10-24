@@ -184,12 +184,21 @@ __private_extern__ NSThread *mainThread;
         
         // Archive the old session
         ISASSERT(nil == [session valueForKey:@"archive"], "session is already archived!");
+        @try {
+        
         NSString *archiveName = [sessionName stringByAppendingFormat:@"-%@", [session valueForKey:@"epoch"]];
         [session setValue:archiveName forKey:@"name"];
-        archiveName = [[session valueForKey:@"localizedName"] stringByAppendingFormat:@" (%@)", [session valueForKey:@"epoch"]];
+        NSCalendarDate *sDate = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
+        archiveName = [NSString stringWithFormat:@"%@: %@ (%@)", NSLocalizedString(@"Archive", @""),
+            [session valueForKey:@"localizedName"],
+            [sDate descriptionWithCalendarFormat:@"%a, %Y-%m-%d"]];
         [session setValue:archiveName forKey:@"localizedName"];
-        NSCalendarDate *term = [NSCalendarDate dateWithTimeIntervalSince1970:[newEpoch timeIntervalSince1970]-1.0];
-        [session setValue:term forKey:@"term"];
+        sDate = [NSCalendarDate dateWithTimeIntervalSince1970:[newEpoch timeIntervalSince1970]-1.0];
+        [session setValue:sDate forKey:@"term"];
+        
+        } @catch (id e) {
+            ScrobTrace(@"exception: %@", e);
+        }
         
         entity = [NSEntityDescription entityForName:@"PSessionArchive" inManagedObjectContext:moc];
         obj = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc];
@@ -202,7 +211,9 @@ __private_extern__ NSThread *mainThread;
         // we've replaced a session object, it's important other threads and class clients are notified ASAP
         [[PersistentProfile sharedInstance] save:moc withNotification:NO];
         ISASSERT(moc != [[PersistentProfile sharedInstance] mainMOC], "invalid MOC!");
+        #ifdef notyet
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
+        #endif
 #endif
         return;
     }
