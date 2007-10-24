@@ -8,6 +8,8 @@
 //  Released under the GPL, license details available res/gpl.txt
 //
 
+#import <libkern/OSAtomic.h>
+
 #import "Persistence.h"
 #import "PersistentSessionManager.h"
 #import "SongData.h"
@@ -139,6 +141,24 @@ __private_extern__ NSThread *mainThread = nil;
     return (mainMOC);
 }
 
+- (id)storeMetadataForKey:(NSString*)key moc:(NSManagedObjectContext*)moc
+{
+    id store = [[[moc persistentStoreCoordinator] persistentStores] objectAtIndex:0];
+    return ([[[moc persistentStoreCoordinator] metadataForPersistentStore:store] objectForKey:key]);
+}
+
+- (void)setStoreMetadata:(id)object forKey:(NSString*)key moc:(NSManagedObjectContext*)moc
+{
+    id store = [[[moc persistentStoreCoordinator] persistentStores] objectAtIndex:0];
+    NSMutableDictionary *d = [[[[moc persistentStoreCoordinator] metadataForPersistentStore:store] mutableCopy] autorelease];
+    if (object)
+        [d setObject:object forKey:key];
+    else
+        [d removeObjectForKey:key];
+    [[moc persistentStoreCoordinator] setMetadata:d forPersistentStore:store];
+    (void)[self save:moc withNotification:NO];
+}
+
 //******* public API ********//
 
 - (BOOL)newProfile
@@ -148,12 +168,20 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (BOOL)importInProgress
 {
-    return (importing);
+     OSMemoryBarrier();
+     return (importing > 0);
 }
 
-- (BOOL)canApplicationTerminate
+- (void)setImportInProgress:(BOOL)import
 {
-    return (!importing /*&& update thread inactive*/);
+    if (import) {
+        OSMemoryBarrier();
+        ++importing;
+    } else {
+        OSMemoryBarrier();
+        --importing;
+    }
+    ISASSERT(importing >= 0, "importing went south!");
 }
 
 - (void)addSongPlay:(SongData*)song
@@ -166,7 +194,7 @@ __private_extern__ NSThread *mainThread = nil;
         [queue addObject:song];
     
     // the importer makes the assumption that no one else will modify the DB (so it doesn't have to search as much)
-    if (!importing && [queue count] > 0) {
+    if (![self importInProgress] && [queue count] > 0) {
         if ([self addSongPlaysToAllSessions:queue])
             [queue removeAllObjects];
     }
@@ -263,8 +291,8 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)importDidFinish:(id)obj
 {
-    importing  = NO;
-    //[self setValue:[NSNumber numberWithBool:NO] forKey:@"importing"];
+    [self setImportInProgress:NO];
+    //[self setValue:[NSNumber numberWithBool:NO] forKey:@"importInProgress"];
     
     // Reset so any cached objects are forced to refault
     ISASSERT(NO == [mainMOC hasChanges], "somebody modifed the DB during an import");
@@ -341,9 +369,18 @@ __private_extern__ NSThread *mainThread = nil;
     sessionMgr = [PersistentSessionManager sharedInstance];
     
     NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
-    // NSXMLStoreType is super slow, but great for looking at the DB internals (debugging)
-    NSDictionary *metadata;
-    if (!(metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil])) {
+    // NSXMLStoreType is slow and keeps the whole object graph in mem, but great for looking at the DB internals (debugging)
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    if (metadata && nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]) {
+        // import was interrupted, reset everything
+        ScrobLog(SCROB_LOG_ERR, @"The iTunes import failed, removing corrupt database.");
+        (void)[[NSFileManager defaultManager] removeFileAtPath:PERSISTENT_STORE_DB handler:nil];
+        // try and remove any SQLite journal as well
+        (void)[[NSFileManager defaultManager] removeFileAtPath:
+            [PERSISTENT_STORE_DB stringByAppendingString:@"-journal"] handler:nil];
+        metadata = nil;
+    }
+    if (!metadata) {
         NSCalendarDate *now = [NSCalendarDate date];
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
         [psc setMetadata:
@@ -380,7 +417,6 @@ __private_extern__ NSThread *mainThread = nil;
     [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
-        importing = YES;
         PersistentProfileImport *import = [[PersistentProfileImport alloc] init];
     #if IS_THREAD_IMPORT
         [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:self];
@@ -449,13 +485,13 @@ __private_extern__ NSThread *mainThread = nil;
 {
 #if IS_THREAD_SESSIONMGR
     static BOOL init = YES;
-    if (init && !importing) {
+    if (init && ![self importInProgress]) {
         #ifdef ISDEBUG
         mainThread = [NSThread currentThread];
         #endif
         init = NO;
         [NSThread detachNewThreadSelector:@selector(sessionManagerThread:) toTarget:sessionMgr withObject:self];
-    } else if (!importing) {
+    } else if (![self importInProgress]) {
         (void)[self performSelectorOnSessionMgrThread:@selector(sessionManagerUpdate) withObject:nil];
     }
 #else

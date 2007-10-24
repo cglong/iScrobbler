@@ -28,6 +28,8 @@
 /* Begin PBXBuildFile section */
 		D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306F89009EC34F80011CEE1 /* no_artist.tiff */; };
 		D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306FC7909EF550C0011CEE1 /* no_album.tiff */; };
+		D30BBF9D0CCF5EE0005DCFA2 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
+		D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */; };
 		D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */; };
 		D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */; };
 		D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */ = {isa = PBXBuildFile; fileRef = D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */; };
@@ -92,7 +94,6 @@
 		D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */; };
 		D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
-		D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */; };
 		D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesStop.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */; };
 		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
@@ -163,11 +164,10 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
-		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
-		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		D306F89009EC34F80011CEE1 /* no_artist.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = no_artist.tiff; sourceTree = "<group>"; };
 		D306FC7909EF550C0011CEE1 /* no_album.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = no_album.tiff; sourceTree = "<group>"; };
 		D30BB08F0CCB56D3005DCFA2 /* TopListsPersistenceAdaptor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopListsPersistenceAdaptor.m; sourceTree = "<group>"; };
+		D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		D312EB550735548F00A2CFD5 /* QueueManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = QueueManager.h; sourceTree = "<group>"; };
 		D312EB560735548F00A2CFD5 /* QueueManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = QueueManager.m; sourceTree = "<group>"; };
 		D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager.h; sourceTree = "<group>"; };
@@ -310,6 +310,7 @@
 				D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */,
 				D3EC73110804F73B00392110 /* Growl.framework in Frameworks */,
 				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
+				D30BBF9D0CCF5EE0005DCFA2 /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -367,6 +368,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */,
 				D3D7BB1B0809AD09005EF5CA /* WebKit.framework */,
 				D3EC73100804F73B00392110 /* Growl.framework */,
 				D3D4746007740A760076AA7D /* libcrypto.dylib */,
@@ -377,15 +379,6 @@
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 			);
 			name = "Linked Frameworks";
-			sourceTree = "<group>";
-		};
-		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
-				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
-			);
-			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
@@ -460,7 +453,6 @@
 			isa = PBXGroup;
 			children = (
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
-				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -768,7 +760,6 @@
 				D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */,
 				D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */,
 				D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */,
-				D3C3044C0CA291E2001AEFEA /* ASXMLFile.m in Sources */,
 				D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */,
 				D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */,
 				D37605590CB18BF700C04863 /* ISPluginController.m in Sources */,
@@ -777,6 +768,7 @@
 				D37622750CBD803500C04863 /* keychain.m in Sources */,
 				D3F4A4350CC4FF4B000DCBB6 /* ISThreadMessenger.m in Sources */,
 				D3F4A4E90CC56EA9000DCBB6 /* PersistentSessionManager.m in Sources */,
+				D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

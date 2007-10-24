@@ -21,14 +21,14 @@
 @interface PersistentProfile : NSObject {
     NSManagedObjectContext *mainMOC;
     PersistentSessionManager *sessionMgr;
-    BOOL importing, newProfile;
+    int importing;
+    BOOL newProfile;
 }
 
 + (PersistentProfile*)sharedInstance;
 
 - (BOOL)newProfile;
 - (BOOL)importInProgress;
-- (BOOL)canApplicationTerminate;
 
 // adds the song, and updates all sessions
 - (void)addSongPlay:(SongData*)song;

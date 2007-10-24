@@ -204,6 +204,8 @@
     moc = [[profile valueForKey:@"mainMOC"] retain];
 #endif
     
+    [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISWillImportiTunesLibrary" moc:moc];
+    [profile setImportInProgress:YES];
     @try {
     
     ISStartTime();
@@ -316,6 +318,9 @@
         [[profile playerWithName:@"iTunes" moc:moc] setValue:uuid forKey:@"libraryUUID"];
     }
     
+    [profile setStoreMetadata:nil forKey:@"ISWillImportiTunesLibrary" moc:moc];
+    [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISDidImportiTunesLibrary" moc:moc];
+
     id store = [[[moc persistentStoreCoordinator] persistentStores] objectAtIndex:0];
     NSMutableDictionary *d = [[[[moc persistentStoreCoordinator] metadataForPersistentStore:store] mutableCopy] autorelease];
     [d setObject:[NSNumber numberWithBool:YES] forKey:@"ISDidImportiTunesLibrary"];
