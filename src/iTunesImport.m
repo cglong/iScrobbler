@@ -320,12 +320,7 @@
     
     [profile setStoreMetadata:nil forKey:@"ISWillImportiTunesLibrary" moc:moc];
     [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISDidImportiTunesLibrary" moc:moc];
-
-    id store = [[[moc persistentStoreCoordinator] persistentStores] objectAtIndex:0];
-    NSMutableDictionary *d = [[[[moc persistentStoreCoordinator] metadataForPersistentStore:store] mutableCopy] autorelease];
-    [d setObject:[NSNumber numberWithBool:YES] forKey:@"ISDidImportiTunesLibrary"];
-    [[moc persistentStoreCoordinator] setMetadata:d forPersistentStore:store];
-    (void)[profile save:moc withNotification:NO];
+    // setStoreMetadata saves the moc for us
         
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"exception while importing iTunes library (%@)", e);
