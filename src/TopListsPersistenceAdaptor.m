@@ -23,6 +23,7 @@
 
 - (void)setLoading:(BOOL)isLoading
 {
+    loadIssued = 0;
     if (isLoading)
         sessionLoads++;
     else
@@ -60,7 +61,7 @@ topHours = nil; \
 {
     static NSManagedObjectID *lastSession = nil;
     
-    NSManagedObjectID *oid = [selectedSession objectID];
+    NSManagedObjectID *oid = [[self selectedSession] objectID];
     if ([self loading]) {
         // Make sure we don't issue a load while one is in progress or we may have duplicate entries in the controllers
         if (lastSession && oid && ![lastSession isEqualTo:oid]) {
@@ -74,9 +75,12 @@ topHours = nil; \
     if (lastSession != oid) {
         [lastSession release];
         lastSession = [oid retain];
-    }
+        loadIssued = 0;
+    } else if (loadIssued)
+        return;
     
     if (windowIsVisisble && oid) {
+        loadIssued = 1;
         [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
     } else if (!oid) {
         ISASSERT(0, "should this be valid?");
@@ -90,9 +94,10 @@ topHours = nil; \
 - (void)persistentProfileWillReset:(NSNotification*)note
 {
     @try {
-    [sessionController removeObjects:[sessionController content]];
+    [sessionController setContent:[NSMutableArray array]];
+    [sessionController rearrangeObjects];
     }@catch (id e) {
-    ISASSERT(0, "exception");
+    ScrobDebug(@"exception: %@", e);
     }
 }
 
@@ -123,14 +128,14 @@ topHours = nil; \
 - (void)persistentProfileDidUpdate:(NSNotification*)note
 {
     // update the session bindings that we use
-    if (selectedSession) {
-        [selectedSession willChangeValueForKey:@"playCount"];
-        [selectedSession didChangeValueForKey:@"playCount"];
-    }
-    
     // it seems this is needed so the names will update when the underlying object is still a fault
     [self willChangeValueForKey:@"allSessions"];
     [self didChangeValueForKey:@"allSessions"];
+    
+    if ([self selectedSession]) {
+        [[self selectedSession] willChangeValueForKey:@"playCount"];
+        [[self selectedSession] didChangeValueForKey:@"playCount"];
+    }
     
     [self sessionDidChange:nil];
 }

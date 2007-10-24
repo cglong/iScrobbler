@@ -28,7 +28,7 @@
     // Persistence support
     ISThreadMessenger *persistenceTh;
     NSTimer *rearrangeTimer;
-    int sessionLoads, cancelLoad, wantLoad;
+    int sessionLoads, cancelLoad, wantLoad, loadIssued;
     BOOL windowIsVisisble;
 }
 
