@@ -19,7 +19,10 @@
 @interface ISRadioController (RadioPrivate)
 - (void)playStation:(id)sender;
 - (void)setDiscoveryMode:(id)sender;
+- (NSDictionary*)lastTunedStation;
 @end
+
+#define LAST_STATION_TITLE NSLocalizedString(@"Last Station", "")
 
 @implementation ISRadioController
 
@@ -104,6 +107,21 @@
             [m addItem:item];
             [item release];
             
+            NSDictionary *d = [self lastTunedStation];
+            NSString *title;
+            if (d) {
+                title = [NSString stringWithFormat:@"%@: %@", LAST_STATION_TITLE, [d objectForKey:@"name"]];
+            } else
+                title = LAST_STATION_TITLE;
+            item = [[NSMenuItem alloc] initWithTitle:title
+                action:@selector(playStation:) keyEquivalent:@""];
+            [item setTarget:self];
+            [item setTag:MSTATION_LASTTUNED];
+            [item setEnabled:NO];
+            [item setRepresentedObject:[d objectForKey:@"radioURL"]];
+            [m addItem:item];
+            [item release];
+            
             item = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"%@%C",
                 NSLocalizedString(@"Find a Station", ""), 0x2026 /*...*/]
                 action:@selector(showWindow:) keyEquivalent:@""];
@@ -115,7 +133,7 @@
             
             [m addItem:[NSMenuItem separatorItem]];
             
-            NSString *title = [NSString stringWithFormat:@"%C ", 0x25FC];
+            title = [NSString stringWithFormat:@"%C ", 0x25FC];
             item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Stop", "")]
                 action:@selector(stop) keyEquivalent:@""];
             [item setTarget:self];
@@ -207,6 +225,9 @@
     if ([sender respondsToSelector:@selector(representedObject)]) {
         
         id o = [sender representedObject];
+        if (!o) {
+            // get the last played station
+        }
         if (o && [o isKindOfClass:[NSString class]])
             [self tuneStationWithName:[sender title] url:o];
     }
@@ -273,6 +294,15 @@
 
 // private once more
 
+- (NSDictionary*)lastTunedStation
+{
+    NSArray *history = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"];
+    if (history && [history count] > 0) {
+        return ([history objectAtIndex:0]);
+    }
+    return (nil);
+}
+
 - (void)setNowPlayingStation:(NSDictionary*)station
 {
     #define MACTION_NPRADIO MACTION_CONNECTRADIO
@@ -306,6 +336,12 @@
 - (void)addStationToHistory:(NSDictionary*)station
 {
     if (station) {
+        // Intialize last station item
+        NSMenuItem *item = [[rootMenu submenu] itemWithTag:MSTATION_LASTTUNED];
+        [item setTitle:LAST_STATION_TITLE];
+        [item setRepresentedObject:nil];
+        [item setEnabled:NO];
+        
         @try {
         
         NSMutableArray *history = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"] mutableCopy] autorelease];
@@ -339,6 +375,11 @@
         
         // add to front
         [history insertObject:station atIndex:0];
+        
+        // finally, update the last station item
+        [item setTitle:[NSString stringWithFormat:@"%@: %@", LAST_STATION_TITLE, [station objectForKey:@"name"]]];
+        [item setRepresentedObject:[station objectForKey:@"radioURL"]];
+        [item setEnabled:YES];
         
 exitHistory:
         [[NSUserDefaults standardUserDefaults] setObject:history forKey:@"RadioStationHistory"];
@@ -459,6 +500,7 @@ exitHistory:
     [[m itemWithTag:MSTATION_SEARCH] setEnabled:NO];
     [[m itemWithTag:MACTION_SCROBRADIO] setEnabled:NO];
     [[m itemWithTag:MACTION_DISCOVERY] setEnabled:NO];
+    [[m itemWithTag:MSTATION_LASTTUNED] setEnabled:NO];
 }
 
 - (void)wsDidHandShake:(NSNotification*)note
@@ -477,6 +519,10 @@ exitHistory:
     [[m itemWithTag:MACTION_SCROBRADIO] setEnabled:YES];
     [[m itemWithTag:MSTATION_SEARCH] setEnabled:YES];
     
+    item = [m itemWithTag:MSTATION_LASTTUNED];
+    if ([item representedObject])
+        [item setEnabled:YES];
+    
     if ([[ASWebServices sharedInstance] subscriber]) {
         [[m itemWithTag:MSTATION_MYRADIO] setEnabled:YES];
         [[m itemWithTag:MSTATION_MYLOVED] setEnabled:YES];
@@ -489,9 +535,8 @@ exitHistory:
     [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Connected to Last.fm Radio", "")];
     
     if (!stationBeingTuned && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
-        NSArray *history = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"];
-        if (history && [history count] > 0) {
-            NSDictionary *d = [history objectAtIndex:0];
+        NSDictionary *d = [self lastTunedStation];
+        if (d) {
             [self tuneStationWithName:[d objectForKey:@"name"] url:[d objectForKey:@"radioURL"]];
         }
     } else if (stationBeingTuned) {
