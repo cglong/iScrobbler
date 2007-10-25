@@ -128,10 +128,19 @@ static NSMutableArray *topHours = nil;
         return (nil); // separator item
     
     if (!s || [[s valueForKey:@"name"] isNotEqualTo:saved]) {
-        if (nil != [s valueForKey:@"archive"]) {
+        if (!s || nil == [s valueForKey:@"archive"]) {
+            // Get the default session
             s = [[PersistentSessionManager sharedInstance] sessionWithName:saved
                 moc:[[PersistentProfile sharedInstance] performSelector:@selector(mainMOC)]];
-        }
+            if (!s) {
+                // somethings wrong, retry with the default of lastfm
+                s = [[PersistentSessionManager sharedInstance] sessionWithName:@"lastfm"
+                    moc:[[PersistentProfile sharedInstance] performSelector:@selector(mainMOC)]];
+                if (s)
+                    [[NSUserDefaults standardUserDefaults] setObject:[s valueForKey:@"name"] forKey:@"LocalChartsSessionName"];
+            }
+        } // else
+        // it's an archive and since archive's cannot be defaults, it's ok for them not to match the saved session
         if (s) // nil can occur if the object is turned into a fault and we are called (because of KVO) in the middle of the re-fault
             [sessionController setSelectedObjects:[NSArray arrayWithObject:s]];
     }
@@ -140,14 +149,16 @@ static NSMutableArray *topHours = nil;
 
 - (void)setCurrentSession:(id)s
 {   
-    if (![s valueForKey:@"name"])
-        return; // separator item
-    
-    [sessionController setSelectedObjects:[NSArray arrayWithObject:s]];
-    // Don't save archive selections, since they may disappear from the menu
-    if (nil != [s valueForKey:@"archive"])
-        [[NSUserDefaults standardUserDefaults] setObject:[s valueForKey:@"name"] forKey:@"LocalChartsSessionName"];
-    [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
+    if (s) {
+        if (![s valueForKey:@"name"])
+            return; // separator item
+        
+        [sessionController setSelectedObjects:[NSArray arrayWithObject:s]];
+        // Don't save archive selections, since they may disappear from the menu
+        if (nil == [s valueForKey:@"archive"])
+            [[NSUserDefaults standardUserDefaults] setObject:[s valueForKey:@"name"] forKey:@"LocalChartsSessionName"];
+        [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
+    }
 }
 
 - (NSArray*)allSessions
