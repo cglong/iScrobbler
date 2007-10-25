@@ -357,6 +357,13 @@ __private_extern__ NSThread *mainThread = nil;
     [obj release];
 }
 
+- (void)backup
+{
+    NSString *backup = [PERSISTENT_STORE_DB stringByAppendingString:@"-backup"];
+    (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
+    (void)[[NSFileManager defaultManager] movePath:backup toPath:[backup stringByAppendingString:@"-1"] handler:nil];
+    (void)[[NSFileManager defaultManager] copyPath:PERSISTENT_STORE_DB toPath:backup handler:nil];
+}
 
 #define CURRENT_STORE_VERSION @"1"
 - (id)init
@@ -413,6 +420,7 @@ __private_extern__ NSThread *mainThread = nil;
         #endif
         }
         
+        [self backup];
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
     }
     
