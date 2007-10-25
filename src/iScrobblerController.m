@@ -982,11 +982,13 @@ player_info_exit:
 - (NSApplicationTerminateReply)applicationShouldTerminate:(id /*NSApplication**/)sender
 {
     if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
+        #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
-            // documented as not implemeted, but it does work
-            int given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:(29 * 1000)];
+            // documented as not implemeted, and it's not (as of 10.4.10
+            int given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:INT_MAX];
             ScrobDebug(@"given %d ms of delayed log out", given);
         }
+        #endif
         
         // display warning - don't use Growl as it may not be running if the user attemped a restart/shutdown
         NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
