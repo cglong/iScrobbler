@@ -109,6 +109,9 @@
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
     
+    <key>WarnIfSubmissionsDisabled</key>
+    <false />
+    
     <key>WS URL</key>
 	<string>http://ws.audioscrobbler.com/1.0/</string>
     
