@@ -16,6 +16,10 @@
 __private_extern__ NSThread *mainThread;
 #endif
 
+@interface NSDate (ISDateConversion)
+- (NSCalendarDate*)GMTDate;
+@end
+
 @interface PersistentProfile (Private)
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify;
 - (BOOL)save:(NSManagedObjectContext*)moc;
@@ -359,10 +363,11 @@ __private_extern__ NSThread *mainThread;
     
     @try {
     
+    NSCalendarDate *gmtEpoch = [epoch GMTDate];
     NSManagedObject *session = [self sessionWithName:sessionName moc:moc];
     // round to avoid microsecond differences
-    NSTimeInterval sepoch = floor([[session valueForKey:@"epoch"] timeIntervalSince1970]);
-    if (sepoch >= floor([epoch timeIntervalSince1970]))
+    NSTimeInterval sepoch = floor([[[session valueForKey:@"epoch"] GMTDate] timeIntervalSince1970]);
+    if (sepoch >= floor([gmtEpoch timeIntervalSince1970]))
         return (NO); // nothing to do
     
     ISASSERT(![[session valueForKey:@"name"] isEqualTo:@"all"], "attempting removal on 'all' session!");
@@ -373,7 +378,7 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:
         [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (submitted < %@)",
-            ITEM_SONG, sessionName, epoch]];
+            ITEM_SONG, sessionName, gmtEpoch]];
     NSArray *invalidSongs = [moc executeFetchRequest:request error:&error];
     
     if (0 == [invalidSongs count]) {
@@ -385,7 +390,7 @@ __private_extern__ NSThread *mainThread;
     // count valid songs
     [request setPredicate:
         [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (submitted >= %@)",
-            ITEM_SONG, sessionName, epoch]];
+            ITEM_SONG, sessionName, gmtEpoch]];
     NSArray *validSongs = [moc executeFetchRequest:request error:&error];
     
     if ([validSongs count] > [invalidSongs count]) {
@@ -721,9 +726,9 @@ __private_extern__ NSThread *mainThread;
     ISASSERT([sessionSong valueForKey:@"item"] != nil, "missing item!");
     ISASSERT([sessionSong valueForKeyPath:@"item.artist"] != nil, "missing item artist!");
     
-    NSDate *sub = [sessionSong valueForKey:@"submitted"];
-    if ([sub isLessThan:[session valueForKey:@"epoch"]]
-        || ([session valueForKey:@"term"] && [sub isGreaterThan:[session valueForKey:@"term"]]))
+    NSDate *sub = [[sessionSong valueForKey:@"submitted"] GMTDate];
+    if ([sub isLessThan:[[session valueForKey:@"epoch"] GMTDate]]
+        || ([session valueForKey:@"term"] && [sub isGreaterThan:[[session valueForKey:@"term"] GMTDate]]))
         return (NO);
     
     [sessionSong setValue:session forKey:@"session"];
@@ -1007,6 +1012,13 @@ __private_extern__ NSThread *mainThread;
     return (nil);
 }
 
+@end
+
+@implementation NSDate (ISDateConversion)
+- (NSCalendarDate*)GMTDate
+{
+   return ([self dateWithCalendarFormat:nil timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]]);
+}
 @end
 
 @implementation NSManagedObject (PItemMathAdditions)
