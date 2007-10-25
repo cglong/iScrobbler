@@ -1124,16 +1124,23 @@ player_info_exit:
     [(id)contextInfo performSelector:@selector(close) withObject:nil afterDelay:0.0];
 }
 
+- (void)setSubmissionsEnabled:(BOOL)enabled
+{
+    submissionsDisabled = !enabled;
+    [statusItem setSubmissionsEnabled:!submissionsDisabled];
+    if (submissionsDisabled && [[NSUserDefaults standardUserDefaults] boolForKey:@"WarnIfSubmissionsDisabled"])
+        [self displayErrorWithTitle:NSLocalizedString(@"Submissions Disabled", "") message:@""];
+}
+
 -(IBAction)enableDisableSubmissions:(id)sender
 {
     if (!submissionsDisabled) {
-        submissionsDisabled = YES;
+        [self setSubmissionsEnabled:NO];
         [sender setTitle:NSLocalizedString(@"Resume Submissions", "")];
     } else {
-        submissionsDisabled = NO;
+        [self setSubmissionsEnabled:YES];
         [sender setTitle:NSLocalizedString(@"Pause Submissions", "")];
     }
-    [statusItem setSubmissionsEnabled:!submissionsDisabled];
 }
 
 - (void)updateMenu
@@ -1818,7 +1825,7 @@ exit:
 
 - (void)setScrobbleTracks:(BOOL)scrob
 {
-    submissionsDisabled = !scrob;
+    [self setSubmissionsEnabled:scrob];
 }
 
 // commands
