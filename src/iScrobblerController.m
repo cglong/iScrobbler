@@ -968,6 +968,25 @@ player_info_exit:
     [songActionMenu addItem:item];
     [item release];
     
+    [songActionMenu addItem:[NSMenuItem separatorItem]];
+    
+    item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Last.fm Artist Page", "")
+        action:@selector(openTrackURL:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_OPEN_ARTIST_PAGE];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Last.fm Track Page", "")
+        action:@selector(openTrackURL:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_OPEN_TRACK_PAGE];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    
     #ifdef notyet
     item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play", "")
         action:@selector(playSong:) keyEquivalent:@""];
@@ -1190,7 +1209,11 @@ player_info_exit:
                 [item setTarget:[ISRadioController sharedInstance]];
                 [item setTag:MACTION_SKIP];
                 [item setEnabled:YES];
-                [m addItem:item];
+                @try {
+                [m insertItem:item atIndex:[m indexOfItemWithTag:MACTION_RECOMEND_TAG]+1];
+                } @catch (id e) {
+                    ScrobDebug(@"exception: %@", e);
+                }
                 [item release];
                 
                 // Use the radio ban instead of the XML one so that the track is skipped as well as banned
@@ -1510,7 +1533,18 @@ player_info_exit:
 	[NSApp terminate:self];
 }
 
-// WS support
+// Track menu actions
+- (IBAction)openTrackURL:(id)sender
+{
+    SongData *song = [sender representedObject];
+    if (!song)
+        return;
+    
+    NSURL *url = [self audioScrobblerURLWithArtist:[song artist] trackTitle:
+        MACTION_OPEN_TRACK_PAGE == [sender tag] ? [song title] : nil];
+    if (url)
+        [[NSWorkspace sharedWorkspace] openURL:url];
+}
 
 - (IBAction)loveTrack:(id)sender
 {
