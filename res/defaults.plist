@@ -102,6 +102,10 @@
     <array>
     </array>
     
+    <key>Top Lists Search</key>
+    <array>
+    </array>
+    
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
     
