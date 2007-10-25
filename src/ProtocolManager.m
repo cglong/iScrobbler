@@ -172,7 +172,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
             //hsState = hs_needed;
             ++hsBadAuth;
             if (hsBadAuth >= BADAUTH_WARN) {
-				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
+                @try {
+                [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
+                } @catch (id e) {
+                    ScrobDebug(@"exception: %@", e);
+                }
                 handshakeDelay = HANDSHAKE_DEFAULT_DELAY * 2.0f;
                 hsBadAuth = 0;
 			} else {
@@ -190,7 +194,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
                 selector:@selector(scheduleHandshake:) userInfo:nil repeats:NO];
     }
     
+    @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
+    } @catch (id e) {
+        ScrobDebug(@"exception: %@", e);
+    }
     
     if (success && sendNP)
         [self sendNowPlaying];
@@ -228,8 +236,12 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         return;
     }
     
+    @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_START object:self];
-
+    } @catch (id e) {
+        ScrobDebug(@"exception: %@", e);
+    }
+    
 	NSURL *nsurl = [NSURL URLWithString:url];
 	//SCrobTrace(@"nsurl: %@",nsurl);
 	//ScrobTrace(@"host: %@",[nsurl host]);
@@ -496,7 +508,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
             ++subBadAuth;
             // Send notification if we've hit the threshold
 			if (subBadAuth >= BADAUTH_WARN) {
+                @try {
 				[[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_BADAUTH object:self];
+                } @catch (id e) {
+                    ScrobDebug(@"exception: %@", e);
+                }
                 subBadAuth = 0;
 			}
 		} else {
@@ -521,9 +537,13 @@ didFinishLoadingExit:
     
     myConnection = nil;
     
+    @try {
     if (0 != notify_post)
         notify_post("org.bergstrand.iscrobbler.didsubmit");
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+    } @catch (id e) {
+        ScrobDebug(@"exception: %@", e);
+    }
 }
 
 -(void)connection:(NSURLConnection *)sender didFailWithError:(NSError *)reason
@@ -573,7 +593,11 @@ didFinishLoadingExit:
 	
     [self setLastSongSubmitted:[inFlight lastObject]];
     
+    @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+    } @catch (id e) {
+        ScrobDebug(@"exception: %@", e);
+    }
     
     // Kick off resubmit timer
     [self scheduleResubmit];
@@ -608,7 +632,8 @@ didFinishLoadingExit:
 - (void)submit:(id)sender
 {	
     if (inFlight || myConnection) {
-        ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission...\n");
+        ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission... (connection=%p, inFlight=%p)",
+            inFlight, myConnection);
         return;
     }
     
@@ -656,9 +681,13 @@ didFinishLoadingExit:
     [resubmitTimer invalidate];
     resubmitTimer = nil;
     
+    @try {
     if (0 != notify_post)
         notify_post("org.bergstrand.iscrobbler.willsubmit");
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_START object:self];
+    } @catch (id e) {
+        ScrobDebug(@"exception: %@", e);
+    }
     
     (void)[inFlight retain];
     NSMutableData *subData = [[NSMutableData alloc] init];
@@ -696,12 +725,15 @@ didFinishLoadingExit:
         [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:[request HTTPBody]];
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
+        @try {
         [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+        } @catch (id e) {
+            ScrobDebug(@"exception: %@", e);
+        }
         [inFlight release];
         inFlight = nil;
-    } @finally {
-        [subData release];
     }
+    [subData release];
 }
 
 - (NSString*)netDiagnostic
@@ -742,12 +774,16 @@ didFinishLoadingExit:
         ScrobLog(SCROB_LOG_VERBOSE, @"Network status changed. Is available? \"%@\".%@\n",
             isNetworkAvailable ? @"Yes" : @"No", logmsg);
         
+        @try {
         [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_NETWORK_STATUS
             object:self userInfo:
                 [NSDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithBool:available], PM_NOTIFICATION_NETWORK_STATUS_KEY,
                     msg, PM_NOTIFICATION_NETWORK_MSG_KEY,
                     nil]];
+        } @catch (id e) {
+            ScrobDebug(@"exception: %@", e);
+        }
     }
 }
 
