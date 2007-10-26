@@ -330,6 +330,11 @@ __private_extern__ NSThread *mainThread = nil;
     [self pingSessionManager];
 }
 
+- (void)addSongPlaysDidFinish:(id)obj
+{
+    [self addSongPlay:nil]; // process any queued songs
+}
+
 - (void)initDB
 {
     NSCalendarDate *now = [NSCalendarDate distantPast];
