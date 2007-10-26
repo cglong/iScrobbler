@@ -83,6 +83,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     [self setHasQueued:NO];
     [self setPlayCount:[NSNumber numberWithInt:0]];
     [self setRating:[NSNumber numberWithInt:0]];
+    [self setPlayerUUID:@""];
 
     // initialize with current time
     [self setStartTime:[NSDate date]];
@@ -114,6 +115,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     [copy setBanned:(BOOL)banned];
     [copy setTrackNumber:[self trackNumber]];
     [copy setPlayCount:[self playCount]];
+    [copy setPlayerUUID:[self playerUUID]];
     
     copy->iTunes = self->iTunes;
     copy->isLastFmRadio = self->isLastFmRadio;
@@ -872,6 +874,19 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     }
 }
 
+- (NSString*)playerUUID
+{
+    return (playerUUID);
+}
+
+- (void)setPlayerUUID:(NSString*)uuid
+{
+    if (uuid && uuid != playerUUID) {
+        [playerUUID release];
+        playerUUID = [uuid retain];
+    }
+}
+
 - (BOOL)ignore
 {
     static NSSet *filters = nil;
@@ -1034,8 +1049,9 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     [sourceName release];
     [genre release];
     [comment release];
-    [playCount release];
     [mbid release];
+    [playCount release];
+    [playerUUID release];
     [super dealloc];
 }    
 

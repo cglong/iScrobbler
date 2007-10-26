@@ -14,6 +14,7 @@ set trackLastPlayed to current date
 set trackPodcast to 0
 set trackComment to ""
 set trackPlayCount to 0
+set trackPersistentID to ""
 --set emtpyTrackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource}
 
 
@@ -67,9 +68,12 @@ tell application "iTunes"
 		if (played count of theTrack is not missing value) then
 			set trackPlayCount to played count of theTrack
 		end if
+		try
+			set trackPersistentID to persistent ID of theTrack
+		end try
 	end try
 	
 end tell
 
-set trackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource, trackPodcast, trackComment, trackPlayCount}
+set trackInfo to {trackType, trackID, trackPostion, trackRating, trackLastPlayed, trackPlaylistID, trackSource, trackPodcast, trackComment, trackPlayCount, trackPersistentID}
 return trackInfo

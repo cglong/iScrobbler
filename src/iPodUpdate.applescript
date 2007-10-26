@@ -97,9 +97,14 @@ on UpdateiPod(thePlaylistName, theDate)
 							else
 								set trackPlayCount to 0
 							end if
+							try
+								set trackPersistentID to persistent ID of theTrack
+							on error
+								set trackPersistentID to ""
+							end try
 							
 							-- if you add/remove members, make sure to update IPOD_SYNC_VALUE_COUNT in iScrobblerController+Private.m
-							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast, trackComment, trackNumber, trackPlayCount}
+							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast, trackComment, trackNumber, trackPlayCount, trackPersistentID}
 							set out to out & {trackInfo}
 						end repeat
 						
@@ -122,6 +127,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Thursday, October 11, 2007 12:14:00 PM"
+	set when to date "Friday, October 26, 2007 12:14:00 AM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run

@@ -42,6 +42,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSString *comment;
     NSString *mbid;
     NSNumber *playCount;
+    NSString *playerUUID;
     NSMutableData *albumArtData;
     NSURLConnection *conn;
     TrackType_t trackType;
@@ -186,6 +187,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 // This is the player's value, not iscrobbler's
 - (NSNumber*)playCount;
 - (void)setPlayCount:(NSNumber*)count;
+
+- (NSString*)playerUUID;
+- (void)setPlayerUUID:(NSString*)uuid;
 
 - (BOOL)ignore;
 

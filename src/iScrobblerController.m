@@ -299,7 +299,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
             u_int64_t trackiTunesDatabaseID = 0;
             NSNumber *trackPosition, *trackRating, *trackPlaylistID, *trackPodcast, *trackPlayCount;
             NSDate *trackLastPlayed = nil;
-            NSString *trackSourceName = nil, *trackComment;
+            NSString *trackSourceName = nil, *trackComment = nil, *trackUUID = nil;
             NSArray *values;
             @try {
                 values = [result objCObjectValue];
@@ -312,7 +312,8 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
                 trackSourceName = [values objectAtIndex:6];
                 trackPodcast = [values objectAtIndex:7];
                 trackComment = [values objectAtIndex:8];
-                trackPlayCount = [values objectAtIndex:9]; 
+                trackPlayCount = [values objectAtIndex:9];
+                trackUUID = [values objectAtIndex:10];
             } @catch (NSException *exception) {
                 ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: parsing exception %@\n.", exception);
                 return (NO);
@@ -340,6 +341,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
                 if (trackComment)
                     [song setComment:trackComment];
                 [song setPlayCount:trackPlayCount];
+                [song setPlayerUUID:trackUUID];
                 return (YES);
             } else {
                 ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
