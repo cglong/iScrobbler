@@ -11,6 +11,11 @@
 #ifdef __OBJC__
 #import <Cocoa/Cocoa.h>
 #import "ScrobLog.h"
+
+// implemented in PersistentSessionManager.m since that was the first to use it
+@interface NSDate (ISDateConversion)
+- (NSCalendarDate*)GMTDate;
+@end
 #endif
 
 #ifdef __ppc__

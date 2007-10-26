@@ -16,16 +16,13 @@
 __private_extern__ NSThread *mainThread;
 #endif
 
-@interface NSDate (ISDateConversion)
-- (NSCalendarDate*)GMTDate;
-@end
-
 @interface PersistentProfile (Private)
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify;
 - (BOOL)save:(NSManagedObjectContext*)moc;
 - (void)resetMain;
 - (void)setImportInProgress:(BOOL)import;
 - (NSManagedObjectContext*)mainMOC;
+- (void)addSongPlaysDidFinish:(id)obj;
 @end
 
 @interface SongData (PersistentAdditions)
@@ -587,6 +584,7 @@ __private_extern__ NSThread *mainThread;
     
     [[PersistentProfile sharedInstance] setImportInProgress:NO];
     (void)[[PersistentProfile sharedInstance] save:moc];
+    [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(addSongPlaysDidFinish:) withObject:nil waitUntilDone:NO];
 #if IS_THREAD_SESSIONMGR
     // Turn the added songs into faults as we probably won't need them anytime soon
     // (we may need the artist/album/session objects though). This should save on some memory.
