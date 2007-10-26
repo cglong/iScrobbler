@@ -257,20 +257,43 @@ __private_extern__ NSThread *mainThread = nil;
     [request setSortDescriptors:[NSArray arrayWithObject:
         [[[NSSortDescriptor alloc] initWithKey:@"lastPlayed" ascending:NO] autorelease]]];
     
-    NSString *format = @"(song.name LIKE[cd] %@) AND (song.artist.name LIKE[cd] %@)";
+    NSString *format = @"(itemType == %@) AND (song.name LIKE[cd] %@) AND (song.artist.name LIKE[cd] %@)";
     NSString *album = [song album];
     if (!ignoreAlbum && album && [album length] > 0)
         format = [format stringByAppendingString:@" AND (song.album.name LIKE[cd] %@)"];
     else
         album = nil;
-    [request setPredicate:[NSPredicate predicateWithFormat:format, [song title], [song artist], album]];
+    [request setPredicate:[NSPredicate predicateWithFormat:format, ITEM_SONG, [song title], [song artist], album]];
     
     return ([mainMOC executeFetchRequest:request error:&error]);
 }
 
-- (u_int32_t)playCountForSong:(SongData*)song ignoreAlbum:(BOOL)ignoreAlbum
+- (NSNumber*)playCountForSong:(SongData*)song
 {
-    return (0);
+    NSError *error;
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:mainMOC];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    
+    NSString *format = @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)";
+    NSString *album = [song album];
+    if (album && [album length] > 0)
+        format = [format stringByAppendingString:@" AND (album.name LIKE[cd] %@)"];
+    else
+        album = nil;
+    [request setPredicate:[NSPredicate predicateWithFormat:format, ITEM_SONG, [song title], [song artist], album]];
+    
+    NSArray *result = [mainMOC executeFetchRequest:request error:&error];
+    if (1 == [result count]) {
+        return ([[result objectAtIndex:0] valueForKey:@"playCount"]);
+    } else if ([result count] > 0) {
+        if (!album) {
+            ScrobLog(SCROB_LOG_WARN, @"playCountForSong: multiple songs for '%@' found in chart database", [song brief]);
+            return ([[result objectAtIndex:0] valueForKey:@"playCount"]);
+        } else
+            ISASSERT(0, "multiple songs found!");
+    }
+    return (nil);
 }
 #endif
 
