@@ -130,7 +130,7 @@
         }
     }
     
-    if ([[NSDate dateWithTimeIntervalSince1970:shuffleEpoch] isLessThan:requestEpoch])
+    if ([[[NSDate dateWithTimeIntervalSince1970:shuffleEpoch] GMTDate] isLessThan:[requestEpoch GMTDate]])
         ScrobLog(SCROB_LOG_WARN, @"All iPod Shuffle tracks could not be adjusted to fit into the time period since "
             @"the last submission. Some tracks may not be submitted or may be rejected by the last.fm servers.");
 }
@@ -226,13 +226,16 @@ validate:
                 [[lastSubmission startTime] timeIntervalSince1970] +
                 [[lastSubmission duration] doubleValue]];
             // If the song was paused the following will be true.
-            if ([[lastSubmission lastPlayed] isGreaterThan:requestDate])
+            if ([[[lastSubmission lastPlayed] GMTDate] isGreaterThan:[requestDate GMTDate]])
                 requestDate = [lastSubmission lastPlayed];
             
             requestDate = [NSDate dateWithTimeIntervalSince1970:
                 [requestDate timeIntervalSince1970] + [SongData songTimeFudge]];
         } else
             requestDate = iTunesLastPlayedTime;
+        
+        NSDate *requestDateGMT= [requestDate GMTDate];
+        NSDate *iPodMountEpochGMT = [iPodMountEpoch GMTDate];
         
         // XXX: If we are not submitting (no connection or last.fm server is down), then we could get dupes from
         // the iPod if it's sync'd more than once, since the [ProtocolManager lastSongSubmitted] will not be updating.
@@ -290,6 +293,7 @@ validate:
                 SongData *song;
                 NSMutableArray *iqueue = [NSMutableArray arrayWithCapacity:[trackList count]];
                 NSDate *currentDate = [NSDate date];
+                NSDate *currentDateGMT = [currentDate GMTDate];
                 
                 added = 0;
                 while ((trackData = [en nextObject])) {
@@ -309,7 +313,7 @@ validate:
                         [song setStartTime:[NSDate dateWithTimeIntervalSince1970:postDate]];
                         [song setPosition:[song duration]];
                         
-                        if ([[song postDate] isGreaterThan:currentDate]) {
+                        if ([[[song postDate] GMTDate] isGreaterThan:currentDateGMT]) {
                             ScrobLog(SCROB_LOG_WARN,
                                 @"Discarding '%@': future post date.\n\t"
                                 "Current Date: %@, Post Date: %@, requestDate: %@.\n",
@@ -328,7 +332,7 @@ validate:
                 
                 en = [iqueue objectEnumerator];
                 while ((song = [en nextObject])) {
-                    if (![[song postDate] isGreaterThan:requestDate]) {
+                    if (![[[song postDate] GMTDate] isGreaterThan:requestDateGMT]) {
                         ScrobLog(SCROB_LOG_WARN,
                             @"Discarding '%@': anachronistic post date.\n\t"
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@.\n",
@@ -336,7 +340,7 @@ validate:
                             requestDate);
                         continue;
                     }
-                    if ([[song lastPlayed] isGreaterThan:iPodMountEpoch]) {
+                    if ([[[song lastPlayed] GMTDate] isGreaterThan:iPodMountEpochGMT]) {
                         ScrobLog(SCROB_LOG_INFO,
                             @"Discarding '%@' in the assumption that it was played after an iPod sync began.\n\t"
                             "Post Date: %@, Last Played: %@, Duration: %.0lf, requestDate: %@, iPodMountEpoch: %@.\n",
@@ -353,7 +357,9 @@ validate:
                 
                 [self setITunesLastPlayedTime:[NSDate date]];
                 if (added > 0) {
-                    [[QueueManager sharedInstance] submit];
+                    // we have to delay this, so the plays are submitted AFTER the [volumeUnmount;] finishes
+                    // otherwise, the queue won't submit because it thinks the iPod is still mounted
+                    [[QueueManager sharedInstance] performSelector:@selector(submit) withObject:nil afterDelay:0.0];
                 }
             }
         } else {
