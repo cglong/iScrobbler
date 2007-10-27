@@ -36,6 +36,7 @@
 #import "ISStatusItem.h"
 #import "ISPluginController.h"
 #import "Persistence.h"
+#import "ISiTunesLibrary.h"
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -776,6 +777,8 @@ player_info_exit:
     
     if ((self = [super init])) {
         [NSApp setDelegate:self];
+        
+        (void)[ISiTunesLibrary sharedInstance]; // init before any threads start
         
         nc=[NSNotificationCenter defaultCenter];
         [nc addObserver:self selector:@selector(handlePrefsChanged:)

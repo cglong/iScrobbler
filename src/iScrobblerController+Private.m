@@ -67,6 +67,7 @@
 // =========== iPod Support ============
 
 #define IPOD_SYNC_VALUE_COUNT 16
+#define ISCOPY_OF_ITUNES_LIB [@"~/Library/Caches/org.bergstrand.iscrobbler.iTunesLibCopy.xml" stringByExpandingTildeInPath]
 
 #define ONE_DAY 86400.0
 #define ONE_WEEK (ONE_DAY * 7.0)
@@ -172,10 +173,42 @@ validate:
 
 - (IBAction)syncIPod:(id)sender
 {
+    if ([prefs boolForKey:@"Sync iPod"] && !submissionsDisabled) {
+        NSString *path = [self valueForKey:@"iPodMountPath"];
+        ISASSERT(path != nil, "bad iPod path!");
+        
+        NSDate *epoch = [iPodMounts objectForKey:path];
+        ISASSERT(epoch != nil, "iPod epoch not found!");
+        
+        NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
+            path, IPOD_SYNC_KEY_PATH,
+            epoch, @"epoch",
+            nil];
+        // add a "fake" count while we wait for the lib to load so plays are still queued until we are done
+        ++iPodMountCount;
+        [[ISiTunesLibrary sharedInstance] loadInBackgroundFromPath:ISCOPY_OF_ITUNES_LIB
+            withDelegate:self didFinishSelector:@selector(synciPodWithiTunesLibrary:) context:d];
+    }
+}
+
+- (void)synciPodWithiTunesLibrary:(NSDictionary*)arg
+{
     static NSAppleScript *iPodUpdateScript = nil;
     ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
-    if ([prefs boolForKey:@"Sync iPod"] && !submissionsDisabled) {
+    @try {
+        NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
+        NSDictionary *context = [arg objectForKey:@"context"];
+        ISASSERT(context != nil,  "missing context!");
+        
+        NSString *iPodVolPath = [context objectForKey:IPOD_SYNC_KEY_PATH];
+        NSDate *iPodMountEpoch = [context objectForKey:@"epoch"];
+        
+        if (!iPodVolPath || !iPodMountEpoch) {
+            ScrobLog(SCROB_LOG_ERR, @"synciPod: missing iPod path or epoch (%@ , %@)", iPodVolPath, iPodMountEpoch);
+            @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"missing epoch or vol path" userInfo:nil]);
+        }
+        
         NSArray *trackList, *trackData;
         NSString *errInfo = nil, *playlist;
         NSTimeInterval now, fudge;
@@ -190,19 +223,18 @@ validate:
             iPodUpdateScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
             if (!iPodUpdateScript) {
                 ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!\n");
-                return;
+                @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"Failed to load iPodUpdateScript!" userInfo:nil]);
             }
             #undef path
         }
         
         if (!(playlist = [prefs stringForKey:@"iPod Submission Playlist"]) || ![playlist length]) {
-            ScrobLog(SCROB_LOG_ERR, @"iPod playlist not set, aborting sync.");
-            return;
+            @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"iPod playlist not set, aborting sync." userInfo:nil]);
         }
         
         [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_BEGIN
             object:nil
-            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:iPodMountPath, IPOD_SYNC_KEY_PATH,
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:/* iPodMountPath, IPOD_SYNC_KEY_PATH,*/
                 iPodIcon, IPOD_SYNC_KEY_ICON, nil]];
         
         // Just a little extra fudge time
@@ -219,8 +251,7 @@ validate:
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
         SongData *lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted]; // XXX Bug if subs are being cached
-        NSDate *requestDate, *iPodMountEpoch;
-        iPodMountEpoch = [[[iPodMounts allValues] sortedArrayUsingSelector:@selector(compare:)] lastObject];
+        NSDate *requestDate;
         if (lastSubmission) {
             requestDate = [NSDate dateWithTimeIntervalSince1970:
                 [[lastSubmission startTime] timeIntervalSince1970] +
@@ -245,11 +276,10 @@ validate:
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
             requestDate);
         // Run script
-        trackList = nil;
         @try {
-            trackList = [iPodUpdateScript executeHandler:@"UpdateiPod" withParameters:
-                playlist, requestDate, nil];
+            trackList = [iPodUpdateScript executeHandler:@"UpdateiPod" withParameters:playlist, requestDate, nil];
         } @catch (NSException *exception) {
+            trackList = nil;
             errInfo = [exception description];
         }
         
@@ -371,13 +401,22 @@ sync_exit_with_note:
         [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_END
             object:nil
             userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-                iPodMountPath, IPOD_SYNC_KEY_PATH,
+                /* iPodMountPath, IPOD_SYNC_KEY_PATH,*/
                 [NSNumber numberWithUnsignedInt:added], IPOD_SYNC_KEY_TRACK_COUNT,
                 // errInfo may be nil, so it should always be last in the arg list
                 errInfo, IPOD_SYNC_KEY_SCRIPT_MSG,
                 nil]];
         
-    } // if ("Sync iPod")
+        // copy the iTunes lib for later use in detecting multiple iPod plays
+        [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
+        
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_ERR, @"syncIpod: exception %@", e);
+    }
+        
+    // clean up our extra "fake" count
+    --iPodMountCount;
+    ISASSERT(iPodMountCount > -1, "negative ipod count!");
 }
 
 // NSWorkSpace mount notifications
@@ -422,8 +461,15 @@ sync_exit_with_note:
     ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.\n", info);
     
     if ([iPodMounts objectForKey:mountPath]) {
+        NSString *curPath = [self valueForKey:@"iPodMountPath"];
+        if ([curPath isEqualToString:mountPath])
+            curPath = nil;
+        else
+            [self setValue:mountPath forKey:@"iPodMountPath"];
+        
         [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
-        [self setValue:nil forKey:@"iPodMountPath"];
+        
+        [self setValue:curPath forKey:@"iPodMountPath"];
         [iPodIcon release];
         iPodIcon = nil;
         

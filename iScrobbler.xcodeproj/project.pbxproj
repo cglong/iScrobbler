@@ -62,6 +62,7 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
+		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
 		D376063F0CB230E300C04863 /* ChatStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D37606340CB2307F00C04863 /* ChatStatus.m */; };
 		D37606650CB2363F00C04863 /* ChatStatus.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D376063A0CB230A900C04863 /* ChatStatus.plugin */; };
@@ -188,6 +189,8 @@
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISiTunesLibrary.h; sourceTree = "<group>"; };
+		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPlugin.h; sourceTree = "<group>"; };
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPluginController.h; sourceTree = "<group>"; };
 		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISPluginController.m; sourceTree = "<group>"; };
@@ -332,6 +335,7 @@
 				F575CE9702FE0E8801A80164 /* iScrobblerController.m */,
 				D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */,
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
+				D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */,
 				D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */,
 				D37605560CB18BF700C04863 /* ISPluginController.m */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
@@ -343,7 +347,6 @@
 				D376EE930CA9153E00C04863 /* ISStatusItemView.m */,
 				D38F6FB80B541A9000230DBE /* ISTagController.m */,
 				D3F4A4340CC4FF4B000DCBB6 /* ISThreadMessenger.m */,
-				D3F4A4300CC4FF2F000DCBB6 /* ISThreadMessenger.h */,
 				F575CEAA02FF7F3501A80164 /* PreferenceController.m */,
 				EB50662D03FBB239005DC01B /* keychain.m */,
 				D312EB560735548F00A2CFD5 /* QueueManager.m */,
@@ -566,6 +569,7 @@
 				D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */,
 				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
+				D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */,
 				D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */,
 				D37605540CB18BF700C04863 /* ISPlugin.h */,
 				D37605550CB18BF700C04863 /* ISPluginController.h */,
@@ -577,6 +581,7 @@
 				D376EC690CA8E21900C04863 /* ISStatusItem.h */,
 				D376EE920CA9153E00C04863 /* ISStatusItemView.h */,
 				D38F6FB70B541A9000230DBE /* ISTagController.h */,
+				D3F4A4300CC4FF2F000DCBB6 /* ISThreadMessenger.h */,
 				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
 				EB50662F03FBB284005DC01B /* keychain.h */,
 				EB607518042A747B005DC01B /* SongData.h */,
@@ -769,6 +774,7 @@
 				D3F4A4350CC4FF4B000DCBB6 /* ISThreadMessenger.m in Sources */,
 				D3F4A4E90CC56EA9000DCBB6 /* PersistentSessionManager.m in Sources */,
 				D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */,
+				D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
