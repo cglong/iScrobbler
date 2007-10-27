@@ -8,6 +8,8 @@
 //  Released under the GPL, license details available res/gpl.txt
 //
 
+#import "ISiTunesLibrary.h"
+
 @interface SongData (iTunesImport)
 - (SongData*)initWithiTunesXMLTrack:(NSDictionary*)track;
 @end
@@ -216,13 +218,9 @@
     
     ISStartTime();
     
-    NSString *path = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
-    NSDictionary *iTunesLib = [[NSDictionary alloc] initWithContentsOfFile:path];
-    if (!iTunesLib) {
-        path = [@"~/Documents/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
-        if (!(iTunesLib = [[NSDictionary alloc] initWithContentsOfFile:path])) {
-            @throw ([NSException exceptionWithName:NSGenericException reason:@"iTunes XML Library not found" userInfo:nil]);
-        }
+    NSDictionary *iTunesLib;
+    if (!(iTunesLib = [[ISiTunesLibrary sharedInstance] load])) {
+        @throw ([NSException exceptionWithName:NSGenericException reason:@"iTunes XML Library not found" userInfo:nil]);
     }
     
     // Sorting the array allows to optimze import by making eliminating the need to search for existing artist/albums
