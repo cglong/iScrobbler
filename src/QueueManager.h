@@ -18,6 +18,7 @@ typedef enum {kqSuccess, kqIsQueued, kqFailed} QueueResult_t;
 @interface QueueManager : NSObject {
 @private
 	NSString *queuePath;
+    SongData *lastSongQueued;
     id songQueue;
     unsigned totalSubmissions;
     unsigned totalSubmissionSeconds;
@@ -56,6 +57,8 @@ typedef enum {kqSuccess, kqIsQueued, kqFailed} QueueResult_t;
 
 - (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomic;
 - (void)syncQueue:(id)sender;
+
+- (SongData*)lastSongQueued;
 
 @end
 

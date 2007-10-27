@@ -234,7 +234,7 @@ validate:
         
         [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_BEGIN
             object:nil
-            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:/* iPodMountPath, IPOD_SYNC_KEY_PATH,*/
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:iPodVolPath, IPOD_SYNC_KEY_PATH,
                 iPodIcon, IPOD_SYNC_KEY_ICON, nil]];
         
         // Just a little extra fudge time
@@ -250,7 +250,9 @@ validate:
         // of the tracks played during the pause will be picked up (in auto-sync mode).
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted]; // XXX Bug if subs are being cached
+        SongData *lastSubmission = [[QueueManager sharedInstance] lastSongQueued];
+        if (!lastSubmission)
+            lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
         NSDate *requestDate;
         if (lastSubmission) {
             requestDate = [NSDate dateWithTimeIntervalSince1970:
@@ -267,11 +269,6 @@ validate:
         
         NSDate *requestDateGMT= [requestDate GMTDate];
         NSDate *iPodMountEpochGMT = [iPodMountEpoch GMTDate];
-        
-        // XXX: If we are not submitting (no connection or last.fm server is down), then we could get dupes from
-        // the iPod if it's sync'd more than once, since the [ProtocolManager lastSongSubmitted] will not be updating.
-        // This is generally not a problem, as the Cache Manager will discard the dupes. However, we could solve this
-        // by remembering the last sync time for each iPod (by generating a UUID that is stored on the iPod disk).
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
             requestDate);
@@ -401,7 +398,7 @@ sync_exit_with_note:
         [[NSNotificationCenter defaultCenter]  postNotificationName:IPOD_SYNC_END
             object:nil
             userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-                /* iPodMountPath, IPOD_SYNC_KEY_PATH,*/
+                iPodVolPath, IPOD_SYNC_KEY_PATH,
                 [NSNumber numberWithUnsignedInt:added], IPOD_SYNC_KEY_TRACK_COUNT,
                 // errInfo may be nil, so it should always be last in the arg list
                 errInfo, IPOD_SYNC_KEY_SCRIPT_MSG,

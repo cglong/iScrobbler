@@ -61,6 +61,25 @@ static QueueManager *g_QManager = nil;
     return (self);
 }
 
+- (SongData*)lastSongQueued
+{
+    return (lastSongQueued);
+}
+
+
+- (void)setLastSongQueued:(SongData*)song
+{
+    (void)[song retain];
+    [lastSongQueued release];
+    lastSongQueued = song;
+    
+    NSDictionary *d = [lastSongQueued songData];
+    if (d) {
+        [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"LastSongQueued"];
+        (void)[[NSUserDefaults standardUserDefaults] synchronize];
+    }
+}
+
 // Queues a song and immediately tries to send it.
 - (QueueResult_t)queueSong:(SongData*)song
 {
@@ -121,6 +140,8 @@ static QueueManager *g_QManager = nil;
     [songQueue addObject:song];
     ++totalSubmissions;
     totalSubmissionSeconds += [[song duration] unsignedIntValue];
+    
+    [self setLastSongQueued:song];
     
     [[NSNotificationCenter defaultCenter]
         postNotificationName:QM_NOTIFICATION_SONG_QUEUED
@@ -312,6 +333,21 @@ static QueueManager *g_QManager = nil;
 - (id)init
 {
     if ((self = [super init])) {
+        // We keep track of this for iPod support which uses lastSubmitted to
+        // determine the timestamp used in played songs detection.
+        NSDictionary *d = [[NSUserDefaults standardUserDefaults] objectForKey:@"LastSongQueued"];
+        if (d) {
+            SongData *song = [[SongData alloc] init];
+            if ([song setSongData:d]) {
+                ScrobLog(SCROB_LOG_TRACE, @"Restored '%@' as last queued song.", [song brief]);
+                [song setStartTime:[song postDate]];
+                [song setPosition:[song duration]];
+                [self setLastSongQueued:song];
+            } else
+                ScrobLog(SCROB_LOG_ERR, @"Failed to restore last queued song: %@", d);
+            [song release];
+        }
+        
         FSRef appSupport;
         
         if (noErr == FSFindFolder(kUserDomain, kApplicationSupportFolderType, kCreateFolder, &appSupport)) {
@@ -364,11 +400,14 @@ static QueueManager *g_QManager = nil;
     return (self);
 }
 
+#ifdef notyet
 - (void)dealloc
 {
     [queuePath release];
     [songQueue release];
+    [lastSongQueued release];
     [super dealloc];
 }
+#endif
 
 @end
