@@ -730,23 +730,20 @@ __private_extern__ NSThread *mainThread;
         return (NO);
     
     [sessionSong setValue:session forKey:@"session"];
-    NSString *sessionName = [session valueForKey:@"name"], *itemName;
+    NSString *sessionName = [session valueForKey:@"name"];
     NSManagedObject *artist, *album;
-    NSError *error = nil;
+    NSEntityDescription *entity;
+    NSSet *aliases;
     
     // Update the Artist
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
-    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
-    [request setEntity:entity];
-    itemName = [sessionSong valueForKeyPath:@"item.artist.name"];
-    [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (item.name LIKE[cd] %@)",
-            ITEM_ARTIST, sessionName, itemName]];
-    
-    NSArray *result = [moc executeFetchRequest:request error:&error];
+    aliases = [sessionSong valueForKeyPath:@"item.artist.sessionAliases"];
+    NSArray *result = [[aliases allObjects] filteredArrayUsingPredicate:
+        [NSPredicate predicateWithFormat:@"session.name == %@", sessionName]];
     if (1 == [result count]) {
         artist = [result objectAtIndex:0];
+        ISASSERT([[artist valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
     } else if (0 == [result count]) {
+        entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
         artist = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [artist setValue:ITEM_ARTIST forKey:@"itemType"];
         [artist setValue:[sessionSong valueForKeyPath:@"item.artist"] forKey:@"item"];
@@ -761,32 +758,15 @@ __private_extern__ NSThread *mainThread;
     
     if ([sessionSong valueForKeyPath:@"item.album"]) {
         // Update the album
-        entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
-        [request setEntity:entity];
-        itemName = [sessionSong valueForKeyPath:@"item.album.name"];
-        #ifdef bugbug
-        // XXX
-        // Do to the way an SQLLite store is created, and the way a fetch is created for SQL, the "item.artist.name" will
-        // generate an exception because the Artist, HourCache and RatingCache session item releationships
-        // do not contain a valid artist relationship
-        [request setPredicate:
-            [NSPredicate predicateWithFormat:
-                @"(itemType == %@) AND (session.name == %@) AND (item.name LIKE[cd] %@) AND (item.artist.name LIKE[cd] %@)",
-                    ITEM_ALBUM, sessionName, itemName, [sessionSong valueForKeyPath:@"item.artist.name"]]];
-        #endif
-        // instead we just fetch on the item.name relationship and then pare down the results in memory.
-        [request setPredicate:
-            [NSPredicate predicateWithFormat:
-                @"(itemType == %@) AND (session.name == %@) AND (item.name LIKE[cd] %@)", ITEM_ALBUM, sessionName, itemName]];
-        
-        result = [moc executeFetchRequest:request error:&error];
-        if ([result count] > 0) {
-            result = [result filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:
-                @"item.artist.name LIKE[cd] %@", [sessionSong valueForKeyPath:@"item.artist.name"]]];
-        }
+        aliases = [sessionSong valueForKeyPath:@"item.album.sessionAliases"];
+        result = [[aliases allObjects] filteredArrayUsingPredicate:
+            [NSPredicate predicateWithFormat:@"session.name == %@", sessionName]];
         if (1 == [result count]) {
             album = [result objectAtIndex:0];
+            ISASSERT([[album valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.album.name"]], "album names don't match!");
+            ISASSERT([[album valueForKeyPath:@"item.artist.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
         } else if (0 == [result count]) {
+            entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
             album = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
             [album setValue:ITEM_ALBUM forKey:@"itemType"];
             [album setValue:[sessionSong valueForKeyPath:@"item.album"] forKey:@"item"];
@@ -829,11 +809,15 @@ __private_extern__ NSThread *mainThread;
 
 - (NSManagedObject*)addSongPlay:(SongData*)song withImportedPlayCount:(NSNumber*)importCount moc:(NSManagedObjectContext*)moc
 {
+    ISElapsedTimeInit();
+    
+    ISStartTime();
     NSManagedObject *psong = [song persistentSongWithContext:moc];
+    ISEndTime();
+    ScrobDebug(@"[persistentSongWithContext:] returned in %.4f us", ISElapsedMicroSeconds());
     
     if (psong) {
         NSEntityDescription *entity;
-        
         // increment counts
         NSNumber *pCount;
         NSNumber *pTime;
@@ -869,8 +853,11 @@ __private_extern__ NSThread *mainThread;
             [sessionSong incrementPlayCount:pCount];
             [sessionSong incrementPlayTime:pTime];
             
+            //ISStartTime();
             if (![self addSessionSong:sessionSong toSession:session moc:moc]) 
                 [moc deleteObject:sessionSong];
+            //ISEndTime();
+            //ScrobDebug(@"[addSessionSong:] (%@) returned in %.4f us", [session valueForKey:@"name"], ISElapsedMicroSeconds());
             
             [pool release];
         }
@@ -891,6 +878,8 @@ __private_extern__ NSThread *mainThread;
     
     @try {
     
+    // tried optimizing this search by just searching for song titles and then limiting to artist/album in memory,
+    // but it made no difference in speed
     NSPredicate *predicate;
     NSString *aTitle;
     if ((aTitle = [self album]) && [aTitle length] > 0) {
