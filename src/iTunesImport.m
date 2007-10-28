@@ -223,7 +223,7 @@
         @throw ([NSException exceptionWithName:NSGenericException reason:@"iTunes XML Library not found" userInfo:nil]);
     }
     
-    // Sorting the array allows to optimze import by making eliminating the need to search for existing artist/albums
+    // Sorting the array allows us to optimze the import by eliminating the need to search for existing artist/albums
     NSArray *allTracks = [[[iTunesLib objectForKey:@"Tracks"] allValues]
         sortedArrayUsingDescriptors:[NSArray arrayWithObjects:
         [[[NSSortDescriptor alloc] initWithKey:@"Artist" ascending:YES selector:@selector(caseInsensitiveCompare:)] autorelease],
@@ -232,7 +232,6 @@
         nil]];
     (void)[allTracks retain];
     NSString *uuid = [[iTunesLib objectForKey:@"Library Persistent ID"] retain];
-    [iTunesLib release];
     iTunesLib = nil;
     
     [pool release];
