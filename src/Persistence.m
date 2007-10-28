@@ -14,29 +14,6 @@
 #import "PersistentSessionManager.h"
 #import "SongData.h"
 
-#ifdef ISDEBUG
-#include <mach/mach.h>
-#include <mach/mach_time.h>
-
-#define ISElapsedTimeInit() \
-u_int64_t start, end, diff; \
-double abs2clockns; \
-mach_timebase_info_data_t info; \
-(void)mach_timebase_info(&info); \
-
-#define ISStartTime() do { start = mach_absolute_time(); } while(0)
-#define ISEndTime() do { \
-    end = mach_absolute_time(); \
-    diff = end - start; \
-    abs2clockns = (double)info.numer / (double)info.denom; \
-    abs2clockns *= diff; \
-} while(0)
-#else
-#define ISElapsedTimeInit() {}
-#define ISStartTime() {}
-#define ISEndTime() {}
-#endif
-
 /**
 Simple CoreDate overview: http://cocoadevcentral.com/articles/000086.php
 Important CoreData behaviors:

@@ -27,12 +27,36 @@
 #endif
 
 #ifdef ISDEBUG
+
 #define ISASSERT(condition,msg) do { \
 if (0 == (condition)) { \
     trap(); \
 } } while(0)
 #define ISDEBUG_ONLY
+
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
+#define ISElapsedTimeInit() \
+u_int64_t start, end, diff; \
+double abs2clockns; \
+mach_timebase_info_data_t info; \
+(void)mach_timebase_info(&info); \
+
+#define ISStartTime() do { start = mach_absolute_time(); } while(0)
+#define ISEndTime() do { \
+    end = mach_absolute_time(); \
+    diff = end - start; \
+    abs2clockns = (double)info.numer / (double)info.denom; \
+    abs2clockns *= diff; \
+} while(0)
+
 #else
+
 #define ISASSERT(condition,msg) {}
 #define ISDEBUG_ONLY __unused
+#define ISElapsedTimeInit() {}
+#define ISStartTime() {}
+#define ISEndTime() {}
+
 #endif
