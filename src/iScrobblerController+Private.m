@@ -349,8 +349,8 @@ validate:
     ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
     NSAutoreleasePool *workPool = nil;
+    NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
     @try {
-        NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
         NSDictionary *context = [arg objectForKey:@"context"];
         ISASSERT(context != nil,  "missing context!");
         
@@ -591,6 +591,13 @@ sync_exit_with_note:
     // clean up our extra "fake" count
     --iPodMountCount;
     ISASSERT(iPodMountCount > -1, "negative ipod count!");
+    
+    if (iTunesLib) {
+        // Release the copy of the iTunes lib on the background thread as it can take quite a bit of time to free if the lib is large
+        // By delaying this until the next run loop cyle, we are assured the current auotrelease pool retain is released and
+        // the object will actually be released on the background thread
+        [[ISiTunesLibrary sharedInstance] performSelector:@selector(releaseiTunesLib:) withObject:[iTunesLib retain] afterDelay:0.0];
+    }
 }
 
 // NSWorkSpace mount notifications

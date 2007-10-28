@@ -25,5 +25,6 @@
 - (void)loadInBackgroundFromPath:(NSString*)path withDelegate:(id)delegate didFinishSelector:(SEL)selector context:(id)context;
 
 - (BOOL)copyToPath:(NSString*)path;
+- (void)releaseiTunesLib:(NSDictionary*)lib;
 
 @end

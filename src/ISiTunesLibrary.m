@@ -73,7 +73,17 @@
     return (YES);
 }
 
+- (void)releaseiTunesLib:(NSDictionary*)lib
+{
+    [ISThreadMessenger makeTarget:thMsgr performSelector:@selector(releaseObject:) withObject:lib];
+}
+
 // private
+- (void)releaseObject:(id)obj
+{
+    [obj release];
+}
+
 - (void)copyiTunesLib:(NSString*)dest
 {
     NSString *libPath = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
