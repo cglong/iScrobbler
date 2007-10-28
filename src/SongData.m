@@ -1061,10 +1061,13 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
 
 - (BOOL)hasPlayedAgain:(SongData*)song
 {
-    return ( [self isEqualToSong:song] &&
+    NSTimeInterval songStart = [[song startTime] timeIntervalSince1970];
+    NSTimeInterval myStart = [[self startTime] timeIntervalSince1970];
+    return ( [self isEqualToSong:song]
+             && (fabs(songStart - myStart) >= [SongData songTimeFudge])
              // And make sure the duration is valid
-             [[song startTime] timeIntervalSince1970] >
-             ([[self startTime] timeIntervalSince1970] + [[song duration] doubleValue]) );
+             && (songStart >= (myStart + [[song duration] doubleValue]))
+             || (songStart <= (myStart - [[song duration] doubleValue])) );
 }
 
 @end

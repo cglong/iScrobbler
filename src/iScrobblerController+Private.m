@@ -97,13 +97,165 @@
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-- (void)fixIPodShuffleTimes:(NSArray*)songs withRequestDate:(NSDate*)requestEpoch
+- (BOOL)setSongPlayTimes:(SongData*)song findingTimeinGaps:(NSMutableArray*)playGaps
+{
+    NSEnumerator *en = [playGaps objectEnumerator];
+    NSMutableDictionary *entry;
+    while ((entry = [en nextObject])) {
+        if ([[entry objectForKey:@"gap"] isGreaterThanOrEqualTo:[song duration]])
+            break;
+    }
+    
+    if (entry) {
+        NSTimeInterval secStart, gap, duration;
+        secStart = [[entry objectForKey:@"start"] doubleValue];
+        gap = [[entry objectForKey:@"gap"] doubleValue];
+        duration = [[song duration] doubleValue];
+        
+        // update the song
+        [song setPostDate:[NSDate dateWithTimeIntervalSince1970:secStart]];
+        secStart += duration;
+        [song setLastPlayed:[NSDate dateWithTimeIntervalSince1970:secStart]];
+        
+        // update the entry
+        if ((gap -= duration) > [SongData songTimeFudge]) {
+            [entry setObject:[NSNumber numberWithDouble:gap] forKey:@"gap"];
+            [entry setObject:[NSNumber numberWithDouble:secStart] forKey:@"start"];
+        } else
+            [playGaps removeObject:entry];
+        
+        if ([playGaps count] > 1) {
+            [playGaps sortUsingDescriptors:
+                [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"gap" ascending:YES] autorelease]]];
+        }
+        
+        return (YES);
+    }
+    
+    return (NO);
+}
+
+- (NSMutableArray*)findInitialFreeTimeGaps:(NSArray*)sortedByLastPlayed /*songs*/
+{
+    NSMutableArray *entries = [NSMutableArray array];
+    NSMutableDictionary *entry;
+    unsigned count = [sortedByLastPlayed count] - 1;
+    NSTimeInterval secStart, secEnd;
+    NSTimeInterval gap;
+    for (int i = 0; i < count; ++i) {
+        secStart = [[[sortedByLastPlayed objectAtIndex:i] lastPlayed] timeIntervalSince1970];
+        secEnd = [[[sortedByLastPlayed objectAtIndex:i+1] startTime] timeIntervalSince1970];
+        gap = floor(secEnd - secStart);
+        if (gap > [SongData songTimeFudge]) {
+            entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                [NSNumber numberWithDouble:gap], @"gap",
+                [NSNumber numberWithDouble:secStart], @"start",
+                [NSNumber numberWithDouble:secStart], @"end",
+                nil];
+            [entries addObject:entry];
+        }
+    }
+    
+    if ([entries count] > 1) {
+        [entries sortUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"gap" ascending:YES] autorelease]]];
+    }
+    
+    return (entries);
+}
+
+- (NSMutableArray*)detectAndSynthesizeMultiplePlays:(NSArray*)songs usingiTunesTracks:(NSDictionary*)iTunesTracks withiPodMountDate:(NSDate*)mountEpoch
+{
+    NSMutableArray *extras = [NSMutableArray array];
+    NSArray *sortedByLastPlayed = [songs sortedArrayUsingSelector:@selector(compareSongLastPlayedDate:)];
+    NSArray *sortedByDuration = [songs sortedArrayUsingDescriptors:
+        [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"duration" ascending:NO] autorelease]]];
+    
+    // The easiest option is to use any time between the last iPod play and now, but that may not be possible
+    NSTimeInterval extrasEpochSince1970 = [[[sortedByLastPlayed lastObject] lastPlayed] timeIntervalSince1970] + 1.0;
+    NSTimeInterval freeSeconds = floor(fabs([mountEpoch timeIntervalSince1970] - extrasEpochSince1970));
+    
+    // And our fallback of play gaps in between the songs
+    NSMutableArray *playGaps = [self findInitialFreeTimeGaps:sortedByLastPlayed];
+    
+    NSArray *allTracks = [iTunesTracks allValues]; // we pre-flight this here so we don't have to do it every time in the loop
+    NSNumber *dbCount, *zero = [NSNumber numberWithInt:0];
+    NSEnumerator *en = [sortedByDuration objectEnumerator];
+    SongData *song, *newSong;
+    while ((song = [en nextObject])) {
+        // XXX songs are keyed on the 'database ID' in the XML file, but these can change at any time
+        // even between different iTunes run instances. What a mess.
+        NSString *songUUID = [song playerUUID];
+        NSNumber *trackKey = [NSString stringWithFormat:@"%llu", [song iTunesDatabaseID]];
+        NSDictionary *track = [iTunesTracks objectForKey:trackKey];
+        if (!track || NSOrderedSame != [songUUID caseInsensitiveCompare:[track objectForKey:@"Persistent ID"]]) {
+            // Sometimes the id's only change by 1...
+            trackKey = [NSString stringWithFormat:@"%llu", [song iTunesDatabaseID] + 1];
+            track = [iTunesTracks objectForKey:trackKey];
+            if (!track || NSOrderedSame != [songUUID caseInsensitiveCompare:[track objectForKey:@"Persistent ID"]]) {
+                trackKey = [NSString stringWithFormat:@"%llu", [song iTunesDatabaseID] - 1];
+                track = [iTunesTracks objectForKey:trackKey];
+                if (!track || NSOrderedSame != [songUUID caseInsensitiveCompare:[track objectForKey:@"Persistent ID"]]) {
+                    // OK, fall back to an expensive array search, we could use NSPredicate, but it's so SLOW
+                    NSEnumerator *trackEN = [allTracks objectEnumerator];
+                    while ((track = [trackEN nextObject])) {
+                        if (NSOrderedSame == [songUUID caseInsensitiveCompare:[track objectForKey:@"Persistent ID"]])
+                            break;
+                    }
+                    
+                }
+            }
+        }
+        
+        if (!(dbCount = [track objectForKey:@"Play Count"])) {
+            ScrobLog(SCROB_LOG_ERR, @"Failed to retrieve play count for '%@' from iTunes library using db id '%@'.",
+                [song brief], trackKey);
+            continue;
+        }
+        
+        int extraPlays;
+        // we subtract one from the current playCount to account for the instance of the song retrieved from iTunes
+        if ((extraPlays = (([[song playCount] unsignedIntValue] - 1) - [dbCount unsignedIntValue])) > 0) {
+            ScrobLog(SCROB_LOG_TRACE, @"Found %u iPod plays for '%@', attempting to synthesize extra plays...", extraPlays+1, [song brief]);
+            double duration = [[song duration] doubleValue];
+            for (int i = 0; i < extraPlays; ++i) {
+                newSong = [song copy];
+                if (freeSeconds >= duration) {
+                    freeSeconds -= duration;
+                    [newSong setPostDate:[NSDate dateWithTimeIntervalSince1970:extrasEpochSince1970]];
+                    extrasEpochSince1970 += duration;
+                    [newSong setLastPlayed:[NSDate dateWithTimeIntervalSince1970:extrasEpochSince1970]];
+                }
+                // this is the hard part, we have to fit the extra play into the free space between the times iTunes gave us
+                else if (![self setSongPlayTimes:newSong findingTimeinGaps:playGaps]) {
+                    ScrobLog(SCROB_LOG_ERR, @"Unable to synthesize play time for song '%@' with duration %.0f", [song brief], duration);
+                    ScrobLog(SCROB_LOG_TRACE, @"freeSeconds: %.0f, playGaps:%@", freeSeconds, playGaps);
+                    [newSong release];
+                    if (0 == [playGaps count])
+                        break;
+                    else
+                        continue;
+                }
+                
+                [newSong setPosition:[song duration]];
+                [newSong setStartTime:[newSong postDate]];
+                [newSong setPlayCount:zero];
+                [extras addObject:newSong];
+                [newSong release];
+            }
+        }
+    }
+    
+    return (extras);
+}
+
+- (void)fixIPodShuffleTimes:(NSArray*)songs withRequestDate:(NSDate*)requestEpoch withiPodMountDate:(NSDate*)mountEpoch
 {
     NSArray *sorted = [songs sortedArrayUsingSelector:@selector(compareSongLastPlayedDate:)];
     int i;
     unsigned count = [sorted count];
     // Shuffle plays will have a last played equal to the time the Shuffle was sync'd
-    NSTimeInterval shuffleEpoch = [[NSDate date] timeIntervalSince1970] - 1.0;
+    NSTimeInterval shuffleEpoch = [mountEpoch timeIntervalSince1970];
     SongData *song;
     for (i = 1; i < count; ++i) {
         song = [sorted objectAtIndex:i-1];
@@ -196,6 +348,7 @@ validate:
     static NSAppleScript *iPodUpdateScript = nil;
     ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
     
+    NSAutoreleasePool *workPool = nil;
     @try {
         NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
         NSDictionary *context = [arg objectForKey:@"context"];
@@ -250,7 +403,7 @@ validate:
         // of the tracks played during the pause will be picked up (in auto-sync mode).
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission = [[QueueManager sharedInstance] lastSongQueued];
+        SongData *lastSubmission = nil;//[[QueueManager sharedInstance] lastSongQueued];
         if (!lastSubmission)
             lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
         NSDate *requestDate;
@@ -354,9 +507,24 @@ validate:
                     }
                 }
                 
-                [self fixIPodShuffleTimes:iqueue withRequestDate:requestDate];
+                NSMutableArray *extraPlays;
+                if (iTunesLib) {
+                    workPool = [[NSAutoreleasePool alloc] init];
+                    extraPlays = [[self detectAndSynthesizeMultiplePlays:iqueue
+                        usingiTunesTracks:[iTunesLib objectForKey:@"Tracks"] withiPodMountDate:iPodMountEpoch] retain];
+                    [workPool release];
+                    [extraPlays autorelease];
+                    workPool = nil;
+                } else {
+                    extraPlays = nil;
+                    ScrobLog(SCROB_LOG_WARN, @"Could not find/open iTunes library copy, multiple iPod play detection will not be attempted.");
+                }
+                
+                [self fixIPodShuffleTimes:iqueue withRequestDate:requestDate withiPodMountDate:iPodMountEpoch];
                 iqueue = [self validateIPodSync:iqueue];
                 
+                NSNumber *zero = [NSNumber numberWithInt:0];
+validate_song_queue:
                 en = [iqueue objectEnumerator];
                 while ((song = [en nextObject])) {
                     if (![[[song postDate] GMTDate] isGreaterThan:requestDateGMT]) {
@@ -377,9 +545,17 @@ validate:
                     }
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
                     [song setReconstituted:YES];
+                    [song setPlayCount:zero]; // we don't want the iTunes play count to update the db
                     ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
                     (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
+                }
+                
+                if (extraPlays) {
+                    ScrobLog(SCROB_LOG_TRACE, @"Validating and queueing synthesized iPod plays...");
+                    iqueue = [self validateIPodSync:extraPlays];
+                    extraPlays = nil;
+                    goto validate_song_queue;
                 }
                 
                 [self setITunesLastPlayedTime:[NSDate date]];
@@ -409,6 +585,7 @@ sync_exit_with_note:
         
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"syncIpod: exception %@", e);
+        [workPool release];
     }
         
     // clean up our extra "fake" count
