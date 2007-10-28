@@ -50,6 +50,9 @@ mach_timebase_info_data_t info; \
     abs2clockns = (double)info.numer / (double)info.denom; \
     abs2clockns *= diff; \
 } while(0)
+#define ISElapsedMicroSeconds() (abs2clockns / 1000.0)
+#define ISElapsedMilliSeconds() (abs2clockns / 1000000.0)
+#define ISElapsedSeconds() (abs2clockns / 1000000000.0)
 
 #else
 
@@ -58,5 +61,8 @@ mach_timebase_info_data_t info; \
 #define ISElapsedTimeInit() {}
 #define ISStartTime() {}
 #define ISEndTime() {}
+#define ISElapsedMicroSeconds() 0
+#define ISElapsedMilliSeconds() 0
+#define ISElapsedSeconds() 0
 
 #endif
