@@ -14,6 +14,9 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+a5:
+- Bug Fix: Crash on importing iTunes library.
+- Bug Fix: The Tag window now opens with the text field having default focus.
 a4:
 - New local charts. They look the same, but there are now multiple separate charts maintained (including an Overall chart that starts with the import of your iTunes library).
 -- Note: Because of the amount of data that can be generated and the computation required to maintain the chart data, iScrobbler can use quite a bit of memory (and briefly) quite a bit of CPU time.
