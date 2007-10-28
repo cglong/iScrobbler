@@ -213,7 +213,12 @@ static NSMutableArray *topHours = nil;
 - (void)songQueuedHandler:(NSNotification*)note
 {
     SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
-    [[PersistentProfile sharedInstance] addSongPlay:song];
+    if (NO == [song reconstituted])
+        [[PersistentProfile sharedInstance] addSongPlay:song];
+    #ifdef ISDEBUG
+    else
+        ISASSERT(0, "reconstituted song!");
+    #endif
 }
 
 - (void)persistentProfileImportProgress:(NSNotification*)note
