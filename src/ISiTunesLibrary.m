@@ -59,7 +59,8 @@
     [arg setTarget:delegate]; // arg 0
     [arg setSelector:selector]; // arg 1
     [arg setArgument:&context atIndex:2];
-    [ISThreadMessenger makeTarget:thMsgr performSelector:@selector(readiTunesLib:) withObject:arg];
+    [ISThreadMessenger makeTarget:thMsgr performSelector:@selector(readiTunesLib:)
+        withObject:[NSArray arrayWithObjects:path, arg, nil]];
 }
 
 - (BOOL)copyToPath:(NSString*)path
@@ -80,22 +81,27 @@
     (void)[[NSFileManager defaultManager] copyPath:libPath toPath:dest handler:nil];
 }
 
-- (void)readiTunesLib:(NSInvocation*)didEnd
+- (void)readiTunesLib:(NSArray*)args
 {
-    NSDictionary *lib = [self load];
-    NSDictionary *arg;
+    NSDictionary *upcallArg;
+    NSInvocation *didEnd = nil;
     @try {
+    didEnd = [args objectAtIndex:1];
+    
+    NSDictionary *lib = [self loadFromPath:[args objectAtIndex:0]];
+    
     NSDictionary *context;
     [didEnd getArgument:&context atIndex:2];
-    arg = [NSDictionary dictionaryWithObjectsAndKeys:
+    upcallArg = [NSDictionary dictionaryWithObjectsAndKeys:
         context, @"context",
         lib, @"iTunesLib",
         nil];
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"readiTunesLib: exception %@", e);
-        arg = nil;
+        upcallArg = nil;
     }
-    [[didEnd target] performSelectorOnMainThread:[didEnd selector] withObject:arg waitUntilDone:NO];
+    ISASSERT(didEnd != nil, "nil target!");
+    [[didEnd target] performSelectorOnMainThread:[didEnd selector] withObject:upcallArg waitUntilDone:NO];
 }
 
 - (void)readiTunesLibThread:(id)arg
