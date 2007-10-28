@@ -20,6 +20,9 @@ set trackPersistentID to ""
 
 tell application "iTunes"
 	try
+		-- for debugging
+		--set theTrack to item 1 of the selection of browser window 1
+		
 		set theTrack to get current track
 		
 		set trackClass to (get class of theTrack)
@@ -38,8 +41,6 @@ tell application "iTunes"
 		end if
 		
 		try
-			-- 'persistent ID' would be better, but iScrobbler expects an int and this is a string
-			-- since this is only used to play a track, it's not worth the QA effort to change iScrobbler (yet)
 			set trackID to database ID of theTrack
 		end try
 		set trackPostion to player position
