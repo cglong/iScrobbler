@@ -403,7 +403,7 @@ validate:
         // of the tracks played during the pause will be picked up (in auto-sync mode).
         // I really can't think of a way to catch this case w/o all kinds of hackery
         // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission = nil;//[[QueueManager sharedInstance] lastSongQueued];
+        SongData *lastSubmission = [[QueueManager sharedInstance] lastSongQueued];
         if (!lastSubmission)
             lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
         NSDate *requestDate;
