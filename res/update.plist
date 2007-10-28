@@ -5,12 +5,12 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>54fb8dcf07378e69828fd212be8a3f2bbcb3474c</string>
+        	<string>dbedc67aed24b39273e4d27ebf24a8d79e5df931</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0a4</string>
+        <string>2.0.0a5</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a4.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a5.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
@@ -19,6 +19,7 @@
 - New plugin to change the iChat status message to the currently playing Radio track.
 - New Applescript commands.
 - Other minor new features and bug fixes.
+- a5 fixes a crash in the iTunes library import.
                 </string>
         </dict>
 </dict>
