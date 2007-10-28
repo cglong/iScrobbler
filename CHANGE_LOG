@@ -14,18 +14,38 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+a4:
+- New local charts. They look the same, but there are now multiple separate charts maintained (including an Overall chart that starts with the import of your iTunes library).
+-- Note: Because of the amount of data that can be generated and the computation required to maintain the chart data, iScrobbler can use quite a bit of memory (and briefly) quite a bit of CPU time.
+- Multiple iPod play support.
+- New plugin to change the iChat status message to the currently playing Radio track. If you don't care for this, the plugin can be disabled from the Finder's 'Get Info' window.
+- The Last.fm Artist and Track pages can be opened from the currently playing track menu.
+- The last Radio station tuned can be accessed directly from the Radio menu.
+- New Applescript command "show now playing" will display the Growl NP window.
+- New Applescript commands "tag current track", "love current track", and "ban current track"
+- The Growl 'Now Playing' note displays the currently tuned Radio station (if the radio is playing).
+- If iScrobbler is quit and the Radio is playing, it will stop iTunes.
+- Bug Fix: Possible crash when viewing the Artist Details drawer (intro'd in a2).
+- Bug Fix: "Find Station" window always appears in front of other applications when it is opened.
+- Bug Fix: In the stats detail, display "Listening to Radio" instead of the last local submission response if the radio is playing.
+- Bug Fix: Don't send protocol 1.2 "now playing" if the network is not available.
+- Bug Fix: The 'scrobble track plays' AppleScript command did not update the menu icon when changed.
+- Bug Fix: After syncing an iPod, the queue would not submit until the next track play from iTunes.
+- Bug Fix: Possible issues with iPod syncing and DST switches (mainly because iTunes doesn't compensate for the iPod DST being wrong until it syncs for the first time).
 a3:
 - AppleScript support, including Radio control.
 - Added option to tune an Artist's top fans radio instead of their similar artists radio.
-- The Growl 'Now playing' notificiaton can be displayed at any time by hovering the mouse over the menu.
+- The Growl 'Now playing' notification can be displayed at any time by hovering the mouse over the menu.
 - Elapsed and total track time are now included in the default track Growl display
 - Album art for Radio tracks is displayed if possible.
 - A revised album artwork cache now expires entries based on time and use and no longer has a fixed size. This should result in less memory use.
 - iScrobbler will warn you (via Growl) if another Last.fm client application is running.
+- Version checks are only attempted if the network monitor determines there's an active network connection.
+- Bug fixes related to Radio track detection/display.
 a2:
 - Added Radio support for Friends, Neighbors, Tags, Global Tags, Groups and Artists stations.
 - Added Radio history (limited by the "Number of Recent Tracks" pref).
-- iScrobbler will not auto-connect to the Last.fm Radio during launch unless the "Auto Tune Last Playd Radio Station" pref is checked.
+- iScrobbler will not auto-connect to the Last.fm Radio during launch unless the "Auto Tune Last Played Radio Station" pref is checked.
 - Added Connect item to the Radio submenu to start a connection when the Auto-Tune pref is not checked.
 - Added "Now Playing" station to the Last.fm submenu.
 - Added "My Playlist" station item to the Radio submenu.
@@ -33,7 +53,7 @@ a2:
 - iScrobbler can handle external requests for lastfm:// URLs (for instance the "Play In Software" links on the last.fm website).
 - When playing a Radio track, the duration of the track is part of the track title in the Stats window and is a tooltip for the song in the Notes menu.
 a1:
-- Requires 10.4.0 or later
+- Requires 10.4.9 or later
 - Radio support! (Plays through iTunes.)
 
 v1.5.1 (BDB)
@@ -49,7 +69,7 @@ v1.5 (BDB)
 - The top three fans are now listed in the Artist Detail window.
 - Removed "Your Fan Rating" from the Artist Details, and replaced it with a listing of the Artist tags (fully clickable).
 - The Top Lists profile now includes the number of tracks played per day and the number of hours played per day (as tooltips).
-- The Top Lists profile now includes the elpased time since the last profile reset.
+- The Top Lists profile now includes the elapsed time since the last profile reset.
 - Audioscrobbler Protocol 1.2 is now supported (and the default).
 - Growl track notification layout change.
 - A profile reset now requires confirmation.
