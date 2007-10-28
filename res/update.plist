@@ -5,7 +5,7 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>dab5bfd49df00056774534e80f9ea3bfee88d35b</string>
+        	<string>54fb8dcf07378e69828fd212be8a3f2bbcb3474c</string>
         </dict>
         <key>Version</key>
         <string>2.0.0a3</string>
@@ -14,12 +14,11 @@
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- AppleScript support, including Radio control.
-- Added option to tune an Artist's top fans radio instead of their similar artists radio.
-- The Growl 'Now playing' notificiaton can be displayed at any time by hovering the mouse over the menu.
-- Elapsed and total track time are now included in the default track Growl display
-- Album art for Radio tracks is displayed if possible.
-- Bug fixes related to Radio track detection/display.
+                <string>- New local charts. They look the same, but there are now multiple separate charts maintained.
+- Multiple iPod play support.
+- New plugin to change the iChat status message to the currently playing Radio track.
+- New Applescript commands.
+- Other minor new features and bug fixes.
                 </string>
         </dict>
 </dict>
