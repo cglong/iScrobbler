@@ -1888,12 +1888,34 @@ exit:
 
 - (id)performDefaultImplementation
 {
+    NSMenuItem *item;
     switch ([[self commandDescription] appleEventCode]) {
         case 'Fcch': // flush caches
             [[NSApp delegate] performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
         break;
         case 'NPly': // show now playing
             [[NSApp delegate] performSelector:@selector(displayNowPlaying) withObject:nil afterDelay:0.0];
+        break;
+        case 'TagS': // tag currently playing song
+            item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
+            if ([item hasSubmenu]) {
+                if ((item = [[item submenu] itemWithTag:MACTION_TAG_TAG]))
+                    [[NSApp delegate] performSelector:@selector(tagTrack:) withObject:item afterDelay:0.0];
+            }
+        break;
+        case 'LovS': // love currently playing song
+            item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
+            if ([item hasSubmenu]) {
+                if ((item = [[item submenu] itemWithTag:MACTION_LOVE_TAG]))
+                    [[NSApp delegate] performSelector:@selector(loveTrack:) withObject:item afterDelay:0.0];
+            }
+        break;
+        case 'BanS': // ban currently playing song
+            item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
+            if ([item hasSubmenu]) {
+                if ((item = [[item submenu] itemWithTag:MACTION_BAN_TAG]))
+                    [[NSApp delegate] performSelector:@selector(banTrack:) withObject:item afterDelay:0.0];
+            }
         break;
         default:
             ScrobLog(SCROB_LOG_TRACE, @"ISAppScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);

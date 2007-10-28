@@ -37,6 +37,15 @@
 			<responds-to name="show now playing">
 				<cocoa method=""/>
 			</responds-to>
+			<responds-to name="love current track">
+				<cocoa method=""/>
+			</responds-to>
+			<responds-to name="ban current track">
+				<cocoa method=""/>
+			</responds-to>
+			<responds-to name="tag current track">
+				<cocoa method=""/>
+			</responds-to>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
 			<cocoa class="ISRadioController"/>
@@ -90,7 +99,16 @@
 		<command name="stop playing" code="iSCbSTop" description="Stop playing tracks.">
 			<cocoa class="ISScriptCommand"/>
 		</command>
-		<command name="show now playing" code="iSCbNPly" description="Displays information about the currently playing song.">
+		<command name="show now playing" code="iSCbNPly" description="Displays information about the currently playing track.">
+			<cocoa class="ISAppScriptCommand"/>
+		</command>
+		<command name="tag current track" code="iSCbTagS" description="Open the tag window for the currently playing track.">
+			<cocoa class="ISAppScriptCommand"/>
+		</command>
+		<command name="love current track" code="iSCbLovS" description="Love the currently playing track.">
+			<cocoa class="ISAppScriptCommand"/>
+		</command>
+		<command name="ban current track" code="iSCbBanS" description="Ban the currently playing track.">
 			<cocoa class="ISAppScriptCommand"/>
 		</command>
 	</suite>
