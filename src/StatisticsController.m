@@ -238,7 +238,7 @@ static NSImage *prevIcon = nil;
     }
     
     // It would be cool if we could do some text alpha fading when the msg changes,
-    // but that's too much work...
+    // but that's too much work... can Core Animation help though ([view animator])
     [nowPlayingText setStringValue:msg];
 }
 
