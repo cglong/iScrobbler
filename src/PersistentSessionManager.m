@@ -140,8 +140,9 @@ __private_extern__ NSThread *mainThread;
     
     [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
     
-    [[NSTimer timerWithTimeInterval:0 target:self selector:@selector(updateLastfmSession:) userInfo:moc repeats:NO] fire];
-    [[NSTimer timerWithTimeInterval:0 target:self selector:@selector(updateSessions:) userInfo:moc repeats:NO] fire];
+    lfmUpdateTimer = sUpdateTimer = nil;
+    [self performSelector:@selector(updateLastfmSession:) withObject:nil];
+    [self performSelector:@selector(updateSessions:) withObject:nil];
     
     thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
     
@@ -165,8 +166,8 @@ __private_extern__ NSThread *mainThread;
 - (void)sessionManagerUpdate
 {
     ISASSERT(mainThread && (mainThread != [NSThread currentThread]), "wrong thread!");
-    [lfmUpdateTimer fire];
-    [sUpdateTimer fire];
+    [self performSelector:@selector(updateLastfmSession:) withObject:nil];
+    [self performSelector:@selector(updateSessions:) withObject:nil];
 }
 
 - (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:newEpoch moc:(NSManagedObjectContext*)moc
@@ -434,16 +435,17 @@ __private_extern__ NSThread *mainThread;
 
 - (void)updateLastfmSession:(NSTimer*)t
 {
-    NSManagedObjectContext *moc = t ? [t userInfo] : [[PersistentProfile sharedInstance] mainMOC];
-    
-    [lfmUpdateTimer invalidate];
+    if (!t)
+        [lfmUpdateTimer invalidate];
     [lfmUpdateTimer autorelease];
     lfmUpdateTimer = nil;
     
     if ([[PersistentProfile sharedInstance] importInProgress]) {
-        return;
+        return; // the timer is not rescheduled, but it will be when the import is done
     }
     
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
     NSCalendarDate *epoch; // we could use [t fireDate], but it may be off by a few seconds
     NSCalendarDate *gmtNow = [NSCalendarDate calendarDate];
     [gmtNow setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
@@ -474,33 +476,22 @@ __private_extern__ NSThread *mainThread;
     epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
     
     lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
-        target:self selector:@selector(updateLastfmSession:) userInfo:moc repeats:NO] retain];
+        target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
 }
 
 - (void)updateSessions:(NSTimer*)t
 {
-    NSManagedObjectContext *moc = t ? [t userInfo] : [[PersistentProfile sharedInstance] mainMOC];
-    
-    [sUpdateTimer invalidate];
+    if (!t)
+        [sUpdateTimer invalidate];
     [sUpdateTimer autorelease];
     sUpdateTimer = nil;
     
-#if 0
-    NSArray *songs = [[self songsForSession:[self sessionWithName:@"pastday" moc:moc]] sortedArrayUsingDescriptors:
-        [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"submitted" ascending:NO] autorelease]]];
-    NSEnumerator *en = [songs objectEnumerator];
-    id obj;
-    while ((obj = [en nextObject])) {
-        ScrobLog(SCROB_LOG_TRACE, @"'%@','%@': sub:%@ playCount:%@", [obj valueForKeyPath:@"item.name"],
-            [obj valueForKeyPath:@"item.artist.name"], /*[obj valueForKey:@"item.album.name"],*/
-            [obj valueForKey:@"submitted"], [obj valueForKey:@"playCount"]);
-    }
-#endif
-    
     if ([[PersistentProfile sharedInstance] importInProgress]) {
-        return;
+        return; // the timer is not rescheduled, but it will be when the import is done
     }
     
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
     BOOL didRemove = NO;
     NSCalendarDate *now = [NSCalendarDate calendarDate];
     NSCalendarDate *midnight = [now dateByAddingYears:0 months:0 days:0
@@ -547,7 +538,7 @@ __private_extern__ NSThread *mainThread;
 #endif
     
     sUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[midnight timeIntervalSinceNow]
-        target:self selector:@selector(updateSessions:) userInfo:moc repeats:NO] retain];
+        target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
 }
 
 - (void)processSongPlays:(NSArray*)queue
