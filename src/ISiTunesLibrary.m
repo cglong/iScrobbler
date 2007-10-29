@@ -88,7 +88,9 @@
 {
     NSString *libPath = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
     (void)[[NSFileManager defaultManager] removeFileAtPath:dest handler:nil];
-    (void)[[NSFileManager defaultManager] copyPath:libPath toPath:dest handler:nil];
+    if ([[NSFileManager defaultManager] copyPath:libPath toPath:dest handler:nil])
+        ScrobLog(SCROB_LOG_TRACE, @"Copied iTunes library.");
+    
 }
 
 - (void)readiTunesLib:(NSArray*)args
