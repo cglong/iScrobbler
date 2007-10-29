@@ -279,13 +279,10 @@
         
         [[moc persistentStoreCoordinator] lock];
         [self importSong:song withPlayCount:[track objectForKey:@"Play Count"]];
-        #ifdef obsolete
-        [profile addSongPlay:song withImportedPlayCount:[track objectForKey:@"Play Count"] moc:moc];
-        (void)[profile save:moc withNotification:NO];
-        #endif
         [[moc persistentStoreCoordinator] unlock];
+        ++importedTracks;
 
-        if (importedTracks > 0 && 0 == (importedTracks % 100)) {
+        if (0 == (importedTracks % 100)) {
             [trackPool release];
             trackPool = [[NSAutoreleasePool alloc] init];
             
