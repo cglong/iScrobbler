@@ -163,16 +163,25 @@
     return (entries);
 }
 
-- (NSMutableArray*)detectAndSynthesizeMultiplePlays:(NSArray*)songs usingiTunesTracks:(NSDictionary*)iTunesTracks withiPodMountDate:(NSDate*)mountEpoch
+- (NSMutableArray*)detectAndSynthesizeMultiplePlays:(NSArray*)songs iTunesTracks:(NSDictionary*)iTunesTracks
+    iPodMountDate:(NSDate*)mountEpoch requestDate:(NSDate*)requestDate
 {
     NSMutableArray *extras = [NSMutableArray array];
     NSArray *sortedByLastPlayed = [songs sortedArrayUsingSelector:@selector(compareSongLastPlayedDate:)];
     NSArray *sortedByDuration = [songs sortedArrayUsingDescriptors:
         [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"duration" ascending:NO] autorelease]]];
     
-    // The easiest option is to use any time between the last iPod play and now, but that may not be possible
-    NSTimeInterval extrasEpochSince1970 = [[[sortedByLastPlayed lastObject] lastPlayed] timeIntervalSince1970] + 1.0;
-    NSTimeInterval freeSeconds = floor(fabs([mountEpoch timeIntervalSince1970] - extrasEpochSince1970));
+    // The easiest option is to use the interval between the last iPod play and the iPod mount, but that may not be possible
+    NSTimeInterval postiPodEpochSince1970 = [[[sortedByLastPlayed lastObject] lastPlayed] timeIntervalSince1970] + 1.0;
+    NSTimeInterval postiPodFreeSeconds = floor([mountEpoch timeIntervalSince1970] - postiPodEpochSince1970);
+    if (postiPodFreeSeconds < 0.0)
+        postiPodFreeSeconds = 0.0; // something is probably off with the iPod clock
+    // or the interval between the last queued song and the first iPod play
+    NSTimeInterval preiPodEpochSince1970 = [requestDate timeIntervalSince1970] + 1.0;
+    NSTimeInterval preiPodFreeSeconds = [[[sortedByLastPlayed objectAtIndex:0] postDate] timeIntervalSince1970] - 1.0;
+    preiPodFreeSeconds = floor(preiPodFreeSeconds - preiPodEpochSince1970);
+    if (preiPodFreeSeconds < 0.0)
+        preiPodFreeSeconds = 0.0; // something is seriously wrong
     
     // And our fallback of play gaps in between the songs
     NSMutableArray *playGaps = [self findInitialFreeTimeGaps:sortedByLastPlayed];
@@ -219,16 +228,21 @@
             double duration = [[song duration] doubleValue];
             for (int i = 0; i < extraPlays; ++i) {
                 newSong = [song copy];
-                if (freeSeconds >= duration) {
-                    freeSeconds -= duration;
-                    [newSong setPostDate:[NSDate dateWithTimeIntervalSince1970:extrasEpochSince1970]];
-                    extrasEpochSince1970 += duration;
-                    [newSong setLastPlayed:[NSDate dateWithTimeIntervalSince1970:extrasEpochSince1970]];
+                if (postiPodFreeSeconds >= duration) {
+                    postiPodFreeSeconds -= duration;
+                    [newSong setPostDate:[NSDate dateWithTimeIntervalSince1970:postiPodEpochSince1970]];
+                    postiPodEpochSince1970 += duration;
+                    [newSong setLastPlayed:[NSDate dateWithTimeIntervalSince1970:postiPodEpochSince1970]];
+                } else if (preiPodFreeSeconds >= duration) {
+                    preiPodFreeSeconds -= duration;
+                    [newSong setPostDate:[NSDate dateWithTimeIntervalSince1970:preiPodEpochSince1970]];
+                    preiPodEpochSince1970 += duration;
+                    [newSong setLastPlayed:[NSDate dateWithTimeIntervalSince1970:preiPodEpochSince1970]];
                 }
                 // this is the hard part, we have to fit the extra play into the free space between the times iTunes gave us
                 else if (![self setSongPlayTimes:newSong findingTimeinGaps:playGaps]) {
                     ScrobLog(SCROB_LOG_ERR, @"Unable to synthesize play time for song '%@' with duration %.0f", [song brief], duration);
-                    ScrobLog(SCROB_LOG_TRACE, @"freeSeconds: %.0f, playGaps:%@", freeSeconds, playGaps);
+                    ScrobLog(SCROB_LOG_TRACE, @"preiPodFreeSeconds: %.0f, postiPodFreeSeconds: %.0f, playGaps:%@", preiPodFreeSeconds, postiPodFreeSeconds, playGaps);
                     [newSong release];
                     if (0 == [playGaps count])
                         break;
@@ -508,8 +522,8 @@ validate:
                 NSMutableArray *extraPlays;
                 if (iTunesLib) {
                     workPool = [[NSAutoreleasePool alloc] init];
-                    extraPlays = [[self detectAndSynthesizeMultiplePlays:iqueue
-                        usingiTunesTracks:[iTunesLib objectForKey:@"Tracks"] withiPodMountDate:iPodMountEpoch] retain];
+                    extraPlays = [[self detectAndSynthesizeMultiplePlays:iqueue iTunesTracks:[iTunesLib objectForKey:@"Tracks"]
+                        iPodMountDate:iPodMountEpoch requestDate:requestDate] retain];
                     [workPool release];
                     [extraPlays autorelease];
                     workPool = nil;
