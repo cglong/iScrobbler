@@ -67,7 +67,6 @@
 // =========== iPod Support ============
 
 #define IPOD_SYNC_VALUE_COUNT 16
-#define ISCOPY_OF_ITUNES_LIB [@"~/Library/Caches/org.bergstrand.iscrobbler.iTunesLibCopy.xml" stringByExpandingTildeInPath]
 
 #define ONE_DAY 86400.0
 #define ONE_WEEK (ONE_DAY * 7.0)
@@ -179,7 +178,7 @@
     NSMutableArray *playGaps = [self findInitialFreeTimeGaps:sortedByLastPlayed];
     
     NSArray *allTracks = [iTunesTracks allValues]; // we pre-flight this here so we don't have to do it every time in the loop
-    NSNumber *dbCount, *zero = [NSNumber numberWithInt:0];
+    NSNumber *dbCount;
     NSEnumerator *en = [sortedByDuration objectEnumerator];
     SongData *song, *newSong;
     while ((song = [en nextObject])) {
@@ -239,7 +238,6 @@
                 
                 [newSong setPosition:[song duration]];
                 [newSong setStartTime:[newSong postDate]];
-                [newSong setPlayCount:zero];
                 [extras addObject:newSong];
                 [newSong release];
             }

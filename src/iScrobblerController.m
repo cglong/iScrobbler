@@ -12,6 +12,7 @@
 
 #import <IOKit/IOMessage.h>
 #import <IOKit/pwr_mgt/IOPMLib.h>
+#import <IOKit/storage/IOMedia.h>
 #import <Carbon/Carbon.h>
 
 #import "iScrobblerController.h"
@@ -47,6 +48,10 @@
 
 static io_connect_t powerPort = (io_connect_t)0;
 static void iokpm_callback (void *, io_service_t, natural_t, void*);
+
+// this is used to trigger a copy of the iTunes library
+#define ISCOPY_OF_ITUNES_LIB [@"~/Library/Caches/org.bergstrand.iscrobbler.iTunesLibCopy.xml" stringByExpandingTildeInPath]
+static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 
 #if 0
 @interface NSScriptCommand (ISExtensions)
@@ -808,11 +813,29 @@ player_info_exit:
         // XXX: portRef, powerPort and source are all leaked objects on purpoose
         IONotificationPortRef portRef;
         io_object_t notifier;
+        CFRunLoopSourceRef source;
         powerPort = IORegisterForSystemPower (NULL, &portRef, iokpm_callback, &notifier);
         if (powerPort) {
-            CFRunLoopSourceRef source = IONotificationPortGetRunLoopSource(portRef);
-            CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopDefaultMode);
-        }
+            source = IONotificationPortGetRunLoopSource(portRef);
+            CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
+        } else
+            ScrobLog(SCROB_LOG_ERR, @"Failed to register for system power events.");
+        
+        // this is used to trigger copying of the iTunes library for multiple iPod play detection
+        portRef = IONotificationPortCreate(kIOMasterPortDefault);
+        io_iterator_t medidAddedNotification;
+        // Add matching for iPhone/Touch (IOUSBDevice) ?
+        kern_return_t kr = IOServiceAddMatchingNotification (portRef, kIOMatchedNotification,
+            IOServiceMatching(kIOMediaClass), IOMediaAddedCallback, NULL, &medidAddedNotification);
+        if (0 == kr && 0 != medidAddedNotification) {
+            source = IONotificationPortGetRunLoopSource(portRef);
+            CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
+            // prime the queue, necessary to arm the notification
+            io_object_t iomedia;
+            while ((iomedia = IOIteratorNext(medidAddedNotification)))
+                IOObjectRelease(iomedia);
+        } else
+            ScrobLog(SCROB_LOG_ERR, @"Failed to register for system media addition events.");
 
 #ifndef __LP64__
         // Register with Growl
@@ -2162,5 +2185,22 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
         default:
         break;
     };
+}
+
+static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
+{
+    io_service_t iomedia;
+    CFMutableDictionaryRef properties;
+    kern_return_t kr;
+    while ((iomedia = IOIteratorNext(iter))) {
+        kr = IORegistryEntryCreateCFProperties(iomedia, &properties, kCFAllocatorDefault, 0);
+        if (kr == 0 && [[(NSDictionary*)properties objectForKey:@kIOMediaWholeKey] boolValue]) {
+            // we could get fancy and make sure the media is an iPod, but for now we'll just copy blindly
+            ScrobDebug(@"");
+            [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
+        }
+        CFRelease(properties);
+        IOObjectRelease(iomedia);
+    }
 }
 
