@@ -14,6 +14,9 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+a6:
+- Bug Fix: Crash when syncing an iPod.
+- Bug Fix: The iTunes library import progress was not being displayed.
 a5:
 - Bug Fix: Crash on importing iTunes library.
 - Bug Fix: The Tag window now opens with the text field having default focus.
