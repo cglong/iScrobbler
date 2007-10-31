@@ -94,26 +94,6 @@ topHours = nil; \
 - (void)persistentProfileWillReset:(NSNotification*)note
 {
     @try {
-    [sessionController setContent:[NSMutableArray array]];
-    [sessionController rearrangeObjects];
-    
-    ClearExtendedData();
-    }@catch (id e) {
-    ScrobDebug(@"exception: %@", e);
-    }
-}
-
-- (void)finishProfileReset:(NSTimer*)t
-{
-    // reload the sessions
-    if (0 == [[sessionController content] count]) {
-        [self willChangeValueForKey:@"allSessions"];
-        [self didChangeValueForKey:@"allSessions"];
-    }
-}
-
-- (void)persistentProfileDidReset:(NSNotification*)note
-{
     if (persistenceTh) {
         if ([self loading]) {
             OSMemoryBarrier();
@@ -121,10 +101,24 @@ topHours = nil; \
         }
         [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(resetPersistenceManager) withObject:nil];
     }
+    } @catch (id e) {
+    ScrobDebug(@"exception: %@", e);
+    }
+
+    @try {
+    ClearExtendedData();
     
-    // give some time for the reset to occur
-    (void)[NSTimer scheduledTimerWithTimeInterval:0.10 target:self
-        selector:@selector(finishProfileReset:) userInfo:nil repeats:NO];
+    [sessionController setContent:[NSMutableArray array]];
+    [sessionController rearrangeObjects];
+    }@catch (id e) {
+    ScrobDebug(@"exception: %@", e);
+    }
+}
+
+- (void)persistentProfileDidReset:(NSNotification*)note
+{
+    [self willChangeValueForKey:@"allSessions"];
+    [self didChangeValueForKey:@"allSessions"];
 }
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
@@ -144,8 +138,6 @@ topHours = nil; \
 
 - (void)persistenceManagerDidReset:(id)arg
 {
-    // just in case it hasn't fired yet
-    [self finishProfileReset:nil];
     [self sessionDidChange:nil];
 }
 
@@ -169,6 +161,9 @@ topHours = nil; \
             selector:@selector(persistentProfileWillReset:)
             name:PersistentProfileWillResetNotification
             object:nil];
+        
+        [self willChangeValueForKey:@"allSessions"];
+        [self didChangeValueForKey:@"allSessions"];
     }
     
     // small delay to reduce the chance of a race with the bindings updating
