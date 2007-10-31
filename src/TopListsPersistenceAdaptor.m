@@ -18,7 +18,7 @@
 
 - (BOOL)loading
 {
-    return (sessionLoads > 0);
+    return (sessionLoads > 0 || [[PersistentProfile sharedInstance] importInProgress]);
 }
 
 - (void)setLoading:(BOOL)isLoading

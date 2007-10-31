@@ -225,9 +225,11 @@ static NSMutableArray *topHours = nil;
     NSNumber *imported = [d objectForKey:@"imported"];
     
     NSString *msg;
-    if (!imported)
+    if (!imported) {
         msg = NSLocalizedString(@"Import finished.", "");
-    else if ([imported unsignedIntValue] > 0)
+        [self willChangeValueForKey:@"loading"];
+        [self didChangeValueForKey:@"loading"];
+    } else if ([imported unsignedIntValue] > 0)
         msg = [NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "import progress"), imported, total];
     else
         msg = NSLocalizedString(@"Reading iTunes library.", "");
