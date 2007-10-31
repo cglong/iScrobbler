@@ -1,7 +1,6 @@
 -- syncIpod enum
 property iTunesIsInactive : -1
 property iTunesError : -2
-property iTunes7 : 7
 
 on UpdateiPod(thePlaylistName, theDate)
 	set itunes_active to false
@@ -9,12 +8,13 @@ on UpdateiPod(thePlaylistName, theDate)
 		if (get name of every process) contains "iTunes" then set itunes_active to true
 	end tell
 	
+	set sourceIsiTunes to false
 	set errMsg to {iTunesIsInactive, "", 0}
 	if itunes_active is true then
 		set out to {}
 		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
-			--set iTunesMajorVer to the first character of (version as string) as integer
+			set iTunesVer to version as string
 			-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
 			set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 			with timeout of 60 seconds
@@ -109,6 +109,9 @@ on UpdateiPod(thePlaylistName, theDate)
 						end repeat
 						
 						if out is not {} then
+							if the kind of theSource is library then
+								set sourceIsiTunes to true
+							end if
 							exit repeat -- we retrieved some songs from the playlist, no need to check alternate sources
 						end if
 					end tell
@@ -117,7 +120,7 @@ on UpdateiPod(thePlaylistName, theDate)
 		end tell
 		
 		if out is not {} then
-			return out
+			return {{sourceIsiTunes, iTunesVer}} & out
 		else
 			return {errMsg}
 		end if
@@ -127,6 +130,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Friday, October 26, 2007 12:14:00 AM"
+	set when to date "Tuesday, October 30, 2007 11:15:00 AM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run

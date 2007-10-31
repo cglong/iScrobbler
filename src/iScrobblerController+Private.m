@@ -487,6 +487,15 @@ validate:
                 NSDate *currentDate = [NSDate date];
                 NSDate *currentDateGMT = [currentDate GMTDate];
                 
+                // the first entry is metadata
+                NSNumber *sourceIsiTunes = [NSNumber numberWithBool:NO];
+                trackData = [en nextObject];
+                @try {
+                sourceIsiTunes = [trackData objectAtIndex:0];
+                // NSString *iTunesVersion = [trackData objectAtIndex:0];
+                } @catch (id e) {
+                    ScrobLog(SCROB_LOG_ERR, @"exception retriving iPod sync metadata: %@.", e);
+                }
                 added = 0;
                 while ((trackData = [en nextObject])) {
                     NSTimeInterval postDate;
@@ -520,7 +529,7 @@ validate:
                 }
                 
                 NSMutableArray *extraPlays;
-                if (iTunesLib) {
+                if (iTunesLib && [sourceIsiTunes boolValue]) {
                     workPool = [[NSAutoreleasePool alloc] init];
                     extraPlays = [[self detectAndSynthesizeMultiplePlays:iqueue iTunesTracks:[iTunesLib objectForKey:@"Tracks"]
                         iPodMountDate:iPodMountEpoch requestDate:requestDate] retain];
@@ -529,7 +538,10 @@ validate:
                     workPool = nil;
                 } else {
                     extraPlays = nil;
-                    ScrobLog(SCROB_LOG_WARN, @"Could not find/open iTunes library copy, multiple iPod play detection will not be attempted.");
+                    if (!iTunesLib)
+                        ScrobLog(SCROB_LOG_WARN, @"Could not find/open iTunes library copy, multiple iPod play detection will not be attempted.");
+                    else
+                        ScrobLog(SCROB_LOG_WARN, @"Multiple iPod play detection is not supported for iPods in manual sync mode.");
                 }
                 
                 [self fixIPodShuffleTimes:iqueue withRequestDate:requestDate withiPodMountDate:iPodMountEpoch];
