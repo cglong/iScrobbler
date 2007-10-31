@@ -163,6 +163,9 @@ static NSMutableArray *topHours = nil;
 
 - (NSArray*)allSessions
 {
+    if (!persistenceTh || ![persistenceTh isKindOfClass:[ISThreadMessenger class]])
+        return ([NSMutableArray array]);
+        
     NSMutableArray *arrangedSessions = [NSMutableArray arrayWithObjects:
         @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
     NSEnumerator *en = [[[PersistentProfile sharedInstance] allSessions] objectEnumerator];
