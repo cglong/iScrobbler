@@ -9,8 +9,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-
-@protocol ISPluginProxy;
+#import "ISPlugin.h"
 
 @interface ISPluginController : NSObject <ISPluginProxy> {
 

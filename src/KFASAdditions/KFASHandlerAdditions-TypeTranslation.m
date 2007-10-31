@@ -725,7 +725,7 @@ static NSMutableDictionary *handlerDict = nil;
     do {
         [handlerDict setObject:handlerInvocation 
                         forKey:[NSValue valueWithBytes:&aType objCType:@encode(DescType)]];
-    } while((aType = va_arg(typesList, DescType)) != nil);
+    } while((aType = va_arg(typesList, DescType)) != 0);
     va_end(typesList);
 }
 

@@ -911,7 +911,7 @@ static int npDelays = 0;
     
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
         g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
-            [[[NSURL URLWithString:[self handshakeURL]] host] cString]);
+            [[[NSURL URLWithString:[self handshakeURL]] host] cStringUsingEncoding:NSASCIIStringEncoding]);
         // Get the current state
         SCNetworkConnectionFlags connectionFlags;
         if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
