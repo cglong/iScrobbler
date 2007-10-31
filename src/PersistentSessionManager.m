@@ -465,7 +465,7 @@ __private_extern__ NSThread *mainThread;
     [epoch setTimeZone:[NSTimeZone defaultTimeZone]];
     
     BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
-    (void)[[PersistentProfile sharedInstance] save:moc withNotification:!didRemove];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         [moc reset];
@@ -523,7 +523,7 @@ __private_extern__ NSThread *mainThread;
     if ([self removeSongsBefore:lastYear inSession:@"pastyear" moc:moc])
         didRemove = YES;
     
-    (void)[[PersistentProfile sharedInstance] save:moc withNotification:!didRemove];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         [moc reset];
