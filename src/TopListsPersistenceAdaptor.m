@@ -96,6 +96,8 @@ topHours = nil; \
     @try {
     [sessionController setContent:[NSMutableArray array]];
     [sessionController rearrangeObjects];
+    
+    ClearExtendedData();
     }@catch (id e) {
     ScrobDebug(@"exception: %@", e);
     }
@@ -121,7 +123,7 @@ topHours = nil; \
     }
     
     // give some time for the reset to occur
-    (void)[NSTimer scheduledTimerWithTimeInterval:0.15 target:self
+    (void)[NSTimer scheduledTimerWithTimeInterval:0.10 target:self
         selector:@selector(finishProfileReset:) userInfo:nil repeats:NO];
 }
 
@@ -300,7 +302,7 @@ topHours = nil; \
     unsigned days, hours, minutes, seconds, i = 0;
     en = [sessionArtists objectEnumerator];
     NSAutoreleasePool *entryPool = [[NSAutoreleasePool alloc] init];
-    NSMutableArray *chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
+    NSMutableArray *chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK]; // alloc in loop pool!
     BOOL loadCanceled = NO;
     while ((mobj = [en nextObject])) {
         OSMemoryBarrier();
@@ -338,26 +340,6 @@ topHours = nil; \
     error = nil;
     (void)[moc executeFetchRequest:request error:&error];
     
-    // I don't think this does anything for batch faulting as the first request should have loaded the objects in memory,
-    // but using the sorted array to match track plays is magnitudes faster than the following algorithim:
-    #ifdef slow
-    NSMutableSet *existingEntries = [NSMutableSet set]; 
-    while (mobj) {
-        NSString *matchExistingKey = [[mobj valueForKeyPath:@"item.artist.name"]
-            stringByAppendingString:[mobj valueForKeyPath:@"item.name"]];
-        if ([existingEntries containsObject:matchExistingKey])
-            continue;
-        
-        // this is very slow, but doing an SQL fetch with:
-        // [NSPredicate @"(item == %@) && (self IN %@)", [mobj valueForKey:@"item"], sessionSongs]
-        // is magnitudes slower (thought it would have been faster?)
-        NSArray *allSongPlays = [sessionSongs filteredArrayUsingPredicate:
-            [NSPredicate predicateWithFormat:@"item == %@", [mobj valueForKey:@"item"]]];
-        
-        // create entry here
-    }
-    #endif
-    
     entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", sessionSongs]];
@@ -366,12 +348,12 @@ topHours = nil; \
     sessionSongs = [moc executeFetchRequest:request error:&error];
     [request setSortDescriptors:nil];
     
-    NSMutableArray *allSongPlays = [NSMutableArray array]; // alloc outside of local pool!
+    NSMutableArray *allSongPlays = [NSMutableArray array]; // alloc outside of loop pool!
     // tracks however, have a session entry for each play and the GUI displays all track plays merged as one
     // so we have to do a little extra work;
     en = [sessionSongs objectEnumerator];
     entryPool = [[NSAutoreleasePool alloc] init];
-    chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
+    chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK]; // alloc in loop pool!
     i = 1;
     [allSongPlays addObject:[en nextObject]];
     while ((mobj = [en nextObject])) {
@@ -511,9 +493,10 @@ loadExit:
     if (cancelLoad > 0)
         goto loadExit;
     
+    NSNumber *zero = [NSNumber numberWithInt:0];
     NSMutableArray *hourEntries = [NSMutableArray arrayWithCapacity:24];
     NSMutableDictionary *zeroHour = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-        [NSNumber numberWithInt:0], @"Play Count", [NSNumber numberWithInt:0], @"Total Duration"];
+        zero, @"Play Count", zero, @"Total Duration", nil];
     for (i = 0; i < 24; ++i) {
         [hourEntries addObject:zeroHour];
     }
