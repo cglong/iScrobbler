@@ -1,6 +1,6 @@
 iScrobbler is an application for OS X that interfaces with iTunes in order to make submissions to the AudioScrobbler.com project. Audioscrobbler takes data sent to it by the plugins and generates similarity data for artists, and suggests new artists that you might like, based on other people's listening habits.
 
-To build iScrobbler, you'll need Tiger, iTunes 4.7.1 +, and XCode 2.3 installed. You will also need a copy of the Growl framework from:
+To build iScrobbler, you'll need Leopard, iTunes 7+, and XCode 3. You will also need a copy of the Growl framework from:
 http://growl.info/documentation/developer/
 
 Installation after building is trivial. Just drag 'n' drop.
