@@ -43,6 +43,7 @@ extern int CC_SHA512_Update(CC_SHA512_CTX *c, const void *data, uint32_t len)  _
 extern int CC_SHA512_Final(unsigned char *md, CC_SHA512_CTX *c)  __attribute__((weak_import));
 #endif
 
+#import "BBNetUpdateVersionCheckController.h"
 #import "BBNetUpdateDownloadController.h"
 
 __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck;
@@ -97,26 +98,9 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
             cachePolicy:NSURLRequestReloadIgnoringCacheData
             timeoutInterval:60.0];
     
-    NSString *ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BBNetUpdateVersion"];
-    if (!ver) {
-        if (!(ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]))
-            ver = @"";
-    }
-    NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-    if (!build)
-        build = ver;
     
-    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@ (%@)",
-        #ifdef __ppc__
-        @"PPC"
-        #elif defined(__i386__)
-        @"Intel"
-        #else
-        @"Unknown"
-        #endif
-        , [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
     
-    [request setValue:agent forHTTPHeaderField:@"User-Agent"];
+    [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
     
     bbDownload = [[[NSURLDownload alloc] initWithRequest:request delegate:self] autorelease];
    

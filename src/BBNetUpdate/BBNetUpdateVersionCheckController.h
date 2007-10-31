@@ -26,7 +26,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface BBNetUpdateVersionCheckController : NSWindowController <NSURLHandleClient>
+@interface BBNetUpdateVersionCheckController : NSWindowController
 {
     IBOutlet id boxDontCheck;
     IBOutlet id buttonDownload;
@@ -37,7 +37,8 @@
     IBOutlet id fieldTitle;
     IBOutlet id progressBar;
     
-    NSURL *source;
+    NSURLConnection *connection;
+    NSMutableData *verData;
     NSDictionary *verInfo;
     NSString *bundleName;
     BOOL checkingVersion, _interact, _didDownload;
@@ -49,19 +50,13 @@
 + (BOOL)isCheckInProgress;
 // Will return nil if a check has never been performed.
 + (NSDate*)lastCheck;
++ (NSString*)userAgent;
 
 - (IBAction)cancel:(id)sender;
 - (IBAction)download:(id)sender;
 - (IBAction)showHideMoreInfo:(id)sender;
 
 - (void)connect:(id)sender; // Don't call directly
-
-// NSURLClient protocol
-- (void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender;
-- (void)URLHandleResourceDidCancelLoading:(NSURLHandle *)sender;
-- (void)URLHandleResourceDidFinishLoading:(NSURLHandle *)sender;
-- (void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes;
-- (void)URLHandle:(NSURLHandle *)sender resourceDidFailLoadingWithReason:(NSString *)reason;
 
 @end
 

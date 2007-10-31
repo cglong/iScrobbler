@@ -93,22 +93,46 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    if (!dateString)
       return (nil);
    
-   return ( [NSDate dateWithString:dateString] );
+   return ([NSDate dateWithString:dateString]);
+}
+
++ (NSString*)userAgent
+{
+    NSString *ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BBNetUpdateVersion"];
+    if (!ver) {
+        if (!(ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]))
+            ver = @"";
+    }
+    NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (!build)
+        build = ver;
+    
+    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@ (%@)",
+        #ifdef __ppc__
+        @"PPC"
+        #elif defined(__i386__)
+        @"Intel"
+        #elif defined(__x86_64__)
+        @"Intel 64"
+        #else
+        @"Unknown"
+        #endif
+        , [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
+        
+    return (agent);
 }
 
 - (void)connect:(id)sender
 {
-   NSURLHandle *handle;
-   
    [fieldTitle setStringValue:
       NSLocalizedStringFromTable(@"BBNetUpdateCheckNewVersionTitle", @"BBNetUpdate", @"")];
    [fieldText setStringValue:@""];
    
-   source = [[NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
+   NSURL *url = [[NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
          [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
          objectForKey:@"BBNetUpdateDownloadInfoURL"]] retain];
    
-   if (!source) {
+   if (!url) {
       checkingVersion = NO;
       NSBeep();
       return;
@@ -123,29 +147,30 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    if (_interact)
       [[super window] makeKeyAndOrderFront:nil];
    
-   handle = [source URLHandleUsingCache:YES];
-   if (!handle) {
+   
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:
+        NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:30.0];
+    [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
+
+    [connection cancel];
+    [connection release];
+    connection = nil;
+    connection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+    if (!connection) {
       checkingVersion = NO;
       NSBeep();
       return;
-   }
+    }
    
    [[NSUserDefaults standardUserDefaults] setObject:[[NSDate date] description]
          forKey:@"BBNetUpdateLastCheck"];
    
    checkingVersion = YES;
-   
-   [handle addClient:self];
-   
-   [handle loadInBackground];
 }
 
 - (IBAction)cancel:(id)sender
 {
-   if (NSURLHandleLoadInProgress == [[source URLHandleUsingCache:YES] status])
-      [[source URLHandleUsingCache:YES] cancelLoadInBackground];
-   else
-      [self close];
+    [self close];
 }
 
 - (IBAction)download:(id)sender
@@ -193,10 +218,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 // NSWindowController
 - (void)close
 {
+    [connection cancel];
+    [connection release];
+    connection = nil;
+    [verData release];
+    verData = nil;
+    
    [verInfo release];
    verInfo = nil;
-   [source release];
-   source = nil;
    
    [[NSUserDefaults standardUserDefaults]
       setBool:(NSOnState == [boxDontCheck state]) forKey:@"BBNetUpdateDontAutoCheckVersion"];
@@ -214,23 +243,22 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    [super close];
 }
 
-// NSURLClient protocol
-
-- (void)URLHandleResourceDidBeginLoading:(NSURLHandle *)sender
-{
-   [progressBar startAnimation:nil];
-   [progressBar displayIfNeeded];
+// NSURLConnection delegate methods
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+    if (!verData) {
+        verData = [[NSMutableData alloc] init];
+        
+        [progressBar startAnimation:nil];
+        [progressBar displayIfNeeded];
+    }
+    [verData appendData:data];
 }
 
-- (void)URLHandleResourceDidCancelLoading:(NSURLHandle *)sender
+- (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
-   [self close];
-}
-
-- (void)URLHandleResourceDidFinishLoading:(NSURLHandle *)sender
-{
-   NSData *data = [sender resourceData];
-   
+    NSMutableData *data = [verData autorelease];
+    verData = nil;
+    
    if (data) {
       CFStringRef errstr = NULL;
       BOOL display = NO;
@@ -296,32 +324,27 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [self close];
 }
 
-- (void)URLHandle:(NSURLHandle *)sender resourceDataDidBecomeAvailable:(NSData *)newBytes
+-(void)connection:(NSURLConnection *)sender didFailWithError:(NSError *)reason
 {
-}
+    if (![[super window] isVisible])
+        [[super window] makeKeyAndOrderFront:nil];
 
-- (void)URLHandle:(NSURLHandle *)sender resourceDidFailLoadingWithReason:(NSString *)reason
-{   
-   if (![[super window] isVisible])
-      [[super window] makeKeyAndOrderFront:nil];
-   
-   // Alert the user
-   NSBeginAlertSheet(NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
+    // Alert the user
+    NSBeginAlertSheet(NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
       @"OK", nil, nil, [super window], self, nil, nil, nil,
-   	NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), reason);
-   
-   [fieldTitle setStringValue:
+    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), reason);
+
+    [fieldTitle setStringValue:
          NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
-   
-   [buttonDownload setTitle:@"OK"];
-   [buttonDownload setEnabled:YES];
-   
-   [progressBar stopAnimation:nil];
-   [progressBar displayIfNeeded];
+
+    [buttonDownload setTitle:@"OK"];
+    [buttonDownload setEnabled:YES];
+
+    [progressBar stopAnimation:nil];
+    [progressBar displayIfNeeded];
 }
 
 // Sheet handlers
-
 - (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
 {
    NSString *file = [sheet filename];
