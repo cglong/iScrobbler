@@ -64,7 +64,7 @@ __private_extern__ NSThread *mainThread = nil;
     @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:name object:self];
     } @catch (id e) {
-        ScrobLog(SCROB_LOG_ERR, @"exception while posting notification '%@': %e", name, e);
+        ScrobLog(SCROB_LOG_ERR, @"exception while posting notification '%@': %@", name, e);
     }
 }
 
@@ -110,7 +110,7 @@ __private_extern__ NSThread *mainThread = nil;
     @try {
     [moc reset];
     } @catch (id e) {
-        ScrobLog(SCROB_LOG_TRACE, @"resentMain: reset generated an exception: %@", e);
+        ScrobLog(SCROB_LOG_TRACE, @"resetMain: reset generated an exception: %@", e);
     }
     mainMOC = moc;
     
