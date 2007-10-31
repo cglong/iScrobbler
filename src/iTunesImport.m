@@ -351,8 +351,7 @@
     }
     [self setArtist:obj];
     
-    if ((obj = [track objectForKey:@"Kind"])
-        && NSNotFound == [obj rangeOfString:@"file" options:NSCaseInsensitiveSearch].location) {
+    if (!(obj = [track objectForKey:@"Location"]) || NO == [[NSURL URLWithString:obj] isFileURL]) {
         [self autorelease];
         @throw ([NSException exceptionWithName:NSGenericException reason:@"unsupported file type" userInfo:nil]);
     }
@@ -386,11 +385,6 @@
     [self setPostDate:[NSDate dateWithTimeIntervalSince1970:
         [[self lastPlayed] timeIntervalSince1970] - [[self duration] unsignedIntValue]]];
     [self setStartTime:[self postDate]];
-    
-    #ifdef notyet
-    if (!(obj = [track objectForKey:@"Location"]))
-        obj = @"";
-    #endif
     
     return (self);
 }
