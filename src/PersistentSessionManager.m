@@ -893,7 +893,7 @@ __private_extern__ NSThread *mainThread;
     NSManagedObject *moSong;
     
     NSArray *result = [moc executeFetchRequest:request error:&error];
-    if ([result count] > 0) {
+    if ([result count] > 1) {
         #ifdef ISINTERNAL
         ISASSERT(0 == [result count], "multiple songs found in db!");
         #endif
