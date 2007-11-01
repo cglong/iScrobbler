@@ -139,7 +139,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     killTimer = nil;
     
 	ScrobLog(SCROB_LOG_VERBOSE, @"Handshake result: %@\n", result);
-	if ([result length] == 0) {
+	if (0 == [result length]) {
 		ScrobLog(SCROB_LOG_WARN, @"Handshake connection failed.\n");
         result = [NSMutableString stringWithString:@"FAILED Connection failed"];
 	}
@@ -373,6 +373,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     NSString *arch = @"PPC";
 #elif defined(__i386__)
     NSString *arch = @"Intel";
+#elif defined(__x86_64__)
+    NSString *arch = @"Intel 64";
 #else
 #error unknown arch
 #endif
