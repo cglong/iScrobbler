@@ -249,7 +249,10 @@ __private_extern__ NSThread *mainThread;
         // albums
         entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
         [request setEntity:entity];
-        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [songs valueForKeyPath:@"item.album.objectID"]]];
+        // we can have NSNull instances in this one
+        NSMutableArray *oids = [[[songs valueForKeyPath:@"item.album.objectID"] mutableCopy] autorelease];
+        [oids removeObject:[NSNull null]];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", oids]];
         error = nil;
         (void)[moc executeFetchRequest:request error:&error];
         // artists
