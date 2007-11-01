@@ -893,6 +893,15 @@ __private_extern__ NSThread *mainThread;
     NSManagedObject *moSong;
     
     NSArray *result = [moc executeFetchRequest:request error:&error];
+    if ([result count] > 0) {
+        #ifdef ISINTERNAL
+        ISASSERT(0 == [result count], "multiple songs found in db!");
+        #endif
+        (void)[result valueForKeyPath:@"name"]; // make sure they are faulted in for logging
+        ScrobLog(SCROB_LOG_ERR, @"Multiple songs found in database! {{%@}}", result);
+        ScrobLog(SCROB_LOG_WARN, @"Using first song found.");
+        result = [NSArray arrayWithObject:[result objectAtIndex:0]];
+    }
     if (1 == [result count]) {
          // Update song values
         moSong = [result objectAtIndex:0];
@@ -903,8 +912,6 @@ __private_extern__ NSThread *mainThread;
     }
     
     // Song not found
-    ISASSERT(0 == [result count], "multiple songs found in db!");
-    
     NSManagedObject *moArtist, *moAlbum;
     moSong = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
     [moSong setValue:ITEM_SONG forKey:@"itemType"];
