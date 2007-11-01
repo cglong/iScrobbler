@@ -454,7 +454,7 @@ if (currentSong) { \
     static BOOL isiTunesPlaying = NO;
     BOOL wasiTunesPlaying = isiTunesPlaying;
     isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
-    BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]];
+    BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]] && !frontRowActive;
     BOOL isRepeat = NO;
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
@@ -689,6 +689,18 @@ player_info_exit:
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
 }
 
+- (void)frontRowWillShow:(NSNotification*)note
+{
+    [self setValue:[NSNumber numberWithBool:YES] forKey:@"frontRowActive"];
+    ScrobDebug(@"");
+}
+
+- (void)frontRowDidHide:(NSNotification*)note
+{
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"frontRowActive"];
+    ScrobDebug(@"");
+}
+
 - (void)retryInfoHandler:(NSTimer*)timer
 {
     getTrackInfoTimer = nil;
@@ -834,9 +846,12 @@ player_info_exit:
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
             object:nil];
         
-        // Internal last.fm stream now playing info
-        [[NSNotificationCenter defaultCenter] addObserver:self
-            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.bergstrand.iscrobbler.lasfm.playerInfo"
+        // Leopard Front Row support, it sends an iTunes playing note, but iTunes is not actually playing anything so Applescripts fail
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(frontRowWillShow:) name:@"com.apple.FrontRow.FrontRowWillShow"
+            object:nil];
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(frontRowDidHide:) name:@"com.apple.FrontRow.FrontRowDidHide"
             object:nil];
         
         #ifdef notyet
@@ -846,6 +861,11 @@ player_info_exit:
             selector:@selector(iTunesPlayerInfoHandler:) name:@"net.frozensilicon.pandoraBoy.playerInfo"
             object:nil];
         #endif
+        
+        // Internal last.fm stream now playing info
+        [nc addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.bergstrand.iscrobbler.lasfm.playerInfo"
+            object:nil];
         
         // Create protocol mgr -- register the up/down notification before, because
         // PM init can send it

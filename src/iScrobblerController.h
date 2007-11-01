@@ -60,6 +60,7 @@
     BOOL badAuthAlertIsOpen;
     // Temporarily disable submissions
     BOOL submissionsDisabled;
+    BOOL frontRowActive;
 }
 
 //sync songList and theMenu
