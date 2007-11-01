@@ -815,12 +815,6 @@ didFinishLoadingExit:
     }
 }
 
-- (void)profileDidReset:(NSNotification*)note
-{
-    submissionAttempts = 0;
-    successfulSubmissions = 0;
-}
-
 static SongData *npSong = nil;
 static int npDelays = 0;
 - (void)sendNowPlaying
@@ -966,9 +960,6 @@ static int npDelays = 0;
     myKeyChain = [[KeyChain defaultKeyChain] retain];\
     
     maxTracksPerSub = DEFAULT_MAX_TRACKS_PER_SUB;
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-        selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
     
     if ([self respondsToSelector:@selector(nowPlayingDataForSong:)]) {
         [[NSNotificationCenter defaultCenter] addObserver:self

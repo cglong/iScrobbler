@@ -280,20 +280,6 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 
 // End PM Notifications
 
-- (void)profileDidReset:(NSNotification*)note
-{
-    static int doreset = 0;
-    if (!doreset) {
-        doreset = 1;
-        // make sure we run after every other observer
-        [self performSelector:@selector(profileDidReset:) withObject:note afterDelay:0.0];
-        return;
-    }
-    
-    doreset = 0;
-    ScrobLog(SCROB_LOG_INFO, @"*** Reset ***");
-}
-
 - (BOOL)updateInfoForSong:(SongData*)song
 {
     // Run the script to get the info not included in the dict
@@ -891,9 +877,6 @@ player_info_exit:
                 selector:@selector(submitStartHandler:)
                 name:PM_NOTIFICATION_SUBMIT_START
                 object:nil];
-        
-        [nc addObserver:self
-            selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
         
         // Create queue mgr
         (void)[QueueManager sharedInstance];

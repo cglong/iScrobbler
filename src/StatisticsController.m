@@ -287,20 +287,6 @@ static NSImage *prevIcon = nil;
     }
 }
 
-- (void)profileDidReset:(NSNotification*)note
-{
-    static int doreset = 0;
-    if (!doreset) {
-        doreset = 1;
-        // make sure we run after every other observer
-        [self performSelector:@selector(profileDidReset:) withObject:note afterDelay:0.0];
-        return;
-    }
-    
-    doreset = 0;
-    [self submitCompleteHandler:nil];
-}
-
 - (void)radioHistoryDidUpdate:(NSNotification*)note
 {
     // If the radio is active, display that instead of the sub response
@@ -352,8 +338,6 @@ static NSImage *prevIcon = nil;
             selector:@selector(iPodSyncEndHandler:)
             name:IPOD_SYNC_END
             object:nil];
-    
-    [nc addObserver:self selector:@selector(profileDidReset:) name:RESET_PROFILE object:nil];
     
     [nc addObserver:self selector:@selector(radioHistoryDidUpdate:)
         name:ISRadioHistoryDidUpdateNotification object:nil];
