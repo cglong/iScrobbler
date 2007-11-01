@@ -5,22 +5,21 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>d110bd04182b7589d563089bba04c18886a57ccc</string>
+        	<string>9b40247225a3675b4d66cd14752a205501eb64a2</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0a6</string>
+        <string>2.0.0a7</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a6.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a7.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- New local charts. They look the same, but there are now multiple separate charts maintained.
-- Multiple iPod play support.
-- New plugin to change the iChat status message to the currently playing Radio track.
-- New Applescript commands.
-- Other minor new features and bug fixes.
-- a5 fixes a crash in the iTunes library import.
-- a6 fixes a crash when syncing an iPod.
+                <string>- Leopard Front Row support.
+- Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue.
+- Bug Fix: Possible (and likely) crash while generating a Profile report.
+- Bug Fix: iTunes import would fail to import any songs for non-English users.
+- Bug Fix (Regression): The Top Lists window was not remembering whether it was open or closed.
+- Bug Fix: Explicitly deny manual-sync iPod support for multiple play detection.
                 </string>
         </dict>
 </dict>
