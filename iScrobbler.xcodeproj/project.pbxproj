@@ -62,6 +62,7 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
+		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
 		D376063F0CB230E300C04863 /* ChatStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D37606340CB2307F00C04863 /* ChatStatus.m */; };
@@ -106,7 +107,6 @@
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
 		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
 		D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */; };
-		D3EC73110804F73B00392110 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
@@ -311,9 +311,9 @@
 				D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */,
 				D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */,
 				D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */,
-				D3EC73110804F73B00392110 /* Growl.framework in Frameworks */,
 				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
 				D30BBF9D0CCF5EE0005DCFA2 /* IOKit.framework in Frameworks */,
+				D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -979,6 +979,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1003,6 +1004,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1010,6 +1012,69 @@
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;
+		};
+		D32906770CDA8D9700CAAB66 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_FAST_OBJC_DISPATCH = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = src/ISPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				PREBINDING = NO;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				STRIP_INSTALLED_PRODUCT = NO;
+			};
+			name = "Debug-Internal";
+		};
+		D32906780CDA8D9700CAAB66 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GCC_MODEL_CPU = "";
+				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DISDEBUG",
+				);
+				PRODUCT_NAME = iScrobbler;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+			};
+			name = "Debug-Internal";
+		};
+		D32906790CDA8D9700CAAB66 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "src/Plugins/ChatStatus/ChatStatus-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DISPLUGIN",
+				);
+				PRODUCT_NAME = ChatStatus;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = "Debug-Internal";
 		};
 		D376063D0CB230AA00C04863 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1062,6 +1127,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D328477F08566B30009B4D14 /* Debug */,
+				D32906780CDA8D9700CAAB66 /* Debug-Internal */,
 				D328478008566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1071,6 +1137,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D328478308566B30009B4D14 /* Debug */,
+				D32906770CDA8D9700CAAB66 /* Debug-Internal */,
 				D328478408566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1080,6 +1147,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D376063D0CB230AA00C04863 /* Debug */,
+				D32906790CDA8D9700CAAB66 /* Debug-Internal */,
 				D376063E0CB230AA00C04863 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
