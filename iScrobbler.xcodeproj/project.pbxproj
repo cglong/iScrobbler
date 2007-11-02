@@ -63,6 +63,7 @@
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
+		D329070B0CDB4E0600CAAB66 /* LoginItemsAE.c in Sources */ = {isa = PBXBuildFile; fileRef = D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
 		D376063F0CB230E300C04863 /* ChatStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D37606340CB2307F00C04863 /* ChatStatus.m */; };
@@ -189,6 +190,8 @@
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoginItemsAE.c; sourceTree = "<group>"; };
+		D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginItemsAE.h; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPlugin.h; sourceTree = "<group>"; };
@@ -412,6 +415,7 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				D32907080CDB4E0600CAAB66 /* LoginItemsAE */,
 				D3C304220CA28879001AEFEA /* LNSourceList */,
 				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
 				D3EC7C98080858F800392110 /* KFASAdditions */,
@@ -475,6 +479,15 @@
 				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
 			);
 			path = BBNetUpdate;
+			sourceTree = "<group>";
+		};
+		D32907080CDB4E0600CAAB66 /* LoginItemsAE */ = {
+			isa = PBXGroup;
+			children = (
+				D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */,
+				D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */,
+			);
+			path = LoginItemsAE;
 			sourceTree = "<group>";
 		};
 		D37606320CB2307F00C04863 /* Plugins */ = {
@@ -780,6 +793,7 @@
 				D3F4A4E90CC56EA9000DCBB6 /* PersistentSessionManager.m in Sources */,
 				D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */,
 				D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */,
+				D329070B0CDB4E0600CAAB66 /* LoginItemsAE.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
