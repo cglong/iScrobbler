@@ -16,16 +16,16 @@
 
 // these are from the OpenScripting carbon framework, but I'd rather not require linking it
 #ifndef kASSubroutineEvent
-#define kASSubroutineEvent 'psbr'
+#define kASSubroutineEvent (FourCharCode)'psbr'
 #endif
 #ifndef kASAppleScriptSuite
-#define kASAppleScriptSuite 'ascr'
+#define kASAppleScriptSuite (FourCharCode)'ascr'
 #endif
 #ifndef keyASSubroutineName
-#define keyASSubroutineName 'snam'
+#define keyASSubroutineName (FourCharCode)'snam'
 #endif
 #ifndef keyASUserRecordFields
-#define keyASUserRecordFields 'usrf'
+#define keyASUserRecordFields (FourCharCode)'usrf'
 #endif
 
 NSString *KFASException = @"KFASException";

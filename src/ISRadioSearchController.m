@@ -529,10 +529,10 @@
     @try {
     
     NSArray *state = [[NSUserDefaults standardUserDefaults] objectForKey:@"RadioSourceListExpansionState"];
-    int count;
+    NSUInteger count;
     if (state && (count = [state count]) == [sourceList numberOfRows]) {
         id item;
-        for (int i = 0, j = 0; i < count; ++i) {
+        for (NSUInteger i = 0, j = 0; i < count; ++i) {
             item = [sourceList itemAtRow:i];
             if (0 == [sourceList levelForItem:item]) {
                 if ([[state objectAtIndex:j] boolValue])
@@ -548,10 +548,10 @@
 
 - (void)saveSourceListState
 {
-    int count = [sourceList numberOfRows];
+    NSUInteger count = [sourceList numberOfRows];
     NSMutableArray *state = [NSMutableArray arrayWithCapacity:count];
     id item;
-    for (int i = 0; i < count; ++i) {
+    for (NSUInteger i = 0; i < count; ++i) {
         item = [sourceList itemAtRow:i];
         if (0 == [sourceList levelForItem:item])
             [state addObject:[NSNumber numberWithBool:[sourceList isItemExpanded:item]]];
@@ -636,7 +636,7 @@
 }
 
 #define SearchPanelMaxRatio 0.80
-- (float)splitView:(NSSplitView *)sender constrainMaxCoordinate:(float)proposedMax ofSubviewAt:(int)offset
+- (CGFloat)splitView:(NSSplitView *)sender constrainMaxCoordinate:(CGFloat)proposedMax ofSubviewAt:(NSInteger)offset
 {
     if (0 == offset) {
         NSRect bounds = [sender bounds];
@@ -646,7 +646,7 @@
 }
 
 #define SourceListViewMin 150.0
-- (float)splitView:(NSSplitView *)sender constrainMinCoordinate:(float)proposedMin ofSubviewAt:(int)offset
+- (CGFloat)splitView:(NSSplitView *)sender constrainMinCoordinate:(CGFloat)proposedMin ofSubviewAt:(NSInteger)offset
 {
     if (0 == offset) {
         proposedMin = SourceListViewMin;
@@ -662,7 +662,7 @@
 	NSView *right = [views objectAtIndex:1];
 	NSRect bounds = [left frame];
 	if (bounds.size.width < SourceListViewMin) {
-		float diff = SourceListViewMin - bounds.size.width;
+		CGFloat diff = SourceListViewMin - bounds.size.width;
 		bounds.size.width = SourceListViewMin;
 		[left setFrame:bounds];
 		bounds = [right bounds];
@@ -689,9 +689,9 @@
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release

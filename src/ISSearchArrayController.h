@@ -26,7 +26,7 @@
 
 // Drag and Drop support
 - (BOOL)tableView:(NSTableView *)tv writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard;
-- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(int)row
+- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row
     dropOperation:(NSTableViewDropOperation)op;
 
 @end

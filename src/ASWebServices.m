@@ -14,7 +14,7 @@
 #import "keychain.h"
 
 static BOOL needHandshake = YES;
-static float handshakeDelay = 60.0;
+static float handshakeDelay = 60.0f;
 
 #define sessionid [sessionvars objectForKey:@"session"]
 
@@ -114,7 +114,7 @@ static NSMutableDictionary *connData = nil;
     }
     
     needHandshake = NO;
-    handshakeDelay = 60.0;
+    handshakeDelay = 60.0f;
     ScrobLog(SCROB_LOG_TRACE, @"ASWS Handshake succeeded: (%@)", sessionvars);
     [[NSNotificationCenter defaultCenter] postNotificationName:ASWSDidHandshake object:self];
 }
@@ -304,7 +304,7 @@ static NSMutableDictionary *connData = nil;
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)uresponse
 {
     if (needHandshake) {
-        int code = [(NSHTTPURLResponse*)uresponse statusCode];
+        NSInteger code = [(NSHTTPURLResponse*)uresponse statusCode];
         if (200 != code) {
             [connection cancel];
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSFailedHandshake object:self];
@@ -472,9 +472,9 @@ static NSMutableDictionary *connData = nil;
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release

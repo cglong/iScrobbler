@@ -86,7 +86,7 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
         int fd = [fh fileDescriptor];
         struct stat sb;
         if (0 == fstat(fd, &sb)) {
-            int maxSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
+            NSInteger maxSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
             if (maxSize <= 0)
                 maxSize = limit;
             if (sb.st_size > maxSize) {
@@ -102,9 +102,10 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
             d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE];
         }
         if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
-            d = [[NSString stringWithFormat:@"  **** New Session %@/%@ ****\n",
+            d = [[NSString stringWithFormat:@"  **** New Session %@/%@ (%@)****\n",
                     [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
-                    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]]
+                    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"],
+                    ISCPUArchitectureString()]
                 dataUsingEncoding:NSUTF8StringEncoding];
         }
         @try {

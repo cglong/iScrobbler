@@ -28,19 +28,24 @@ on UpdateiPod(thePlaylistName, theDate)
 						end try
 						
 						try
-							if the name of every user playlist contains thePlaylistName then
-								set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
-								tell thePlaylist
-									try
-										(*The "whose played date" clause will cause a -10001 "type mismatch" error if
+							--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
+							-- For some reason, iTunes does not like the compound conditionals
+							--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
+							-- the more verbose version that works for 32bit and 64bit
+							set allPlaylists to (every user playlist whose name is thePlaylistName)
+							repeat with thePlaylist in allPlaylists
+								if visible of thePlaylist is true and smart of thePlaylist is true then
+									exit repeat
+								end if
+							end repeat
+							
+							tell thePlaylist
+								(*The "whose played date" clause will cause a -10001 "type mismatch" error if
 										any track in the chosen playlist has not been played yet. This is because iTunes
 										apparently can't handle comparing a date type to a missing value internally.*)
-										set mytracks to get (every file track whose played date is greater than theDate)
-									on error errDescription number errnum
-										set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
-									end try
-								end tell
-							end if
+								set mytracks to get (every file track whose played date is greater than theDate)
+								-- 10.5 64-bit bug: greater than acts as less than and less than gives a -10001 error, WTF!
+							end tell
 						on error errDescription number errnum
 							set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
 						end try
@@ -130,6 +135,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Tuesday, October 30, 2007 11:15:00 AM"
+	set when to date "Friday, November 2, 2007 9:15:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run

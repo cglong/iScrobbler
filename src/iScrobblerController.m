@@ -104,22 +104,19 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 - (void)displayProtocolEvent:(NSString *)msg
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlLastFMCommunications"]) {
-        #ifndef __LP64__
         [GrowlApplicationBridge
             notifyWithTitle:msg
             description:@""
             notificationName:IS_GROWL_NOTIFICATION_PROTOCOL
             iconData:nil
-            priority:0.0
+            priority:0
             isSticky:NO
             clickContext:nil];
-        #endif
     }
 }
 
 - (void)displayNowPlayingWithMsg:(NSString*)msg
-{
-#ifndef __LP64__    
+{    
     SongData *s;
     NSData *artwork = nil;
     NSString *npInfo = nil, *title = nil;
@@ -145,11 +142,10 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
         description:msg
         notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
         iconData:artwork
-        priority:0.0
+        priority:0
         isSticky:NO
         clickContext:nil
         identifier:@"iscrobbler.play"];
-#endif
 }
 
 - (void)displayNowPlaying
@@ -162,30 +158,26 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
 {
-#ifndef __LP64__
     [GrowlApplicationBridge
             notifyWithTitle:title
             description:msg
             notificationName:IS_GROWL_NOTIFICATION_ALERTS
             iconData:nil
-            priority:0.0
+            priority:0
             isSticky:YES
             clickContext:nil];
-#endif            
 }
 
 - (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
 {
-#ifndef __LP64__
     [GrowlApplicationBridge
             notifyWithTitle:title
             description:msg
             notificationName:IS_GROWL_NOTIFICATION_ALERTS
             iconData:nil
-            priority:0.0
+            priority:0
             isSticky:NO
             clickContext:nil];
-#endif    
 }
 
 // PM notifications
@@ -640,7 +632,7 @@ if (currentSong) { \
         }
         
         // Update Recent Songs list
-        int i, found = 0, count = [songList count];
+        NSInteger i, found = 0, count = [songList count];
         for(i = 0; i < count; ++i) {
             if ([[songList objectAtIndex:i] isEqualToSong:song]) {
                 found = i;
@@ -748,7 +740,7 @@ player_info_exit:
     // This came in very handy above -- what foresight!
     [prefs setObject:[defaultPrefs objectForKey:@"version"] forKey:@"version"];
     
-    [SongData setSongTimeFudge:5.0];
+    [SongData setSongTimeFudge:5.0f];
 	
     // Request the password and lease it, this will force it to ask
     // permission when loading, so it doesn't annoy you halfway through
@@ -835,12 +827,9 @@ player_info_exit:
         } else
             ScrobLog(SCROB_LOG_ERR, @"Failed to register for system media addition events.");
 
-#ifndef __LP64__
         // Register with Growl
         [GrowlApplicationBridge setGrowlDelegate:self];
-#else
-; // Growl not 64bit yet
-#endif
+        
         // Register for iTunes track change notifications
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
             selector:@selector(iTunesPlayerInfoHandler:) name:@"com.apple.iTunes.playerInfo"
@@ -1017,7 +1006,6 @@ player_info_exit:
     [songActionMenu addItem:item];
     [item release];
     
-    
     #ifdef notyet
     item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play", "")
         action:@selector(playSong:) keyEquivalent:@""];
@@ -1035,7 +1023,7 @@ player_info_exit:
         #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
             // documented as not implemeted, and it's not (as of 10.4.10
-            int given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:INT_MAX];
+            NSInteger given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:NSIntegerMax,];
             ScrobDebug(@"given %d ms of delayed log out", given);
         }
         #endif
@@ -1164,7 +1152,7 @@ player_info_exit:
     [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
 }
 
-- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
 {
     if (returnCode == NSAlertAlternateReturn) {
         NSURL *url = [NSURL URLWithString:@"http://growl.info/"];
@@ -1215,7 +1203,7 @@ player_info_exit:
     
     // add songs from songList array to menu
     enumerator=[songList reverseObjectEnumerator];
-    int songsToDisplay = [prefs integerForKey:@"Number of Songs to Save"];
+    NSInteger songsToDisplay = [prefs integerForKey:@"Number of Songs to Save"];
     while ((song = [enumerator nextObject]) && addedSongs < songsToDisplay) {
         item = [[[NSMenuItem alloc] initWithTitle:[song title]
                                     action:![song isLastFmRadio] ? @selector(playSong:) : nil
@@ -1314,7 +1302,7 @@ player_info_exit:
     
     @try {
         (void)[iTunesPlayTrackScript executeHandler:@"PlayTrack" withParameters:[song sourceName],
-            [song playlistID], [NSNumber numberWithInt:[song iTunesDatabaseID]], nil];
+            [song playlistID], [NSNumber numberWithUnsignedInt:(unsigned int)[song iTunesDatabaseID]], nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play track -- script error: %@.", exception);
     }
@@ -1402,12 +1390,9 @@ player_info_exit:
         return (nil);
     
     unsigned char *hash = MD5((unsigned char*)[input bytes], [input length], NULL);
-	int i;
-    
 	NSMutableString *hashString = [NSMutableString string];
-	
     // Convert the binary hash into a string
-    for (i = 0; i < MD5_DIGEST_LENGTH; i++)
+    for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
 		[hashString appendFormat:@"%02x", *hash++];
     
     return (hashString);
@@ -1478,7 +1463,7 @@ player_info_exit:
         NSBeep();
 }
 
-- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
 {
     if (returnCode == NSAlertDefaultReturn)
 		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.0];
@@ -1528,8 +1513,10 @@ player_info_exit:
     // This has to be done before changing click through properties,
     // otherwise things won't work
     [w orderFront:nil];
+    #ifndef __LP64__
     // Carbon apps
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
+    #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
     // [w setDelegate:self];
     [w center];
@@ -1537,7 +1524,7 @@ player_info_exit:
     NSDictionary *info = [error userInfo];
     
     // A sheet sliding out from the middle of nowhere looks weird, so set a very small delay
-    [[NSUserDefaults standardUserDefaults] setFloat:.001 forKey:@"NSWindowResizeTime"];
+    [[NSUserDefaults standardUserDefaults] setFloat:.001f forKey:@"NSWindowResizeTime"];
     
     NSAlert *a = [NSAlert alertWithMessageText:[info objectForKey:NSLocalizedFailureReasonErrorKey]
         defaultButton:[info objectForKey:@"defaultButton"]
@@ -1554,7 +1541,7 @@ player_info_exit:
 - (void)showApplicationIsDamagedDialog
 {
 	[NSApp activateIgnoringOtherApps:YES];
-	int result = NSRunCriticalAlertPanel(NSLocalizedString(@"Critical Error", nil),
+	NSInteger result = NSRunCriticalAlertPanel(NSLocalizedString(@"Critical Error", nil),
         NSLocalizedString(@"The iScrobbler application appears to be damaged.  Please download a new copy from the iScrobbler homepage.", nil),
         NSLocalizedString(@"Quit", nil),
         NSLocalizedString(@"Open iScrobbler Homepage", nil), nil);
@@ -1791,21 +1778,17 @@ exit:
 
 - (void)iPodSyncEnd:(NSNotification*)note
 {
-#ifndef __LP64__
     NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
     if (!msg)
         msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
     [GrowlApplicationBridge
-            notifyWithTitle:NSLocalizedString(@"iPod Sync Finished", "")
-            description:msg
-            notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
-            iconData:nil
-            priority:0.0
-            isSticky:NO
-            clickContext:nil];
-#else
-; // Growl not 64bit yet
-#endif
+        notifyWithTitle:NSLocalizedString(@"iPod Sync Finished", "")
+        description:msg
+        notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
+        iconData:nil
+        priority:0
+        isSticky:NO
+        clickContext:nil];
 }
 
 // Bindings
@@ -1916,27 +1899,27 @@ exit:
 {
     NSMenuItem *item;
     switch ([[self commandDescription] appleEventCode]) {
-        case 'Fcch': // flush caches
+        case (FourCharCode)'Fcch': // flush caches
             [[NSApp delegate] performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
         break;
-        case 'NPly': // show now playing
+        case (FourCharCode)'NPly': // show now playing
             [[NSApp delegate] performSelector:@selector(displayNowPlaying) withObject:nil afterDelay:0.0];
         break;
-        case 'TagS': // tag currently playing song
+        case (FourCharCode)'TagS': // tag currently playing song
             item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
             if ([item hasSubmenu]) {
                 if ((item = [[item submenu] itemWithTag:MACTION_TAG_TAG]))
                     [[NSApp delegate] performSelector:@selector(tagTrack:) withObject:item afterDelay:0.0];
             }
         break;
-        case 'LovS': // love currently playing song
+        case (FourCharCode)'LovS': // love currently playing song
             item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
             if ([item hasSubmenu]) {
                 if ((item = [[item submenu] itemWithTag:MACTION_LOVE_TAG]))
                     [[NSApp delegate] performSelector:@selector(loveTrack:) withObject:item afterDelay:0.0];
             }
         break;
-        case 'BanS': // ban currently playing song
+        case (FourCharCode)'BanS': // ban currently playing song
             item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
             if ([item hasSubmenu]) {
                 if ((item = [[item submenu] itemWithTag:MACTION_BAN_TAG]))
@@ -2156,10 +2139,10 @@ void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *ho
 void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = (time / 86400U);
-    *hours = (time % 86400U) / 3600U;
-    *minutes = ((time % 86400U) % 3600U) / 60U;
-    *seconds = ((time % 86400U) % 3600U) % 60U;
+    *days = (unsigned int)(time / 86400U);
+    *hours = (unsigned int)(time % 86400U) / 3600U;
+    *minutes = (unsigned int)((time % 86400U) % 3600U) / 60U;
+    *seconds = (unsigned int)((time % 86400U) % 3600U) % 60U;
 }
 
 #include "iScrobblerController+Private.m"

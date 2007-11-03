@@ -46,7 +46,7 @@ typedef enum {kqSuccess, kqIsQueued, kqFailed} QueueResult_t;
 // Unsorted array of songs
 - (NSArray*)songs;
 
-- (unsigned)count;
+- (NSUInteger)count;
 
 - (unsigned)totalSubmissionsCount;
 - (NSNumber*)totalSubmissionsPlayTimeInSeconds;

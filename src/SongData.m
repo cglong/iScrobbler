@@ -32,7 +32,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 
 #define SCOREBOARD_ALBUMART_CACHE
 #ifdef SCOREBOARD_ALBUMART_CACHE
-static unsigned int artScorePerHit = 12; // For 1 play of an album, this will give a TTL of almost 4hrs
+static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give a TTL of almost 4hrs
 #define SCORBOARD_NET_BOOST 10
 #endif
 
@@ -74,8 +74,8 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     
     // initialize some empty values
     [self setTitle:@""];
-    [self setDuration:[NSNumber numberWithFloat:0.0]];
-    [self setPosition:[NSNumber numberWithFloat:0.0]];
+    [self setDuration:[NSNumber numberWithFloat:0.0f]];
+    [self setPosition:[NSNumber numberWithFloat:0.0f]];
     [self setArtist:@""];
     [self setAlbum:@""];
     [self setPath:@""];
@@ -658,7 +658,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
 }
 #endif
 
-- (void)cacheArtwork:(NSImage*)art withScore:(int)score
+- (void)cacheArtwork:(NSImage*)art withScore:(NSInteger)score
 {
     float misses = artworkCacheLookups - artworkCacheHits;
     ScrobLog(SCROB_LOG_TRACE, @"Artwork cache miss. Lookups: %.0f, Misses: %.0f (%.02f%%)",
@@ -680,7 +680,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
         art, KEY_IMAGE,
         [NSDate date], KEY_LAST_HIT,
 #ifdef SCOREBOARD_ALBUMART_CACHE
-        [NSNumber numberWithUnsignedInt:score], @"score",
+        [NSNumber numberWithLongLong:score], @"score",
         #ifdef ISDEBUG
         [NSDate date], @"entryDate",
         #endif
@@ -692,7 +692,7 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
 - (NSImage*)artwork
 {
     static NSAppleScript *iTunesArtworkScript = nil;
-    static int artworkCacheMax;
+    static NSInteger artworkCacheMax;
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"])
         return (nil);
@@ -738,13 +738,13 @@ static unsigned int artScorePerHit = 12; // For 1 play of an album, this will gi
     NSString* const key = MakeAlbumCacheKey();
     NSMutableDictionary *entry = [artworkCache objectForKey:key];
     NSImage *image;
-    artworkCacheLookups += 1.0;
+    artworkCacheLookups += 1.0f;
     if (entry && [entry isNotEqualTo:[NSNull null]]) {
-        artworkCacheHits += 1.0;
+        artworkCacheHits += 1.0f;
         image = [entry objectForKey:KEY_IMAGE];
         [entry setObject:[NSDate date] forKey:KEY_LAST_HIT];
 #ifdef SCOREBOARD_ALBUMART_CACHE
-        unsigned score = [[entry objectForKey:@"score"] unsignedIntValue] + artScorePerHit;
+        unsigned score = [[entry objectForKey:@"score"] unsignedIntValue] + (unsigned)artScorePerHit;
         [entry setObject:[NSNumber numberWithUnsignedInt:score] forKey:@"score"];
 #endif
         ScrobLog(SCROB_LOG_TRACE, @"Artwork cache hit. Lookups: %.0f (%u/%u), Hits: %.0f (%.02f%%)",

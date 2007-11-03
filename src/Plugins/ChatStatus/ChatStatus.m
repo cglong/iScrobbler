@@ -24,8 +24,8 @@
 - (id)notificationCenter;
 - (void)loginAllServices;
 - (void)logoutAllServices;
-- (void)setMyStatus:(int)fp8 message:(id)fp12;
-- (int)myStatus;
+- (void)setMyStatus:(IMPersonStatus)fp8 message:(id)fp12;
+- (IMPersonStatus)myStatus;
 - (id)myStatusMessage;
 - (void)setMyPictureData:(id)fp8;
 - (id)myPictureData;

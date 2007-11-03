@@ -64,7 +64,7 @@ int toInteger32(char bytes[]) {
 }
 
 int mfile(int length, char ret[], FILE *fp) {
-    int bytes = fread(ret,1,length,fp);
+    size_t bytes = fread(ret,1,length,fp);
     
     if (bytes == length) {
         return 0;

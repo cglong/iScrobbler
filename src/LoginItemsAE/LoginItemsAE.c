@@ -12,7 +12,7 @@
 				please do not use, install, modify or redistribute this Apple software.
 
 				In consideration of your agreement to abide by the following terms, and subject
-				to these terms, Apple grants you a personal, non-exclusive license, under AppleÕs
+				to these terms, Apple grants you a personal, non-exclusive license, under Appleâ€™s
 				copyrights in this original Apple software (the "Apple Software"), to use,
 				reproduce, modify and redistribute the Apple Software, with or without
 				modifications, in source and/or binary forms; provided that if you redistribute
@@ -106,7 +106,9 @@ static OSStatus LaunchSystemEvents(ProcessSerialNumber *psnPtr)
             
             err = LSOpenApplication(&appParams, psnPtr);
         } else {
+            #ifndef __LP64__
             FSSpec				appSpec;
+            #endif
             LaunchParamBlockRec lpb;
             
             // Do it the compatible way on earlier systems.
@@ -117,15 +119,21 @@ static OSStatus LaunchSystemEvents(ProcessSerialNumber *psnPtr)
             // get an FSSpec for the application because there's no 
             // FSRef version of Launch Application.
             
+            #ifndef __LP64__
             if (err == noErr) {
                 err = FSGetCatalogInfo(&appRef, kFSCatInfoNone, NULL, NULL, &appSpec, NULL);
             }
+            #endif
             if (err == noErr) {
                 memset(&lpb, 0, sizeof(lpb));
                 lpb.launchBlockID      = extendedBlock;
                 lpb.launchEPBLength    = extendedBlockLen;
                 lpb.launchControlFlags = launchContinue | launchNoFileFlags;
+                #ifdef __LP64__
+                lpb.launchAppRef       = &appRef;
+                #else
                 lpb.launchAppSpec      = &appSpec;
+                #endif
                 
                 err = LaunchApplication(&lpb);
             }
@@ -232,7 +240,7 @@ static OSStatus SendAppleEvent(const AEDesc *event, AEDesc *reply)
 		err = AEGetParamPtr(
 			reply, 
 			keyErrorNumber, 
-			typeShortInteger, 
+			typeSInt16, 
 			&junkType,
 			&replyErr, 
 			sizeof(replyErr), 
@@ -689,7 +697,7 @@ extern OSStatus LIAEAddRefAtEnd(const FSRef *item, Boolean hideIt)
 		
 		err = AECreateList(NULL, 0, true, &properties);
 		if (err == noErr) {
-			err = FSRefMakePath(item, (UInt8 *) path, sizeof(path));
+			err = FSRefMakePath(item, (UInt8 *) path, (UInt32)sizeof(path));
 		}
 		
 		// System Events complains if you pass it typeUTF8Text directly, so 
@@ -796,7 +804,7 @@ extern OSStatus LIAERemove(CFIndex itemIndex)
 	// and sends it to System Events.
 {
 	OSStatus	err;
-	long		itemIndexPlusOne;
+	SInt32		itemIndexPlusOne;
 	AEDesc		indexDesc;
 	AEDesc		loginItemAtIndex;
 	
@@ -807,8 +815,8 @@ extern OSStatus LIAERemove(CFIndex itemIndex)
 
 	// Build object specifier for "login item X".
 
-	itemIndexPlusOne = itemIndex + 1;	// AppleScript is one-based, CF is zero-based
-	err = AECreateDesc(typeLongInteger, &itemIndexPlusOne, sizeof(itemIndexPlusOne), &indexDesc);
+	itemIndexPlusOne = ((SInt32)itemIndex) + 1;	// AppleScript is one-based, CF is zero-based
+	err = AECreateDesc(typeSInt32, &itemIndexPlusOne, sizeof(itemIndexPlusOne), &indexDesc);
 	if (err == noErr) {
 		err = CreateObjSpecifier(cLoginItem, (AEDesc *) &kAENull, formAbsolutePosition, &indexDesc, false, &loginItemAtIndex);
 	}

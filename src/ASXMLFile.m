@@ -59,7 +59,7 @@ static NSMutableDictionary *xmlCache = nil;
 }
 
 // public
-+ (ASXMLFile*)xmlFileWithURL:(NSURL*)url delegate:(id)delegate cachedForSeconds:(int)seconds
++ (ASXMLFile*)xmlFileWithURL:(NSURL*)url delegate:(id)delegate cachedForSeconds:(NSInteger)seconds
 {
     if (!url)
         return (nil);
@@ -88,7 +88,7 @@ static NSMutableDictionary *xmlCache = nil;
     
     // not found in cache, setup a cache entry and fetch it
     d = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-        [NSNumber numberWithInt:seconds], @"cacheTime",
+        [NSNumber numberWithLongLong:seconds], @"cacheTime",
         [NSDate distantPast], @"expires",
         nil];
     [xmlCache setObject:d forKey:url];
@@ -289,7 +289,7 @@ static NSMutableDictionary *xmlCache = nil;
     NSMutableDictionary *d = [xmlCache objectForKey:url];
     ISASSERT(d != nil, "missing cache entry!");
     
-    NSDate *expires = [[NSDate date] addTimeInterval:[[d objectForKey:@"cacheTime"] intValue]];
+    NSDate *expires = [[NSDate date] addTimeInterval:[[d objectForKey:@"cacheTime"] doubleValue]];
     [d setObject:xml forKey:@"xml"];
     [d setObject:expires forKey:@"expires"];
     ScrobDebug(@"added cached entry for: %@ expiring at %@", url, expires);

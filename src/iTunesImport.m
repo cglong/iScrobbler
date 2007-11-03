@@ -243,7 +243,7 @@
     ScrobDebug(@"Opened iTunes Library in %.4lf seconds", (abs2clockns / 1000000000.0));
     ISStartTime();
     
-    totalTracks = [allTracks count];
+    totalTracks = (typeof(totalTracks))[allTracks count];
     
     NSNumber *epochSecs = [allTracks valueForKeyPath:@"Date Added.@min.timeIntervalSince1970"];
     if (!epochSecs)

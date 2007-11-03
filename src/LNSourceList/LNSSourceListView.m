@@ -2,6 +2,12 @@
 #import "LNSSourceListCell.h"
 
 
+@interface NSObject (LN_NSArrayControllerTreeNodePrivateMethod)
+// observedObject is a method of the private _NSArrayControllerTreeNode class
+- (id)observedObject;
+@end
+
+
 @interface LNSSourceListView (Private)
 
 - (BOOL) _itemIsSourceGroup:(id) item;
@@ -12,7 +18,7 @@
 
 - (BOOL) _itemIsSourceGroup:(id) item
 {
-	NSDictionary* value = [item observedObject];
+    NSDictionary* value = [item observedObject];
 
 	return [[value objectForKey:@"isSourceGroup"] boolValue];
 }
@@ -34,7 +40,7 @@
 	return ![self _itemIsSourceGroup:item];
 }
 
-- (float) outlineView:(NSOutlineView*) outlineView heightOfRowByItem:(id) item
+- (CGFloat) outlineView:(NSOutlineView*) outlineView heightOfRowByItem:(id) item
 {
 	//	Make the height of Source Group items a little higher
 	if ([self _itemIsSourceGroup:item])
@@ -75,8 +81,8 @@
 			//	cell.
 
 			NSRange rows = [self rowsInRect:clipRect];
-			unsigned maxRow = NSMaxRange(rows);
-			unsigned row;
+			NSUInteger maxRow = NSMaxRange(rows);
+			NSUInteger row;
 			NSImage *gradient;
 			/* Determine whether we should draw a blue or grey gradient. */
 			/* We will automatically redraw when our parent view loses/gains focus, 
@@ -100,7 +106,7 @@
 
 					if (NSIntersectsRect(selectRect, clipRect))
 					{
-						int i = 0;
+						CGFloat i = 0;
 						
 						/* We're selected, so draw the gradient background. */
 						NSSize gradientSize = [gradient size];
@@ -119,8 +125,8 @@
 	case kSourceList_NumbersAppearance:
 		{
 			NSRange rows = [self rowsInRect:clipRect];
-			unsigned maxRow = NSMaxRange(rows);
-			unsigned row, lastSelectedRow = NSNotFound;
+			NSUInteger maxRow = NSMaxRange(rows);
+			NSUInteger row, lastSelectedRow = NSNotFound;
 			NSColor* highlightColor = nil;
 			NSColor* highlightFrameColor = nil;
 

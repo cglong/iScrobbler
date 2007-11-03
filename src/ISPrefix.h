@@ -16,11 +16,26 @@
 @interface NSDate (ISDateConversion)
 - (NSCalendarDate*)GMTDate;
 @end
+
+NS_INLINE NSString* ISCPUArchitectureString() {
+return (
+#ifdef __ppc__
+    @"PPC"
+#elif defined(__i386__)
+    @"Intel"
+#elif defined(__x86_64__)
+    @"Intel 64-bit"
+#else
+#error unknown arch
+#endif
+);
+}
+
 #endif
 
 #ifdef __ppc__
 #define trap() asm volatile("trap")
-#elif __i386__
+#elif defined(__i386__) || defined(__x86_64__)
 #define trap() asm volatile("int $3")
 #else
 #error unknown arch

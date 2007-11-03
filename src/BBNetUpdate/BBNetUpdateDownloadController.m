@@ -185,7 +185,7 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
         if (buf) {
             (void)h.init(ctx);
             
-            int bytes;
+            size_t bytes;
             while ((bytes = read(fd, buf, sb.st_blksize)) > 0)
                 (void)h.update(ctx, buf, bytes);
             
@@ -196,7 +196,7 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
         close(fd);
         
         const char *expectedDigest = [hash UTF8String];
-        unsigned expectedLen = strlen(expectedDigest);
+        size_t expectedLen = strlen(expectedDigest);
         
         char digestString[sizeof(h.digest) * 4];
         int i, j;
@@ -254,7 +254,7 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 - (void)download:(NSURLDownload *)download didReceiveDataOfLength:(unsigned)length;
 {
    if (_totalBytes > 0.0) {
-       float recvdBytes = ((float)length / _totalBytes) * 100.0;
+       double recvdBytes = ((double)length / _totalBytes) * 100.0;
        [progressBar incrementBy:recvdBytes];
     }
 }

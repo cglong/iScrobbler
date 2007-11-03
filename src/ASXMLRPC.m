@@ -37,7 +37,7 @@
 {
     NSMutableArray *params = [[NSMutableArray alloc] initWithCapacity:4];
     [params addObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
-    [params addObject:[NSString stringWithFormat:@"%qu", (u_int64_t)[[NSDate date] timeIntervalSince1970]]];
+    [params addObject:[NSString stringWithFormat:@"%llu", (u_int64_t)[[NSDate date] timeIntervalSince1970]]];
     
     NSString *challenge = [[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
         account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
@@ -142,7 +142,7 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)uresponse
 {
-    int code = [(NSHTTPURLResponse*)uresponse statusCode];
+    NSInteger code = [(NSHTTPURLResponse*)uresponse statusCode];
     if (200 != code) {
         [connection cancel];
         conn = nil;

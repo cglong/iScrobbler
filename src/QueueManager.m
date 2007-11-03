@@ -47,9 +47,9 @@ static QueueManager *g_QManager = nil;
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release
@@ -198,9 +198,10 @@ static QueueManager *g_QManager = nil;
 - (void)removeSong:(SongData*)song sync:(BOOL)sync
 {
     SongData *found;
-    unsigned int idx;
+    NSUInteger idx, count;
     
-    for (idx = 0; idx < [songQueue count]; ++idx) {
+    count = [songQueue count];
+    for (idx = 0; idx < count; ++idx) {
         found = [songQueue objectAtIndex:idx];
         if ([found isEqualToSong:song] &&
              [[found songID] isEqualToNumber:[song songID]]) {
@@ -228,7 +229,7 @@ static QueueManager *g_QManager = nil;
     return ([[songQueue copy] autorelease]);
 }
 
-- (unsigned)count
+- (NSUInteger)count
 {
     return ([songQueue count]);
 }

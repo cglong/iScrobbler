@@ -138,10 +138,10 @@
 {
     NSMutableArray *entries = [NSMutableArray array];
     NSMutableDictionary *entry;
-    unsigned count = [sortedByLastPlayed count] - 1;
+    NSUInteger count = [sortedByLastPlayed count] - 1;
     NSTimeInterval secStart, secEnd;
     NSTimeInterval gap;
-    for (int i = 0; i < count; ++i) {
+    for (NSUInteger i = 0; i < count; ++i) {
         secStart = [[[sortedByLastPlayed objectAtIndex:i] lastPlayed] timeIntervalSince1970];
         secEnd = [[[sortedByLastPlayed objectAtIndex:i+1] startTime] timeIntervalSince1970];
         gap = floor(secEnd - secStart);
@@ -264,8 +264,8 @@
 - (void)fixIPodShuffleTimes:(NSArray*)songs withRequestDate:(NSDate*)requestEpoch withiPodMountDate:(NSDate*)mountEpoch
 {
     NSArray *sorted = [songs sortedArrayUsingSelector:@selector(compareSongLastPlayedDate:)];
-    int i;
-    unsigned count = [sorted count];
+    NSUInteger i;
+    NSUInteger count = [sorted count];
     // Shuffle plays will have a last played equal to the time the Shuffle was sync'd
     NSTimeInterval shuffleEpoch = [mountEpoch timeIntervalSince1970];
     SongData *song;
@@ -311,8 +311,8 @@ and some of the last played dates will be very bad.
 - (NSMutableArray*)validateIPodSync:(NSArray*)songs
 {
     NSMutableArray *sorted = [[songs sortedArrayUsingSelector:@selector(compareSongPostDate:)] mutableCopy];
-    int i;
-    unsigned count;
+    NSUInteger i;
+    NSUInteger count;
     
 validate:
     count = [sorted count];
@@ -497,6 +497,7 @@ validate:
                     ScrobLog(SCROB_LOG_ERR, @"exception retriving iPod sync metadata: %@.", e);
                 }
                 added = 0;
+                ScrobLog(SCROB_LOG_TRACE, @"iPodSync: script returned %lu tracks", [trackList count]-1);
                 while ((trackData = [en nextObject])) {
                     NSTimeInterval postDate;
                     song = [[SongData alloc] initWithiPodUpdateArray:trackData];

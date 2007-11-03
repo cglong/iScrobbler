@@ -10,6 +10,10 @@
 #import "LNSSourceListCell.h"
 #import "LNSSourceListSourceGroupCell.h"
 
+@interface NSObject (LN_NSArrayControllerTreeNodePrivateMethod)
+// observedObject is a method of the private _NSArrayControllerTreeNode class
+- (id)observedObject;
+@end
 
 @implementation LNSSourceListColumn
 

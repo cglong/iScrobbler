@@ -107,17 +107,20 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     if (!build)
         build = ver;
     
-    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@ (%@)",
+    NSString *arch =
         #ifdef __ppc__
         @"PPC"
         #elif defined(__i386__)
         @"Intel"
         #elif defined(__x86_64__)
-        @"Intel 64"
+        @"Intel 64-bit"
         #else
         @"Unknown"
         #endif
-        , [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
+        ;
+        
+    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@ (%@)",
+        arch, [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
         
     return (agent);
 }
@@ -345,7 +348,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 }
 
 // Sheet handlers
-- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
 {
    NSString *file = [sheet filename];
    

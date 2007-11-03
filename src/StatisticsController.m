@@ -64,9 +64,9 @@ enum {
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release
@@ -121,7 +121,7 @@ enum {
     
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm totalSubmissionsCount]]
         forKey:@"Tracks Submitted"];
-    [selection setValue:[NSNumber numberWithUnsignedInt:[qm count]]
+    [selection setValue:[NSNumber numberWithUnsignedLongLong:[qm count]]
         forKey:@"Tracks Queued"];
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm submissionAttemptsCount]]
         forKey:@"Submission Attempts"];
@@ -157,7 +157,7 @@ enum {
     if (g_nowPlaying && [g_nowPlaying isEqualToSong:[[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG]])
         [checkImage setHidden:NO];
     
-    [selection setValue:[NSNumber numberWithUnsignedInt:[qm count]]
+    [selection setValue:[NSNumber numberWithUnsignedLongLong:[qm count]]
         forKey:@"Tracks Queued"];
 }
 
@@ -759,7 +759,7 @@ exit:
 
 - (BOOL)validateToolbarItem:(NSToolbarItem*)item
 {
-    int flags = [item tag];
+    NSInteger flags = [item tag];
     BOOL valid = YES;
     if ((flags & kTBItemRequiresSong))
         valid = (g_nowPlaying && !rpcreq ? YES : NO);

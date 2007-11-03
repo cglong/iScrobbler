@@ -20,8 +20,8 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 
-#define REQUEST_TIMEOUT 60.0
-#define HANDSHAKE_DEFAULT_DELAY 60.0
+#define REQUEST_TIMEOUT 60.0f
+#define HANDSHAKE_DEFAULT_DELAY 60.0f
 /* From IRC:
    Russ​​: ...The server cuts any submission off at 1000,
    I personally recommend you don't go over 50 or 100 in a single submission */
@@ -90,9 +90,9 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release
@@ -369,33 +369,23 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     
     agent = [[prefs stringForKey:@"useragent"] mutableCopy];
     
-#ifdef __ppc__
-    NSString *arch = @"PPC";
-#elif defined(__i386__)
-    NSString *arch = @"Intel";
-#elif defined(__x86_64__)
-    NSString *arch = @"Intel 64";
-#else
-#error unknown arch
-#endif
-    
-    [agent replaceOccurrencesOfString:@"-arch-" withString:arch options:0 range:NSMakeRange(0, [agent length])];
+    [agent replaceOccurrencesOfString:@"-arch-" withString:ISCPUArchitectureString() options:0 range:NSMakeRange(0, [agent length])];
     return (agent);
 }
 
 - (float)minPercentagePlayed
 {
-    return (50.0);
+    return (50.0f);
 }
 
 - (float)minTimePlayed
 {
-    return (240.0); // Four minutes
+    return (240.0f); // Four minutes
 }
 
 - (float)handshakeMaxDelay
 {
-    return (7200.00); // Two hours
+    return (7200.00f); // Two hours
 }
 
 - (BOOL)useBatchSubmission
@@ -409,12 +399,12 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     resubmitTimer = [NSTimer scheduledTimerWithTimeInterval:nextResubmission target:self
         selector:@selector(resubmit:) userInfo:nil repeats:NO];
     // We use the handshake delay rules
-    nextResubmission *= 2.0;
+    nextResubmission *= 2.0f;
     if (nextResubmission > [self handshakeMaxDelay])
         nextResubmission = [self handshakeMaxDelay];
 }
 
-- (void)writeSubLogEntry:(unsigned)sid withTrackCount:(unsigned)count withData:(NSData*)data
+- (void)writeSubLogEntry:(unsigned)sid withTrackCount:(NSUInteger)count withData:(NSData*)data
 {
     @try {
     [subLog writeData:[[NSString stringWithFormat:@"[id=%u,ct=%u,sz=%u]\n", sid, count, [data length]]
@@ -453,7 +443,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         goto didFinishLoadingExit;
     }
     
-    int i;
+    NSUInteger i;
     NSMutableString *result = [[[NSMutableString alloc] initWithData:myData encoding:NSUTF8StringEncoding] autorelease];
     // Remove any carriage returns (such as HTTP style \r\n -- which killed us during a server upgrade)
     (void)[result replaceOccurrencesOfString:@"\r" withString:@"" options:0 range:NSMakeRange(0,[result length])];
@@ -475,7 +465,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     // Process Body, and if OK, remove the in flight songs from the queue
     if([[self lastSubmissionResult] isEqualToString:HS_RESULT_OK])
     {
-		int count = [inFlight count];
+		NSUInteger count = [inFlight count];
         for(i=0; i < count; i++) {
             [[QueueManager sharedInstance] removeSong:[inFlight objectAtIndex:i] sync:NO];
         }
@@ -654,7 +644,7 @@ didFinishLoadingExit:
     }
     
     inFlight = [[[QueueManager sharedInstance] songs] sortedArrayUsingSelector:@selector(compareSongPostDate:)];
-    unsigned submissionCount = [inFlight count];
+    NSUInteger submissionCount = [inFlight count];
     if (!submissionCount) {
         inFlight = nil;
         return;
@@ -705,9 +695,9 @@ didFinishLoadingExit:
     
     // Fill the dictionary with every entry in the queue, ordering them from
     // oldest to newest.
-    int i;
+    NSUInteger i;
     for(i=0; i < submissionCount; ++i) {
-        [subData appendData:[self encodeSong:[inFlight objectAtIndex:i] submissionNumber:i]];
+        [subData appendData:[self encodeSong:[inFlight objectAtIndex:i] submissionNumber:(unsigned)i]];
     }
     
     NSMutableURLRequest *request =

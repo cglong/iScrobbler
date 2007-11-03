@@ -19,7 +19,7 @@
 
 @protocol ASXMLFileCache
 // async, see notifications above
-+ (ASXMLFile*)xmlFileWithURL:(NSURL*)url delegate:(id)delegate cachedForSeconds:(int)seconds; // 0 == no cache
++ (ASXMLFile*)xmlFileWithURL:(NSURL*)url delegate:(id)delegate cachedForSeconds:(NSInteger)seconds; // 0 == no cache
 + (ASXMLFile*)xmlFileWithURL:(NSURL*)url delegate:(id)delegate cached:(BOOL)cached;
 + (ASXMLFile*)xmlFileWithURL:(NSURL*)url delegate:(id)delegate;
 

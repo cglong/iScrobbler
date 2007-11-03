@@ -55,7 +55,7 @@
 
 - (void)updateStatusWithColor:(NSColor*)color withMsg:(NSString*)msg
 {
-    unsigned tracksQueued;
+    NSUInteger tracksQueued;
     if (msg) {
         // Get rid of extraneous protocol information
         NSArray *items = [msg componentsSeparatedByString:@"\n"];
@@ -65,7 +65,7 @@
         msg = [NSString stringWithFormat:@"%@: %u",
                 NSLocalizedString(@"Tracks Sub'd", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
         if (tracksQueued = [[QueueManager sharedInstance] count]) {
-            msg = [msg stringByAppendingFormat:@", %@: %u",
+            msg = [msg stringByAppendingFormat:@", %@: %lu",
                 NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
         }
     }
@@ -141,7 +141,7 @@
     if (displayTimer)
         return;
     
-    NSTimeInterval ti = [[NSUserDefaults standardUserDefaults] floatForKey:@"MenuNPInfoDelay"] / 1000.0f;
+    NSTimeInterval ti = [[NSUserDefaults standardUserDefaults] doubleForKey:@"MenuNPInfoDelay"] / 1000.0f;
     displayTimer = [NSTimer scheduledTimerWithTimeInterval:ti target:self selector:@selector(displayInfo:) userInfo:nil repeats:NO];
 }
 

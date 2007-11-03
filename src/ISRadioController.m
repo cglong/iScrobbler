@@ -327,7 +327,7 @@
             [item setRepresentedObject:station];
         }
     } else if (item) {
-        int i = [m indexOfItem:item] + 1;
+        NSInteger i = [m indexOfItem:item] + 1;
         if (i < [m numberOfItems] && [[m itemAtIndex:i] isSeparatorItem])
             [m removeItemAtIndex:i];
         [m removeItem:item];
@@ -347,7 +347,7 @@
         @try {
         
         NSMutableArray *history = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"RadioStationHistory"] mutableCopy] autorelease];
-        unsigned count;
+        NSInteger count;
         if ([[NSUserDefaults standardUserDefaults] objectForKey:@"Radio Station History Limit"])
             count = [[NSUserDefaults standardUserDefaults] integerForKey:@"Radio Station History Limit"];
         else
@@ -366,7 +366,7 @@
         
         // see if we already exist
         count = [history count];
-        int i = 0;
+        NSInteger i = 0;
         NSString *match = [station objectForKey:@"radioURL"];
         for (; i < count; ++i) {
             if (NSOrderedSame == [[[history objectAtIndex:i] objectForKey:@"radioURL"] caseInsensitiveCompare:match])
@@ -578,7 +578,7 @@ exitHistory:
     } else
         [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:YES];
     
-    int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
+    unsigned int duration = np ? [[np objectForKey:@"trackduration"] unsignedIntValue] : 0;
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
     // last.fm specific keys
         [NSNumber numberWithBool:YES], @"last.fm",
@@ -597,7 +597,7 @@ exitHistory:
         nil];
     
     if (duration > 0) {
-        int progress = [[np objectForKey:@"trackprogress"] intValue];
+        unsigned int progress = [[np objectForKey:@"trackprogress"] unsignedIntValue];
         duration -= progress;
         ping = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
             target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO];
@@ -672,8 +672,7 @@ exitHistory:
 - (void)defaultRadioPlayerCheck
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"CheckDefaultRadioPlayer"]
-        && ![self isDefaultLastFMRadioPlayer]) {
-#ifndef __LP64__ 
+        && ![self isDefaultLastFMRadioPlayer]) { 
         if ([GrowlApplicationBridge isGrowlRunning]) {
             id context = [NSStringFromClass([self class]) stringByAppendingString:
                 NSStringFromSelector(@selector(registerAsDefaultLastFMRadioPlayer:))];
@@ -685,11 +684,10 @@ exitHistory:
                 description:NSLocalizedString(@"iScrobbler is not currently your default Last.fm Radio Player. Click here for further options.", "")
                 notificationName:IS_GROWL_NOTIFICATION_ALERTS
                 iconData:nil
-                priority:0.0
+                priority:0
                 isSticky:YES
                 clickContext:context];
         }
-#endif
     }
 }
 
@@ -837,9 +835,9 @@ exitHistory:
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release

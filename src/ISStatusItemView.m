@@ -96,7 +96,7 @@
         [(NSMutableDictionary*)d setObject:[NSColor whiteColor] forKey:NSForegroundColorAttributeName];
         [d autorelease];
     }
-    [title drawAtPoint:NSMakePoint(8,3) withAttributes:d];
+    [title drawAtPoint:NSMakePoint(8.0,3.0) withAttributes:d];
 }
 
 -(void)dealloc

@@ -329,7 +329,7 @@ __private_extern__ NSThread *mainThread = nil;
         nil];
     NSString *name;
     NSManagedObject *obj;
-    int i = 0;
+    NSUInteger i = 0;
     while ((name = [en nextObject])) {
         obj = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:mainMOC];
         [obj setValue:ITEM_SESSION forKey:@"itemType"];
@@ -468,9 +468,9 @@ __private_extern__ NSThread *mainThread = nil;
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release

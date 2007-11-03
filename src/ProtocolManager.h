@@ -49,7 +49,8 @@
     int subBadAuth, hsBadAuth;
     int subFailures;
     // Counters
-    unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount, maxTracksPerSub;
+    unsigned submissionAttempts, successfulSubmissions, missingVarErrorCount;
+    NSUInteger maxTracksPerSub;
     BOOL isNetworkAvailable;
     BOOL sendNP; // send NP notification after handshake
     BOOL npInProgress; // a NP notification is active

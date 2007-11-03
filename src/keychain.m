@@ -49,9 +49,9 @@ static KeyChain* defaultKeyChain = nil;
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release
@@ -85,8 +85,8 @@ static KeyChain* defaultKeyChain = nil;
         const char *kcService = [service UTF8String];
         const char *kcAccount = [account UTF8String];
         const char *kcPass = [password UTF8String];
-        OSStatus ret = SecKeychainAddGenericPassword(NULL, strlen(kcService), kcService,
-            strlen(kcAccount), kcAccount, strlen(kcPass), kcPass, NULL);
+        OSStatus ret = SecKeychainAddGenericPassword(NULL, (UInt32)strlen(kcService), kcService,
+            (UInt32)strlen(kcAccount), kcAccount, (UInt32)strlen(kcPass), kcPass, NULL);
         if (noErr != ret) {
             NSString *errorMsg = (NSString*)SecCopyErrorMessageString(ret, NULL);
             if (errorMsg)
@@ -114,8 +114,8 @@ static KeyChain* defaultKeyChain = nil;
     void *passwordData;
     UInt32 passwordLen;
     NSString *string = @"";
-    ret = SecKeychainFindGenericPassword(NULL, strlen(kcService), kcService,
-        strlen(kcAccount), kcAccount, &passwordLen, &passwordData, NULL);
+    ret = SecKeychainFindGenericPassword(NULL, (UInt32)strlen(kcService), kcService,
+        (UInt32)strlen(kcAccount), kcAccount, &passwordLen, &passwordData, NULL);
     if (noErr == ret) {
         string = [[[NSString alloc] initWithBytes:passwordData length:passwordLen encoding:NSUTF8StringEncoding] autorelease];
         SecKeychainItemFreeContent(NULL, passwordData);
@@ -140,8 +140,8 @@ static KeyChain* defaultKeyChain = nil;
     SecKeychainItemRef itemref;
     const char *kcService = [service UTF8String];
     const char *kcAccount = [account UTF8String];
-    OSStatus ret = SecKeychainFindGenericPassword(NULL, strlen(kcService), kcService,
-        strlen(kcAccount), kcAccount, NULL, NULL, &itemref);
+    OSStatus ret = SecKeychainFindGenericPassword(NULL, (UInt32)strlen(kcService), kcService,
+        (UInt32)strlen(kcAccount), kcAccount, NULL, NULL, &itemref);
     if (noErr != ret)
         itemref = NULL;
     return (itemref);

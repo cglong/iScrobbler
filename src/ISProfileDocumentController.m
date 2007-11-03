@@ -31,7 +31,7 @@
 
 - (void)performFindPanelAction:(id)sender
 {
-    int tag = [sender tag];
+    NSInteger tag = [sender tag];
     switch (tag) {
         case NSFindPanelActionNext:
              (void)[myWebView searchFor:searchText direction:YES caseSensitive:NO wrap:YES];
@@ -67,7 +67,7 @@
     [[NSException exceptionWithName:NSFileHandleOperationException reason:@"Could not create temp file." userInfo:nil] raise];
 }
 
-- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode
+- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(NSInteger)returnCode
    contextInfo:(void  *)contextInfo
 {
     NSString *file = [sheet filename];

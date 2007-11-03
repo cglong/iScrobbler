@@ -96,17 +96,23 @@
     NSDictionary *data;
     BOOL headers = YES;
     id key, value;
-    int i;
+    NSUInteger i, count;
     // Copy the dict data into text
     NSMutableString *textData = [NSMutableString string];
     while ((idx = [en nextObject])) {
-        data = [objects objectAtIndex:[idx intValue]];
+        #ifdef __LP64__
+        i = [idx unsignedIntegerValue];
+        #else
+        i = [idx unsignedIntValue];
+        #endif
+        data = [objects objectAtIndex:i];
         // Note: We only get the keys from one object, so that our tabulated colmns contain the correct data
         if (!dataKeys)
             dataKeys = [[data allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
         if (headers) {
             // Add keys into text
-            for (i = 0; i < [dataKeys count]; ++i) {
+            count = [dataKeys count];
+            for (i = 0; i < count; ++i) {
                 key = [dataKeys objectAtIndex:i];
                 if (![key isEqualToString:@"Play Time"]) /* ACK! Internal knowledge of dict. */
                     [textData appendFormat:@"%@\t", key];
@@ -117,7 +123,8 @@
         }
         
         // Add values into text
-        for (i = 0; i < [dataKeys count]; ++i) {
+        count = [dataKeys count];
+        for (i = 0; i < count; ++i) {
             key = [dataKeys objectAtIndex:i];
             if (![key isEqualToString:@"Play Time"]) { /* ACK! Internal knowledge of dict. */ 
                 value = [data objectForKey:[dataKeys objectAtIndex:i]];
@@ -135,7 +142,7 @@
     return (YES);
 }
 
-- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(int)row
+- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row
     dropOperation:(NSTableViewDropOperation)op
 {
     return (NO);
@@ -167,9 +174,9 @@
 {
     NSMutableArray *array = [NSMutableArray arrayWithCapacity:[self count]];
 
-    unsigned idx = [self firstIndex];
+    NSUInteger idx = [self firstIndex];
     for (; NSNotFound != idx; idx = [self indexGreaterThanIndex:idx])
-        [array addObject:[NSNumber numberWithUnsignedInt:idx]];
+        [array addObject:[NSNumber numberWithUnsignedLongLong:idx]];
 
     return (array);
 }

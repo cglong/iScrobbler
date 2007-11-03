@@ -301,7 +301,7 @@ static NSImage *artistImgPlaceholder = nil;
         NSMutableString *description = [[[elements objectAtIndex:2] mutableCopy] autorelease];
         
         // strip any pre/post garbage (and the quotes)
-        int i = 0, len = [description length];
+        NSUInteger i = 0, len = [description length];
         for (; i < len && [description characterAtIndex:i] != (unichar)'\"'; ++i) /* no work */ ;
         
         r.location = 0;

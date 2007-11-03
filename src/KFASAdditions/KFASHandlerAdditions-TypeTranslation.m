@@ -14,7 +14,7 @@
 #import "KFASHandlerAdditions-TypeTranslation.h"
 
 #ifndef keyASUserRecordFields
-#define keyASUserRecordFields 'usrf'
+#define keyASUserRecordFields (FourCharCode)'usrf'
 #endif
 
 @interface NSAppleEventDescriptor (KFAppleScriptHandlerAdditionsPrivate)
@@ -36,7 +36,7 @@
     if ([self respondsToSelector:@selector(objectEnumerator)]) 
     {
         id currentObject;
-        int i;
+        NSInteger i;
         
         resultDesc = [NSAppleEventDescriptor listDescriptor];
         NSEnumerator *objectEnumerator = [(id)self objectEnumerator];
@@ -64,7 +64,7 @@
 {
     NSAppleEventDescriptor *listDesc;
     NSMutableArray *resultArray;
-    int i, listCount;
+    NSInteger i, listCount;
     
     listDesc = [desc coerceToDescriptorType:typeAEList];
     resultArray = [NSMutableArray array];
@@ -86,7 +86,7 @@
     NSAppleEventDescriptor *resultDesc;
     NSMutableArray *userFields;
     NSArray *keys;
-    int keyCount, i;
+    NSUInteger keyCount, i;
     
     resultDesc = [NSAppleEventDescriptor recordDescriptor];
     userFields = [NSMutableArray array];
@@ -126,7 +126,8 @@
 {
     NSMutableDictionary *resultDict;
     NSAppleEventDescriptor *recDescriptor, *listDescriptor;
-    int recordIndex, recordCount, listIndex, listCount, keyword;
+    NSInteger recordIndex, recordCount, listIndex, listCount;
+    AEKeyword keyword;
     id keyObj, valObj;
         
     recDescriptor = [desc coerceToDescriptorType:typeAERecord];
@@ -139,7 +140,7 @@
         
         if( keyword != keyASUserRecordFields)
         {
-            keyObj = [NSNumber numberWithInt:keyword];
+            keyObj = [NSNumber numberWithUnsignedInt:keyword];
             valObj = [[recDescriptor descriptorAtIndex:recordIndex] objCObjectValue];
             
             [resultDict setObject:valObj forKey:keyObj];
@@ -242,14 +243,14 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     {
         floatVal = [self floatValue];
         float_p = &floatVal;
-        bytes = sizeof(floatVal);
+        bytes = (typeof(bytes))sizeof(floatVal);
     }
     
     if (bytes > sizeof(Float64))
     {
         doubleVal = [self doubleValue];
         float_p = &doubleVal;
-        bytes = sizeof(doubleVal);
+        bytes = (typeof(bytes))sizeof(doubleVal);
     }
     
     if (bytes == sizeof(Float32))
@@ -278,7 +279,7 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     {
         intVal = [self intValue];
         int_p = &intVal;
-        bytes = sizeof(intVal);
+        bytes = (typeof(bytes))sizeof(intVal);
     }
     
     if (bytes == sizeof(SInt16))
@@ -292,7 +293,7 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     else
     {
         double val = [self doubleValue];
-        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:(int)sizeof(val)];
     }
     
     return resultDesc;
@@ -307,7 +308,7 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     {
         uIntVal = [self unsignedIntValue];
         int_p = &uIntVal;
-        bytes = sizeof(uIntVal);
+        bytes = (typeof(bytes))sizeof(uIntVal);
     }
     
     if (bytes == sizeof(UInt32))
@@ -317,7 +318,7 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     else
     {
         double val = (double)[self unsignedLongLongValue];
-        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:(int)sizeof(val)];
     }    
     
     return resultDesc;
@@ -340,62 +341,62 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     else if (areEqualEncodings(type, @encode(char)))
     {
         char val = [self charValue];
-        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }    
     else if (areEqualEncodings(type, @encode(short)))
     {
         short val = [self shortValue];
-        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }        
     else if (areEqualEncodings(type, @encode(int)))
     {
         int val = [self intValue];
-        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }  
     else if (areEqualEncodings(type, @encode(long)))
     {
-        long val = [self longValue];
-        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:sizeof(val)];
+        SInt32 val = [self intValue]; // [self longVaule] is 8 bytes under 64bit, AS is always a 4 byte long
+        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }        
     else if (areEqualEncodings(type, @encode(long long)))
     {
         long long val = [self longLongValue];
-        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }
     else if (areEqualEncodings(type, @encode(unsigned char)))
     {
         unsigned char val = [self unsignedCharValue];
-        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:(int)sizeof(val)];
     }    
     else if (areEqualEncodings(type, @encode(unsigned short)))
     {
         unsigned short val = [self unsignedShortValue];
-        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:(int)sizeof(val)];
     }    
     else if (areEqualEncodings(type, @encode(unsigned int)))
     {
         unsigned int val = [self unsignedIntValue];
-        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:(int)sizeof(val)];
     }
     else if (areEqualEncodings(type, @encode(unsigned long)))
     {
-        unsigned long val = [self unsignedLongValue];
-        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:sizeof(val)];
+        UInt32 val = [self unsignedIntValue]; // [self unsignedLongValue] is 8 bytes under 64bit, AS is always a 4 byte long
+        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:(int)sizeof(val)];
     }    
     else if (areEqualEncodings(type, @encode(unsigned long long)))
     {
         unsigned long long val = [self unsignedLongLongValue];
-        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithUnsignedIntP:&val byteCount:(int)sizeof(val)];
     }    
     else if (areEqualEncodings(type, @encode(float)))
     {
         float val = [self floatValue];
-        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:(int)sizeof(val)];
     }    
     else if (areEqualEncodings(type, @encode(double)))
     {
         double val = [self doubleValue];
-        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:sizeof(val)];
+        resultDesc = [self kfDescriptorValueWithFloatP:&val byteCount:(int)sizeof(val)];
     }
     else
     {
@@ -418,27 +419,27 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     else if (type == typeSInt16)
     {
         SInt16 val = [desc int16Value];
-        resultNumber = [NSNumber kfNumberWithSignedIntP:&val byteCount:sizeof(val)];
+        resultNumber = [NSNumber kfNumberWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }
     else if (type == typeSInt32)
     {
         SInt32 val = [desc int32Value];
-        resultNumber = [NSNumber kfNumberWithSignedIntP:&val byteCount:sizeof(val)];
+        resultNumber = [NSNumber kfNumberWithSignedIntP:&val byteCount:(int)sizeof(val)];
     }
     else if (type == typeUInt32)
     {
         UInt32 val = [desc unsignedInt32Value];
-        resultNumber = [NSNumber kfNumberWithUnsignedIntP:&val byteCount:sizeof(val)];
+        resultNumber = [NSNumber kfNumberWithUnsignedIntP:&val byteCount:(int)sizeof(val)];
     }
     else if (type == typeIEEE32BitFloatingPoint)
     {
         Float32 val = [desc float32Value];
-        resultNumber = [NSNumber kfNumberWithFloatP:&val byteCount:sizeof(val)];
+        resultNumber = [NSNumber kfNumberWithFloatP:&val byteCount:(int)sizeof(val)];
     }
     else if (type == typeIEEE64BitFloatingPoint)
     {
         Float64 val = [desc float64Value];
-        resultNumber = [NSNumber kfNumberWithFloatP:&val byteCount:sizeof(val)];
+        resultNumber = [NSNumber kfNumberWithFloatP:&val byteCount:(int)sizeof(val)];
     }
     else
     {
@@ -453,7 +454,7 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
         else
         {
             Float64 val = [desc float64Value];
-            resultNumber = [NSNumber kfNumberWithFloatP:&val byteCount:sizeof(val)];
+            resultNumber = [NSNumber kfNumberWithFloatP:&val byteCount:(int)sizeof(val)];
         }
     }
     
@@ -536,7 +537,7 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     }
     else if (bytes == sizeof(double))
     {
-        resultNumber = [NSNumber numberWithFloat:*(double *)float_p];
+        resultNumber = [NSNumber numberWithDouble:*(double *)float_p];
     }
     else 
     {
@@ -562,34 +563,34 @@ static inline int areEqualEncodings(const char *enc1, const char *enc2)
     {
         NSSize size = [self sizeValue];
         resultDesc = [[NSArray arrayWithObjects:
-            [NSNumber numberWithFloat:size.width],
-            [NSNumber numberWithFloat:size.height],
+            [NSNumber numberWithDouble:size.width],
+            [NSNumber numberWithDouble:size.height],
             nil] aeDescriptorValue];
     }
     else if (areEqualEncodings(type, @encode(NSPoint)))
     {
         NSPoint point = [self pointValue];
         resultDesc = [[NSArray arrayWithObjects:
-            [NSNumber numberWithFloat:point.x],
-            [NSNumber numberWithFloat:point.y],
+            [NSNumber numberWithDouble:point.x],
+            [NSNumber numberWithDouble:point.y],
             nil] aeDescriptorValue];
     }    
     else if (areEqualEncodings(type, @encode(NSRange)))
     {
         NSRange range = [self rangeValue];
         resultDesc = [[NSArray arrayWithObjects:
-            [NSNumber numberWithUnsignedInt:range.location],
-            [NSNumber numberWithUnsignedInt:range.location + range.length],
+            [NSNumber numberWithUnsignedLongLong:range.location],
+            [NSNumber numberWithUnsignedLongLong:range.location + range.length],
             nil] aeDescriptorValue];
     }        
     else if (areEqualEncodings(type, @encode(NSRect)))
     {
         NSRect rect = [self rectValue];
         resultDesc = [[NSArray arrayWithObjects:
-            [NSNumber numberWithFloat:rect.origin.x],
-            [NSNumber numberWithFloat:rect.origin.y],
-            [NSNumber numberWithFloat:rect.origin.x + rect.size.width],
-            [NSNumber numberWithFloat:rect.origin.y + rect.size.height],
+            [NSNumber numberWithDouble:rect.origin.x],
+            [NSNumber numberWithDouble:rect.origin.y],
+            [NSNumber numberWithDouble:rect.origin.x + rect.size.width],
+            [NSNumber numberWithDouble:rect.origin.y + rect.size.height],
             nil] aeDescriptorValue];
     }  
     else

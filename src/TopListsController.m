@@ -96,9 +96,9 @@ static NSMutableArray *topHours = nil;
     return (self);
 }
 
-- (unsigned)retainCount
+- (NSUInteger)retainCount
 {
-    return (UINT_MAX);  //denotes an object that cannot be released
+    return (NSUIntegerMax);  //denotes an object that cannot be released
 }
 
 - (void)release
@@ -170,7 +170,7 @@ static NSMutableArray *topHours = nil;
         @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
     NSEnumerator *en = [[[PersistentProfile sharedInstance] allSessions] objectEnumerator];
     id s;
-    unsigned i;
+    NSUInteger i;
     NSMutableArray *archivedSessions = [NSMutableArray array];
     while ((s = [en nextObject])) {
         if (NSNotFound != (i = [arrangedSessions indexOfObject:[s valueForKey:@"name"]]))
@@ -355,7 +355,7 @@ static NSMutableArray *topHours = nil;
         
         NSURL *url;
         NSMutableArray *urls = [NSMutableArray arrayWithCapacity:[indices count]];
-        unsigned idx = [indices firstIndex];
+        NSUInteger idx = [indices firstIndex];
         for (; NSNotFound != idx; idx = [indices indexGreaterThanIndex:idx]) {
             @try {
                 NSDictionary *entry = [data objectAtIndex:idx];
@@ -503,7 +503,7 @@ static NSMutableArray *topHours = nil;
 - (void)clearUserFeedbackForItem:(NSString*)key
 {
     NSToolbarItem *item = [toolbarItems objectForKey:key];
-    int flags = [item tag] & ~kTBItemDisabledForFeedback;
+    NSInteger flags = [item tag] & ~kTBItemDisabledForFeedback;
     [item setTag:flags];
     [[[self window] toolbar] validateVisibleItems];
 }
@@ -516,7 +516,7 @@ static NSMutableArray *topHours = nil;
 - (void)setUserFeedbackForItem:(NSString*)key
 {
     NSToolbarItem *item = [toolbarItems objectForKey:key];
-    int flags = [item tag] | kTBItemDisabledForFeedback;
+    NSInteger flags = [item tag] | kTBItemDisabledForFeedback;
     [item setTag:flags];
     [[[self window] toolbar] validateVisibleItems];
     [NSTimer scheduledTimerWithTimeInterval:0.65 target:self selector:@selector(clearUserFeedbackDelayed:) userInfo:key repeats:NO];
@@ -838,11 +838,11 @@ exit:
     } @catch (id e) {
         return (NO);
     }
-    int flags = [item tag];
+    NSInteger flags = [item tag];
     if ((flags & kTBItemDisabledForFeedback))
         return (NO);
     
-    unsigned ct = [[data selectedObjects] count];
+    NSUInteger ct = [[data selectedObjects] count];
     BOOL valid = YES;
     if ((flags & kTBItemRequiresSelection))
         valid = (ct > 0);
@@ -970,7 +970,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     NSDate *startDate = [[self selectedSession] valueForKey:@"epoch"];
     
     NSTimeInterval elapsedSeconds =  [[NSDate date] timeIntervalSince1970] - [startDate timeIntervalSince1970];
-    ISDurationsFromTime(elapsedSeconds, &days, &hours, &minutes, &seconds);
+    ISDurationsFromTime64(elapsedSeconds, &days, &hours, &minutes, &seconds);
     NSString *elapsedTime = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
@@ -1012,7 +1012,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     NSString *artist, *track;
     NSNumber *playCount;
     unsigned position = 1; // ranking
-    float width = 100.0 /* bar width */, percentage,
+    float width = 100.0f /* bar width */, percentage,
     basePlayCount = [[artists valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue],
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
     while ((entry = [en nextObject])) {
@@ -1025,13 +1025,13 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         HAdd(d, TDEntry(TDTITLE, artist));
         // Total Plays bar
-        width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
-        percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0;
+        width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
+        percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
         // Total time bar
-        width = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / basePlayTime) * 100.0);
-        percentage = ([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0;
+        width = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / basePlayTime) * 100.0f);
+        percentage = ([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0f;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
         
@@ -1064,8 +1064,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDTITLE, tmp));
         HAdd(d, TDEntry(TDGRAPH, time)); // Last play time
         // Total Plays bar
-        width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
-        percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0;
+        width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
+        percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
         
@@ -1111,14 +1111,14 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 HAdd(d, TDEntry(TDTITLE, tmp));
                 // Total Plays bar
                 playCount = [entry objectForKey:@"Play Count"];
-                width = rintf(([playCount floatValue] / basePlayCount) * 100.0);
-                percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0;
+                width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
+                percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
                 HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
                 // Total time bar
                 playCount = [entry objectForKey:@"Total Duration"];
-                width = rintf(([playCount floatValue] / basePlayTime) * 100.0);
-                percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0;
+                width = rintf(([playCount floatValue] / basePlayTime) * 100.0f);
+                percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0f;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
                 ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
                 time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
@@ -1158,8 +1158,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             HAdd(d, TDEntry(TDTITLE, tmp));
             // Total Plays bar
             float ratingCount = (float)[[[topRatings objectForKey:rating] objectForKey:@"Play Count"] floatValue];
-            width = rintf((ratingCount / basePlayCount) * 100.0);
-            percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
+            width = rintf((ratingCount / basePlayCount) * 100.0f);
+            percentage = (ratingCount / [totalPlays floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             playCount = [NSNumber numberWithFloat:ratingCount];
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
@@ -1194,16 +1194,16 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             HAdd(d, TDEntry(@"<td class=\"smalltitle\">", tmp));
             // Total Plays bar
             float ratingCount = [[[topHours objectAtIndex:position] objectForKey:@"Play Count"] floatValue];
-            width = rintf((ratingCount / basePlayCount) * 100.0);
-            percentage = (ratingCount / [totalPlays floatValue]) * 100.0;
+            width = rintf((ratingCount / basePlayCount) * 100.0f);
+            percentage = (ratingCount / [totalPlays floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             playCount = [NSNumber numberWithFloat:ratingCount];
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
             
             // Total time bar
             ratingCount = [[[topHours objectAtIndex:position] objectForKey:@"Total Duration"] floatValue];
-            width = rintf((ratingCount / basePlayTime) * 100.0);
-            percentage = (ratingCount / [totalTime floatValue]) * 100.0;
+            width = rintf((ratingCount / basePlayTime) * 100.0f);
+            percentage = (ratingCount / [totalTime floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
             time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
@@ -1256,7 +1256,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
 - (void)mergeValuesUsingCaseInsensitiveCompare
 {
     NSMutableArray *keys = [[self allKeys] mutableCopy];
-    unsigned i, j, count, value;
+    NSUInteger i, j, count;
+    unsigned value;
     
     count = [keys count];
     for (i=0; i < count; ++i) {
