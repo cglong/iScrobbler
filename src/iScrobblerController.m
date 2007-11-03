@@ -762,7 +762,7 @@ player_info_exit:
                 stringByAppendingPathComponent:@"Scripts/iTunesGetCurrentTrackInfo.scpt"];
     NSURL *url = [NSURL fileURLWithPath:file];
     script = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
-    if (!script) {
+    if (!script || ![script compileAndReturnError:nil]) {
         ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetCurrentTrackInfo.scpt!\n");
         [self showApplicationIsDamagedDialog];
         [NSApp terminate:nil];
@@ -1518,6 +1518,8 @@ player_info_exit:
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
     #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
+    if ([w respondsToSelector:@selector(setCanBeVisibleOnAllSpaces:)])
+        [w setCanBeVisibleOnAllSpaces:YES];
     // [w setDelegate:self];
     [w center];
     
