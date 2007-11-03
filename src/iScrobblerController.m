@@ -1107,14 +1107,16 @@ player_info_exit:
     }
     
     // warn user if Growl is not installed
-    if (![GrowlApplicationBridge isGrowlInstalled] || ![GrowlApplicationBridge isGrowlRunning]) {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DontShowGrowlMissingWarning"]
+        && (![GrowlApplicationBridge isGrowlInstalled] || ![GrowlApplicationBridge isGrowlRunning])) {
         NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
         [NSDictionary dictionaryWithObjectsAndKeys:
             NSLocalizedString(@"Growl Is Not Available", nil), NSLocalizedFailureReasonErrorKey,
             NSLocalizedString(@"iScrobbler uses Growl for 99%% of its notification dialogs. To get the most out of iScrobbler please install or activate Growl.", nil),
                 NSLocalizedDescriptionKey,
             NSLocalizedString(@"OK", nil), @"defaultButton",
-            NSLocalizedString(@"Open Growl Home Page", nil), @"otherButton",
+            NSLocalizedString(@"Open Growl Home Page", nil), @"alternateButton",
+            NSLocalizedString(@"Don't Warn Me Again", nil), @"otherButton",
             nil]];
         
         [self presentError:error withDidEndHandler:@selector(noGrowlDidEnd:returnCode:contextInfo:)];
@@ -1154,9 +1156,11 @@ player_info_exit:
 
 - (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
 {
-    if (returnCode == NSAlertAlternateReturn) {
+    if (NSAlertOtherReturn == returnCode) {
         NSURL *url = [NSURL URLWithString:@"http://growl.info/"];
         [[NSWorkspace sharedWorkspace] openURL:url];
+    } else if (NSAlertAlternateReturn == returnCode) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DontShowGrowlMissingWarning"];
     }
     
     [(id)contextInfo performSelector:@selector(close) withObject:nil afterDelay:0.0];
@@ -1530,7 +1534,7 @@ player_info_exit:
     
     NSAlert *a = [NSAlert alertWithMessageText:[info objectForKey:NSLocalizedFailureReasonErrorKey]
         defaultButton:[info objectForKey:@"defaultButton"]
-        // the old NSBegin*AlertSheet() APIs hand the meaning of other and alternate buttons reversed
+        // the old NSBegin*AlertSheet() APIs have the meaning of other and alternate buttons reversed
         alternateButton:[info objectForKey:@"otherButton"]
         otherButton:[info objectForKey:@"alternateButton"]
         informativeTextWithFormat:
