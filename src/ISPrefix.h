@@ -53,6 +53,7 @@ return (
 
 #define ISASSERT(condition,msg) do { \
 if (0 == (condition)) { \
+    ScrobLog(SCROB_LOG_CRIT, @"!!ASSERT FIRED!! (%s:%d,%s) cond=(%s) msg=(%s)", __FILE__, __LINE__, __FUNCTION__, #condition, (msg)); \
     trap(); \
 } } while(0)
 #define ISDEBUG_ONLY
