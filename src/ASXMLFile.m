@@ -51,7 +51,8 @@ static NSMutableDictionary *xmlCache = nil;
     NSDate *now = [NSDate date];
     while ((key = [en nextObject])) {
         d = [xmlCache objectForKey:key];
-        if ([now isGreaterThanOrEqualTo:[d objectForKey:@"expires"]])
+        // if there's no xml data yet, then the object is still being setup
+        if ([d objectForKey:@"xml"] && [now isGreaterThanOrEqualTo:[d objectForKey:@"expires"]])
             [keysToRemove addObject:key];
     }
     if ([keysToRemove count] > 0)
@@ -82,8 +83,13 @@ static NSMutableDictionary *xmlCache = nil;
         [f setXML:[d objectForKey:@"xml"]];
         f->cached = YES;
         [delegate performSelector:@selector(xmlFileDidFinishLoading:) withObject:f afterDelay:0.0];
+        } @catch (id e) {
+            ScrobLog(SCROB_LOG_ERR, @"exception creating ASXMLFile (%@) from cache: %@", url, e);
+            (void)[f autorelease];
+            return (nil);
+        }
+        
         return ([f autorelease]);
-        } @catch (id e) {}
     }
     
     // not found in cache, setup a cache entry and fetch it
