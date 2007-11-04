@@ -31,6 +31,14 @@ return (
 );
 }
 
+#ifdef __LP64__
+#define LEOPARD_BEGIN
+#define LEOPARD_END
+#else
+#define LEOPARD_BEGIN if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) {
+#define LEOPARD_END }
+#endif
+
 #endif
 
 #ifdef __ppc__

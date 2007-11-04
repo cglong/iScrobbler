@@ -99,14 +99,10 @@ static NSImage *artistImgPlaceholder = nil;
     [obj release];
     [similarArtistsTable setAutosaveName:[[delegate windowFrameAutosaveName] stringByAppendingString:@"Artist Details"]];
     
-    #ifndef __LP64__
-    if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) {
-    #endif
-        [artistImage setWantsLayer:YES];
-        [artistImage setImageScaling:NSImageScaleProportionallyUpOrDown];
-    #ifndef __LP64__
-    }
-    #endif
+    LEOPARD_BEGIN
+    [artistImage setWantsLayer:YES];
+    [artistImage setImageScaling:NSImageScaleProportionallyUpOrDown];
+    LEOPARD_END
     
     [self setDetails:nil];
 }

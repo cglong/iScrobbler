@@ -494,14 +494,10 @@ static NSImage *prevIcon = nil;
     [[self window] setToolbar:tb];
     [tb release];
     
-    #ifndef __LP64__
-    if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) {
-    #endif
-        [artworkImage setWantsLayer:YES];
-        [artworkImage setImageScaling:NSImageScaleProportionallyUpOrDown];
-    #ifndef __LP64__
-    }
-    #endif
+    LEOPARD_BEGIN
+    [artworkImage setWantsLayer:YES];
+    [artworkImage setImageScaling:NSImageScaleProportionallyUpOrDown];
+    LEOPARD_END
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"iScrobbler Statistics Details Open"]) {
         [detailsText setStringValue:NSLocalizedString(@"Hide submission details", "")];
