@@ -851,7 +851,7 @@ exit:
     if (valid && (flags & kTBItemNoMultipleSelection))
         valid = (1 == ct);
     
-    //ScrobTrace(@"flags = %x, ct = %u, valid = %d", flags, ct, valid);
+    //ScrobTrace(@"flags = %lx, ct = %lu, valid = %d", flags, ct, valid);
     return (valid);
 }
 

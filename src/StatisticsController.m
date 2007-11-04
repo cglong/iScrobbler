@@ -186,8 +186,8 @@ static NSImage *prevIcon = nil;
 - (void)updateSubTime:(NSTimer*)timer
 {
     NSTimeInterval i = [g_subDate timeIntervalSince1970] - [[NSDate date] timeIntervalSince1970];
-    NSString *msg = [NSString stringWithFormat:@"%@ %u:%02u",
-        NSLocalizedString(@"Submitting in", ""), ((unsigned)i / 60), ((unsigned)i % 60)];
+    NSString *msg = [NSString stringWithFormat:@"%@ %lu:%02lu",
+        NSLocalizedString(@"Submitting in", ""), ((NSUInteger)i / 60), ((NSUInteger)i % 60)];
     [nowPlayingText setStringValue:msg];
 }
 

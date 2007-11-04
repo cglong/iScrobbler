@@ -10,14 +10,15 @@
 #import <Cocoa/Cocoa.h>
 
 // Log levels
-typedef enum {
+enum {
     SCROB_LOG_CRIT    = 0,
     SCROB_LOG_ERR     = 1,
     SCROB_LOG_WARN    = 2,
     SCROB_LOG_INFO    = 3,
     SCROB_LOG_VERBOSE = 10,
     SCROB_LOG_TRACE   = 15,
-} scrob_log_level_t;
+};
+typedef NSInteger scrob_log_level_t;
 
 __private_extern__ scrob_log_level_t ScrobLogLevel(void);
 __private_extern__ void SetScrobLogLevel(scrob_log_level_t level);

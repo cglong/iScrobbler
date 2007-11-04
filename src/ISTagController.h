@@ -10,11 +10,12 @@
 
 #import <Cocoa/Cocoa.h>
 
-typedef enum {
+enum {
     tt_track = 0,
     tt_artist,
     tt_album
-} ISTypeToTag_t;
+};
+typedef NSInteger ISTypeToTag_t;
 
 typedef enum {
     tt_append = 0,

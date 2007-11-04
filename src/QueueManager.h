@@ -13,7 +13,8 @@
 
 @class SongData;
 
-typedef enum {kqSuccess, kqIsQueued, kqFailed} QueueResult_t;
+enum {kqSuccess, kqIsQueued, kqFailed};
+typedef NSInteger QueueResult_t;
 
 @interface QueueManager : NSObject {
 @private

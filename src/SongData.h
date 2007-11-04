@@ -11,12 +11,14 @@
 
 #import <Cocoa/Cocoa.h>
 
-typedef enum {
+enum {
     trackTypeUnknown = 0,
     trackTypeFile = 1,
     trackTypeShared = 2,
     trackTypeRadio = 3,
-} TrackType_t;
+};
+typedef NSInteger TrackType_t;
+
 static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 {
     return ( trackTypeFile == myType || trackTypeShared == myType );

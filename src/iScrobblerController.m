@@ -193,7 +193,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
         [self displayProtocolEvent:NSLocalizedString(@"Handshake successful", "")];
     } else {
         [self displayProtocolEvent:NSLocalizedString(@"Handshake failed", "")];
-        msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %u)",
+        msg = [[pm lastHandshakeMessage] stringByAppendingFormat:@" (%@: %lu)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];
     }
@@ -220,7 +220,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
         status = YES;
     } else {
         [self displayProtocolEvent:NSLocalizedString(@"Submission failed", "")];
-        msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %u)",
+        msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %lu)",
             NSLocalizedString(@"Tracks Queued", ""),
             [[QueueManager sharedInstance] count]];;
     }
@@ -328,14 +328,14 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
                 [song setPlayerUUID:trackUUID];
                 return (YES);
             } else {
-                ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%d:%d:%d)\n.",
+                ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%ld:%llu:%@).",
                     trackType, trackiTunesDatabaseID, trackPosition);
             }
         } else {
-            ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad item count: %d\n.", [result numberOfItems]);
+            ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad item count: %ld.", [result numberOfItems]);
         }
     } else {
-        ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script execution error: %@\n.", errInfo);
+        ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script execution error: %@.", errInfo);
     }
     
     return (NO);
@@ -405,7 +405,7 @@ currentSongQueueTimer = nil; \
             }
         }
     } else {
-        ScrobLog(SCROB_LOG_ERR, @"Lost track! current: (%@, %d), itunes: (%@, %d)\n.",
+        ScrobLog(SCROB_LOG_ERR, @"Lost track! current: (%@, %llu), itunes: (%@, %llu).",
             currentSong, [currentSong iTunesDatabaseID], song, [song iTunesDatabaseID]);
     }
     
@@ -509,7 +509,7 @@ if (currentSong) { \
             ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error (%d). Trying again in %0.1f seconds.",
                 retryCount, 2.5);
         } else {
-            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error after %d retries. Giving up.\n", retryCount);
+            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error after %d retries. Giving up.", retryCount);
             retryCount = 0;
             isiTunesPlaying = NO;
             ReleaseCurrentSong();
@@ -1023,8 +1023,8 @@ player_info_exit:
         #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
             // documented as not implemeted, and it's not (as of 10.4.10
-            NSInteger given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:NSIntegerMax,];
-            ScrobDebug(@"given %d ms of delayed log out", given);
+            NSInteger given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:NSIntegerMax];
+            ScrobDebug(@"given %ld ms of delayed log out", given);
         }
         #endif
         

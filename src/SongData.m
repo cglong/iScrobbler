@@ -747,7 +747,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         unsigned score = [[entry objectForKey:@"score"] unsignedIntValue] + (unsigned)artScorePerHit;
         [entry setObject:[NSNumber numberWithUnsignedInt:score] forKey:@"score"];
 #endif
-        ScrobLog(SCROB_LOG_TRACE, @"Artwork cache hit. Lookups: %.0f (%u/%u), Hits: %.0f (%.02f%%)",
+        ScrobLog(SCROB_LOG_TRACE, @"Artwork cache hit. Lookups: %.0f (%lu/%ld), Hits: %.0f (%.02f%%)",
             artworkCacheLookups, [artworkCache count], artworkCacheMax, artworkCacheHits,
             (artworkCacheHits / artworkCacheLookups) * 100.0);
         return (image);
@@ -832,7 +832,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
                     && (mbid = [[str substringWithRange:start] retain])) {
                     [self setComment:nil]; // we no longer need the comment
                 } else
-                    ScrobLog(SCROB_LOG_WARN, @"Comment '%@' for '%@' contains an invalid MBID defintion of length %d.\n",
+                    ScrobLog(SCROB_LOG_WARN, @"Comment '%@' for '%@' contains an invalid MBID defintion of length %lu.",
                         str, [self brief], start.length);
             }
         }

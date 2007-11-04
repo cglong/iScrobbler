@@ -396,7 +396,7 @@ __private_extern__ NSThread *mainThread;
     
     if ([validSongs count] > [invalidSongs count]) {
         [self removeSongs:invalidSongs fromSession:session moc:moc];
-        ScrobDebug(@"removed %u songs from session %@", [invalidSongs count], sessionName);
+        ScrobDebug(@"removed %lu songs from session %@", [invalidSongs count], sessionName);
     } else {
         // it's more efficient to destroy everything and add the valid songs back in
         NSEnumerator *en;
@@ -425,7 +425,7 @@ __private_extern__ NSThread *mainThread;
             }
         }
         
-        ScrobDebug(@"recreated session %@ with %u valid songs (%u invalid)", sessionName, [validSongs count], [invalidSongs count]);
+        ScrobDebug(@"recreated session %@ with %lu valid songs (%lu invalid)", sessionName, [validSongs count], [invalidSongs count]);
     }
     
     [session setValue:epoch forKey:@"epoch"];

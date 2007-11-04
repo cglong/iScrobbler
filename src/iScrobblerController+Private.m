@@ -224,7 +224,7 @@
         int extraPlays;
         // we subtract one from the current playCount to account for the instance of the song retrieved from iTunes
         if ((extraPlays = (([[song playCount] unsignedIntValue] - 1) - [dbCount unsignedIntValue])) > 0) {
-            ScrobLog(SCROB_LOG_TRACE, @"Found %u iPod plays for '%@', attempting to synthesize extra plays...", extraPlays+1, [song brief]);
+            ScrobLog(SCROB_LOG_TRACE, @"Found %d iPod plays for '%@', attempting to synthesize extra plays...", extraPlays+1, [song brief]);
             double duration = [[song duration] doubleValue];
             for (int i = 0; i < extraPlays; ++i) {
                 newSong = [song copy];

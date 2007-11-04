@@ -407,7 +407,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)writeSubLogEntry:(unsigned)sid withTrackCount:(NSUInteger)count withData:(NSData*)data
 {
     @try {
-    [subLog writeData:[[NSString stringWithFormat:@"[id=%u,ct=%u,sz=%u]\n", sid, count, [data length]]
+    [subLog writeData:[[NSString stringWithFormat:@"[id=%u,ct=%lu,sz=%lu]\n", sid, count, [data length]]
         dataUsingEncoding:NSUTF8StringEncoding]];
     [subLog writeData:data];
     [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -433,7 +433,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     if (hs_valid != hsState) {
-        ScrobLog(SCROB_LOG_ERR, @"Internal inconsistency! Invalid Handshake state (%u)!\n", hsState);
+        ScrobLog(SCROB_LOG_ERR, @"Internal inconsistency! Invalid Handshake state (%u)!", hsState);
         [self setSubmitResult:
             [NSDictionary dictionaryWithObjectsAndKeys:
             HS_RESULT_FAILED, HS_RESPONSE_KEY_RESULT,
@@ -458,7 +458,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     ScrobLog(SCROB_LOG_VERBOSE, @"Submission result: %@", result);
-    ScrobLog(SCROB_LOG_TRACE, @"Tracks in queue after submission: %d", [[QueueManager sharedInstance] count]);
+    ScrobLog(SCROB_LOG_TRACE, @"Tracks in queue after submission: %lu", [[QueueManager sharedInstance] count]);
     
     [self setSubmitResult:[self submitResponse:result]];
     
@@ -470,7 +470,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
             [[QueueManager sharedInstance] removeSong:[inFlight objectAtIndex:i] sync:NO];
         }
         [[QueueManager sharedInstance] syncQueue:nil];
-        ScrobLog(SCROB_LOG_TRACE, @"Queue cleaned, track count: %u", [[QueueManager sharedInstance] count]);
+        ScrobLog(SCROB_LOG_TRACE, @"Queue cleaned, track count: %lu", [[QueueManager sharedInstance] count]);
         nextResubmission = HANDSHAKE_DEFAULT_DELAY;
         
         // Set the new max if we detected a proxy truncation -- only done once
@@ -488,7 +488,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
             [self performSelector:@selector(submit:) withObject:nil afterDelay:0.5];
         }
     } else {
-        ScrobLog(SCROB_LOG_INFO, @"Server error -- tracks in queue: %u", [[QueueManager sharedInstance] count]);
+        ScrobLog(SCROB_LOG_INFO, @"Server error -- tracks in queue: %lu", [[QueueManager sharedInstance] count]);
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:myData];
         
@@ -594,7 +594,7 @@ didFinishLoadingExit:
     // Kick off resubmit timer
     [self scheduleResubmit];
     
-    ScrobLog(SCROB_LOG_INFO, @"Connection error: '%@'. Tracks in queue: %u.\n",
+    ScrobLog(SCROB_LOG_INFO, @"Connection error: '%@'. Tracks in queue: %lu.",
         [reason localizedDescription], [[QueueManager sharedInstance] count]);
     if (SCROB_LOG_TRACE == ScrobLogLevel())
         [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count]
@@ -661,7 +661,7 @@ didFinishLoadingExit:
         if (0 == (submissionCount /= missingVarErrorCount))
             submissionCount = 1;
             
-        ScrobLog(SCROB_LOG_VERBOSE, @"Possible proxy corruption detected (%u). Batch sub reduced to %u.\n",
+        ScrobLog(SCROB_LOG_VERBOSE, @"Possible proxy corruption detected (%u). Batch sub reduced to %lu.",
             missingVarErrorCount, submissionCount);
             
         ISASSERT(submissionCount <= [inFlight count], "Adjusted sub count out of range!");
@@ -712,7 +712,7 @@ didFinishLoadingExit:
     ++submissionAttempts;
     myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     
-    ScrobLog(SCROB_LOG_INFO, @"%u song(s) submitted...\n", [inFlight count]);
+    ScrobLog(SCROB_LOG_INFO, @"%lu song(s) submitted...\n", [inFlight count]);
     if (SCROB_LOG_TRACE == ScrobLogLevel())
         [self writeSubLogEntry:submissionAttempts withTrackCount:[inFlight count] withData:[request HTTPBody]];
     } @catch (NSException *e) {
