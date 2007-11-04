@@ -39,12 +39,8 @@
 		D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */; };
 		D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */; };
 		D3191CAA07E3A51700821D03 /* defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = EBBB2F1E03F7C3F2005DC01B /* defaults.plist */; };
-		D3191CAB07E3A51700821D03 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
-		D3191CAC07E3A51700821D03 /* StatisticsController.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB130E07750960009236FF /* StatisticsController.nib */; };
 		D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */ = {isa = PBXBuildFile; fileRef = DC00A46205B21B9200674DB4 /* iscrobbler.icns */; };
-		D3191CAE07E3A51700821D03 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB13A1077514A7009236FF /* Preferences.nib */; };
 		D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
-		D3191CB207E3A51700821D03 /* TopLists.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3CB38A207A59AE5009236FF /* TopLists.nib */; };
 		D3191CB507E3A51700821D03 /* iScrobblerController.m in Sources */ = {isa = PBXBuildFile; fileRef = F575CE9702FE0E8801A80164 /* iScrobblerController.m */; };
 		D3191CB607E3A51700821D03 /* PreferenceController.m in Sources */ = {isa = PBXBuildFile; fileRef = F575CEAA02FF7F3501A80164 /* PreferenceController.m */; };
 		D3191CB707E3A51700821D03 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
@@ -77,11 +73,18 @@
 		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
 		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
 		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
-		D38F6D730B535AF800230DBE /* Recommend.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6D710B535AF800230DBE /* Recommend.nib */; };
-		D38F6FB60B541A6300230DBE /* Tag.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F6FB40B541A6300230DBE /* Tag.nib */; };
 		D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6FB80B541A9000230DBE /* ISTagController.m */; };
-		D38F74BB0B56CDEC00230DBE /* LoveBanList.nib in Resources */ = {isa = PBXBuildFile; fileRef = D38F74B90B56CDEC00230DBE /* LoveBanList.nib */; };
 		D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */; };
+		D398FB470CDE016A008CB4C8 /* ArtistDetails.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */; };
+		D398FB480CDE016A008CB4C8 /* ISProfileReport.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */; };
+		D398FB490CDE016A008CB4C8 /* ISRadioSearch.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */; };
+		D398FB4A0CDE016A008CB4C8 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB3D0CDE016A008CB4C8 /* MainMenu.xib */; };
+		D398FB4B0CDE016A008CB4C8 /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB3F0CDE016A008CB4C8 /* Preferences.xib */; };
+		D398FB4C0CDE016A008CB4C8 /* Recommend.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB410CDE016A008CB4C8 /* Recommend.xib */; };
+		D398FB4D0CDE016A008CB4C8 /* StatisticsController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB430CDE016A008CB4C8 /* StatisticsController.xib */; };
+		D398FB4E0CDE016A008CB4C8 /* TopLists.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB450CDE016A008CB4C8 /* TopLists.xib */; };
+		D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */; };
+		D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB520CDE01E5008CB4C8 /* Tag.xib */; };
 		D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */ = {isa = PBXBuildFile; fileRef = D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */; };
 		D3B19F470B517381008F54BF /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -98,16 +101,13 @@
 		D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
 		D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesStop.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
-		D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */; };
 		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
 		D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */; };
 		D3C3FD620C9EA0E2001AEFEA /* iTunesPlayURL.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
-		D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D394C809BC0658004E215A /* ArtistDetails.nib */; };
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
 		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
-		D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */; };
 		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
@@ -165,7 +165,6 @@
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		D306F89009EC34F80011CEE1 /* no_artist.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = no_artist.tiff; sourceTree = "<group>"; };
 		D306FC7909EF550C0011CEE1 /* no_album.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = no_album.tiff; sourceTree = "<group>"; };
 		D30BB08F0CCB56D3005DCFA2 /* TopListsPersistenceAdaptor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopListsPersistenceAdaptor.m; sourceTree = "<group>"; };
@@ -212,13 +211,20 @@
 		D376FC690CAD00A000C04863 /* iScrobbler.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; path = iScrobbler.sdef; sourceTree = "<group>"; };
 		D38F6CCD0B53514400230DBE /* ISRecommendController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRecommendController.h; sourceTree = "<group>"; };
 		D38F6CCE0B53514400230DBE /* ISRecommendController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRecommendController.m; sourceTree = "<group>"; };
-		D38F6D720B535AF800230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Recommend.nib; sourceTree = "<group>"; };
-		D38F6FB50B541A6300230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Tag.nib; sourceTree = "<group>"; };
 		D38F6FB70B541A9000230DBE /* ISTagController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISTagController.h; sourceTree = "<group>"; };
 		D38F6FB80B541A9000230DBE /* ISTagController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISTagController.m; sourceTree = "<group>"; };
-		D38F74BA0B56CDEC00230DBE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/LoveBanList.nib; sourceTree = "<group>"; };
 		D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISLoveBanListController.h; sourceTree = "<group>"; };
 		D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISLoveBanListController.m; sourceTree = "<group>"; };
+		D398FB380CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ArtistDetails.xib; sourceTree = "<group>"; };
+		D398FB3A0CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ISProfileReport.xib; sourceTree = "<group>"; };
+		D398FB3C0CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ISRadioSearch.xib; sourceTree = "<group>"; };
+		D398FB3E0CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		D398FB400CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Preferences.xib; sourceTree = "<group>"; };
+		D398FB420CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Recommend.xib; sourceTree = "<group>"; };
+		D398FB440CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/StatisticsController.xib; sourceTree = "<group>"; };
+		D398FB460CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/TopLists.xib; sourceTree = "<group>"; };
+		D398FB500CDE01C0008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/LoveBanList.xib; sourceTree = "<group>"; };
+		D398FB530CDE01E5008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Tag.xib; sourceTree = "<group>"; };
 		D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v12.m; sourceTree = "<group>"; };
 		D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v12.h; sourceTree = "<group>"; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
@@ -245,26 +251,21 @@
 		D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASXMLFile.m; sourceTree = "<group>"; };
 		D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPrefix.h; sourceTree = "<group>"; };
 		D3C309970CA3D317001AEFEA /* iTunesStop.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesStop.applescript; sourceTree = "<group>"; };
-		D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = ISRadioSearch.nib; sourceTree = "<group>"; };
 		D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASWebServices.h; sourceTree = "<group>"; };
 		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASWebServices.m; sourceTree = "<group>"; };
 		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRadioController.h; sourceTree = "<group>"; };
 		D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRadioController.m; sourceTree = "<group>"; };
 		D3C3FD610C9EA0E2001AEFEA /* iTunesPlayURL.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlayURL.applescript; sourceTree = "<group>"; };
-		D3CB130F07750960009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StatisticsController.nib; sourceTree = "<group>"; };
 		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
 		D3CB1314077509D3009236FF /* StatisticsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = StatisticsController.m; sourceTree = "<group>"; };
 		D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iTunesGetPlaylists.applescript; sourceTree = "<group>"; };
-		D3CB38A307A59AE5009236FF /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/TopLists.nib; sourceTree = "<group>"; };
 		D3CB38A507A59AFE009236FF /* TopListsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TopListsController.h; sourceTree = "<group>"; };
 		D3CB38A607A59AFE009236FF /* TopListsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = TopListsController.m; sourceTree = "<group>"; };
 		D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSWorkspace+ISAdditions.m"; sourceTree = "<group>"; };
 		D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISArtistDetailsController.h; sourceTree = "<group>"; };
 		D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISArtistDetailsController.m; sourceTree = "<group>"; };
-		D3D394C909BC0658004E215A /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ArtistDetails.nib; sourceTree = "<group>"; };
 		D3D4741F077407F50076AA7D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 		D3D4746007740A760076AA7D /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
-		D3D7BB000809A806005EF5CA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/ISProfileReport.nib; sourceTree = "<group>"; };
 		D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISProfileDocumentController.h; sourceTree = "<group>"; };
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISProfileDocumentController.m; sourceTree = "<group>"; };
 		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
@@ -300,7 +301,6 @@
 		F575CE9802FE0E8801A80164 /* iScrobblerController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = iScrobblerController.h; sourceTree = "<group>"; };
 		F575CEAA02FF7F3501A80164 /* PreferenceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = PreferenceController.m; sourceTree = "<group>"; };
 		F575CEAB02FF7F3501A80164 /* PreferenceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PreferenceController.h; sourceTree = "<group>"; };
-		F575CEAE02FF7FB901A80164 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -435,17 +435,17 @@
 				D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */,
 				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
+				D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */,
+				D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */,
+				D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */,
+				D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */,
+				D398FB3D0CDE016A008CB4C8 /* MainMenu.xib */,
+				D398FB3F0CDE016A008CB4C8 /* Preferences.xib */,
+				D398FB410CDE016A008CB4C8 /* Recommend.xib */,
+				D398FB430CDE016A008CB4C8 /* StatisticsController.xib */,
+				D398FB520CDE01E5008CB4C8 /* Tag.xib */,
+				D398FB450CDE016A008CB4C8 /* TopLists.xib */,
 				D376FC690CAD00A000C04863 /* iScrobbler.sdef */,
-				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
-				D3CB13A1077514A7009236FF /* Preferences.nib */,
-				D3CB130E07750960009236FF /* StatisticsController.nib */,
-				D3CB38A207A59AE5009236FF /* TopLists.nib */,
-				D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */,
-				D3D394C809BC0658004E215A /* ArtistDetails.nib */,
-				D38F6D710B535AF800230DBE /* Recommend.nib */,
-				D38F6FB40B541A6300230DBE /* Tag.nib */,
-				D38F74B90B56CDEC00230DBE /* LoveBanList.nib */,
-				D3C30BA10CA45BE7001AEFEA /* ISRadioSearch.nib */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
@@ -694,15 +694,9 @@
 			files = (
 				D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */,
 				D3191CAA07E3A51700821D03 /* defaults.plist in Resources */,
-				D3191CAB07E3A51700821D03 /* MainMenu.nib in Resources */,
-				D3191CAC07E3A51700821D03 /* StatisticsController.nib in Resources */,
-				D3191CAE07E3A51700821D03 /* Preferences.nib in Resources */,
-				D3191CB207E3A51700821D03 /* TopLists.nib in Resources */,
-				D3D7BE04080A209E005EF5CA /* ISProfileReport.nib in Resources */,
 				D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */,
 				D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */,
 				D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */,
-				D3D394CA09BC0658004E215A /* ArtistDetails.nib in Resources */,
 				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
 				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
 				D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */,
@@ -711,13 +705,19 @@
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
 				D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */,
-				D38F6D730B535AF800230DBE /* Recommend.nib in Resources */,
-				D38F6FB60B541A6300230DBE /* Tag.nib in Resources */,
-				D38F74BB0B56CDEC00230DBE /* LoveBanList.nib in Resources */,
 				D3C3042D0CA28879001AEFEA /* highlight_blue.tiff in Resources */,
 				D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */,
-				D3C30BA20CA45BE7001AEFEA /* ISRadioSearch.nib in Resources */,
 				D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */,
+				D398FB470CDE016A008CB4C8 /* ArtistDetails.xib in Resources */,
+				D398FB480CDE016A008CB4C8 /* ISProfileReport.xib in Resources */,
+				D398FB490CDE016A008CB4C8 /* ISRadioSearch.xib in Resources */,
+				D398FB4A0CDE016A008CB4C8 /* MainMenu.xib in Resources */,
+				D398FB4B0CDE016A008CB4C8 /* Preferences.xib in Resources */,
+				D398FB4C0CDE016A008CB4C8 /* Recommend.xib in Resources */,
+				D398FB4D0CDE016A008CB4C8 /* StatisticsController.xib in Resources */,
+				D398FB4E0CDE016A008CB4C8 /* TopLists.xib in Resources */,
+				D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */,
+				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -824,14 +824,6 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		29B97318FDCFA39411CA2CEA /* MainMenu.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				29B97319FDCFA39411CA2CEA /* English */,
-			);
-			name = MainMenu.nib;
-			sourceTree = "<group>";
-		};
 		D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -864,28 +856,84 @@
 			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
 		};
-		D38F6D710B535AF800230DBE /* Recommend.nib */ = {
+		D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				D38F6D720B535AF800230DBE /* English */,
+				D398FB380CDE016A008CB4C8 /* English */,
 			);
-			name = Recommend.nib;
+			name = ArtistDetails.xib;
 			sourceTree = "<group>";
 		};
-		D38F6FB40B541A6300230DBE /* Tag.nib */ = {
+		D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				D38F6FB50B541A6300230DBE /* English */,
+				D398FB3A0CDE016A008CB4C8 /* English */,
 			);
-			name = Tag.nib;
+			name = ISProfileReport.xib;
 			sourceTree = "<group>";
 		};
-		D38F74B90B56CDEC00230DBE /* LoveBanList.nib */ = {
+		D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				D38F74BA0B56CDEC00230DBE /* English */,
+				D398FB3C0CDE016A008CB4C8 /* English */,
 			);
-			name = LoveBanList.nib;
+			name = ISRadioSearch.xib;
+			sourceTree = "<group>";
+		};
+		D398FB3D0CDE016A008CB4C8 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB3E0CDE016A008CB4C8 /* English */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		D398FB3F0CDE016A008CB4C8 /* Preferences.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB400CDE016A008CB4C8 /* English */,
+			);
+			name = Preferences.xib;
+			sourceTree = "<group>";
+		};
+		D398FB410CDE016A008CB4C8 /* Recommend.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB420CDE016A008CB4C8 /* English */,
+			);
+			name = Recommend.xib;
+			sourceTree = "<group>";
+		};
+		D398FB430CDE016A008CB4C8 /* StatisticsController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB440CDE016A008CB4C8 /* English */,
+			);
+			name = StatisticsController.xib;
+			sourceTree = "<group>";
+		};
+		D398FB450CDE016A008CB4C8 /* TopLists.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB460CDE016A008CB4C8 /* English */,
+			);
+			name = TopLists.xib;
+			sourceTree = "<group>";
+		};
+		D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB500CDE01C0008CB4C8 /* English */,
+			);
+			name = LoveBanList.xib;
+			sourceTree = "<group>";
+		};
+		D398FB520CDE01E5008CB4C8 /* Tag.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D398FB530CDE01E5008CB4C8 /* English */,
+			);
+			name = Tag.xib;
 			sourceTree = "<group>";
 		};
 		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {
@@ -894,46 +942,6 @@
 				D3C1126D084565DF000AA2BC /* de */,
 			);
 			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-		D3CB130E07750960009236FF /* StatisticsController.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D3CB130F07750960009236FF /* English */,
-			);
-			name = StatisticsController.nib;
-			sourceTree = "<group>";
-		};
-		D3CB13A1077514A7009236FF /* Preferences.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F575CEAE02FF7FB901A80164 /* English */,
-			);
-			name = Preferences.nib;
-			sourceTree = "<group>";
-		};
-		D3CB38A207A59AE5009236FF /* TopLists.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D3CB38A307A59AE5009236FF /* English */,
-			);
-			name = TopLists.nib;
-			sourceTree = "<group>";
-		};
-		D3D394C809BC0658004E215A /* ArtistDetails.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D3D394C909BC0658004E215A /* English */,
-			);
-			name = ArtistDetails.nib;
-			sourceTree = "<group>";
-		};
-		D3D7BAFF0809A806005EF5CA /* ISProfileReport.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D3D7BB000809A806005EF5CA /* English */,
-			);
-			name = ISProfileReport.nib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
