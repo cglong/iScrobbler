@@ -197,7 +197,7 @@ static NSMutableArray *topHours = nil;
         #endif
         
         [archivedSessions sortUsingDescriptors:
-            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:YES] autorelease]]];
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
         if ([archivedSessions count] > 10) { // make into a pref?
             [archivedSessions removeObjectsInRange:NSMakeRange(10, [archivedSessions count]-10)];
         }
