@@ -8,8 +8,7 @@
 //
 //  Released under the GPL, license details available res/gpl.txt
 
-#import <openssl/md5.h>
-
+#import <CommonCrypto/CommonDigest.h>
 #import <IOKit/IOMessage.h>
 #import <IOKit/pwr_mgt/IOPMLib.h>
 #import <IOKit/storage/IOMedia.h>
@@ -1393,10 +1392,10 @@ player_info_exit:
     else if (nil == input || NO == [input isKindOfClass:[NSData class]])
         return (nil);
     
-    unsigned char *hash = MD5((unsigned char*)[input bytes], [input length], NULL);
+    unsigned char *hash = CC_MD5((unsigned char*)[input bytes], [input length], NULL);
 	NSMutableString *hashString = [NSMutableString string];
     // Convert the binary hash into a string
-    for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
+    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
 		[hashString appendFormat:@"%02x", *hash++];
     
     return (hashString);
