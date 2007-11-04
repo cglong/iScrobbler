@@ -940,8 +940,11 @@ __private_extern__ NSThread *mainThread;
         moArtist = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [moArtist setValue:ITEM_ARTIST forKey:@"itemType"];
         [moArtist setValue:[self artist] forKey:@"name"];
-    } else
+    } else {
+        ScrobLog(SCROB_LOG_CRIT, @"Multiple artists found in database! {{%@}}", result);
         ISASSERT(0, "multiple artists found in db!");
+        @throw ([NSException exceptionWithName:NSGenericException reason:@"multiple artists found in db!" userInfo:nil]);
+    }
     [moSong setValue:moArtist forKey:@"artist"];
     
     if (aTitle) {
@@ -961,8 +964,11 @@ __private_extern__ NSThread *mainThread;
             [moAlbum setValue:ITEM_ALBUM forKey:@"itemType"];
             [moAlbum setValue:aTitle forKey:@"name"];
             [moAlbum setValue:moArtist forKey:@"artist"];
-        } else
-            ISASSERT(0, "multiple artists found in db!");
+        } else {
+            ScrobLog(SCROB_LOG_CRIT, @"Multiple artists found in database! {{%@}}", result);
+            ISASSERT(0, "multiple albums found in db!");
+            @throw ([NSException exceptionWithName:NSGenericException reason:@"multiple albums found in db!" userInfo:nil]);
+        }
         [moSong setValue:moAlbum forKey:@"album"];
     }
     
@@ -994,7 +1000,7 @@ __private_extern__ NSThread *mainThread;
     return (moSong);
     
     } @catch (id e) {
-        ScrobLog(SCROB_LOG_ERR, @"exception creating song for %@ (%@)", [self brief], e);
+        ScrobLog(SCROB_LOG_ERR, @"exception creating persistent song for %@ (%@)", [self brief], e);
     }
     
     return (nil);
