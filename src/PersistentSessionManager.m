@@ -52,6 +52,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType = %@) AND (name == %@)",
         ITEM_SESSION, name]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -76,6 +79,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_ARTIST, [session valueForKey:@"name"]]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -87,6 +93,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_ALBUM, [session valueForKey:@"name"]]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
     return ([moc executeFetchRequest:request error:&error]);
 }
 

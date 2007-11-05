@@ -274,14 +274,6 @@ topHours = nil; \
     // pre-fetch in the relationships (individual backing store faults are VERY expensive)
     // processing the artists is much less work and we can present the data faster to the user
     NSArray *sessionArtists = [[PersistentSessionManager sharedInstance] artistsForSession:session moc:moc];
-#ifdef doesthisdoanything
-    // fault them in
-    entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
-    [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", sessionArtists]];
-    error = nil;
-    sessionArtists = [moc executeFetchRequest:request error:&error];
-#endif
     entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionArtists valueForKeyPath:@"item.objectID"]]];

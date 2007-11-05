@@ -196,6 +196,9 @@ __private_extern__ NSThread *mainThread = nil;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_SONG, [session valueForKey:@"name"]]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -208,6 +211,9 @@ __private_extern__ NSThread *mainThread = nil;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_RATING_CCH, [session valueForKey:@"name"]]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -220,6 +226,9 @@ __private_extern__ NSThread *mainThread = nil;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_HOUR_CCH, [session valueForKey:@"name"]]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
     return ([moc executeFetchRequest:request error:&error]);
 }
 
