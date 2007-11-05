@@ -31,7 +31,7 @@ return (
 );
 }
 
-#ifdef __LP64__
+#if defined(__LP64__) || (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
 #define LEOPARD_BEGIN
 #define LEOPARD_END
 #else
