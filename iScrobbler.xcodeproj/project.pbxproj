@@ -57,7 +57,6 @@
 		D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B303FBC574005DC01B /* Carbon.framework */; };
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
-		D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4746007740A760076AA7D /* libcrypto.dylib */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D329070B0CDB4E0600CAAB66 /* LoginItemsAE.c in Sources */ = {isa = PBXBuildFile; fileRef = D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
@@ -265,7 +264,6 @@
 		D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISArtistDetailsController.h; sourceTree = "<group>"; };
 		D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISArtistDetailsController.m; sourceTree = "<group>"; };
 		D3D4741F077407F50076AA7D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
-		D3D4746007740A760076AA7D /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISProfileDocumentController.h; sourceTree = "<group>"; };
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISProfileDocumentController.m; sourceTree = "<group>"; };
 		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
@@ -313,7 +311,6 @@
 				D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */,
 				D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */,
 				D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */,
-				D3191CC607E3A51700821D03 /* libcrypto.dylib in Frameworks */,
 				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
 				D30BBF9D0CCF5EE0005DCFA2 /* IOKit.framework in Frameworks */,
 				D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */,
@@ -374,15 +371,14 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */,
+				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				D3D7BB1B0809AD09005EF5CA /* WebKit.framework */,
-				D3EC73100804F73B00392110 /* Growl.framework */,
-				D3D4746007740A760076AA7D /* libcrypto.dylib */,
 				D3D4741F077407F50076AA7D /* SystemConfiguration.framework */,
 				EB5069B303FBC574005DC01B /* Carbon.framework */,
 				EB5069B403FBC574005DC01B /* CoreFoundation.framework */,
 				EB5069A903FBC43A005DC01B /* Security.framework */,
-				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */,
+				D3EC73100804F73B00392110 /* Growl.framework */,
 			);
 			name = "Linked Frameworks";
 			sourceTree = "<group>";
