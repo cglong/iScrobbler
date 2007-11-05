@@ -184,7 +184,8 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (NSArray*)allSessions
 {
-    return ([sessionMgr allSessionsWithMOC:mainMOC]);
+    return ([[sessionMgr activeSessionsWithMOC:mainMOC] arrayByAddingObjectsFromArray:
+        [sessionMgr archivedSessionsWithMOC:mainMOC weekLimit:10]]);
 }
 
 - (NSArray*)songsForSession:(id)session

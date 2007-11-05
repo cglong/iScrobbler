@@ -24,7 +24,8 @@
 + (PersistentSessionManager*)sharedInstance;
 - (ISThreadMessenger*)threadMessenger;
 
-- (NSArray*)allSessionsWithMOC:(NSManagedObjectContext*)moc;
+- (NSArray*)activeSessionsWithMOC:(NSManagedObjectContext*)moc;
+- (NSArray*)archivedSessionsWithMOC:(NSManagedObjectContext*)moc weekLimit:(NSUInteger)limit;
 - (NSManagedObject*)sessionWithName:(NSString*)name moc:(NSManagedObjectContext*)moc;
 - (NSArray*)artistsForSession:(id)session moc:(NSManagedObjectContext*)moc;
 - (NSArray*)albumsForSession:(id)session moc:(NSManagedObjectContext*)moc;

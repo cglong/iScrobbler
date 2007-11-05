@@ -31,13 +31,44 @@ __private_extern__ NSThread *mainThread;
 
 @implementation PersistentSessionManager
 
-- (NSArray*)allSessionsWithMOC:(NSManagedObjectContext*)moc
+- (NSArray*)activeSessionsWithMOC:(NSManagedObjectContext*)moc
 {
     NSError *error = nil;
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"itemType == %@", ITEM_SESSION]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive == NULL)", ITEM_SESSION]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
+    
+    [[moc persistentStoreCoordinator] lock];
+    NSArray *results = [moc executeFetchRequest:request error:&error];
+    [[moc persistentStoreCoordinator] unlock];
+    return (results);
+}
+
+- (NSArray*)archivedSessionsWithMOC:(NSManagedObjectContext*)moc weekLimit:(NSUInteger)limit
+{
+    NSError *error = nil;
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    NSPredicate *predicate;
+    if (limit > 0) {
+        NSCalendarDate *now = [NSCalendarDate date];
+        // just before midnight of the first day of the current week
+        NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
+            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute] - 10)];
+        predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL) AND (epoch > %@)",
+            ITEM_SESSION, [fromDate GMTDate]];
+    } else
+        predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL)", ITEM_SESSION];
+    [request setPredicate:predicate];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
+    
     [[moc persistentStoreCoordinator] lock];
     NSArray *results = [moc executeFetchRequest:request error:&error];
     [[moc persistentStoreCoordinator] unlock];
@@ -839,7 +870,11 @@ __private_extern__ NSThread *mainThread;
         
         // add to sessions
         NSManagedObject *sessionSong, *session;
-        NSEnumerator *en = [[self allSessionsWithMOC:moc] objectEnumerator];
+        NSArray *sessions = [[self activeSessionsWithMOC:moc] arrayByAddingObjectsFromArray:
+            // we get archives in case the user played songs from an iPod and an older session needs to be updated
+            // limiting to 5 will get us the past 5 weeks of the last.fm weeklies (which are currently the only sessions archived)
+            [self archivedSessionsWithMOC:moc weekLimit:5]];
+        NSEnumerator *en = [sessions objectEnumerator];
         entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
         NSString *sessionName;
         while ((session = [en nextObject])) {
