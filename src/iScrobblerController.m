@@ -1392,7 +1392,8 @@ player_info_exit:
     else if (nil == input || NO == [input isKindOfClass:[NSData class]])
         return (nil);
     
-    unsigned char *hash = CC_MD5((unsigned char*)[input bytes], [input length], NULL);
+    unsigned char digest[CC_MD5_DIGEST_LENGTH];
+    unsigned char *hash = CC_MD5((unsigned char*)[input bytes], [input length], digest);
 	NSMutableString *hashString = [NSMutableString string];
     // Convert the binary hash into a string
     for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
