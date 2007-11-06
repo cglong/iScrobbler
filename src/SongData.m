@@ -164,7 +164,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 }
 
 // This is a dump of /dev/urandom
-#define SD_MAGIC [NSNumber numberWithUnsignedInt:0xae0da1b7]
+#define SD_MAGIC 0xae0da1b7
 #define SD_KEY_MAGIC @"SDM"
 #define SD_KEY_TITLE @"Title"
 #define SD_KEY_ALBUM @"Ablum"
@@ -215,7 +215,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
         plastPlayed = [pstartTime addTimeInterval:[pduration doubleValue]];
     
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
-        SD_MAGIC, SD_KEY_MAGIC,
+        [NSNumber numberWithUnsignedInt:SD_MAGIC], SD_KEY_MAGIC,
         ptitle, SD_KEY_TITLE,
         palbum ? palbum : @"", SD_KEY_ALBUM,
         partist, SD_KEY_ARTIST,
@@ -236,7 +236,7 @@ static float artworkCacheLookups = 0.0f, artworkCacheHits = 0.0f;
 {
     NSNumber *magic = [data objectForKey:SD_KEY_MAGIC];
     id obj;
-    if (magic && [SD_MAGIC isEqualToNumber:magic]) {
+    if (magic && SD_MAGIC == [magic unsignedIntValue]) {
         if ((obj = [data objectForKey:SD_KEY_TITLE]))
             [self setTitle:obj];
         if ((obj = [data objectForKey:SD_KEY_ALBUM]))

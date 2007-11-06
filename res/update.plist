@@ -5,19 +5,17 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string></string>
+        	<string>0f1b6b55f82aca1967e812e98caac3b5dabb0b05</string>
         </dict>
         <key>Version</key>
-        <string>1.5.1b1</string>
+        <string>1.5.2</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.1b1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.2.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
-                <string>- New Local Profile Chart: Top Hours
-- Growl iPod sync notification
-- Growl play notifications will be coalesced if multiples are on screen
-- Minor bug fixes
+                <string>- Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue. In addition this same change could result in duplicate iPod submissions.
+- Minor version check improvement.
                 </string>
         </dict>
 </dict>

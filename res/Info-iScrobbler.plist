@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>BBNetUpdateVersion</key>
-    <string>1.5.1b1</string>
-    <key>CFBundleDevelopmentRegion</key>
+	<string>1.5.2</string>
+	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>1.5.1</string>
+	<string>1.5.2</string>
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.5.1</string>
+	<string>1.5.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -30,11 +30,11 @@
 	<string>10.3.9</string>
 	<key>LSUIElement</key>
 	<string>1</string>
+	<key>NSAppleScriptEnabled</key>
+	<string>NO</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-    <key>NSAppleScriptEnabled</key>
-    <string>NO</string>
 </dict>
 </plist>
