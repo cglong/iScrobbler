@@ -1522,8 +1522,8 @@ player_info_exit:
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
     #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
-    if ([w respondsToSelector:@selector(setCanBeVisibleOnAllSpaces:)])
-        [w setCanBeVisibleOnAllSpaces:YES];
+    if ([w respondsToSelector:@selector(setCollectionBehavior:)])
+        [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
     // [w setDelegate:self];
     [w center];
     
