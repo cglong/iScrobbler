@@ -2187,7 +2187,9 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
     while ((iomedia = IOIteratorNext(iter))) {
         kr = IORegistryEntryCreateCFProperties(iomedia, &properties, kCFAllocatorDefault, 0);
         if (kr == 0 && [[(NSDictionary*)properties objectForKey:@kIOMediaWholeKey] boolValue]) {
-            // we could get fancy and make sure the media is an iPod, but for now we'll just copy blindly
+            // We could get fancy and make sure the media is an iPod, but for now we'll just copy blindly.
+            // XXX - This means that multiple plays won't work with the "Fake iPod" method to sync to Touch/iPhones
+            // since the image is mounted after the library is updated.
             ScrobDebug(@"");
             [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
         }
