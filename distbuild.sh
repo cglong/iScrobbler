@@ -33,7 +33,7 @@ read VER
 
 IMAGE=/tmp/scrobbuild_$$.dmg
 VOLUME="iScrobbler ${VER}"
-hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" ${IMAGE}
+hdiutil create -megabytes 5 -fs HFS+ -volname "${VOLUME}" -layout SPUD ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
 cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
