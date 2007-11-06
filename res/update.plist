@@ -5,12 +5,12 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>1946933ba9db693ac9f160a62c6dc6ac4a71b55e</string>
+        	<string>dc81f9dcaa20e385f18f1d788ca600a8cc34bcd0</string>
         </dict>
         <key>Version</key>
-        <string>1.5.1b1</string>
+        <string>1.5.1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.1b1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.1.5.1.dmg</string>
         <key>Notes</key>
         <dict>
                 <key>English</key>
