@@ -240,14 +240,36 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       if (errstr)
          CFRelease(errstr);
       
+      double requiredVer = 0.0;
       if (verInfo) {
          NSString *title, *moreInfo, *newVer, *netVer, *curVer;
          
+         @try {
+         NSNumber *rver = [verInfo objectForKey:@"MinFoundationVer"];
+         if (rver) {
+            requiredVer = [rver doubleValue];
+         }
+         } @catch (id e) {}
+         
          if (!(curVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"BBNetUpdateVersion"]))
             curVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-         netVer = [NSString stringWithString:[verInfo objectForKey:@"Version"]];
+         netVer = [verInfo objectForKey:@"Version"];
          
-         if (curVer && netVer &&
+         if (NSFoundationVersionNumber < requiredVer) {
+            display = _interact; // only display the dialog if the user initiated the check
+            [buttonDownload setTitle:@"OK"];
+            title = NSLocalizedStringFromTable(@"Mac OS X Update Needed", @"BBNetUpdate", "");
+            curVer = [verInfo objectForKey:@"MinSysVer"];
+            if (netVer && curVer) {
+                newVer = [NSString stringWithFormat:
+                    NSLocalizedStringFromTable(@"A new version is available (%@), but it requires Mac OS X %@ or later to install.", @"BBNetUpdate", ""),
+                    netVer,
+                    curVer];
+            } else
+                newVer = NSLocalizedStringFromTable(@"A new version is available, but it requires a later version of Mac OS X to install.", @"BBNetUpdate", "");
+            
+            [verInfo release]; verInfo = nil;
+         } else if (curVer && netVer &&
             (BBCFVersionNumberFromString((CFStringRef)curVer) <
                BBCFVersionNumberFromString((CFStringRef)netVer))) {
             newVer = [NSString stringWithFormat:
@@ -271,7 +293,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
             newVer = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"");
             
             [buttonDownload setTitle:@"OK"];
-            
             [verInfo release]; verInfo = nil;
          }
          
