@@ -511,7 +511,11 @@ __private_extern__ NSThread *mainThread;
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
+        @try {
         [moc reset];
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_WARN, @"updateLastfmSession: exception during reset: %@", e);
+        }
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
@@ -569,7 +573,11 @@ __private_extern__ NSThread *mainThread;
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
+        @try {
         [moc reset];
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_WARN, @"updateSessions: exception during reset: %@", e);
+        }
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
