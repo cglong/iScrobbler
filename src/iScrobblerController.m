@@ -908,11 +908,6 @@ player_info_exit:
         (void)[QueueManager sharedInstance];
         if ([[QueueManager sharedInstance] count])
             [[QueueManager sharedInstance] submit];
-        
-        // Create top lists controller so it will pick up subs
-        // We do this after creating the QM so that queued subs are not counted.
-        if (isTopListsActive)
-            (void)[TopListsController sharedInstance];
     }
     
     // Install ourself in the Login Items
@@ -1096,6 +1091,9 @@ player_info_exit:
 
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
+    if (isTopListsActive)
+        (void)[TopListsController sharedInstance];
+            
     // Register to handle URLs
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
         forEventClass:kInternetEventClass andEventID:kAEGetURL];
