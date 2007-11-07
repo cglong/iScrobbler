@@ -2203,17 +2203,15 @@ exit:
 
 - (void)loadProxy
 {
-    #ifdef notyet
     static BOOL setup = YES;
     if (setup) {
-        [[NSConnection defaultConnection] setRootObject:self];
+        [[NSConnection defaultConnection] setRootObject:[NSNull null]];
         [[NSConnection defaultConnection] setReplyTimeout:3.0];
         [[NSConnection defaultConnection] setRequestTimeout:3.0];
         setup = NO;
     }
-    #endif
     
-    if (!sProxy) {    
+    if (!sProxy) {
         sProxy = [[NSConnection rootProxyForConnectionWithRegisteredName:ISProxyName host:nil] retain];
         if (!sProxy) {
             [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
