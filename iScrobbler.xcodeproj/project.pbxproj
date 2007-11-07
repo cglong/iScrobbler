@@ -74,6 +74,10 @@
 		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
 		D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6FB80B541A9000230DBE /* ISTagController.m */; };
 		D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */; };
+		D398024A0CE0FF54008CB4C8 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
+		D398024D0CE0FF55008CB4C8 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
+		D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in CopyFiles */ = {isa = PBXBuildFile; fileRef = D39802400CE0FE41008CB4C8 /* iScrobblerProxy */; };
+		D398025F0CE0FFB9008CB4C8 /* ISProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D398025E0CE0FFB9008CB4C8 /* ISProxy.m */; };
 		D398FB470CDE016A008CB4C8 /* ArtistDetails.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */; };
 		D398FB480CDE016A008CB4C8 /* ISProfileReport.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */; };
 		D398FB490CDE016A008CB4C8 /* ISRadioSearch.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */; };
@@ -135,6 +139,13 @@
 			remoteGlobalIDString = D37606390CB230A900C04863;
 			remoteInfo = iChatStatus;
 		};
+		D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D398023F0CE0FE41008CB4C8;
+			remoteInfo = iScrobblerProxy;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -145,6 +156,16 @@
 			dstSubfolderSpec = 13;
 			files = (
 				D37606650CB2363F00C04863 /* ChatStatus.plugin in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D39802600CE0FFB9008CB4C8 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +235,10 @@
 		D38F6FB80B541A9000230DBE /* ISTagController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISTagController.m; sourceTree = "<group>"; };
 		D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISLoveBanListController.h; sourceTree = "<group>"; };
 		D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISLoveBanListController.m; sourceTree = "<group>"; };
+		D39802400CE0FE41008CB4C8 /* iScrobblerProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = iScrobblerProxy; sourceTree = BUILT_PRODUCTS_DIR; };
+		D398025D0CE0FFB9008CB4C8 /* ISProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISProxy.h; path = src/ISProxy.h; sourceTree = "<group>"; };
+		D398025E0CE0FFB9008CB4C8 /* ISProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISProxy.m; path = src/ISProxy.m; sourceTree = "<group>"; };
+		D39802610CE100AC008CB4C8 /* ISProxyProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISProxyProtocol.h; path = src/ISProxyProtocol.h; sourceTree = "<group>"; };
 		D398FB380CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ArtistDetails.xib; sourceTree = "<group>"; };
 		D398FB3A0CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ISProfileReport.xib; sourceTree = "<group>"; };
 		D398FB3C0CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/ISRadioSearch.xib; sourceTree = "<group>"; };
@@ -326,6 +351,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D398023E0CE0FE41008CB4C8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -362,7 +394,6 @@
 				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
 				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
-				D376223C0CBD7F0900C04863 /* Persistence */,
 			);
 			name = Classes;
 			path = src;
@@ -388,6 +419,7 @@
 			children = (
 				D3191CC907E3A51700821D03 /* iScrobbler.app */,
 				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
+				D39802400CE0FE41008CB4C8 /* iScrobblerProxy */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -396,6 +428,8 @@
 			isa = PBXGroup;
 			children = (
 				080E96DDFE201D6D7F000001 /* Classes */,
+				D376223C0CBD7F0900C04863 /* Persistence */,
+				D39802380CE0FD9B008CB4C8 /* iScrobblerProxy */,
 				EB50663103FBB296005DC01B /* Headers */,
 				D37606320CB2307F00C04863 /* Plugins */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -516,7 +550,16 @@
 				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
 			);
 			name = Persistence;
-			path = ..;
+			sourceTree = "<group>";
+		};
+		D39802380CE0FD9B008CB4C8 /* iScrobblerProxy */ = {
+			isa = PBXGroup;
+			children = (
+				D398025E0CE0FFB9008CB4C8 /* ISProxy.m */,
+				D398025D0CE0FFB9008CB4C8 /* ISProxy.h */,
+				D39802610CE100AC008CB4C8 /* ISProxyProtocol.h */,
+			);
+			name = iScrobblerProxy;
 			sourceTree = "<group>";
 		};
 		D3B19CB00B4F3049008F54BF /* Scripts */ = {
@@ -619,6 +662,7 @@
 			buildPhases = (
 				D3EC730D0804F70F00392110 /* CopyFiles */,
 				D37606630CB2362D00C04863 /* CopyFiles */,
+				D39802600CE0FFB9008CB4C8 /* CopyFiles */,
 				D3191C9807E3A51700821D03 /* AppleScript */,
 				D3191CA907E3A51700821D03 /* Resources */,
 				D3191CB307E3A51700821D03 /* Sources */,
@@ -630,6 +674,7 @@
 			);
 			dependencies = (
 				D37606620CB2360400C04863 /* PBXTargetDependency */,
+				D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */,
 			);
 			name = iScrobbler;
 			productInstallPath = "$(HOME)/Applications";
@@ -653,6 +698,22 @@
 			productName = iChatStatus;
 			productReference = D376063A0CB230A900C04863 /* ChatStatus.plugin */;
 			productType = "com.apple.product-type.bundle";
+		};
+		D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D39802450CE0FEA4008CB4C8 /* Build configuration list for PBXNativeTarget "iScrobblerProxy" */;
+			buildPhases = (
+				D398023D0CE0FE41008CB4C8 /* Sources */,
+				D398023E0CE0FE41008CB4C8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iScrobblerProxy;
+			productName = iScrobblerProxy;
+			productReference = D39802400CE0FE41008CB4C8 /* iScrobblerProxy */;
+			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
@@ -679,6 +740,7 @@
 			targets = (
 				D3191C9707E3A51700821D03 /* iScrobbler */,
 				D37606390CB230A900C04863 /* ChatStatus */,
+				D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */,
 			);
 		};
 /* End PBXProject section */
@@ -801,6 +863,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D398023D0CE0FE41008CB4C8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D398024A0CE0FF54008CB4C8 /* KFAppleScriptHandlerAdditionsCore.m in Sources */,
+				D398024D0CE0FF55008CB4C8 /* KFASHandlerAdditions-TypeTranslation.m in Sources */,
+				D398025F0CE0FFB9008CB4C8 /* ISProxy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -808,6 +880,11 @@
 			isa = PBXTargetDependency;
 			target = D37606390CB230A900C04863 /* ChatStatus */;
 			targetProxy = D37606610CB2360400C04863 /* PBXContainerItemProxy */;
+		};
+		D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */;
+			targetProxy = D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1147,6 +1224,83 @@
 			};
 			name = Release;
 		};
+		D39802420CE0FE42008CB4C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = i386;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = stabs;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/bin;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobblerProxy;
+				ZERO_LINK = NO;
+			};
+			name = Debug;
+		};
+		D39802430CE0FE42008CB4C8 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = i386;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = stabs;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/bin;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobblerProxy;
+				ZERO_LINK = NO;
+			};
+			name = "Debug-Internal";
+		};
+		D39802440CE0FE42008CB4C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = i386;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = stabs;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/bin;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = iScrobblerProxy;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1176,6 +1330,16 @@
 				D376063D0CB230AA00C04863 /* Debug */,
 				D32906790CDA8D9700CAAB66 /* Debug-Internal */,
 				D376063E0CB230AA00C04863 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D39802450CE0FEA4008CB4C8 /* Build configuration list for PBXNativeTarget "iScrobblerProxy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D39802420CE0FE42008CB4C8 /* Debug */,
+				D39802430CE0FE42008CB4C8 /* Debug-Internal */,
+				D39802440CE0FE42008CB4C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

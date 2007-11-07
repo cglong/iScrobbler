@@ -38,6 +38,24 @@
 #import "Persistence.h"
 #import "ISiTunesLibrary.h"
 
+#ifdef __LP64__
+#define IS_SCRIPT_PROXY 1
+#endif
+#ifdef IS_SCRIPT_PROXY
+#import "ISProxyProtocol.h"
+static NSDistantObject<ISProxyProtocol> *sProxy = nil;
+
+@interface iScrobblerController (ProxySupport)
+
+- (void)launchProxy;
+- (void)connectionDied:(NSNotification*)note;
+- (void)killProxy;
+- (void)loadProxy;
+
+@end
+
+#endif
+
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
@@ -1047,10 +1065,18 @@ player_info_exit:
 {
     if ([[note name] isEqualToString:NSWorkspaceWillPowerOffNotification]) {
         (void)[self applicationShouldTerminate:[NSWorkspace sharedWorkspace]];
+        // XXX: we have no way to prevent this
+        // if (NSTerminateNow != reply)
+        // return;
     }
     
     [[QueueManager sharedInstance] syncQueue:nil];
     [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    #ifdef IS_SCRIPT_PROXY
+    [sProxy kill];
+    [self killProxy];
+    #endif
 }
 
 - (void)checkForOtherScrobblers:(id)arg
@@ -1068,7 +1094,7 @@ player_info_exit:
     }
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+- (void)applicationWillFinishLaunching:(NSNotification*)note
 {
     // Register to handle URLs
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
@@ -1076,6 +1102,13 @@ player_info_exit:
     
     (void)[ISPluginController sharedInstance]; // load plugins
     
+    #ifdef IS_SCRIPT_PROXY
+    [self launchProxy];
+    #endif
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
         [self openStatistics:nil];
@@ -2104,6 +2137,88 @@ exit:
 }
 
 @end
+
+#ifdef IS_SCRIPT_PROXY
+
+@implementation iScrobblerController (ProxySupport)
+
+- (void)launchProxy
+{
+    NSString *path = [[NSBundle mainBundle] pathForAuxiliaryExecutable:@"iScrobblerProxy"];
+    // [[NSWorkspace sharedWorkspace] launchApplication:showIcon:autolaunch:] fails for non-bundled apps
+    OSStatus err;
+    LSApplicationParameters params;
+    bzero(&params, sizeof(params));
+    params.flags = kLSLaunchDontAddToRecents|kLSLaunchDontSwitch|kLSLaunchAsync;
+    FSRef app;
+    (void)CFURLGetFSRef((CFURLRef)[NSURL fileURLWithPath:path], &app);
+    params.application = &app;
+    
+    if (0 == (err = LSOpenApplication(&params, NULL)))
+        [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
+    else
+        ScrobLog(SCROB_LOG_CRIT, @"Failed to launch proxy!");
+}
+
+- (void)connectionDied:(NSNotification*)note
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name:NSConnectionDidDieNotification object:[note object]];
+    
+    @try {
+        if (sProxy) [sProxy release];
+    } @catch (NSException *exception) { }
+    sProxy = nil;
+    
+    [self launchProxy];
+}
+
+- (void)killProxy
+{
+    if (sProxy) {
+        // Make sure we don't try to start another proxy
+        @try {
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+            name:NSConnectionDidDieNotification object:[sProxy connectionForProxy]];
+        } @catch (NSException *exception) {
+        }
+        [sProxy release];
+        sProxy = nil;
+    }
+}
+
+- (void)loadProxy
+{
+    #ifdef notyet
+    static BOOL setup = YES;
+    if (setup) {
+        [[NSConnection defaultConnection] setRootObject:self];
+        [[NSConnection defaultConnection] setReplyTimeout:3.0];
+        [[NSConnection defaultConnection] setRequestTimeout:3.0];
+        setup = NO;
+    }
+    #endif
+    
+    if (!sProxy) {    
+        sProxy = [[NSConnection rootProxyForConnectionWithRegisteredName:ISProxyName host:nil] retain];
+        if (!sProxy) {
+            [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
+            return;
+        }
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(connectionDied:) name:NSConnectionDidDieNotification
+            object:[sProxy connectionForProxy]];
+        
+        //[sProxy setProtocolForProxy:@protocol(ISProxyClientProtocol)];
+        [[sProxy connectionForProxy] setReplyTimeout:3.0];
+        [[sProxy connectionForProxy] setRequestTimeout:3.0];
+    }
+}
+
+@end
+
+#endif // IS_SCRIPT_PROXY
 
 @implementation NSMutableArray (iScrobblerContollerFifoAdditions)
 - (void)pushSong:(id)obj

@@ -357,8 +357,10 @@ validate:
 
 - (void)synciPodWithiTunesLibrary:(NSDictionary*)arg
 {
+#ifndef IS_SCRIPT_PROXY
     static NSAppleScript *iPodUpdateScript = nil;
-    ScrobTrace (@"syncIpod: called: script=%p, sync pref=%i\n", iPodUpdateScript, [prefs boolForKey:@"Sync iPod"]);
+#endif
+    ScrobTrace (@"syncIpod: called: sync pref=%i\n", [prefs boolForKey:@"Sync iPod"]);
     
     NSAutoreleasePool *workPool = nil;
     NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
@@ -379,19 +381,18 @@ validate:
         NSTimeInterval now, fudge;
         unsigned int added = 0;
         
+#ifndef IS_SCRIPT_PROXY
         // Get our iPod update script
         if (!iPodUpdateScript) {
-            #define path playlist
-            path = [[[NSBundle mainBundle] resourcePath]
-                        stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"];
-            NSURL *url = [NSURL fileURLWithPath:path];
+            NSURL *url = [NSURL fileURLWithPath:
+                [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"]];
             iPodUpdateScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
             if (!iPodUpdateScript) {
                 ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!\n");
                 @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"Failed to load iPodUpdateScript!" userInfo:nil]);
             }
-            #undef path
         }
+#endif
         
         if (!(playlist = [prefs stringForKey:@"iPod Submission Playlist"]) || ![playlist length]) {
             @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"iPod playlist not set, aborting sync." userInfo:nil]);
@@ -439,7 +440,17 @@ validate:
             requestDate);
         // Run script
         @try {
+#ifdef IS_SCRIPT_PROXY
+            NSURL *surl = [NSURL fileURLWithPath:
+                [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"]];
+            NSArray *args = [NSArray arrayWithObjects:playlist, requestDate, nil];
+            NSDictionary *result;
+            result = [sProxy runScriptWithURL:surl handler:@"UpdateiPod" args:args];
+            if (!(trackList = [result objectForKey:@"result"]))
+                errInfo = [result objectForKey:@"error"];
+#else
             trackList = [iPodUpdateScript executeHandler:@"UpdateiPod" withParameters:playlist, requestDate, nil];
+#endif
         } @catch (NSException *exception) {
             trackList = nil;
             errInfo = [exception description];
