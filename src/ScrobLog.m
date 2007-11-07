@@ -96,21 +96,24 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
         
         [fh seekToEndOfFile];
 
-        NSData *d;
+        NSData *d = nil;
         if (bom) {
             //Write UTF-8 BOM
             d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE];
         }
         if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
-            d = [[NSString stringWithFormat:@"  **** New Session %@/%@ (%@)****\n",
+            d = [[NSString stringWithFormat:@"  **** New Session %@/%@ - Mac OS X %@ (%@) ****\n",
                     [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
                     [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"],
+                    [[NSProcessInfo processInfo] operatingSystemVersionString],
                     ISCPUArchitectureString()]
                 dataUsingEncoding:NSUTF8StringEncoding];
         }
-        @try {
-        [fh writeData:d];
-        } @finally {}
+        if (d) {
+            @try {
+            [fh writeData:d];
+            } @finally {}
+        }
     }
     
     return (fh);
