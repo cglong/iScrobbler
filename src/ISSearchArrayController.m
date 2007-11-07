@@ -118,7 +118,7 @@
         count = [dataKeys count];
         for (i = 0; i < count; ++i) {
             key = [dataKeys objectAtIndex:i];
-            if (![key isEqualToString:@"Play Time"]) /* ACK! Internal knowledge of dict. */
+            if (![key isEqualToString:@"Play Time"] && ![key isEqualToString:@"objectID"]) /* ACK! Internal knowledge of dict. */
                 [textData appendFormat:@"%@\t", key];
         }
         // Replace the last tab with a newline
@@ -132,7 +132,7 @@
         count = [dataKeys count];
         for (i = 0; i < count; ++i) {
             key = [dataKeys objectAtIndex:i];
-            if (![key isEqualToString:@"Play Time"]) { /* ACK! Internal knowledge of dict. */ 
+            if (![key isEqualToString:@"Play Time"] && ![key isEqualToString:@"objectID"]) { /* ACK! Internal knowledge of dict. */ 
                 value = [data objectForKey:[dataKeys objectAtIndex:i]];
                 [textData appendFormat:@"%@\t", [value description]];
             }
