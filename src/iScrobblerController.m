@@ -1256,7 +1256,6 @@ player_info_exit:
         if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
             NSMenu *m = [songActionMenu copy];
-            NSMenuItem *item;
             if ([song isLastFmRadio]) {
                 NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
                 item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
@@ -2098,20 +2097,20 @@ exit:
         r = [fmt rangeOfString:@"%d"];
         if (NSNotFound != r.location) {
             NSString *timeStr;
-            unsigned time = [[self duration] unsignedIntValue];
+            unsigned tDuration = [[self duration] unsignedIntValue];
             unsigned days, hours, mins, secs;
-            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+            ISDurationsFromTime(tDuration, &days, &hours, &mins, &secs);
             
-            if (time < 3600)
+            if (tDuration < 3600)
                 timeStr = [NSString stringWithFormat:@"%u:%02u", mins, secs];
             else
                 timeStr = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
             
-            time = [[self elapsedTime] unsignedIntValue];
+            tDuration = [[self elapsedTime] unsignedIntValue];
             if (time > 0) {
                 NSString *tmp;
-                ISDurationsFromTime(time, &days, &hours, &mins, &secs);
-                if (time < 3600)
+                ISDurationsFromTime(tDuration, &days, &hours, &mins, &secs);
+                if (tDuration < 3600)
                     tmp = [NSString stringWithFormat:@"%u:%02u", mins, secs];
                 else
                     tmp = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
@@ -2263,22 +2262,22 @@ exit:
 @end
 #endif
 
-void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
+void ISDurationsFromTime(unsigned int tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = time / 86400U;
-    *hours = (time % 86400U) / 3600U;
-    *minutes = ((time % 86400U) % 3600U) / 60U;
-    *seconds = ((time % 86400U) % 3600U) % 60U;
+    *days = tSeconds / 86400U;
+    *hours = (tSeconds % 86400U) / 3600U;
+    *minutes = ((tSeconds % 86400U) % 3600U) / 60U;
+    *seconds = ((tSeconds % 86400U) % 3600U) % 60U;
 }
 
-void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned int *hours,
+void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = (unsigned int)(time / 86400U);
-    *hours = (unsigned int)(time % 86400U) / 3600U;
-    *minutes = (unsigned int)((time % 86400U) % 3600U) / 60U;
-    *seconds = (unsigned int)((time % 86400U) % 3600U) % 60U;
+    *days = (unsigned int)(tSeconds / 86400U);
+    *hours = (unsigned int)(tSeconds % 86400U) / 3600U;
+    *minutes = (unsigned int)((tSeconds % 86400U) % 3600U) / 60U;
+    *seconds = (unsigned int)((tSeconds % 86400U) % 3600U) % 60U;
 }
 
 #include "iScrobblerController+Private.m"

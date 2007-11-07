@@ -719,8 +719,8 @@ didFinishLoadingExit:
         ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
         @try {
         [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
-        } @catch (id e) {
-            ScrobDebug(@"exception: %@", e);
+        } @catch (NSException *e2) {
+            ScrobDebug(@"exception: %@", e2);
         }
         [inFlight release];
         inFlight = nil;

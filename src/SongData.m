@@ -148,9 +148,9 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     // The amount of time passed since the beginning of the track, made
     // into a positive number, and plus 5 to account for Timer error.
     // Due to timer firing discrepencies, this should not be considered an 'exact' time.
-    NSNumber * time = [NSNumber numberWithDouble:(-[[self startTime]
+    NSNumber *delta = [NSNumber numberWithDouble:(-[[self startTime]
         timeIntervalSinceNow] + 5)];
-    return time;
+    return (delta);
 }
 
 - (BOOL)isEqualToSong:(SongData*)song

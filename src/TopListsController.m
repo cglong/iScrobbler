@@ -963,7 +963,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     unsigned int days, hours, minutes, seconds;
     ISDurationsFromTime([totalTime unsignedIntValue], &days, &hours, &minutes, &seconds);
-    NSString *time = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
+    NSString *timeStr = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
     
@@ -996,7 +996,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         ([totalTime doubleValue] / 3600.0) / elapsedDays];
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%0.2f%% %@ %@ %@)</span>",
-        tmp, time, ([totalTime floatValue] / elapsedSeconds) * 100.0,
+        tmp, timeStr, ([totalTime floatValue] / elapsedSeconds) * 100.0,
         NSLocalizedString(@"of", ""), elapsedTime, NSLocalizedString(@"elapsed", "")]));
     HAdd(d, TRCLOSE TBLCLOSE @"</div>");
     
@@ -1018,7 +1018,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
-        time = [entry objectForKey:@"Play Time"];
+        timeStr = [entry objectForKey:@"Play Time"];
         
         HAdd(d, (position & 0x0000001) ? TR : TRALT);
         
@@ -1033,7 +1033,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         width = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / basePlayTime) * 100.0f);
         percentage = ([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0f;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
-        HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
+        HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
         
         HAdd(d, TRCLOSE);
         ++position;
@@ -1053,7 +1053,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
-        time = [[entry objectForKey:@"Last Played"]
+        timeStr = [[entry objectForKey:@"Last Played"]
             descriptionWithCalendarFormat:PROFILE_DATE_FORMAT timeZone:nil locale:nil];
         track = [[entry objectForKey:@"Track"] stringByConvertingCharactersToHTMLEntities];
         
@@ -1062,7 +1062,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         tmp = [NSString stringWithFormat:@"%@ - %@", track, artist];
         HAdd(d, TDEntry(TDTITLE, tmp));
-        HAdd(d, TDEntry(TDGRAPH, time)); // Last play time
+        HAdd(d, TDEntry(TDGRAPH, timeStr)); // Last play time
         // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
         percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
@@ -1121,8 +1121,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0f;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
                 ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
-                time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
+                timeStr = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
                 
                 HAdd(d, TRCLOSE);
                 ++position;
@@ -1206,8 +1206,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             percentage = (ratingCount / [totalTime floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
-            time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, time)));
+            timeStr = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, timeStr)));
             
             HAdd(d, TRCLOSE);
         }

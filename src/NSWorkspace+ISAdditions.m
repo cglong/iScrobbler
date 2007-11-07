@@ -58,7 +58,6 @@
             if ([leaf isEqualTo:myLeaf]) {
                 exists = YES;
                 // Remove the old one and add the new one
-                OSStatus err;
                 err = LIAERemove([items indexOfObject:obj]);
                 err = LIAEAddURLAtEnd((CFURLRef)[NSURL fileURLWithPath:path], [[obj objectForKey:(NSString*)kLIAEHidden] boolValue]);
                 break;
