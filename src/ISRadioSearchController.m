@@ -103,6 +103,9 @@
         name = NSLocalizedString(@"Enter a Tag", "");
     } else if ([currentSearchType objectForKey:@"group"]) {
         name = NSLocalizedString(@"Enter a Group", "");
+    } else {
+        NSBeep();
+        return;
     }
     [[searchText cell] setPlaceholderString:name];
     

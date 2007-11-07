@@ -195,7 +195,7 @@ static NSImage *artistImgPlaceholder = nil;
     NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
         [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
     NSFont *font = [[artistController selection] valueForKey:@"Font"];
-    NSMutableAttributedString *value = nil, *tmp;
+    NSMutableAttributedString *value = nil, *tmp = nil;
     NSEnumerator *en = [all objectEnumerator];
     int i = 0;
     while ((e = [en nextObject]) && i++ < 3) {

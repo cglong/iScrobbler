@@ -805,8 +805,10 @@ __private_extern__ NSThread *mainThread;
             [album setValue:ITEM_ALBUM forKey:@"itemType"];
             [album setValue:[sessionSong valueForKeyPath:@"item.album"] forKey:@"item"];
             [album setValue:session forKey:@"session"];
-        } else
+        } else {
             ISASSERT(0, "multiple artist albums found in session!");
+            @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"multiple session albums!" userInfo:nil]);
+        }
         
         [album incrementPlayCountWithObject:sessionSong];
         [album incrementPlayTimeWithObject:sessionSong];
