@@ -1418,6 +1418,21 @@ player_info_exit:
 	[super dealloc];
 }
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+#define IS_CC_MD5 CC_MD5
+#else
+// CC_MD5 is only available on Leopard, this is probably exactly what it does internally,
+// so we won't worry about testing for it at runtime.
+unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
+{
+    CC_MD5_CTX ctx;
+    CC_MD5_Init (&ctx);
+    CC_MD5_Update(&ctx, bytes, len);
+    CC_MD5_Final(md, &ctx);
+    return (md);
+}
+#endif
+
 - (NSString *)md5hash:(id)input
 {
 	if ([input isKindOfClass:[NSString class]])
@@ -1426,10 +1441,10 @@ player_info_exit:
         return (nil);
     
     unsigned char digest[CC_MD5_DIGEST_LENGTH];
-    unsigned char *hash = CC_MD5((unsigned char*)[input bytes], [input length], digest);
+    unsigned char *hash = IS_CC_MD5((unsigned char*)[input bytes], [input length], digest);
 	NSMutableString *hashString = [NSMutableString string];
     // Convert the binary hash into a string
-    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
+    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; ++i)
 		[hashString appendFormat:@"%02x", *hash++];
     
     return (hashString);
@@ -2157,7 +2172,7 @@ exit:
     if (0 == (err = LSOpenApplication(&params, NULL)))
         [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
     else
-        ScrobLog(SCROB_LOG_CRIT, @"Failed to launch proxy!");
+        ScrobLog(SCROB_LOG_CRIT, @"Failed to launch proxy (%d)", err);
 }
 
 - (void)connectionDied:(NSNotification*)note
