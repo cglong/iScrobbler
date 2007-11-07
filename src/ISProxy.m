@@ -20,7 +20,7 @@
     @try {
         NSAppleScript *script = [compiledScripts objectForKey:[url path]];
         if (!script) {
-            if (!(script = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil])) {
+            if (!(script = [[[NSAppleScript alloc] initWithContentsOfURL:url error:nil] autorelease])) {
                 return ([NSDictionary dictionaryWithObject:@"script failed to initialize" forKey:@"error"]);
             }
             
