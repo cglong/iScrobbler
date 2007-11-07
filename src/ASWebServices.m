@@ -151,6 +151,7 @@ static NSMutableDictionary *connData = nil;
     NSURL *url;
     NSString *s = [NSString stringWithFormat:@"http://%@%@/np.php?session=%@&debug=%d",
         [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, 0];
+    ScrobTrace(@"%@", s);
     @try {
     url = [NSURL URLWithString:s];
     } @catch (id e) {
@@ -164,7 +165,7 @@ static NSMutableDictionary *connData = nil;
         npConn = [NSURLConnection connectionWithRequest:req delegate:self];
     } else {
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
-        ScrobLog(SCROB_LOG_ERR, @"ASWS 'now playing' failure: nil URL\n");
+        ScrobLog(SCROB_LOG_ERR, @"ASWS 'now playing' failure: nil URL");
     }
 }
 
