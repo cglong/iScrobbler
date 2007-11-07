@@ -27,6 +27,8 @@
             if (![script compileAndReturnError:nil]) {
                 return ([NSDictionary dictionaryWithObject:@"script failed to compile" forKey:@"error"]);
             }
+            
+            [compiledScripts setObject:script forKey:[url path]];
         }
         
         result = [script executeHandler:handler withParametersFromArray:args];
