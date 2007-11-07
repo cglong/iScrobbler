@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 1/27/2005.
-//  Copyright 2005,2006 Brian Bergstrand.
+//  Copyright 2005-2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -87,41 +87,47 @@
     return (searchString && [searchString length]);
 }
 
-- (BOOL)tableView:(NSTableView *)table writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard
+// requrend delegate methods (even with bindings)
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
+{
+    return (0);
+}
+
+- (id)tableView:(NSTableView *)table objectValueForTableColumn:(NSTableColumn *)column row:(NSInteger)row
+{
+    return (nil);
+}
+
+// drag & drop support
+- (BOOL)tableView:(NSTableView *)table writeRowsWithIndexes:(NSIndexSet *)rows toPasteboard:(NSPasteboard*)pboard
 {
     [pboard declareTypes:[NSArray arrayWithObjects:NSTabularTextPboardType, NSStringPboardType, nil] owner:self];
     NSArray *objects = [self arrangedObjects], *dataKeys = nil;
-    NSEnumerator *en = [rows objectEnumerator];
-    NSNumber *idx;
     NSDictionary *data;
-    BOOL headers = YES;
     id key, value;
-    NSUInteger i, count;
+    NSUInteger row, i, count;
     // Copy the dict data into text
     NSMutableString *textData = [NSMutableString string];
-    while ((idx = [en nextObject])) {
-        #ifdef __LP64__
-        i = [idx unsignedIntegerValue];
-        #else
-        i = [idx unsignedIntValue];
-        #endif
-        data = [objects objectAtIndex:i];
+    
+    row = [rows firstIndex];
+    if (NSNotFound != row) {
+        data = [objects objectAtIndex:row];
         // Note: We only get the keys from one object, so that our tabulated colmns contain the correct data
-        if (!dataKeys)
-            dataKeys = [[data allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-        if (headers) {
-            // Add keys into text
-            count = [dataKeys count];
-            for (i = 0; i < count; ++i) {
-                key = [dataKeys objectAtIndex:i];
-                if (![key isEqualToString:@"Play Time"]) /* ACK! Internal knowledge of dict. */
-                    [textData appendFormat:@"%@\t", key];
-            }
-            // Replace the last tab with a newline
-            [textData replaceCharactersInRange:NSMakeRange([textData length]-1, 1) withString:@"\n"];
-            headers = NO;
+        dataKeys = [[data allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+        // Add keys into text
+        count = [dataKeys count];
+        for (i = 0; i < count; ++i) {
+            key = [dataKeys objectAtIndex:i];
+            if (![key isEqualToString:@"Play Time"]) /* ACK! Internal knowledge of dict. */
+                [textData appendFormat:@"%@\t", key];
         }
-        
+        // Replace the last tab with a newline
+        [textData replaceCharactersInRange:NSMakeRange([textData length]-1, 1) withString:@"\n"];
+    } else
+        return (NO);
+    
+    for (; NSNotFound != row; row = [rows indexGreaterThanIndex:row]) {
+        data = [objects objectAtIndex:row];
         // Add values into text
         count = [dataKeys count];
         for (i = 0; i < count; ++i) {
