@@ -16,7 +16,7 @@
 
 #define ISProxyName @"org.bergstrand.iscrobbler.proxy"
 
-@protocol ISProxyProtocol <NSObject>
+@protocol ISProxyProtocol
 
 - (NSDictionary*)runScriptWithURL:(in NSURL*)url handler:(in NSString*)handler args:(in NSArray*)args;
 - (oneway void)kill;
