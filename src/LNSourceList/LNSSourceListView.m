@@ -1,12 +1,13 @@
 #import "LNSSourceListView.h"
 #import "LNSSourceListCell.h"
 
-
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
 @interface NSObject (LN_NSArrayControllerTreeNodePrivateMethod)
 // observedObject is a method of the private _NSArrayControllerTreeNode class
+// this has been made public in 10.5 with the [NSTreeNode representedObject] class
 - (id)observedObject;
 @end
-
+#endif
 
 @interface LNSSourceListView (Private)
 
@@ -18,7 +19,13 @@
 
 - (BOOL) _itemIsSourceGroup:(id) item
 {
-    NSDictionary* value = [item observedObject];
+    NSDictionary* value;
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    if (NO == [item respondsToSelector:@selector(representedObject)])
+        value = [item observedObject];
+    else
+    #endif
+        value = [item representedObject];
 
 	return [[value objectForKey:@"isSourceGroup"] boolValue];
 }

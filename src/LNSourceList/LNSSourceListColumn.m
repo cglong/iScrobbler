@@ -10,10 +10,13 @@
 #import "LNSSourceListCell.h"
 #import "LNSSourceListSourceGroupCell.h"
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
 @interface NSObject (LN_NSArrayControllerTreeNodePrivateMethod)
 // observedObject is a method of the private _NSArrayControllerTreeNode class
+// this has been made public in 10.5 with the [NSTreeNode representedObject] class
 - (id)observedObject;
 @end
+#endif
 
 @implementation LNSSourceListColumn
 
@@ -31,7 +34,14 @@
 {
 	if (row >= 0)
 	{
-		NSDictionary* value = [[(NSOutlineView*) [self tableView] itemAtRow:row] observedObject];
+        id node = [(NSOutlineView*) [self tableView] itemAtRow:row];
+		NSDictionary* value;
+        #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+        if (NO == [node respondsToSelector:@selector(representedObject)])
+            value = [node observedObject];
+        else
+        #endif
+            value = [node representedObject];
 
 		if ([[value objectForKey:@"isSourceGroup"] boolValue])
 		{
