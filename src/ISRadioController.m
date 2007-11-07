@@ -578,7 +578,7 @@ exitHistory:
     } else
         [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:YES];
     
-    unsigned int duration = np ? [[np objectForKey:@"trackduration"] unsignedIntValue] : 0;
+    int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
     // last.fm specific keys
         [NSNumber numberWithBool:YES], @"last.fm",
@@ -597,7 +597,7 @@ exitHistory:
         nil];
     
     if (duration > 0) {
-        unsigned int progress = [[np objectForKey:@"trackprogress"] unsignedIntValue];
+        int progress = [[np objectForKey:@"trackprogress"] intValue];
         duration -= progress;
         ping = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
             target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO];
