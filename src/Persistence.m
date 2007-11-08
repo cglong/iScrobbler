@@ -314,7 +314,7 @@ __private_extern__ NSThread *mainThread = nil;
     [self resetMain];
     
     [self pingSessionManager]; // this makes sure the sessions are properly setup before adding any songs
-    [self addSongPlay:nil]; // process any queued songs
+    [self performSelector:@selector(addSongPlay:) withObject:nil afterDelay:0.10]; // process any queued songs
 }
 
 - (void)addSongPlaysDidFinish:(id)obj
