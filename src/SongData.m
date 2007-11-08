@@ -646,8 +646,17 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         score = [[d objectForKey:@"score"] unsignedIntValue];
         if (!score) {
             [rem addObject:key];
-            ScrobLog(SCROB_LOG_TRACE, @"Scoreboard cache: Removed %@ which entered at %@. Last hit was %@.",
-                key, [d objectForKey:@"entryDate"], [d objectForKey:KEY_LAST_HIT]);
+            ScrobLog(SCROB_LOG_TRACE,
+                #ifndef ISDEBUG
+                @"Scoreboard cache: Removed %@. Last hit was %@.",
+                #else
+                @"Scoreboard cache: Removed %@ which entered at %@. Last hit was %@.",
+                #endif
+                key,
+                #ifdef ISDEBUG
+                [d objectForKey:@"entryDate"],
+                #endif
+                [d objectForKey:KEY_LAST_HIT]);
             continue;
         }
         
