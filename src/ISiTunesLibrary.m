@@ -162,13 +162,13 @@
     }
     if (createth) {
         [NSThread detachNewThreadSelector:@selector(readiTunesLibThread:) toTarget:self withObject:self];
-        useconds_t wait = 0;
+        useconds_t uWait = 0;
         id msg;
         do {
             usleep(50000);
             OSMemoryBarrier();
             msg = thMsgr;
-        } while ([msg isKindOfClass:[NSNull class]] && (wait += 50000) <= 500000);
+        } while ([msg isKindOfClass:[NSNull class]] && (uWait += 50000) <= 500000);
         if ([msg isKindOfClass:[NSNull class]]) {
             @synchronized (self) {
                 thMsgr = nil;

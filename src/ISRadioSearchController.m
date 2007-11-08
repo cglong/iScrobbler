@@ -26,20 +26,20 @@
         [[ISRadioController sharedInstance] tuneStationWithName:[selection valueForKeyPath:@"name"] url:url];
 }
 
-- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)link atIndex:(unsigned)charIndex
+- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(unsigned)charIndex
 {
     BOOL handled = NO;
-    ScrobDebug(@"%@", link);
+    ScrobDebug(@"%@", url);
     @try {
-    if ([link isKindOfClass:[NSDictionary class]]) {
-        if ([link objectForKey:@"radioURL"]) {
-            [self tuneStation:link];
+    if ([url isKindOfClass:[NSDictionary class]]) {
+        if ([url objectForKey:@"radioURL"]) {
+            [self tuneStation:url];
             handled = YES;
         } else
-            handled = [[NSWorkspace sharedWorkspace] openURL:[link objectForKey:@"url"]];
+            handled = [[NSWorkspace sharedWorkspace] openURL:[url objectForKey:@"url"]];
     }
     } @catch (id e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception attempting to open: %@", link); 
+        ScrobLog(SCROB_LOG_ERR, @"Exception attempting to open: %@", url); 
     }
     return (handled);
 }
@@ -128,7 +128,7 @@
     NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
     NSCursor *urlCursor = [NSCursor pointingHandCursor];
-    NSNumber *underline = [NSNumber numberWithInt:1];
+    NSNumber *underlineStyle = [NSNumber numberWithInt:1];
     NSMutableAttributedString *value, *tmp, *newline;
     NSString *prompt, *name;
     NSDictionary *urlspec;
@@ -147,7 +147,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];
@@ -164,7 +164,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];
@@ -181,7 +181,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];
@@ -198,7 +198,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"url"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];
@@ -227,7 +227,7 @@
     NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
     NSCursor *urlCursor = [NSCursor pointingHandCursor];
-    NSNumber *underline = [NSNumber numberWithInt:1];
+    NSNumber *underlineStyle = [NSNumber numberWithInt:1];
     NSMutableAttributedString *value, *tmp, *newline;
     NSString *prompt, *name;
     NSDictionary *urlspec;
@@ -246,7 +246,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];
@@ -263,7 +263,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];
@@ -280,7 +280,7 @@
                 font, NSFontAttributeName,
                 urlspec, NSLinkAttributeName,
                 [urlspec objectForKey:@"url"], NSToolTipAttributeName,
-                underline, NSUnderlineStyleAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
                 textColor, NSForegroundColorAttributeName,
                 urlCursor, NSCursorAttributeName,
             nil]] autorelease];

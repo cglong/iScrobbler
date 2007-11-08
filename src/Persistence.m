@@ -313,8 +313,8 @@ __private_extern__ NSThread *mainThread = nil;
     ISASSERT(NO == [mainMOC hasChanges], "somebody modifed the DB during an import");
     [self resetMain];
     
-    [self addSongPlay:nil]; // process any queued songs
-    [self pingSessionManager];
+    [self pingSessionManager]; // this makes sure the sessions are properly setup before adding any songs
+    [self performSelector:@selector(addSongPlay:) withObject:nil afterDelay:0.10]; // process any queued songs
 }
 
 - (void)addSongPlaysDidFinish:(id)obj

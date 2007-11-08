@@ -615,8 +615,9 @@ exitHistory:
 
 - (void)wsExecComplete:(NSNotification*)note
 {
+    // update after a small delay to have a better chance of the info being up to date (such as a ban or skip)
     if ([[ASWebServices sharedInstance] nowPlayingInfo])
-        [[ASWebServices sharedInstance] updateNowPlaying];
+        [[ASWebServices sharedInstance] performSelector:@selector(updateNowPlaying) withObject:nil afterDelay:0.85];
 }
 
 - (void)nowPlaying:(NSNotification*)note

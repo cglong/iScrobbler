@@ -195,7 +195,7 @@ static QueueManager *g_QManager = nil;
     [self removeSong:song sync:YES];
 }
 
-- (void)removeSong:(SongData*)song sync:(BOOL)sync
+- (void)removeSong:(SongData*)song sync:(BOOL)syncQueue
 {
     SongData *found;
     NSUInteger idx, count;
@@ -216,7 +216,7 @@ static QueueManager *g_QManager = nil;
         
             [found release];
             
-            if (sync)
+            if (syncQueue)
                 [self syncQueue:nil];
             break;
         }
