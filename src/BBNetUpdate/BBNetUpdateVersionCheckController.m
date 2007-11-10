@@ -155,7 +155,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    
    
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:
-        NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:30.0];
+        NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
     [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
     NSDate *last = [BBNetUpdateVersionCheckController lastCheck];
     if (last) {
@@ -407,6 +407,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     [progressBar displayIfNeeded];
 }
 
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
+{
+    return (nil);
+}
+
 // Sheet handlers
 - (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
 {
@@ -604,4 +609,3 @@ UInt32 BBCFVersionNumberFromString(CFStringRef versStr) {
 
     return theVers;
 }
-
