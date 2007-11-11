@@ -1567,8 +1567,9 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
     #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
-    if ([w respondsToSelector:@selector(setCollectionBehavior:)])
-        [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
+    LEOPARD_BEGIN
+    [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
+    LEOPARD_END
     // [w setDelegate:self];
     [w center];
     
@@ -2230,7 +2231,38 @@ exit:
 
 #endif // IS_SCRIPT_PROXY
 
+@implementation NSFileManager (ISAliasExtensions)
+
+- (NSString*)destinationOfAliasAtPath:(NSString*)path error:(NSError**)error
+{
+    FSRef ref;
+    NSURL *url = [NSURL fileURLWithPath:path];
+    OSErr err = noErr;
+    Boolean isFolder, wasAliased = NO;
+    
+    if (error)
+        *error = nil;
+    if (CFURLGetFSRef((CFURLRef)url, &ref)) {
+        err = FSIsAliasFile (&ref, &wasAliased, &isFolder);
+        if (NO == wasAliased)
+            return (path);
+        
+        err = FSResolveAliasFileWithMountFlags (&ref, TRUE,
+            &isFolder, &wasAliased, kResolveAliasFileNoUI);
+        if (!err) {
+            if ((url = (NSURL*)CFURLCreateFromFSRef (kCFAllocatorDefault, &ref))) {
+                return ([[url autorelease] path]);
+            }
+        }
+    }
+
+    return (nil);
+}
+
+@end
+
 @implementation NSMutableArray (iScrobblerContollerFifoAdditions)
+
 - (void)pushSong:(id)obj
 {
     if ([self count])
@@ -2238,6 +2270,7 @@ exit:
     else
         [self addObject:obj];
 }
+
 @end
 
 #if 0
@@ -2304,6 +2337,7 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
     };
 }
 
+// iTunes sends com.apple.iTunes.sourceSaved when it saves the XML - should we watch for that instead
 static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
 {
     io_service_t iomedia;
@@ -2322,4 +2356,3 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
         IOObjectRelease(iomedia);
     }
 }
-

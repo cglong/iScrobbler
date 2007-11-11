@@ -17,6 +17,11 @@
 - (NSCalendarDate*)GMTDate;
 @end
 
+@interface NSFileManager (ISAliasExtensions)
+- (NSString*)ISDestinationOfAliasAtPath:(NSString*)path error:(NSError**)error;
+#define destinationOfAliasAtPath ISDestinationOfAliasAtPath
+@end
+
 NS_INLINE NSString* ISCPUArchitectureString() {
 return (
 #ifdef __ppc__
