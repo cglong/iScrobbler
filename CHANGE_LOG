@@ -14,6 +14,8 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+b2:
+- Bug Fix: Aliases in the path to the iTunes library XML file are now resolved.
 b1:
 - 64bit version for Leopard+ and Intel Core 2+.
 - Artist and Album images now display better and faster on Leopard.
