@@ -2236,17 +2236,23 @@ exit:
 - (NSString*)destinationOfAliasAtPath:(NSString*)path error:(NSError**)error
 {
     FSRef ref;
-    NSURL *url = [NSURL fileURLWithPath:path];
-    OSErr err = noErr;
-    Boolean isFolder, wasAliased = NO;
-    
+    OSErr err;
+    Boolean isFolder, wasAliased;
+    NSString *resolvedPath;
+
+resolvePath:
     if (error)
         *error = nil;
-    if (CFURLGetFSRef((CFURLRef)url, &ref)) {
+    wasAliased = NO;
+    resolvedPath = nil;
+    const UInt8 *p = (const UInt8*)[path UTF8String];
+    err = fnfErr;
+    if (p && 0 == (err = FSPathMakeRef(p, &ref, &isFolder))) {
         err = FSIsAliasFile (&ref, &wasAliased, &isFolder);
         if (NO == wasAliased)
             return (path);
         
+        NSURL *url;
         err = FSResolveAliasFileWithMountFlags (&ref, TRUE,
             &isFolder, &wasAliased, kResolveAliasFileNoUI);
         if (!err) {
@@ -2254,6 +2260,17 @@ exit:
                 return ([[url autorelease] path]);
             }
         }
+    } else if (dirNFErr == err && NO == [@"/" isEqualToString:path]) {
+        // recurse the path to resovle any parent aliases
+        resolvedPath = [self destinationOfAliasAtPath:[path stringByDeletingLastPathComponent] error:error];
+        if (resolvedPath) {
+            path = [resolvedPath stringByAppendingPathComponent:[path lastPathComponent]];
+            goto resolvePath;
+        }
+    }
+    
+    if (error) {
+        *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:(NSInteger)err userInfo:nil];
     }
 
     return (nil);
