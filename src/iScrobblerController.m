@@ -2237,7 +2237,7 @@ exit:
 {
     FSRef ref;
     OSErr err;
-    Boolean isFolder, wasAliased;
+    Boolean isFolder, wasAliased, recursed = FALSE;
     NSString *resolvedPath;
 
 resolvePath:
@@ -2260,8 +2260,9 @@ resolvePath:
                 return ([[url autorelease] path]);
             }
         }
-    } else if (dirNFErr == err && NO == [@"/" isEqualToString:path]) {
+    } else if (dirNFErr == err && !recursed && NO == [@"/" isEqualToString:path]) {
         // recurse the path to resovle any parent aliases
+        recursed = YES;
         resolvedPath = [self destinationOfAliasAtPath:[path stringByDeletingLastPathComponent] error:error];
         if (resolvedPath) {
             path = [resolvedPath stringByAppendingPathComponent:[path lastPathComponent]];
