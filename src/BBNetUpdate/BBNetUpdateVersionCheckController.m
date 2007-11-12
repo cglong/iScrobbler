@@ -412,6 +412,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     return (nil);
 }
 
+- (void)windowDidLoad
+{
+    [(NSPanel*)[self window] setLevel:NSModalPanelWindowLevel + 1];
+}
+
 // Sheet handlers
 - (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
 {
