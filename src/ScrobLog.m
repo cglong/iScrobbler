@@ -86,9 +86,9 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
         int fd = [fh fileDescriptor];
         struct stat sb;
         if (0 == fstat(fd, &sb)) {
-            NSInteger maxSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
-            if (maxSize <= 0)
-                maxSize = limit;
+            NSInteger logMax = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
+            if (logMax <= 0)
+                logMax = limit;
             if (sb.st_size > maxSize) {
                 [fh truncateFileAtOffset:UTF8_BOM_SIZE];
             }

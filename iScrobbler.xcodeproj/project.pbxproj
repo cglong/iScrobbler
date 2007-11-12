@@ -1025,6 +1025,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
+				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_CFLAGS = (
@@ -1045,6 +1046,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = iScrobbler;
@@ -1062,6 +1064,7 @@
 			buildSettings = {
 				ARCHS = (
 					i386,
+					x86_64,
 					ppc,
 				);
 				COPY_PHASE_STRIP = NO;
@@ -1077,7 +1080,9 @@
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1091,6 +1096,7 @@
 			buildSettings = {
 				ARCHS = (
 					i386,
+					x86_64,
 					ppc,
 				);
 				COPY_PHASE_STRIP = NO;
@@ -1105,7 +1111,10 @@
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1131,7 +1140,9 @@
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1145,6 +1156,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
+				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_CFLAGS = (
@@ -1207,19 +1219,13 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				INFOPLIST_FILE = "src/Plugins/iChatStatus/ChatStatus-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/ChatStatus/ChatStatus-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DISPLUGIN",
 				);
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PRODUCT_NAME = iChatStatus;
+				PRODUCT_NAME = ChatStatus;
 				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
@@ -1312,7 +1318,7 @@
 				D328478008566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */ = {
 			isa = XCConfigurationList;
@@ -1322,7 +1328,7 @@
 				D328478408566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */ = {
 			isa = XCConfigurationList;
@@ -1332,7 +1338,7 @@
 				D376063E0CB230AA00C04863 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D39802450CE0FEA4008CB4C8 /* Build configuration list for PBXNativeTarget "iScrobblerProxy" */ = {
 			isa = XCConfigurationList;
@@ -1342,7 +1348,7 @@
 				D39802440CE0FE42008CB4C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

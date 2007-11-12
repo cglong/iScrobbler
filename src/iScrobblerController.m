@@ -908,11 +908,6 @@ player_info_exit:
         (void)[QueueManager sharedInstance];
         if ([[QueueManager sharedInstance] count])
             [[QueueManager sharedInstance] submit];
-        
-        // Create top lists controller so it will pick up subs
-        // We do this after creating the QM so that queued subs are not counted.
-        if (isTopListsActive)
-            (void)[TopListsController sharedInstance];
     }
     
     // Install ourself in the Login Items
@@ -1096,6 +1091,9 @@ player_info_exit:
 
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
+    if (isTopListsActive)
+        (void)[TopListsController sharedInstance];
+            
     // Register to handle URLs
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
         forEventClass:kInternetEventClass andEventID:kAEGetURL];
@@ -1256,7 +1254,6 @@ player_info_exit:
         if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
             NSMenu *m = [songActionMenu copy];
-            NSMenuItem *item;
             if ([song isLastFmRadio]) {
                 NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
                 item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
@@ -1570,8 +1567,9 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
     #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
-    if ([w respondsToSelector:@selector(setCollectionBehavior:)])
-        [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
+    LEOPARD_BEGIN
+    [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
+    LEOPARD_END
     // [w setDelegate:self];
     [w center];
     
@@ -2098,20 +2096,20 @@ exit:
         r = [fmt rangeOfString:@"%d"];
         if (NSNotFound != r.location) {
             NSString *timeStr;
-            unsigned time = [[self duration] unsignedIntValue];
+            unsigned tDuration = [[self duration] unsignedIntValue];
             unsigned days, hours, mins, secs;
-            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+            ISDurationsFromTime(tDuration, &days, &hours, &mins, &secs);
             
-            if (time < 3600)
+            if (tDuration < 3600)
                 timeStr = [NSString stringWithFormat:@"%u:%02u", mins, secs];
             else
                 timeStr = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
             
-            time = [[self elapsedTime] unsignedIntValue];
+            tDuration = [[self elapsedTime] unsignedIntValue];
             if (time > 0) {
                 NSString *tmp;
-                ISDurationsFromTime(time, &days, &hours, &mins, &secs);
-                if (time < 3600)
+                ISDurationsFromTime(tDuration, &days, &hours, &mins, &secs);
+                if (tDuration < 3600)
                     tmp = [NSString stringWithFormat:@"%u:%02u", mins, secs];
                 else
                     tmp = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
@@ -2204,17 +2202,15 @@ exit:
 
 - (void)loadProxy
 {
-    #ifdef notyet
     static BOOL setup = YES;
     if (setup) {
-        [[NSConnection defaultConnection] setRootObject:self];
+        [[NSConnection defaultConnection] setRootObject:[NSNull null]];
         [[NSConnection defaultConnection] setReplyTimeout:3.0];
         [[NSConnection defaultConnection] setRequestTimeout:3.0];
         setup = NO;
     }
-    #endif
     
-    if (!sProxy) {    
+    if (!sProxy) {
         sProxy = [[NSConnection rootProxyForConnectionWithRegisteredName:ISProxyName host:nil] retain];
         if (!sProxy) {
             [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
@@ -2235,7 +2231,56 @@ exit:
 
 #endif // IS_SCRIPT_PROXY
 
+@implementation NSFileManager (ISAliasExtensions)
+
+- (NSString*)destinationOfAliasAtPath:(NSString*)path error:(NSError**)error
+{
+    FSRef ref;
+    OSErr err;
+    Boolean isFolder, wasAliased, recursed = FALSE;
+    NSString *resolvedPath;
+
+resolvePath:
+    if (error)
+        *error = nil;
+    wasAliased = NO;
+    resolvedPath = nil;
+    const UInt8 *p = (const UInt8*)[path UTF8String];
+    err = fnfErr;
+    if (p && 0 == (err = FSPathMakeRef(p, &ref, &isFolder))) {
+        err = FSIsAliasFile (&ref, &wasAliased, &isFolder);
+        if (NO == wasAliased)
+            return (path);
+        
+        NSURL *url;
+        err = FSResolveAliasFileWithMountFlags (&ref, TRUE,
+            &isFolder, &wasAliased, kResolveAliasFileNoUI);
+        if (!err) {
+            if ((url = (NSURL*)CFURLCreateFromFSRef (kCFAllocatorDefault, &ref))) {
+                return ([[url autorelease] path]);
+            }
+        }
+    } else if (dirNFErr == err && !recursed && NO == [@"/" isEqualToString:path]) {
+        // recurse the path to resovle any parent aliases
+        recursed = YES;
+        resolvedPath = [self destinationOfAliasAtPath:[path stringByDeletingLastPathComponent] error:error];
+        if (resolvedPath) {
+            path = [resolvedPath stringByAppendingPathComponent:[path lastPathComponent]];
+            goto resolvePath;
+        }
+    }
+    
+    if (error) {
+        *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:(NSInteger)err userInfo:nil];
+    }
+
+    return (nil);
+}
+
+@end
+
 @implementation NSMutableArray (iScrobblerContollerFifoAdditions)
+
 - (void)pushSong:(id)obj
 {
     if ([self count])
@@ -2243,6 +2288,7 @@ exit:
     else
         [self addObject:obj];
 }
+
 @end
 
 #if 0
@@ -2263,22 +2309,22 @@ exit:
 @end
 #endif
 
-void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
+void ISDurationsFromTime(unsigned int tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = time / 86400U;
-    *hours = (time % 86400U) / 3600U;
-    *minutes = ((time % 86400U) % 3600U) / 60U;
-    *seconds = ((time % 86400U) % 3600U) % 60U;
+    *days = tSeconds / 86400U;
+    *hours = (tSeconds % 86400U) / 3600U;
+    *minutes = ((tSeconds % 86400U) % 3600U) / 60U;
+    *seconds = ((tSeconds % 86400U) % 3600U) % 60U;
 }
 
-void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned int *hours,
+void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = (unsigned int)(time / 86400U);
-    *hours = (unsigned int)(time % 86400U) / 3600U;
-    *minutes = (unsigned int)((time % 86400U) % 3600U) / 60U;
-    *seconds = (unsigned int)((time % 86400U) % 3600U) % 60U;
+    *days = (unsigned int)(tSeconds / 86400U);
+    *hours = (unsigned int)(tSeconds % 86400U) / 3600U;
+    *minutes = (unsigned int)((tSeconds % 86400U) % 3600U) / 60U;
+    *seconds = (unsigned int)((tSeconds % 86400U) % 3600U) % 60U;
 }
 
 #include "iScrobblerController+Private.m"
@@ -2309,6 +2355,7 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
     };
 }
 
+// iTunes sends com.apple.iTunes.sourceSaved when it saves the XML - should we watch for that instead
 static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
 {
     io_service_t iomedia;
@@ -2327,4 +2374,3 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
         IOObjectRelease(iomedia);
     }
 }
-

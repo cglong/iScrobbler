@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 1/27/2005.
-//  Copyright 2005 Brian Bergstrand.
+//  Copyright 2005,2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available at
 //  http://iscrobbler.sourceforge.net
@@ -23,10 +23,5 @@
 - (NSString *)searchString;
 - (void)setSearchString:(NSString *)string;
 - (BOOL)isSearchInProgress;
-
-// Drag and Drop support
-- (BOOL)tableView:(NSTableView *)tv writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard;
-- (BOOL)tableView:(NSTableView*)table acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row
-    dropOperation:(NSTableViewDropOperation)op;
 
 @end

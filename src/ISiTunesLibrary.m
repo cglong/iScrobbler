@@ -20,17 +20,36 @@
 
 @implementation ISiTunesLibrary
 
-- (NSDictionary*)load
+- (NSString*)pathToXMLFile
 {
     NSString *path = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
-    NSDictionary *iTunesLib = [self loadFromPath:path];
+    path = [[NSFileManager defaultManager] destinationOfAliasAtPath:path error:nil];
     #ifdef obsolete
     // is this even valid since iTunes 5 or so?
-    if (!iTunesLib) {
+    if (NO == [[NSFileManager defaultManager] fileExistsAtPath:path])
         path = [@"~/Documents/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
-        iTunesLib = [self loadFromPath:path];
-    }
     #endif
+    return (path);
+}
+
+#ifdef notyet
+- (NSDate*)creationDate
+{
+    NSString *path = [self pathToXMLFile];
+    NSDictionary *attrs;
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    if (NO == [[NSFileManager defaultManager] respondsToSelector:@selector(attributesOfItemAtPath:error:)])
+        attrs = [[NSFileManager defaultManager] fileAttributesAtPath:path traverseLink:YES];
+    else
+    #endif
+        attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
+    return ([attrs objectForKey:NSFileCreationDate]);
+}
+#endif
+
+- (NSDictionary*)load
+{
+    NSDictionary *iTunesLib = [self loadFromPath:[self pathToXMLFile]];
     return (iTunesLib);
 }
 
@@ -42,7 +61,7 @@
 // selector takes a single arg of type NSDictionary
 - (void)loadInBackgroundWithDelegate:(id)delegate didFinishSelector:(SEL)selector context:(id)context
 {
-    NSString *path = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
+    NSString *path = [self pathToXMLFile];
     [self loadInBackgroundFromPath:path withDelegate:delegate didFinishSelector:selector context:context];
 }
 
@@ -65,7 +84,7 @@
 
 - (BOOL)copyToPath:(NSString*)path
 {
-    NSString *libPath = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
+    NSString *libPath = [self pathToXMLFile];
     if (![[NSFileManager defaultManager] fileExistsAtPath:libPath] || ![self createThread])
         return (NO);
     
@@ -86,7 +105,7 @@
 
 - (void)copyiTunesLib:(NSString*)dest
 {
-    NSString *libPath = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
+    NSString *libPath = [self pathToXMLFile];
     (void)[[NSFileManager defaultManager] removeFileAtPath:dest handler:nil];
     if ([[NSFileManager defaultManager] copyPath:libPath toPath:dest handler:nil])
         ScrobLog(SCROB_LOG_TRACE, @"Copied iTunes library.");
@@ -162,13 +181,13 @@
     }
     if (createth) {
         [NSThread detachNewThreadSelector:@selector(readiTunesLibThread:) toTarget:self withObject:self];
-        useconds_t wait = 0;
+        useconds_t uWait = 0;
         id msg;
         do {
             usleep(50000);
             OSMemoryBarrier();
             msg = thMsgr;
-        } while ([msg isKindOfClass:[NSNull class]] && (wait += 50000) <= 500000);
+        } while ([msg isKindOfClass:[NSNull class]] && (uWait += 50000) <= 500000);
         if ([msg isKindOfClass:[NSNull class]]) {
             @synchronized (self) {
                 thMsgr = nil;

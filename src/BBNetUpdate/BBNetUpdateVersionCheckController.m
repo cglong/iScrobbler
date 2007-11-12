@@ -33,6 +33,7 @@ static UInt32 BBCFVersionNumberFromString(CFStringRef);
 static BBNetUpdateVersionCheckController *gVCInstance = nil;
 
 __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidFinishUpdateCheck";
+#define HTTP_DATE_FMT_RAW @"%a, %d %b %Y %H:%M:%S %Z"
 
 @implementation BBNetUpdateVersionCheckController
 
@@ -89,11 +90,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 
 + (NSDate*)lastCheck
 {
-   NSString *dateString = [[NSUserDefaults standardUserDefaults] objectForKey:@"BBNetUpdateLastCheck"];
-   if (!dateString)
-      return (nil);
+   id date = [[NSUserDefaults standardUserDefaults] objectForKey:@"BBNetUpdateLastCheck"];
+   if ([date isKindOfClass:[NSDate class]])
+      return (date);
    
-   return ([NSDate dateWithString:dateString]);
+   return (nil);
 }
 
 + (NSString*)userAgent
@@ -114,12 +115,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         @"Intel"
         #elif defined(__x86_64__)
         @"Intel 64-bit"
+        #elif defined(__ppc64__)
+        @"PPC 64-bit"
         #else
         @"Unknown"
         #endif
         ;
         
-    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@ (%@)",
+    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@(r%@)",
         arch, [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
         
     return (agent);
@@ -152,8 +155,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    
    
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:
-        NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:30.0];
+        NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
     [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
+    NSDate *last = [BBNetUpdateVersionCheckController lastCheck];
+    if (last) {
+        NSString *since = [last descriptionWithCalendarFormat:HTTP_DATE_FMT_RAW
+            timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
+        [request setValue:since forHTTPHeaderField:@"If-Modified-Since"]; // conditonal load
+    }
 
     [connection cancel];
     [connection release];
@@ -164,15 +173,16 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       NSBeep();
       return;
     }
-   
-   [[NSUserDefaults standardUserDefaults] setObject:[[NSDate date] description]
-         forKey:@"BBNetUpdateLastCheck"];
-   
-   checkingVersion = YES;
+    
+    checkingVersion = YES;
 }
 
 - (IBAction)cancel:(id)sender
 {
+    if (verInfo) {
+        // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+    }
     [self close];
 }
 
@@ -257,7 +267,30 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     [verData appendData:data];
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)sender
+- (void)connection:(NSURLConnection *)conn didReceiveResponse:(NSURLResponse *)response
+{
+    if ([response respondsToSelector:@selector(statusCode)]
+        && 304 == [(NSHTTPURLResponse*)response statusCode]) {
+        // not modified since last check
+        [connection cancel];
+        [connection release];
+        connection = nil;
+        [verInfo release]; verInfo = nil;
+        
+        [progressBar stopAnimation:nil];
+        [progressBar displayIfNeeded];
+        if (_interact) {
+            [fieldTitle setStringValue:NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
+            [fieldText setStringValue:NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"")];
+            [buttonDownload setTitle:@"OK"];
+            [buttonDownload setEnabled:YES];
+            [[super window] makeKeyAndOrderFront:nil];
+        } else
+            [self close];
+    }
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)conn
 {
     NSMutableData *data = [verData autorelease];
     verData = nil;
@@ -285,6 +318,9 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          if (!(curVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"BBNetUpdateVersion"]))
             curVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
          netVer = [verInfo objectForKey:@"Version"];
+         
+         if (netVer)
+            [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"BBNetUpdateLastCheck"];
          
          if (NSFoundationVersionNumber < requiredVer) {
             display = _interact; // only display the dialog if the user initiated the check
@@ -336,6 +372,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
             [[super window] makeKeyAndOrderFront:nil];
       }
    } else  {
+      [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
       // No version data
       [fieldTitle setStringValue:
          NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
@@ -348,8 +385,10 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [self close];
 }
 
--(void)connection:(NSURLConnection *)sender didFailWithError:(NSError *)reason
+-(void)connection:(NSURLConnection *)conn didFailWithError:(NSError *)reason
 {
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+    
     if (![[super window] isVisible])
         [[super window] makeKeyAndOrderFront:nil];
 
@@ -366,6 +405,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 
     [progressBar stopAnimation:nil];
     [progressBar displayIfNeeded];
+}
+
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
+{
+    return (nil);
 }
 
 // Sheet handlers
@@ -565,4 +609,3 @@ UInt32 BBCFVersionNumberFromString(CFStringRef versStr) {
 
     return theVers;
 }
-

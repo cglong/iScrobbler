@@ -38,7 +38,7 @@ read VER
 IMAGE=/tmp/scrobbuild_$$.dmg
 #VOLUME="iScrobbler ${VER}"
 VOLUME="iScrobbler"
-hdiutil create -megabytes 8 -fs HFS+ -volname "${VOLUME}" -layout SPUD ${IMAGE}
+hdiutil create -megabytes 10 -fs HFS+ -volname "${VOLUME}" -layout SPUD ${IMAGE}
 DEVICE=`hdid "${IMAGE}" | sed -n 1p | cut -f1`
 
 cp -pR ${BIN}/iScrobbler.app "/Volumes/${VOLUME}/"
@@ -64,7 +64,8 @@ cd ~/Desktop
 
 hdiutil eject ${DEVICE}
 
-hdiutil convert -imageKey zlib-level=9 -format UDZO -o ~/Desktop/iscrobbler."${VER}".dmg -ov ${IMAGE}
+# UDBZ is 10.4+ only
+hdiutil convert -format UDBZ -o ~/Desktop/iscrobbler."${VER}".dmg -ov ${IMAGE}
 # hdiutil internet-enable -yes ~/Desktop/iscrobbler."${VER}".dmg
 
 rm ${IMAGE}
