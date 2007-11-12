@@ -5,12 +5,12 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>b125962f471e60f1e27e7bf248068d3c9ec5e1c8</string>
+        	<string>22cbb0e31f52c76143e4452ea7babc8a71f74e08</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0b1</string>
+        <string>2.0.0b2</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0b1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0b2.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -25,6 +25,7 @@
 - Basic Applescript support.
 - Expanded use of Growl.
 - Many other minor features and bug fixes.
+- b2: Aliases in the path to the iTunes library XML file are now resolved.
 		</string>
         </dict>
 </dict>
