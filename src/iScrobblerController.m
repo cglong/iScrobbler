@@ -1171,7 +1171,7 @@ player_info_exit:
     [[ISRadioController sharedInstance] tuneStationWithName:nil url:url];
 }
 
--(IBAction)checkForUpdate:(id)sender
+- (IBAction)checkForUpdate:(id)sender
 {
     if ([sender isKindOfClass:[NSTimer class]]) {
         //automatic check - make sure we have an inet connection
@@ -1184,7 +1184,18 @@ player_info_exit:
     [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
 }
 
-- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
+- (NSString*)versionString
+{
+    NSString *ver;
+    if (!(ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]))
+        ver = @"";
+    NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (!build)
+        build = ver;
+    return ([NSString stringWithFormat:@"%@/%@", ver, build]);
+}
+
+- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
     if (NSAlertOtherReturn == returnCode) {
         NSURL *url = [NSURL URLWithString:@"http://growl.info/"];
@@ -1512,7 +1523,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         NSBeep();
 }
 
-- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
+- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
     if (returnCode == NSAlertDefaultReturn)
 		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.0];
@@ -2253,8 +2264,7 @@ resolvePath:
             return (path);
         
         NSURL *url;
-        err = FSResolveAliasFileWithMountFlags (&ref, TRUE,
-            &isFolder, &wasAliased, kResolveAliasFileNoUI);
+        err = FSResolveAliasFileWithMountFlags (&ref, TRUE, &isFolder, &wasAliased, kResolveAliasFileNoUI);
         if (!err) {
             if ((url = (NSURL*)CFURLCreateFromFSRef (kCFAllocatorDefault, &ref))) {
                 return ([[url autorelease] path]);
