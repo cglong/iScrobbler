@@ -84,6 +84,7 @@ static NSImage *artistImgPlaceholder = nil;
     }
     
     [detailsDrawer setParentWindow:[delegate window]];
+    [detailsDrawer setDelegate:self];
     
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
     
@@ -587,6 +588,26 @@ loadDetailsExit:
         if (url)
             [[NSWorkspace sharedWorkspace] openURL:url];
     }
+}
+
+- (BOOL)drawerShouldOpen:(NSDrawer*)sender
+{
+    return (YES);
+}
+
+- (BOOL)drawerShouldClose:(NSDrawer*)sender
+{
+    return (NO); // user is not allowed to close the drawer through dragging
+}
+
+- (NSSize)drawerWillResizeContents:(NSDrawer*)drawer toSize:(NSSize)contentSize
+{
+    NSSize minSize = [drawer minContentSize];
+    if (contentSize.width < minSize.width)
+        contentSize.width = minSize.width;
+    if (contentSize.height < minSize.height)
+        contentSize.height = minSize.height;
+    return (contentSize);
 }
 
 - (void)dealloc
