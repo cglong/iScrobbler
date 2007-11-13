@@ -370,11 +370,11 @@ validate:
         
         NSString *iPodVolPath = [context objectForKey:IPOD_SYNC_KEY_PATH];
         NSDate *iPodMountEpoch = [context objectForKey:@"epoch"];
-        
         if (!iPodVolPath || !iPodMountEpoch) {
             ScrobLog(SCROB_LOG_ERR, @"synciPod: missing iPod path or epoch (%@ , %@)", iPodVolPath, iPodMountEpoch);
             @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"missing epoch or vol path" userInfo:nil]);
         }
+        NSDate *iPodMountEpochGMT = [iPodMountEpoch GMTDate];
         
         NSArray *trackList, *trackData;
         NSString *errInfo = nil, *playlist;
@@ -411,12 +411,19 @@ validate:
         } else {
             [self setITunesLastPlayedTime:[NSDate date]];
         }
-        // There's a bug here: if the user pauses submissions, then turns them back on
-        // and plugs in the iPod, the last q'd/sub'd date will be used and most/all
-        // of the tracks played during the pause will be picked up (in auto-sync mode).
-        // I really can't think of a way to catch this case w/o all kinds of hackery
-        // in the Q/Protocol mgr's, so I'm just going to let it stand.
-        SongData *lastSubmission = [[QueueManager sharedInstance] lastSongQueued];
+        
+        SongData *lastSubmission;
+        NSArray *allQueuedSongs = [[[QueueManager sharedInstance] songs] sortedArrayUsingSelector:@selector(compareSongLastPlayedDate:)];
+        if ([allQueuedSongs count] > 0) {
+            NSEnumerator *queuedEnum = [allQueuedSongs reverseObjectEnumerator];
+            while ((lastSubmission = [queuedEnum nextObject])) {
+                if ([[[lastSubmission lastPlayed] GMTDate] isLessThan:iPodMountEpochGMT])
+                    break;
+            }
+        } else
+            lastSubmission = nil;
+        if (!lastSubmission)
+            lastSubmission = [[QueueManager sharedInstance] lastSongQueued];
         if (!lastSubmission)
             lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
         NSDate *requestDate;
@@ -434,7 +441,6 @@ validate:
             requestDate = iTunesLastPlayedTime;
         
         NSDate *requestDateGMT= [requestDate GMTDate];
-        NSDate *iPodMountEpochGMT = [iPodMountEpoch GMTDate];
         
         ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
             requestDate);
