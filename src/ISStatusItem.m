@@ -55,19 +55,11 @@
 
 - (void)updateStatusWithColor:(NSColor*)color withMsg:(NSString*)msg
 {
-    NSUInteger tracksQueued;
     if (msg) {
         // Get rid of extraneous protocol information
         NSArray *items = [msg componentsSeparatedByString:@"\n"];
         if (items && [items count] > 0)
             msg = [items objectAtIndex:0];
-    } else {
-        msg = [NSString stringWithFormat:@"%@: %u",
-                NSLocalizedString(@"Tracks Sub'd", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
-        if (tracksQueued = [[QueueManager sharedInstance] count]) {
-            msg = [msg stringByAppendingFormat:@", %@: %lu",
-                NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
-        }
     }
     
     [tip release];
@@ -130,9 +122,17 @@
     if (![itemView menuIsShowing]) {
         // If listening to the radio, prefer the station over the tip
         NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
-        if (msg)
+        if (msg) {
             msg = [NSString stringWithFormat:@"%@: %@", IS_RADIO_TUNEDTO_STR, msg];
-        [[NSApp delegate] displayNowPlayingWithMsg:msg ? msg : tip];
+        } else if (!(msg = tip)) {
+            NSUInteger tracksQueued;
+            msg = [NSString stringWithFormat:@"%@: %u",
+                NSLocalizedString(@"Tracks Sub'd", "Tracks Submitted Abbreviation"), [[QueueManager sharedInstance] totalSubmissionsCount]];
+            if (tracksQueued = [[QueueManager sharedInstance] count]) {
+                msg = [msg stringByAppendingFormat:@", %@: %lu", NSLocalizedString(@"Q'd", "Tracks Queued Abbreviation"), tracksQueued];
+            }
+        }
+        [[NSApp delegate] displayNowPlayingWithMsg:msg];
     }
 }
 
