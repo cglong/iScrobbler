@@ -358,76 +358,10 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     return (NO);
 }
 
-#define KillQueueTimer() do { \
-[currentSongQueueTimer invalidate]; \
-[currentSongQueueTimer release]; \
-currentSongQueueTimer = nil; \
-} while (0) 
-
 - (BOOL)queueSongsForLaterSubmission
 {
     return ([[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"] ||
         ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && iPodMountCount > 0));
-}
-
-- (void)queueCurrentSong:(NSTimer*)timer
-{
-    SongData *song = [[SongData alloc] init];
-    
-    KillQueueTimer();
-    timer = nil;
-    
-    if (!currentSong || (currentSong && [currentSong hasQueued])) {
-        goto queue_exit;
-    }
-    
-    if ([currentSong isPlayeriTunes] && ![self updateInfoForSong:song]) {
-        ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error. Trying again in %0.1f seconds.",
-            2.5);
-        currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:2.5l
-                                    target:self
-                                    selector:@selector(queueCurrentSong:)
-                                    userInfo:nil
-                                    repeats:NO] retain];
-        goto queue_exit;
-    } else if (![currentSong isPlayeriTunes]) {
-        [song setPosition:[currentSong elapsedTime]];
-    }
-    
-    if (![currentSong isPlayeriTunes] || [song iTunesDatabaseID] == [currentSong iTunesDatabaseID]) {
-        [currentSong updateUsingSong:song];
-        
-        // Try submission
-        QueueResult_t qr = [[QueueManager sharedInstance] queueSong:currentSong];
-        if (kqFailed == qr) {
-            // Fire ourself again in half of the remaining track play time.
-            // The queue can fail when playing from a network stream (or CD),
-            // and iTunes has to re-buffer. This means the elapsed track play time
-            // would be less than elapsed real-world time and the track may not be 1/2
-            // done.
-            double fireInterval = [currentSong resubmitInterval];
-            if (fireInterval >= 1.0) {
-                ScrobLog(SCROB_LOG_VERBOSE,
-                    @"Track '%@' failed submission rules. "
-                    @"Trying again in %0.0lf seconds.\n", [currentSong brief], fireInterval);
-                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                                target:self
-                                selector:@selector(queueCurrentSong:)
-                                userInfo:nil
-                                repeats:NO] retain];
-            } else {
-                ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules. "
-                    @"There is not enough play time left to retry submission.\n",
-                    [currentSong brief]);
-            }
-        }
-    } else {
-        ScrobLog(SCROB_LOG_ERR, @"Lost track! current: (%@, %llu), itunes: (%@, %llu).",
-            currentSong, [currentSong iTunesDatabaseID], song, [song iTunesDatabaseID]);
-    }
-    
-queue_exit:
-    [song release];
 }
 
 - (void)queueSong:(SongData*)song
@@ -458,7 +392,6 @@ if (currentSong) { \
     [getTrackInfoTimer invalidate];
     getTrackInfoTimer = nil;
     
-    double fireInterval;
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
     BOOL wasiTunesPlaying = isiTunesPlaying;
@@ -547,7 +480,6 @@ if (currentSong) { \
         }
         
         // Try to determine if the song is being played twice (or more in a row)
-        fireInterval = 0.0;
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
         if (pos + [SongData songTimeFudge] <  [[currentSong elapsedTime] floatValue] &&
              (pos <= [SongData songTimeFudge]) &&
@@ -573,22 +505,12 @@ if (currentSong) { \
             if (!isiTunesPlaying) { // Handle a pause
                 [currentSong didPause];
                 currentSongPaused = YES;
-                if (![currentSong hasQueued])
-                    KillQueueTimer();
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
             } else  if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
                 if (![currentSong hasQueued]) {
-                    ISASSERT(!currentSongQueueTimer, "Timer is active!");
-                    fireInterval = [currentSong resubmitInterval];
-                    if (fireInterval > 0) {
-                        currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                                    target:self
-                                    selector:@selector(queueCurrentSong:)
-                                    userInfo:nil
-                                    repeats:NO] retain];
-                    }
-                    ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs) -- sub in %.1lfs", [currentSong brief],
-                        [[currentSong elapsedTime] floatValue], fireInterval);
+                    ISASSERT([currentSong resubmitInterval] <= 0.0, "active resubmit interval!");
+                    ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs)", [currentSong brief],
+                        [[currentSong elapsedTime] floatValue]);
                 }
                 
                 if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlOnResume"]) {
@@ -599,9 +521,6 @@ if (currentSong) { \
             goto player_info_exit;
         }
     }
-    
-    // Kill the current timer
-    KillQueueTimer();
     
     /* Workaround for iTunes bug (as of 4.7):
        If the script is run at the exact moment a track switch on an Audio CD occurs,
@@ -619,35 +538,8 @@ if (currentSong) { \
         [song setStartTime:[NSDate date]];
     }
     
-    #if 0
-    fireInterval = currentSong ? [currentSong submitIntervalFromNow] : 0.0f;
-    if (fireInterval >= PM_SUBMIT_AT_TRACK_END) {
-        if (![currentSong isEqualToSong:song] && [currentSong canSubmit]) {
-            [self queueSong:currentSong];
-        }
-    }
-    #endif
-    
     if (isiTunesPlaying) {
         currentSongPaused = NO;
-        // Fire the main timer at the appropos time to get it queued (proto 1.1 only)
-        fireInterval = [song submitIntervalFromNow];
-        if (fireInterval >= PM_SUBMIT_AT_TRACK_END) {
-            ;
-        } else if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
-            ScrobLog(SCROB_LOG_TRACE, @"Firing sub timer in %0.2lf seconds for track '%@'.\n",
-                fireInterval, [song brief]);
-            currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                            target:self
-                            selector:@selector(queueCurrentSong:)
-                            userInfo:nil
-                            repeats:NO] retain];
-        } else {
-            ScrobLog(SCROB_LOG_WARN,
-                @"Invalid submit interval '%0.2lf' for track '%@'. Track will not be submitted. Duration: %@, Position: %@.\n",
-                fireInterval, [song brief], [song duration], [song position]);
-        }
-        
         // Update Recent Songs list
         NSInteger i, found = 0, count = [songList count];
         for(i = 0; i < count; ++i) {
@@ -688,8 +580,6 @@ player_info_exit:
         [NSNumber numberWithBool:isRepeat], @"repeat",
         [NSNumber numberWithBool:isiTunesPlaying], @"isPlaying",
         nil];
-    if (isiTunesPlaying && currentSongQueueTimer)
-        [userInfo setObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
         object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
     
@@ -1414,17 +1304,18 @@ player_info_exit:
 #endif
 }
 
+#if 0 // we are a singleton
 -(void)dealloc{
 	[nc removeObserver:self];
 	[nc release];
 	[statusItem release];
 	[songList release];
 	[script release];
-	KillQueueTimer();
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
 }
+#endif
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 #define IS_CC_MD5 CC_MD5
@@ -1434,7 +1325,7 @@ player_info_exit:
 unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 {
     CC_MD5_CTX ctx;
-    CC_MD5_Init (&ctx);
+    CC_MD5_Init(&ctx);
     CC_MD5_Update(&ctx, bytes, len);
     CC_MD5_Final(md, &ctx);
     return (md);

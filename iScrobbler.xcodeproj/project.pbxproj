@@ -47,7 +47,6 @@
 		D3191CB807E3A51700821D03 /* SongData.m in Sources */ = {isa = PBXBuildFile; fileRef = EB607519042A747B005DC01B /* SongData.m */; };
 		D3191CB907E3A51700821D03 /* QueueManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EB560735548F00A2CFD5 /* QueueManager.m */; };
 		D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EDA007359DE000A2CFD5 /* ProtocolManager.m */; };
-		D3191CBB07E3A51700821D03 /* ProtocolManager_v11.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */; };
 		D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B61DF30744151D00AF5A33 /* ScrobLog.m */; };
 		D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB1314077509D3009236FF /* StatisticsController.m */; };
 		D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB38A607A59AFE009236FF /* TopListsController.m */; };
@@ -194,8 +193,6 @@
 		D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager.h; sourceTree = "<group>"; };
 		D312EDA007359DE000A2CFD5 /* ProtocolManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager.m; sourceTree = "<group>"; };
 		D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtocolManager+Subclassers.h"; sourceTree = "<group>"; };
-		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
-		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
 		D31791160A6A9B5C00B0F081 /* BBNetUpdateAskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateAskController.h; sourceTree = "<group>"; };
 		D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateAskController.m; sourceTree = "<group>"; };
 		D31791180A6A9B5C00B0F081 /* BBNetUpdateDownloadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateDownloadController.h; sourceTree = "<group>"; };
@@ -383,7 +380,6 @@
 				EB50662D03FBB239005DC01B /* keychain.m */,
 				D312EB560735548F00A2CFD5 /* QueueManager.m */,
 				D312EDA007359DE000A2CFD5 /* ProtocolManager.m */,
-				D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */,
 				D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */,
 				EB607519042A747B005DC01B /* SongData.m */,
 				D3B61DF30744151D00AF5A33 /* ScrobLog.m */,
@@ -640,7 +636,6 @@
 				D312EB550735548F00A2CFD5 /* QueueManager.h */,
 				D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */,
 				D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */,
-				D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */,
 				D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */,
 				D3B61DF20744151D00AF5A33 /* ScrobLog.h */,
 				D3CB1313077509D3009236FF /* StatisticsController.h */,
@@ -816,7 +811,6 @@
 				D3191CB807E3A51700821D03 /* SongData.m in Sources */,
 				D3191CB907E3A51700821D03 /* QueueManager.m in Sources */,
 				D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */,
-				D3191CBB07E3A51700821D03 /* ProtocolManager_v11.m in Sources */,
 				D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */,
 				D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */,
 				D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */,

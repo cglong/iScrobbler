@@ -24,9 +24,9 @@
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
-static NSTimer *g_cycleTimer = nil, *g_SubUpdateTimer = nil;
+static NSTimer *g_cycleTimer = nil;
 static NSDate *g_subDate = nil;
-static enum {title, artist_album, subdate} g_cycleState = title;
+static enum {title, artist_album} g_cycleState = title;
 
 enum {
     kTBItemRequiresSong = 0x00000001,
@@ -96,12 +96,6 @@ enum {
 - (void)submitCompleteHandler:(NSNotification*)note
 {
     [submissionProgress stopAnimation:nil];
-    
-    if (g_SubUpdateTimer) {
-        [g_SubUpdateTimer invalidate];
-        g_SubUpdateTimer = nil;
-        [g_cycleTimer fire];
-    }
     
     ProtocolManager *pm = [ProtocolManager sharedInstance];
     QueueManager *qm = [QueueManager sharedInstance];
@@ -183,31 +177,9 @@ static NSImage *prevIcon = nil;
     prevIcon = nil;
 }
 
-- (void)updateSubTime:(NSTimer*)timer
-{
-    NSTimeInterval i = [g_subDate timeIntervalSince1970] - [[NSDate date] timeIntervalSince1970];
-    NSString *msg = [NSString stringWithFormat:@"%@ %lu:%02lu",
-        NSLocalizedString(@"Submitting in", ""), ((NSUInteger)i / 60), ((NSUInteger)i % 60)];
-    [nowPlayingText setStringValue:msg];
-}
-
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
     NSString *msg = nil, *rating;
-    NSDate *now = [NSDate date];
-    
-    if (g_subDate && [g_subDate isLessThanOrEqualTo:now]) {
-        [g_subDate release];
-        g_subDate = nil;
-        if (subdate == g_cycleState)
-            g_cycleState = title;
-    }
-    
-    if (g_SubUpdateTimer) {
-        [g_SubUpdateTimer invalidate];
-        g_SubUpdateTimer = nil;
-    }
-    
     switch (g_cycleState) {
         case title:
             rating = [g_nowPlaying starRating];
@@ -226,15 +198,8 @@ static NSImage *prevIcon = nil;
             break;
         case artist_album:
             msg = [[g_nowPlaying artist] stringByAppendingFormat:@" - %@", [g_nowPlaying album]];
-            g_cycleState = g_subDate ? subdate : title;
-            break;
-        case subdate: {
-            [self updateSubTime:nil];
-            g_SubUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self
-                selector:@selector(updateSubTime:) userInfo:nil repeats:YES];
             g_cycleState = title;
-            return;
-        };
+            break;
     }
     
     // It would be cool if we could do some text alpha fading when the msg changes,
@@ -253,8 +218,6 @@ static NSImage *prevIcon = nil;
         g_nowPlaying = [song retain];
         g_cycleState = title;
         
-        [g_SubUpdateTimer invalidate];
-        g_SubUpdateTimer = nil;
         [g_cycleTimer invalidate];
         g_cycleTimer = nil;
         [g_subDate release];
@@ -392,8 +355,6 @@ static NSImage *prevIcon = nil;
     g_nowPlaying = nil;
     [g_subDate release];
     g_subDate = nil;
-    [g_SubUpdateTimer invalidate];
-    g_SubUpdateTimer = nil;
     [rpcreq release];
     rpcreq = nil;
 }
