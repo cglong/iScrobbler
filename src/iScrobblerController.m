@@ -197,7 +197,25 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
             clickContext:nil];
 }
 
-// PM notifications
+// QM/PM notifications
+
+- (void)songDidQueueHandler:(NSNotification*)note
+{
+    SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    NSInteger r = [[song scaledRating] integerValue];
+    #else
+    NSInteger r = (NSInteger)[[song scaledRating] intValue];
+    #endif
+    if (![song loved] && 
+        r > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
+        ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", song);
+        NSMenuItem *dummy = [[NSMenuItem alloc] initWithTitle:@"dummy" action:nil keyEquivalent:@""];
+        [dummy setRepresentedObject:song];
+        [self performSelector:@selector(loveTrack:) withObject:dummy];
+        [dummy release];
+    }
+}
 
 - (void)handshakeCompleteHandler:(NSNotification*)note
 {
@@ -798,6 +816,11 @@ player_info_exit:
         (void)[QueueManager sharedInstance];
         if ([[QueueManager sharedInstance] count])
             [[QueueManager sharedInstance] submit];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(songDidQueueHandler:)
+            name:QM_NOTIFICATION_SONG_QUEUED
+            object:nil];
     }
     
     // Install ourself in the Login Items

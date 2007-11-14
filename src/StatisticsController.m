@@ -106,13 +106,6 @@ enum {
     } else
         [selection setValue:[NSColor redColor] forKey:@"Server Response Color"];
     
-    if (!rpcreq && g_nowPlaying && ![g_nowPlaying loved] && [[g_nowPlaying scaledRating] intValue]
-        > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
-        ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", g_nowPlaying);
-        [self performSelector:@selector(loveTrack:) withObject:nil];
-        [[[self window] toolbar] validateVisibleItems];
-    }
-    
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm totalSubmissionsCount]]
         forKey:@"Tracks Submitted"];
     [selection setValue:[NSNumber numberWithUnsignedLongLong:[qm count]]
