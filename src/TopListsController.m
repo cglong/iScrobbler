@@ -243,6 +243,13 @@ static NSMutableArray *topHours = nil;
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
+            && [PersistentProfile newProfile]) {
+            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
+                NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
+        }
+        
         (void)[PersistentProfile sharedInstance]; // this will start the import
 
         // Register for QM notes
@@ -255,13 +262,6 @@ static NSMutableArray *topHours = nil;
             selector:@selector(persistentProfileImportProgress:)
             name:PersistentProfileImportProgress
             object:nil];
-        
-        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
-            && [PersistentProfile newProfile]) {
-            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
-                NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
-        }
         
         if ([[PersistentProfile sharedInstance] importInProgress]) {
             [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"iTunes Import", "") message:
