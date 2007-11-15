@@ -257,7 +257,7 @@ static NSMutableArray *topHours = nil;
             object:nil];
         
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
-            && [[PersistentProfile sharedInstance] newProfile]) {
+            && [PersistentProfile newProfile]) {
             [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
                 NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];

@@ -143,11 +143,6 @@ __private_extern__ NSThread *mainThread = nil;
 
 //******* public API ********//
 
-- (BOOL)newProfile
-{
-    return (newProfile);
-}
-
 - (BOOL)importInProgress
 {
      OSMemoryBarrier();
@@ -419,7 +414,6 @@ __private_extern__ NSThread *mainThread = nil;
                 nil]
             forPersistentStore:mainStore];
         
-        newProfile = YES;
         [self initDB];
         NSManagedObject *allSession = [sessionMgr sessionWithName:@"all" moc:mainMOC];
         ISASSERT(allSession != nil, "missing all session!");
@@ -485,6 +479,13 @@ __private_extern__ NSThread *mainThread = nil;
 {
     static PersistentProfile *shared = nil;
     return (shared ? shared : (shared = [[PersistentProfile alloc] init]));
+}
+
++ (BOOL)newProfile
+{
+    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    return (!metadata || nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]);
 }
 
 - (id)copyWithZone:(NSZone *)zone

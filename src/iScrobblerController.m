@@ -944,10 +944,10 @@ player_info_exit:
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(id /*NSApplication**/)sender
 {
-    if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
+    if (isTopListsActive && ![PersistentProfile newProfile] && [[PersistentProfile sharedInstance] importInProgress]) {
         #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
-            // documented as not implemeted, and it's not (as of 10.4.10
+            // documented as not implemented, and it's not (as of 10.4.10
             NSInteger given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:NSIntegerMax];
             ScrobDebug(@"given %ld ms of delayed log out", given);
         }
@@ -1002,10 +1002,28 @@ player_info_exit:
     }
 }
 
+#define LOCAL_CHARTS_MSG \
+NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil)
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
-    if (isTopListsActive)
-        (void)[TopListsController sharedInstance];
+    if (isTopListsActive) {
+        if ([PersistentProfile newProfile]) {
+            // Disable this so the TopListsController is not allocated (which begins the import)
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
+            
+            NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+                NSLocalizedString(@"Enable Local Charts?", nil), NSLocalizedFailureReasonErrorKey,
+                LOCAL_CHARTS_MSG, NSLocalizedDescriptionKey,
+                NSLocalizedString(@"Begin Import", nil), @"defaultButton",
+                NSLocalizedString(@"Ask Me Again", nil), @"alternateButton",
+                NSLocalizedString(@"Disable Local Charts", nil), @"otherButton",
+                nil]];
+            
+            [self presentError:error withDidEndHandler:@selector(enableLocalChartsDidEnd:returnCode:contextInfo:)];
+        } else
+            (void)[TopListsController sharedInstance];
+    }
             
     // Register to handle URLs
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
@@ -1106,6 +1124,17 @@ player_info_exit:
     if (!build)
         build = ver;
     return ([NSString stringWithFormat:@"%@/%@", ver, build]);
+}
+
+- (void)enableLocalChartsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
+{
+    if (NSAlertDefaultReturn == returnCode) {
+        (void)[TopListsController sharedInstance];
+    } else if (NSAlertAlternateReturn == returnCode) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Disable Local Lists"];
+    }
+    
+    [(id)contextInfo performSelector:@selector(close) withObject:nil afterDelay:0.0];
 }
 
 - (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo

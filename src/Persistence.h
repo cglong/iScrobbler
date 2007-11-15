@@ -22,12 +22,11 @@
     NSManagedObjectContext *mainMOC;
     PersistentSessionManager *sessionMgr;
     int importing;
-    BOOL newProfile;
 }
 
 + (PersistentProfile*)sharedInstance;
++ (BOOL)newProfile;
 
-- (BOOL)newProfile;
 - (BOOL)importInProgress;
 
 // adds the song, and updates all sessions
