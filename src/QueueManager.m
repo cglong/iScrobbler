@@ -69,14 +69,16 @@ static QueueManager *g_QManager = nil;
 
 - (void)setLastSongQueued:(SongData*)song
 {
-    (void)[song retain];
-    [lastSongQueued release];
-    lastSongQueued = song;
-    
-    NSDictionary *d = [lastSongQueued songData];
-    if (d) {
-        [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"LastSongQueued"];
-        (void)[[NSUserDefaults standardUserDefaults] synchronize];
+    if (!lastSongQueued || [[song postDate] isGreaterThan:lastSongQueued]) {
+        (void)[song retain];
+        [lastSongQueued release];
+        lastSongQueued = song;
+        
+        NSDictionary *d = [lastSongQueued songData];
+        if (d) {
+            [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"LastSongQueued"];
+            (void)[[NSUserDefaults standardUserDefaults] synchronize];
+        }
     }
 }
 
