@@ -485,7 +485,9 @@ __private_extern__ NSThread *mainThread = nil;
 {
     NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
     NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    return (!metadata || nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]);
+    // while technically indicating a new profile, the last check is also true while an import is in progress
+    // and [iScrobblerController applicatinoShouldTerminate:] would break in this case.
+    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
 }
 
 - (id)copyWithZone:(NSZone *)zone
