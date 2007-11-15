@@ -81,11 +81,11 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
 - (IBAction)syncIPod:(id)sender;
-- (void) restoreITunesLastPlayedTime;
-- (void) setITunesLastPlayedTime:(NSDate*)date;
+- (void)restoreITunesLastPlayedTime;
+- (void)setITunesLastPlayedTime:(NSDate*)date;
 
-- (void) volumeDidMount:(NSNotification*)notification;
-- (void) volumeDidUnmount:(NSNotification*)notification;
+- (void)volumeDidMount:(NSNotification*)notification;
+- (void)volumeDidUnmount:(NSNotification*)notification;
 
 - (void)iTunesPlaylistUpdate:(NSTimer*)timer;
 
@@ -640,7 +640,7 @@ player_info_exit:
     }
 }
 
--(id)init
+- (id)init
 {
     // Read in a defaults.plist preferences file
     NSString * file = [[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"];
@@ -1128,7 +1128,7 @@ player_info_exit:
         [self displayErrorWithTitle:NSLocalizedString(@"Submissions Disabled", "") message:@""];
 }
 
--(IBAction)enableDisableSubmissions:(id)sender
+- (IBAction)enableDisableSubmissions:(id)sender
 {
     if (!submissionsDisabled) {
         [self setSubmissionsEnabled:NO];
@@ -1220,7 +1220,7 @@ player_info_exit:
     }
 }
 
--(IBAction)clearMenu:(id)sender{
+- (IBAction)clearMenu:(id)sender{
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
 	
@@ -1236,7 +1236,7 @@ player_info_exit:
         [theMenu removeItemAtIndex:0];
 }
 
--(IBAction)playSong:(id)sender{
+- (IBAction)playSong:(id)sender{
     static NSAppleScript *iTunesPlayTrackScript = nil;
     
     if (!iTunesPlayTrackScript) {
@@ -1265,7 +1265,7 @@ player_info_exit:
     }
 }
 
--(IBAction)openPrefs:(id)sender{
+- (IBAction)openPrefs:(id)sender{
     // ScrobTrace(@"opening prefs");
     
     if(!preferenceController)
@@ -1279,26 +1279,26 @@ player_info_exit:
     [preferenceController showPreferencesWindow];
 }
 
--(IBAction)openScrobblerHomepage:(id)sender
+- (IBAction)openScrobblerHomepage:(id)sender
 {
     NSURL *url = [NSURL URLWithString:@"http://www.last.fm/group/iScrobbler"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
--(IBAction)openUserHomepage:(id)sender
+- (IBAction)openUserHomepage:(id)sender
 {
     NSString *prefix = @"http://www.last.fm/user/";
     NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
--(IBAction)openStatistics:(id)sender
+- (IBAction)openStatistics:(id)sender
 {
     [NSApp activateIgnoringOtherApps:YES];
     [[StatisticsController sharedInstance] showWindow:sender];
 }
 
--(IBAction)openTopLists:(id)sender
+- (IBAction)openTopLists:(id)sender
 {
     [NSApp activateIgnoringOtherApps:YES];
     [[TopListsController sharedInstance] showWindow:sender];
@@ -1310,7 +1310,7 @@ player_info_exit:
         [NSURL URLWithString:@"http://www.bergstrand.org/brian/donate"]];
 }
 
--(void) handlePrefsChanged:(NSNotification *)aNotification
+- (void)handlePrefsChanged:(NSNotification *)aNotification
 {
     // Song Count
     while([songList count]>[prefs integerForKey:@"Number of Songs to Save"])
@@ -1328,7 +1328,7 @@ player_info_exit:
 }
 
 #if 0 // we are a singleton
--(void)dealloc{
+- (void)dealloc{
 	[nc removeObserver:self];
 	[nc release];
 	[statusItem release];
@@ -1372,7 +1372,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return (hashString);
 }
 
--(SongData*)nowPlaying
+- (SongData*)nowPlaying
 {
     return (!currentSongPaused ? currentSong : nil);
 }
@@ -1390,7 +1390,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return ([str autorelease]);
 }
 
--(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
+- (NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
 {
     static NSString *baseURL = nil;
     static NSString *artistTitlePathSeparator = nil;
@@ -1423,12 +1423,12 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
 }
 
--(IBAction)cleanLog:(id)sender
+- (IBAction)cleanLog:(id)sender
 {
     ScrobLogTruncate();
 }
 
--(IBAction)performFindPanelAction:(id)sender
+- (IBAction)performFindPanelAction:(id)sender
 {
     NSWindow *w = [NSApp keyWindow];
     if (w && [[w windowController] respondsToSelector:@selector(performFindPanelAction:)])
@@ -2218,7 +2218,7 @@ resolvePath:
 #if 0
 @implementation NSScriptCommand (ISExtensions)
 
-- (id) evaluatedDirectParameters
+- (id)evaluatedDirectParameters
 {
     id param = [self directParameter];
     if ([param isKindOfClass: [NSScriptObjectSpecifier class]])
