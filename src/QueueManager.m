@@ -69,7 +69,7 @@ static QueueManager *g_QManager = nil;
 
 - (void)setLastSongQueued:(SongData*)song
 {
-    if (!lastSongQueued || [[song postDate] isGreaterThan:lastSongQueued]) {
+    if (!lastSongQueued || [[song postDate] isGreaterThan:[lastSongQueued postDate]]) {
         (void)[song retain];
         [lastSongQueued release];
         lastSongQueued = song;
