@@ -558,10 +558,9 @@ exitHistory:
     [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Failed to connect to Last.fm Radio", "")];
 }
 
+static NSTimer *ping = nil;
 - (void)wsNowPlayingUpdate:(NSNotification*)note
 {
-    static NSTimer *ping = nil;
-    
     [ping invalidate];
     [ping release];
     ping = nil;
@@ -570,13 +569,27 @@ exitHistory:
     NSDictionary *np = [note userInfo];
     NSString *state = np && (NSOrderedSame == [[np objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) ? @"Playing" : @"Stopped";
     
+    SongData *s = [[NSApp delegate] nowPlaying];
     if ([state isEqualToString:@"Stopped"]) {
         [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:NO];
-        SongData *s = [[NSApp delegate] nowPlaying];
         if (!s || ![s isLastFmRadio])
             return;
-    } else
+    } else {
+        // back-to-back repeats should not occur on the server because of label restrictions
+        NSString *al = [np objectForKey:@"album"];
+        if (s && [s isLastFmRadio]
+            && NSOrderedSame == [[s title] caseInsensitiveCompare:[np objectForKey:@"track"]]
+            && NSOrderedSame == [[s artist] caseInsensitiveCompare:[np objectForKey:@"artist"]]
+            && ((!al && [@"" isEqualToString:[s album]])
+                || (al && NSOrderedSame == [[s album] caseInsensitiveCompare:al]))) {
+            // ping again in the assumption that the radio state is out of sync
+            ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
+                target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
+            return;
+        }
+    
         [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:YES];
+    }
     
     int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -599,9 +612,8 @@ exitHistory:
     if (duration > 0) {
         int progress = [[np objectForKey:@"trackprogress"] intValue];
         duration -= progress;
-        ping = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
-            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO];
-        (void)[ping retain];
+        ping = [[NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
+            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.iscrobbler.lasfm.playerInfo" 
@@ -610,7 +622,15 @@ exitHistory:
 
 - (void)wsNowPlayingFailed:(NSNotification*)note
 {
-    [self wsNowPlayingUpdate:note];
+    SongData *s = [[NSApp delegate] nowPlaying];
+    if (s && [s isLastFmRadio]) {
+        // try to get the  info again
+        [ping invalidate];
+        [ping release];
+        ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
+            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
+    } else
+        [self wsNowPlayingUpdate:note];
 }
 
 - (void)wsExecComplete:(NSNotification*)note
