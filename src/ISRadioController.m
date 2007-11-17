@@ -419,8 +419,9 @@ exitHistory:
             [[ASWebServices sharedInstance] streamURL], nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
-        NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed
-            object:self userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:999999] forKey:@"error"]];
+        NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed object:self
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:999999], @"error",
+                exception, @"reason", nil]];
         [self performSelector:@selector(wsStationTuneFailure:) withObject:n afterDelay:0.0];
         return;
     }
@@ -451,7 +452,7 @@ exitHistory:
     stationBeingTuned = nil;
     
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
-    NSString *msg = @"";
+    NSString *msg = @"", *errMsg;
     switch (err) {
         case 0:
             msg = NSLocalizedString(@"Network error.", "");
@@ -479,6 +480,8 @@ exitHistory:
         break;
         case 999999:
             msg = NSLocalizedString(@"iTunes received an error attempting to play the station. Please try another station.", "");
+            if ((errMsg = [[note userInfo] objectForKey:@"reason"]))
+                msg = [msg stringByAppendingFormat:@" (\"%@\")", errMsg];
         break;
         default:
             msg = NSLocalizedString(@"Unknown error.", "");
