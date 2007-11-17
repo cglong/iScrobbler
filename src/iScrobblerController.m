@@ -1502,7 +1502,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     [NSApp activateIgnoringOtherApps:YES];
     
     // Create a new transparent window (with click through) so that we don't block the app event loop
-    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0f, 0.0f, 100.0, 100.0)
+    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 100.0, 100.0)
         styleMask:NSBorderlessWindowMask
         backing:NSBackingStoreBuffered defer:NO];
     [w setReleasedWhenClosed:YES];
@@ -1513,6 +1513,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     // nasty console messages from the window server about an
     // "invalid window type"
     [w setBackingType:NSBackingStoreNonretained];
+    [w setLevel:NSModalPanelWindowLevel];
     // This has to be done before changing click through properties,
     // otherwise things won't work
     [w orderFront:nil];
