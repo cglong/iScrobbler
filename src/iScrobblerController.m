@@ -37,6 +37,7 @@
 #import "ISPluginController.h"
 #import "Persistence.h"
 #import "ISiTunesLibrary.h"
+#import "ISCrashReporter.h"
 
 #ifdef __LP64__
 #define IS_SCRIPT_PROXY 1
@@ -1006,6 +1007,8 @@ player_info_exit:
 NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil)
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
+    [ISCrashReporter crashReporter];
+    
     if (isTopListsActive) {
         if ([PersistentProfile newProfile]) {
             // Disable this so the TopListsController is not allocated (which begins the import)
