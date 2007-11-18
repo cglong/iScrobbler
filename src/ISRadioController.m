@@ -586,6 +586,7 @@ static NSTimer *ping = nil;
             && ((!al && [@"" isEqualToString:[s album]])
                 || (al && NSOrderedSame == [[s album] caseInsensitiveCompare:al]))) {
             // ping again in the assumption that the radio state is out of sync
+            ScrobLog(SCROB_LOG_INFO, @"A repeat radio play was detected. This should not occur. Assuming 'Now Playing' state is out of sync.");
             ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
                 target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
             return;
@@ -628,6 +629,7 @@ static NSTimer *ping = nil;
     SongData *s = [[NSApp delegate] nowPlaying];
     if (s && [s isLastFmRadio]) {
         // try to get the  info again
+        ScrobLog(SCROB_LOG_INFO, @"Radio 'Now Playing' failure while track was actively playing . Assuming state is out of sync.");
         [ping invalidate];
         [ping release];
         ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
