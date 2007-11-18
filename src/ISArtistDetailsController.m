@@ -84,6 +84,7 @@ static NSImage *artistImgPlaceholder = nil;
     }
     
     [detailsDrawer setParentWindow:[delegate window]];
+    [detailsDrawer setDelegate:self];
     
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
     
@@ -120,13 +121,13 @@ static NSImage *artistImgPlaceholder = nil;
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
 }
 
-- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)link atIndex:(unsigned)charIndex
+- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(unsigned)charIndex
 {
     BOOL handled = NO;
     @try {
-        handled = [[NSWorkspace sharedWorkspace] openURL:link];
+        handled = [[NSWorkspace sharedWorkspace] openURL:url];
     } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while trying to open: %@. (%@)\n", link, e);
+        ScrobLog(SCROB_LOG_ERR, @"Exception while trying to open: %@. (%@)\n", url, e);
     }
     return (handled);
 }
@@ -206,7 +207,7 @@ static NSImage *artistImgPlaceholder = nil;
                 NSURL *url = nil;
                 @try {
                     url = [NSURL URLWithString:[[all objectAtIndex:0] stringValue]];
-                } @catch (NSException *e) { }
+                } @catch (NSException *ex) { }
                 
                 if (url) {
                     tmp = [[[NSMutableAttributedString alloc] initWithString:user attributes:
@@ -380,7 +381,7 @@ static NSImage *artistImgPlaceholder = nil;
                 @try {
                     urlStr = [[[e elementsForName:@"url"] objectAtIndex:0] stringValue];
                     url = [NSURL URLWithString:urlStr];
-                } @catch (NSException *e) { }
+                } @catch (NSException *ex) { }
                 
                 if (url) {
                     NSMutableAttributedString *tmp = [[[NSMutableAttributedString alloc] initWithString:tagName attributes:
@@ -587,6 +588,26 @@ loadDetailsExit:
         if (url)
             [[NSWorkspace sharedWorkspace] openURL:url];
     }
+}
+
+- (BOOL)drawerShouldOpen:(NSDrawer*)sender
+{
+    return (YES);
+}
+
+- (BOOL)drawerShouldClose:(NSDrawer*)sender
+{
+    return (NO); // user is not allowed to close the drawer through dragging
+}
+
+- (NSSize)drawerWillResizeContents:(NSDrawer*)drawer toSize:(NSSize)contentSize
+{
+    NSSize minSize = [drawer minContentSize];
+    if (contentSize.width < minSize.width)
+        contentSize.width = minSize.width;
+    if (contentSize.height < minSize.height)
+        contentSize.height = minSize.height;
+    return (contentSize);
 }
 
 - (void)dealloc

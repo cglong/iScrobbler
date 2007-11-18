@@ -47,7 +47,6 @@
 		D3191CB807E3A51700821D03 /* SongData.m in Sources */ = {isa = PBXBuildFile; fileRef = EB607519042A747B005DC01B /* SongData.m */; };
 		D3191CB907E3A51700821D03 /* QueueManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EB560735548F00A2CFD5 /* QueueManager.m */; };
 		D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EDA007359DE000A2CFD5 /* ProtocolManager.m */; };
-		D3191CBB07E3A51700821D03 /* ProtocolManager_v11.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */; };
 		D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B61DF30744151D00AF5A33 /* ScrobLog.m */; };
 		D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB1314077509D3009236FF /* StatisticsController.m */; };
 		D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB38A607A59AFE009236FF /* TopListsController.m */; };
@@ -71,6 +70,7 @@
 		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
 		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
 		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
+		D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */ = {isa = PBXBuildFile; fileRef = D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */; };
 		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
 		D38F6FBA0B541A9100230DBE /* ISTagController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6FB80B541A9000230DBE /* ISTagController.m */; };
 		D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */; };
@@ -194,8 +194,6 @@
 		D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager.h; sourceTree = "<group>"; };
 		D312EDA007359DE000A2CFD5 /* ProtocolManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager.m; sourceTree = "<group>"; };
 		D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtocolManager+Subclassers.h"; sourceTree = "<group>"; };
-		D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager_v11.h; sourceTree = "<group>"; };
-		D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager_v11.m; sourceTree = "<group>"; };
 		D31791160A6A9B5C00B0F081 /* BBNetUpdateAskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateAskController.h; sourceTree = "<group>"; };
 		D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateAskController.m; sourceTree = "<group>"; };
 		D31791180A6A9B5C00B0F081 /* BBNetUpdateDownloadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateDownloadController.h; sourceTree = "<group>"; };
@@ -229,6 +227,8 @@
 		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
 		D376EE930CA9153E00C04863 /* ISStatusItemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItemView.m; sourceTree = "<group>"; };
 		D376FC690CAD00A000C04863 /* iScrobbler.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; path = iScrobbler.sdef; sourceTree = "<group>"; };
+		D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISCrashReporter.h; sourceTree = "<group>"; };
+		D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISCrashReporter.m; sourceTree = "<group>"; };
 		D38F6CCD0B53514400230DBE /* ISRecommendController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRecommendController.h; sourceTree = "<group>"; };
 		D38F6CCE0B53514400230DBE /* ISRecommendController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISRecommendController.m; sourceTree = "<group>"; };
 		D38F6FB70B541A9000230DBE /* ISTagController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISTagController.h; sourceTree = "<group>"; };
@@ -383,7 +383,6 @@
 				EB50662D03FBB239005DC01B /* keychain.m */,
 				D312EB560735548F00A2CFD5 /* QueueManager.m */,
 				D312EDA007359DE000A2CFD5 /* ProtocolManager.m */,
-				D312EE000735A78D00A2CFD5 /* ProtocolManager_v11.m */,
 				D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */,
 				EB607519042A747B005DC01B /* SongData.m */,
 				D3B61DF30744151D00AF5A33 /* ScrobLog.m */,
@@ -394,6 +393,8 @@
 				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
 				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
+				D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */,
+				D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */,
 			);
 			name = Classes;
 			path = src;
@@ -640,7 +641,6 @@
 				D312EB550735548F00A2CFD5 /* QueueManager.h */,
 				D312ED9F07359DE000A2CFD5 /* ProtocolManager.h */,
 				D312EDA307359E0A00A2CFD5 /* ProtocolManager+Subclassers.h */,
-				D312EDFF0735A78D00A2CFD5 /* ProtocolManager_v11.h */,
 				D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */,
 				D3B61DF20744151D00AF5A33 /* ScrobLog.h */,
 				D3CB1313077509D3009236FF /* StatisticsController.h */,
@@ -816,7 +816,6 @@
 				D3191CB807E3A51700821D03 /* SongData.m in Sources */,
 				D3191CB907E3A51700821D03 /* QueueManager.m in Sources */,
 				D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */,
-				D3191CBB07E3A51700821D03 /* ProtocolManager_v11.m in Sources */,
 				D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */,
 				D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */,
 				D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */,
@@ -852,6 +851,7 @@
 				D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */,
 				D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */,
 				D329070B0CDB4E0600CAAB66 /* LoginItemsAE.c in Sources */,
+				D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1025,6 +1025,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
+				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_CFLAGS = (
@@ -1045,6 +1046,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = iScrobbler;
@@ -1062,6 +1064,7 @@
 			buildSettings = {
 				ARCHS = (
 					i386,
+					x86_64,
 					ppc,
 				);
 				COPY_PHASE_STRIP = NO;
@@ -1077,7 +1080,9 @@
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1091,6 +1096,7 @@
 			buildSettings = {
 				ARCHS = (
 					i386,
+					x86_64,
 					ppc,
 				);
 				COPY_PHASE_STRIP = NO;
@@ -1105,7 +1111,10 @@
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1131,7 +1140,9 @@
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				PREBINDING = NO;
@@ -1145,6 +1156,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
+				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_CFLAGS = (
@@ -1207,19 +1219,13 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				INFOPLIST_FILE = "src/Plugins/iChatStatus/ChatStatus-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/ChatStatus/ChatStatus-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DISPLUGIN",
 				);
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PRODUCT_NAME = iChatStatus;
+				PRODUCT_NAME = ChatStatus;
 				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
@@ -1312,7 +1318,7 @@
 				D328478008566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */ = {
 			isa = XCConfigurationList;
@@ -1322,7 +1328,7 @@
 				D328478408566B30009B4D14 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */ = {
 			isa = XCConfigurationList;
@@ -1332,7 +1338,7 @@
 				D376063E0CB230AA00C04863 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D39802450CE0FEA4008CB4C8 /* Build configuration list for PBXNativeTarget "iScrobblerProxy" */ = {
 			isa = XCConfigurationList;
@@ -1342,7 +1348,7 @@
 				D39802440CE0FE42008CB4C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

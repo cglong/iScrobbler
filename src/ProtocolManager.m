@@ -13,7 +13,6 @@
 
 #import "ProtocolManager.h"
 #import "ProtocolManager+Subclassers.h"
-#import "ProtocolManager_v11.h"
 #import "ProtocolManager_v12.h"
 #import "keychain.h"
 #import "QueueManager.h"
@@ -60,11 +59,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 {
     if (!g_PM) {
         if ([@"1.1" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
-            g_PM = [[ProtocolManager_v11 alloc] init];
+            g_PM = [[ProtocolManager_v12 alloc] init];
         else if ([@"1.2" isEqualToString:[[NSUserDefaults standardUserDefaults] stringForKey:@"protocol"]])
             g_PM = [[ProtocolManager_v12 alloc] init];
         else
-            ScrobLog(SCROB_LOG_CRIT, @"Unknown protocol version\n");
+            ScrobLog(SCROB_LOG_CRIT, @"Unknown protocol version");
     }
     return (g_PM);
 }
@@ -685,12 +684,6 @@ didFinishLoadingExit:
     NSMutableData *subData = [[NSMutableData alloc] init];
     
     @try {
-    if ([[self protocolVersion] isEqualToString:@"1.1"]) {
-        NSString* escapedusername=[(NSString*)
-            CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[prefs stringForKey:@"username"],
-                NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-        [self setSubValue:escapedusername forKey:@"u" inData:subData];
-    }
     [self setSubValue:[self authChallengeResponse] forKey:@"s" inData:subData];
     
     // Fill the dictionary with every entry in the queue, ordering them from
@@ -719,8 +712,8 @@ didFinishLoadingExit:
         ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
         @try {
         [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
-        } @catch (id e) {
-            ScrobDebug(@"exception: %@", e);
+        } @catch (NSException *e2) {
+            ScrobDebug(@"exception: %@", e2);
         }
         [inFlight release];
         inFlight = nil;
@@ -947,14 +940,11 @@ static int npDelays = 0;
         @"No data sent yet.", HS_RESPONSE_KEY_RESULT_MSG,
         nil]];
     
-    myKeyChain = [[KeyChain defaultKeyChain] retain];\
-    
+    myKeyChain = [[KeyChain defaultKeyChain] retain];
     maxTracksPerSub = DEFAULT_MAX_TRACKS_PER_SUB;
     
-    if ([self respondsToSelector:@selector(nowPlayingDataForSong:)]) {
-        [[NSNotificationCenter defaultCenter] addObserver:self
-            selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
-    }
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
 
     // We are an abstract class, only subclasses return valid objects
     return (nil);
@@ -983,17 +973,6 @@ static int npDelays = 0;
         && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
         && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self elapsedTime] floatValue] > [pm minTimePlayed] || reconstituted) );
-    if ([PM_VERSION isEqualTo:@"1.1"] && good && !reconstituted) {
-        // Make sure there was no forward seek (allowing for a little fudge time)
-        // This is not perfect, so some "illegal" tracks may slip through.
-        NSTimeInterval elapsed = [[self elapsedTime] doubleValue] + ([SongData songTimeFudge] * 2);
-        if (elapsed < [[self position] doubleValue]) {
-            good = NO;
-            [self setHasQueued:YES]; // Make sure the song is not submitted
-            ScrobLog(SCROB_LOG_TRACE, @"'%@' will not be submitted -- forward seek detected (e=%.0lf,p=%@,d=%@)",
-                [self brief], elapsed, [self position], [self duration]);
-        }
-    }
     if (good && [self ignore]) {
         // Song should be ignored, but slipped through the upper layers
         [self setHasQueued:YES];
@@ -1010,36 +989,12 @@ static int npDelays = 0;
 
 - (NSTimeInterval)submitIntervalFromNow
 {
-    if ([PM_VERSION isEqualTo:@"1.2"])
-        return (PM_SUBMIT_AT_TRACK_END);
-        
-    double trackTime = [[self duration] doubleValue];
-    static double minTime = -1.0;
-    static double quotient;
-    double fudge = 4.0;
-    
-    if (minTime < 0.0) {
-        minTime = [[ProtocolManager sharedInstance] minTimePlayed];
-        quotient = ([[ProtocolManager sharedInstance] minPercentagePlayed] / 100.0);
-    }
-    
-    if ((trackTime = rint(trackTime * quotient)) <= (fudge * (fudge * quotient)))
-        fudge = 0.0;
-    if (trackTime > minTime)
-        trackTime = minTime;
-    trackTime -= [[self position] doubleValue]; // Adjust for elapsed time.
-    
-    trackTime += fudge; // Add some fudge to make sure the track gets submitted when the timer fires.
-    return (trackTime);
+    return (PM_SUBMIT_AT_TRACK_END);
 }
 
 - (double)resubmitInterval
 {
-    if ([PM_VERSION isEqualTo:@"1.2"])
-        return (0.0);
-        
-    double interval = ([[self duration] doubleValue] - [[self position] doubleValue]) / 3.0;
-    return (interval);
+    return (0.0);
 }
 
 @end

@@ -143,11 +143,6 @@ __private_extern__ NSThread *mainThread = nil;
 
 //******* public API ********//
 
-- (BOOL)newProfile
-{
-    return (newProfile);
-}
-
 - (BOOL)importInProgress
 {
      OSMemoryBarrier();
@@ -313,8 +308,8 @@ __private_extern__ NSThread *mainThread = nil;
     ISASSERT(NO == [mainMOC hasChanges], "somebody modifed the DB during an import");
     [self resetMain];
     
-    [self addSongPlay:nil]; // process any queued songs
-    [self pingSessionManager];
+    [self pingSessionManager]; // this makes sure the sessions are properly setup before adding any songs
+    [self performSelector:@selector(addSongPlay:) withObject:nil afterDelay:0.10]; // process any queued songs
 }
 
 - (void)addSongPlaysDidFinish:(id)obj
@@ -324,7 +319,7 @@ __private_extern__ NSThread *mainThread = nil;
 
 - (void)initDB
 {
-    NSCalendarDate *now = [NSCalendarDate distantPast];
+    NSDate *dbEpoch = [self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC];
     
     // Create sessions
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:mainMOC];
@@ -344,7 +339,7 @@ __private_extern__ NSThread *mainThread = nil;
         obj = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:mainMOC];
         [obj setValue:ITEM_SESSION forKey:@"itemType"];
         [obj setValue:name forKey:@"name"];
-        [obj setValue:now forKey:@"epoch"];
+        [obj setValue:dbEpoch forKey:@"epoch"];
         [obj setValue:[displayNames objectAtIndex:i] forKey:@"localizedName"];
         ++i;
         [obj release];
@@ -419,7 +414,6 @@ __private_extern__ NSThread *mainThread = nil;
                 nil]
             forPersistentStore:mainStore];
         
-        newProfile = YES;
         [self initDB];
         NSManagedObject *allSession = [sessionMgr sessionWithName:@"all" moc:mainMOC];
         ISASSERT(allSession != nil, "missing all session!");
@@ -437,6 +431,25 @@ __private_extern__ NSThread *mainThread = nil;
         
         [self backup];
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
+        
+        // 2.0b3, session epoch to the epoch of the DB so the stats are accurately portrayed to the user
+        @try {
+        NSDate *dbEpoch = [[self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC] GMTDate];
+        NSEnumerator *en = [[self allSessions] objectEnumerator];
+        NSManagedObject *s;
+        while ((s = [en nextObject])) {
+            if ([[s valueForKey:@"name"] isEqualTo:@"all"])
+                continue;
+            if ([[[s valueForKey:@"epoch"] GMTDate] isLessThan:dbEpoch]) {
+                [s setValue:dbEpoch forKey:@"epoch"];
+            }
+        }
+        if ([mainMOC hasChanges])
+            [mainMOC save:nil];
+        } @catch (NSException *e) {
+            [mainMOC rollback];
+            ScrobLog(SCROB_LOG_ERR, @"init: exception while updating session epochs: %@", e);
+        }
     }
     
     // we don't allow the user to make changes and the session mgr background thread handles all internal changes
@@ -466,6 +479,15 @@ __private_extern__ NSThread *mainThread = nil;
 {
     static PersistentProfile *shared = nil;
     return (shared ? shared : (shared = [[PersistentProfile alloc] init]));
+}
+
++ (BOOL)newProfile
+{
+    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    // while technically indicating a new profile, the last check is also true while an import is in progress
+    // and [iScrobblerController applicatinoShouldTerminate:] would break in this case.
+    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
 }
 
 - (id)copyWithZone:(NSZone *)zone

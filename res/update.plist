@@ -5,22 +5,28 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>9b40247225a3675b4d66cd14752a205501eb64a2</string>
+        	<string>37f1bc4ebe22a038e51a4490fbf84a655febda92</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0a7</string>
+        <string>2.0.0b3</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0a7.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0b3.dmg</string>
+        <key>MinFoundationVer</key>
+        <real>567.28</real>
+        <key>MinSysVer</key>
+        <string>10.4.9</string>
         <key>Notes</key>
         <dict>
-                <key>English</key>
-                <string>- Leopard Front Row support.
-- Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue.
-- Bug Fix: Possible (and likely) crash while generating a Profile report.
-- Bug Fix: iTunes import would fail to import any songs for non-English users.
-- Bug Fix (Regression): The Top Lists window was not remembering whether it was open or closed.
-- Bug Fix: Explicitly deny manual-sync iPod support for multiple play detection.
-                </string>
+			<key>English</key>
+			<string>- Full Radio support (played through iTunes).
+- Multiple iPod play count support.
+- Brand new local charts, with multiple separate charts (including your complete iTunes history).
+- Leopard specific enhancements, including Front Row support and a native 64-bit Intel binary.
+- Basic Applescript support.
+- Expanded use of Growl.
+- Many other minor features and bug fixes.
+- 2.0b3: Bug fixes and some minor new features; see the change log.
+		</string>
         </dict>
 </dict>
 </plist>

@@ -24,9 +24,9 @@
 
 static StatisticsController *g_sub = nil;
 static SongData *g_nowPlaying = nil;
-static NSTimer *g_cycleTimer = nil, *g_SubUpdateTimer = nil;
+static NSTimer *g_cycleTimer = nil;
 static NSDate *g_subDate = nil;
-static enum {title, artist_album, subdate} g_cycleState = title;
+static enum {title, artist_album} g_cycleState = title;
 
 enum {
     kTBItemRequiresSong = 0x00000001,
@@ -97,12 +97,6 @@ enum {
 {
     [submissionProgress stopAnimation:nil];
     
-    if (g_SubUpdateTimer) {
-        [g_SubUpdateTimer invalidate];
-        g_SubUpdateTimer = nil;
-        [g_cycleTimer fire];
-    }
-    
     ProtocolManager *pm = [ProtocolManager sharedInstance];
     QueueManager *qm = [QueueManager sharedInstance];
     id selection = [values selection];
@@ -112,13 +106,6 @@ enum {
     } else
         [selection setValue:[NSColor redColor] forKey:@"Server Response Color"];
     
-    if (!rpcreq && g_nowPlaying && ![g_nowPlaying loved] && [[g_nowPlaying scaledRating] intValue]
-        > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
-        ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", g_nowPlaying);
-        [self performSelector:@selector(loveTrack:) withObject:nil];
-        [[[self window] toolbar] validateVisibleItems];
-    }
-    
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm totalSubmissionsCount]]
         forKey:@"Tracks Submitted"];
     [selection setValue:[NSNumber numberWithUnsignedLongLong:[qm count]]
@@ -127,9 +114,9 @@ enum {
         forKey:@"Submission Attempts"];
     [selection setValue:[NSNumber numberWithUnsignedInt:[qm successfulSubmissionsCount]]
         forKey:@"Successful Submissions"];
-    unsigned int time = [[qm totalSubmissionsPlayTimeInSeconds] unsignedIntValue];
+    unsigned int tSecs = [[qm totalSubmissionsPlayTimeInSeconds] unsignedIntValue];
     unsigned int days, hours, minutes, seconds;
-    ISDurationsFromTime(time, &days, &hours, &minutes, &seconds);
+    ISDurationsFromTime(tSecs, &days, &hours, &minutes, &seconds);
     NSString *timeString = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day", "") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
@@ -183,31 +170,9 @@ static NSImage *prevIcon = nil;
     prevIcon = nil;
 }
 
-- (void)updateSubTime:(NSTimer*)timer
-{
-    NSTimeInterval i = [g_subDate timeIntervalSince1970] - [[NSDate date] timeIntervalSince1970];
-    NSString *msg = [NSString stringWithFormat:@"%@ %lu:%02lu",
-        NSLocalizedString(@"Submitting in", ""), ((NSUInteger)i / 60), ((NSUInteger)i % 60)];
-    [nowPlayingText setStringValue:msg];
-}
-
 - (void)cycleNowPlaying:(NSTimer *)timer
 {
     NSString *msg = nil, *rating;
-    NSDate *now = [NSDate date];
-    
-    if (g_subDate && [g_subDate isLessThanOrEqualTo:now]) {
-        [g_subDate release];
-        g_subDate = nil;
-        if (subdate == g_cycleState)
-            g_cycleState = title;
-    }
-    
-    if (g_SubUpdateTimer) {
-        [g_SubUpdateTimer invalidate];
-        g_SubUpdateTimer = nil;
-    }
-    
     switch (g_cycleState) {
         case title:
             rating = [g_nowPlaying starRating];
@@ -226,15 +191,8 @@ static NSImage *prevIcon = nil;
             break;
         case artist_album:
             msg = [[g_nowPlaying artist] stringByAppendingFormat:@" - %@", [g_nowPlaying album]];
-            g_cycleState = g_subDate ? subdate : title;
-            break;
-        case subdate: {
-            [self updateSubTime:nil];
-            g_SubUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self
-                selector:@selector(updateSubTime:) userInfo:nil repeats:YES];
             g_cycleState = title;
-            return;
-        };
+            break;
     }
     
     // It would be cool if we could do some text alpha fading when the msg changes,
@@ -253,8 +211,6 @@ static NSImage *prevIcon = nil;
         g_nowPlaying = [song retain];
         g_cycleState = title;
         
-        [g_SubUpdateTimer invalidate];
-        g_SubUpdateTimer = nil;
         [g_cycleTimer invalidate];
         g_cycleTimer = nil;
         [g_subDate release];
@@ -392,8 +348,6 @@ static NSImage *prevIcon = nil;
     g_nowPlaying = nil;
     [g_subDate release];
     g_subDate = nil;
-    [g_SubUpdateTimer invalidate];
-    g_SubUpdateTimer = nil;
     [rpcreq release];
     rpcreq = nil;
 }
@@ -402,9 +356,9 @@ static NSImage *prevIcon = nil;
 {
     [super setWindowFrameAutosaveName:@"iScrobbler Statistics"];
     
-    NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
+    NSString *newTitle = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
         [[NSUserDefaults standardUserDefaults] objectForKey:@"version"]];
-    [[self window] setTitle:title];
+    [[self window] setTitle:newTitle];
     
     [submissionProgress setDisplayedWhenStopped:NO];
     [submissionProgress setUsesThreadedAnimation:YES];
@@ -429,8 +383,8 @@ static NSImage *prevIcon = nil;
     #endif
     
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];
-    title = [NSString stringWithFormat:@"%C ", 0x2665];
-    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Love", "")]];
+    newTitle = [NSString stringWithFormat:@"%C ", 0x2665];
+    [item setLabel:[newTitle stringByAppendingString:NSLocalizedString(@"Love", "")]];
     [item setToolTip:NSLocalizedString(@"Love the currently playing track.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
@@ -441,8 +395,8 @@ static NSImage *prevIcon = nil;
     [item release];
     
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"ban"];
-    title = [NSString stringWithFormat:@"%C ", 0x2298];
-    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]];
+    newTitle = [NSString stringWithFormat:@"%C ", 0x2298];
+    [item setLabel:[newTitle stringByAppendingString:NSLocalizedString(@"Ban", "")]];
     [item setToolTip:NSLocalizedString(@"Ban the currently playing track from last.fm.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
@@ -453,8 +407,8 @@ static NSImage *prevIcon = nil;
     [item release];
     
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
-    title = [NSString stringWithFormat:@"%C ", 0x2709];
-    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
+    newTitle = [NSString stringWithFormat:@"%C ", 0x2709];
+    [item setLabel:[newTitle stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
     [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
@@ -465,8 +419,8 @@ static NSImage *prevIcon = nil;
     [item release];
     
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
-    title = [NSString stringWithFormat:@"%C ", 0x270E];
-    [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
+    newTitle = [NSString stringWithFormat:@"%C ", 0x270E];
+    [item setLabel:[newTitle stringByAppendingString:NSLocalizedString(@"Tag", "")]];
     [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];

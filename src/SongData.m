@@ -148,9 +148,9 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     // The amount of time passed since the beginning of the track, made
     // into a positive number, and plus 5 to account for Timer error.
     // Due to timer firing discrepencies, this should not be considered an 'exact' time.
-    NSNumber * time = [NSNumber numberWithDouble:(-[[self startTime]
+    NSNumber *delta = [NSNumber numberWithDouble:(-[[self startTime]
         timeIntervalSinceNow] + 5)];
-    return time;
+    return (delta);
 }
 
 - (BOOL)isEqualToSong:(SongData*)song
@@ -646,8 +646,17 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         score = [[d objectForKey:@"score"] unsignedIntValue];
         if (!score) {
             [rem addObject:key];
-            ScrobLog(SCROB_LOG_TRACE, @"Scoreboard cache: Removed %@ which entered at %@. Last hit was %@.",
-                key, [d objectForKey:@"entryDate"], [d objectForKey:KEY_LAST_HIT]);
+            ScrobLog(SCROB_LOG_TRACE,
+                #ifndef ISDEBUG
+                @"Scoreboard cache: Removed %@. Last hit was %@.",
+                #else
+                @"Scoreboard cache: Removed %@ which entered at %@. Last hit was %@.",
+                #endif
+                key,
+                #ifdef ISDEBUG
+                [d objectForKey:@"entryDate"],
+                #endif
+                [d objectForKey:KEY_LAST_HIT]);
             continue;
         }
         

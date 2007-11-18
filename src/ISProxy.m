@@ -51,6 +51,12 @@
 {
     self = [super init];
     compiledScripts = [[NSMutableDictionary alloc] init];
+    
+    [[NSConnection defaultConnection] registerName:ISProxyName];
+    [[NSConnection defaultConnection] setRootObject:
+        [NSProtocolChecker protocolCheckerWithTarget:self protocol:@protocol(ISProxyProtocol)]];
+    [[NSConnection defaultConnection] setReplyTimeout:3.0];
+    [[NSConnection defaultConnection] setRequestTimeout:3.0];
 }
 
 @end
@@ -59,12 +65,9 @@
 int main(int argc, char *argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    NSApp = [NSApplication sharedApplication];
+    (void)[NSApplication sharedApplication];
     
-    NSConnection *conn = [[NSConnection alloc] init];
-    [conn setRootObject:[[ISProxy alloc] init]];
-    [conn registerName:ISProxyName];
-    
+    (void)[[ISProxy alloc] init];
     [NSApp finishLaunching];
     do {
         [pool release];

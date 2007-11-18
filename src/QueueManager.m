@@ -69,14 +69,16 @@ static QueueManager *g_QManager = nil;
 
 - (void)setLastSongQueued:(SongData*)song
 {
-    (void)[song retain];
-    [lastSongQueued release];
-    lastSongQueued = song;
-    
-    NSDictionary *d = [lastSongQueued songData];
-    if (d) {
-        [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"LastSongQueued"];
-        (void)[[NSUserDefaults standardUserDefaults] synchronize];
+    if (!lastSongQueued || [[song postDate] isGreaterThan:[lastSongQueued postDate]]) {
+        (void)[song retain];
+        [lastSongQueued release];
+        lastSongQueued = song;
+        
+        NSDictionary *d = [lastSongQueued songData];
+        if (d) {
+            [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"LastSongQueued"];
+            (void)[[NSUserDefaults standardUserDefaults] synchronize];
+        }
     }
 }
 
@@ -195,7 +197,7 @@ static QueueManager *g_QManager = nil;
     [self removeSong:song sync:YES];
 }
 
-- (void)removeSong:(SongData*)song sync:(BOOL)sync
+- (void)removeSong:(SongData*)song sync:(BOOL)syncQueue
 {
     SongData *found;
     NSUInteger idx, count;
@@ -216,7 +218,7 @@ static QueueManager *g_QManager = nil;
         
             [found release];
             
-            if (sync)
+            if (syncQueue)
                 [self syncQueue:nil];
             break;
         }

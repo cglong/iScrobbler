@@ -37,6 +37,7 @@
 #import "ISPluginController.h"
 #import "Persistence.h"
 #import "ISiTunesLibrary.h"
+#import "ISCrashReporter.h"
 
 #ifdef __LP64__
 #define IS_SCRIPT_PROXY 1
@@ -81,11 +82,11 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 @interface iScrobblerController (iScrobblerControllerPrivate)
 
 - (IBAction)syncIPod:(id)sender;
-- (void) restoreITunesLastPlayedTime;
-- (void) setITunesLastPlayedTime:(NSDate*)date;
+- (void)restoreITunesLastPlayedTime;
+- (void)setITunesLastPlayedTime:(NSDate*)date;
 
-- (void) volumeDidMount:(NSNotification*)notification;
-- (void) volumeDidUnmount:(NSNotification*)notification;
+- (void)volumeDidMount:(NSNotification*)notification;
+- (void)volumeDidUnmount:(NSNotification*)notification;
 
 - (void)iTunesPlaylistUpdate:(NSTimer*)timer;
 
@@ -197,7 +198,25 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
             clickContext:nil];
 }
 
-// PM notifications
+// QM/PM notifications
+
+- (void)songDidQueueHandler:(NSNotification*)note
+{
+    SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    NSInteger r = [[song scaledRating] integerValue];
+    #else
+    NSInteger r = (NSInteger)[[song scaledRating] intValue];
+    #endif
+    if (![song loved] && 
+        r > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
+        ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", song);
+        NSMenuItem *dummy = [[NSMenuItem alloc] initWithTitle:@"dummy" action:nil keyEquivalent:@""];
+        [dummy setRepresentedObject:song];
+        [self performSelector:@selector(loveTrack:) withObject:dummy];
+        [dummy release];
+    }
+}
 
 - (void)handshakeCompleteHandler:(NSNotification*)note
 {
@@ -358,76 +377,10 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     return (NO);
 }
 
-#define KillQueueTimer() do { \
-[currentSongQueueTimer invalidate]; \
-[currentSongQueueTimer release]; \
-currentSongQueueTimer = nil; \
-} while (0) 
-
 - (BOOL)queueSongsForLaterSubmission
 {
     return ([[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"] ||
         ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && iPodMountCount > 0));
-}
-
-- (void)queueCurrentSong:(NSTimer*)timer
-{
-    SongData *song = [[SongData alloc] init];
-    
-    KillQueueTimer();
-    timer = nil;
-    
-    if (!currentSong || (currentSong && [currentSong hasQueued])) {
-        goto queue_exit;
-    }
-    
-    if ([currentSong isPlayeriTunes] && ![self updateInfoForSong:song]) {
-        ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error. Trying again in %0.1f seconds.",
-            2.5);
-        currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:2.5l
-                                    target:self
-                                    selector:@selector(queueCurrentSong:)
-                                    userInfo:nil
-                                    repeats:NO] retain];
-        goto queue_exit;
-    } else if (![currentSong isPlayeriTunes]) {
-        [song setPosition:[currentSong elapsedTime]];
-    }
-    
-    if (![currentSong isPlayeriTunes] || [song iTunesDatabaseID] == [currentSong iTunesDatabaseID]) {
-        [currentSong updateUsingSong:song];
-        
-        // Try submission
-        QueueResult_t qr = [[QueueManager sharedInstance] queueSong:currentSong];
-        if (kqFailed == qr) {
-            // Fire ourself again in half of the remaining track play time.
-            // The queue can fail when playing from a network stream (or CD),
-            // and iTunes has to re-buffer. This means the elapsed track play time
-            // would be less than elapsed real-world time and the track may not be 1/2
-            // done.
-            double fireInterval = [currentSong resubmitInterval];
-            if (fireInterval >= 1.0) {
-                ScrobLog(SCROB_LOG_VERBOSE,
-                    @"Track '%@' failed submission rules. "
-                    @"Trying again in %0.0lf seconds.\n", [currentSong brief], fireInterval);
-                currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                                target:self
-                                selector:@selector(queueCurrentSong:)
-                                userInfo:nil
-                                repeats:NO] retain];
-            } else {
-                ScrobLog(SCROB_LOG_WARN, @"Track '%@' failed submission rules. "
-                    @"There is not enough play time left to retry submission.\n",
-                    [currentSong brief]);
-            }
-        }
-    } else {
-        ScrobLog(SCROB_LOG_ERR, @"Lost track! current: (%@, %llu), itunes: (%@, %llu).",
-            currentSong, [currentSong iTunesDatabaseID], song, [song iTunesDatabaseID]);
-    }
-    
-queue_exit:
-    [song release];
 }
 
 - (void)queueSong:(SongData*)song
@@ -458,7 +411,6 @@ if (currentSong) { \
     [getTrackInfoTimer invalidate];
     getTrackInfoTimer = nil;
     
-    double fireInterval;
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
     BOOL wasiTunesPlaying = isiTunesPlaying;
@@ -547,7 +499,6 @@ if (currentSong) { \
         }
         
         // Try to determine if the song is being played twice (or more in a row)
-        fireInterval = 0.0;
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
         if (pos + [SongData songTimeFudge] <  [[currentSong elapsedTime] floatValue] &&
              (pos <= [SongData songTimeFudge]) &&
@@ -573,22 +524,12 @@ if (currentSong) { \
             if (!isiTunesPlaying) { // Handle a pause
                 [currentSong didPause];
                 currentSongPaused = YES;
-                if (![currentSong hasQueued])
-                    KillQueueTimer();
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
             } else  if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
                 if (![currentSong hasQueued]) {
-                    ISASSERT(!currentSongQueueTimer, "Timer is active!");
-                    fireInterval = [currentSong resubmitInterval];
-                    if (fireInterval > 0) {
-                        currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                                    target:self
-                                    selector:@selector(queueCurrentSong:)
-                                    userInfo:nil
-                                    repeats:NO] retain];
-                    }
-                    ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs) -- sub in %.1lfs", [currentSong brief],
-                        [[currentSong elapsedTime] floatValue], fireInterval);
+                    ISASSERT([currentSong resubmitInterval] <= 0.0, "active resubmit interval!");
+                    ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs)", [currentSong brief],
+                        [[currentSong elapsedTime] floatValue]);
                 }
                 
                 if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlOnResume"]) {
@@ -599,9 +540,6 @@ if (currentSong) { \
             goto player_info_exit;
         }
     }
-    
-    // Kill the current timer
-    KillQueueTimer();
     
     /* Workaround for iTunes bug (as of 4.7):
        If the script is run at the exact moment a track switch on an Audio CD occurs,
@@ -619,35 +557,8 @@ if (currentSong) { \
         [song setStartTime:[NSDate date]];
     }
     
-    #if 0
-    fireInterval = currentSong ? [currentSong submitIntervalFromNow] : 0.0f;
-    if (fireInterval >= PM_SUBMIT_AT_TRACK_END) {
-        if (![currentSong isEqualToSong:song] && [currentSong canSubmit]) {
-            [self queueSong:currentSong];
-        }
-    }
-    #endif
-    
     if (isiTunesPlaying) {
         currentSongPaused = NO;
-        // Fire the main timer at the appropos time to get it queued (proto 1.1 only)
-        fireInterval = [song submitIntervalFromNow];
-        if (fireInterval >= PM_SUBMIT_AT_TRACK_END) {
-            ;
-        } else if (fireInterval > 0.0) { // Seems there's a problem with some CD's not giving us correct info.
-            ScrobLog(SCROB_LOG_TRACE, @"Firing sub timer in %0.2lf seconds for track '%@'.\n",
-                fireInterval, [song brief]);
-            currentSongQueueTimer = [[NSTimer scheduledTimerWithTimeInterval:fireInterval
-                            target:self
-                            selector:@selector(queueCurrentSong:)
-                            userInfo:nil
-                            repeats:NO] retain];
-        } else {
-            ScrobLog(SCROB_LOG_WARN,
-                @"Invalid submit interval '%0.2lf' for track '%@'. Track will not be submitted. Duration: %@, Position: %@.\n",
-                fireInterval, [song brief], [song duration], [song position]);
-        }
-        
         // Update Recent Songs list
         NSInteger i, found = 0, count = [songList count];
         for(i = 0; i < count; ++i) {
@@ -688,8 +599,6 @@ player_info_exit:
         [NSNumber numberWithBool:isRepeat], @"repeat",
         [NSNumber numberWithBool:isiTunesPlaying], @"isPlaying",
         nil];
-    if (isiTunesPlaying && currentSongQueueTimer)
-        [userInfo setObject:[currentSongQueueTimer fireDate] forKey:@"sub date"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
         object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
     
@@ -732,7 +641,7 @@ player_info_exit:
     }
 }
 
--(id)init
+- (id)init
 {
     // Read in a defaults.plist preferences file
     NSString * file = [[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"];
@@ -909,10 +818,10 @@ player_info_exit:
         if ([[QueueManager sharedInstance] count])
             [[QueueManager sharedInstance] submit];
         
-        // Create top lists controller so it will pick up subs
-        // We do this after creating the QM so that queued subs are not counted.
-        if (isTopListsActive)
-            (void)[TopListsController sharedInstance];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(songDidQueueHandler:)
+            name:QM_NOTIFICATION_SONG_QUEUED
+            object:nil];
     }
     
     // Install ourself in the Login Items
@@ -1036,10 +945,10 @@ player_info_exit:
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(id /*NSApplication**/)sender
 {
-    if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
+    if (isTopListsActive && ![PersistentProfile newProfile] && [[PersistentProfile sharedInstance] importInProgress]) {
         #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
-            // documented as not implemeted, and it's not (as of 10.4.10
+            // documented as not implemented, and it's not (as of 10.4.10
             NSInteger given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:NSIntegerMax];
             ScrobDebug(@"given %ld ms of delayed log out", given);
         }
@@ -1094,8 +1003,31 @@ player_info_exit:
     }
 }
 
+#define LOCAL_CHARTS_MSG \
+NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil)
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
+    [ISCrashReporter crashReporter];
+    
+    if (isTopListsActive) {
+        if ([PersistentProfile newProfile]) {
+            // Disable this so the TopListsController is not allocated (which begins the import)
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
+            
+            NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+                NSLocalizedString(@"Enable Local Charts?", nil), NSLocalizedFailureReasonErrorKey,
+                LOCAL_CHARTS_MSG, NSLocalizedDescriptionKey,
+                NSLocalizedString(@"Begin Import", nil), @"defaultButton",
+                NSLocalizedString(@"Ask Me Again", nil), @"alternateButton",
+                NSLocalizedString(@"Disable Local Charts", nil), @"otherButton",
+                nil]];
+            
+            [self presentError:error withDidEndHandler:@selector(enableLocalChartsDidEnd:returnCode:contextInfo:)];
+        } else
+            (void)[TopListsController sharedInstance];
+    }
+            
     // Register to handle URLs
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
         forEventClass:kInternetEventClass andEventID:kAEGetURL];
@@ -1173,7 +1105,7 @@ player_info_exit:
     [[ISRadioController sharedInstance] tuneStationWithName:nil url:url];
 }
 
--(IBAction)checkForUpdate:(id)sender
+- (IBAction)checkForUpdate:(id)sender
 {
     if ([sender isKindOfClass:[NSTimer class]]) {
         //automatic check - make sure we have an inet connection
@@ -1186,7 +1118,29 @@ player_info_exit:
     [BBNetUpdateVersionCheckController checkForNewVersion:nil interact:(sender ? YES : NO)];
 }
 
-- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
+- (NSString*)versionString
+{
+    NSString *ver;
+    if (!(ver = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]))
+        ver = @"";
+    NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (!build)
+        build = ver;
+    return ([NSString stringWithFormat:@"%@/%@", ver, build]);
+}
+
+- (void)enableLocalChartsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
+{
+    if (NSAlertDefaultReturn == returnCode) {
+        (void)[TopListsController sharedInstance];
+    } else if (NSAlertAlternateReturn == returnCode) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Disable Local Lists"];
+    }
+    
+    [(id)contextInfo performSelector:@selector(close) withObject:nil afterDelay:0.0];
+}
+
+- (void)noGrowlDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
     if (NSAlertOtherReturn == returnCode) {
         NSURL *url = [NSURL URLWithString:@"http://growl.info/"];
@@ -1206,7 +1160,7 @@ player_info_exit:
         [self displayErrorWithTitle:NSLocalizedString(@"Submissions Disabled", "") message:@""];
 }
 
--(IBAction)enableDisableSubmissions:(id)sender
+- (IBAction)enableDisableSubmissions:(id)sender
 {
     if (!submissionsDisabled) {
         [self setSubmissionsEnabled:NO];
@@ -1256,7 +1210,6 @@ player_info_exit:
         if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
             NSMenu *m = [songActionMenu copy];
-            NSMenuItem *item;
             if ([song isLastFmRadio]) {
                 NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
                 item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
@@ -1299,7 +1252,7 @@ player_info_exit:
     }
 }
 
--(IBAction)clearMenu:(id)sender{
+- (IBAction)clearMenu:(id)sender{
     NSMenuItem *item;
     NSEnumerator *enumerator = [[theMenu itemArray] objectEnumerator];
 	
@@ -1315,7 +1268,7 @@ player_info_exit:
         [theMenu removeItemAtIndex:0];
 }
 
--(IBAction)playSong:(id)sender{
+- (IBAction)playSong:(id)sender{
     static NSAppleScript *iTunesPlayTrackScript = nil;
     
     if (!iTunesPlayTrackScript) {
@@ -1344,7 +1297,7 @@ player_info_exit:
     }
 }
 
--(IBAction)openPrefs:(id)sender{
+- (IBAction)openPrefs:(id)sender{
     // ScrobTrace(@"opening prefs");
     
     if(!preferenceController)
@@ -1358,26 +1311,26 @@ player_info_exit:
     [preferenceController showPreferencesWindow];
 }
 
--(IBAction)openScrobblerHomepage:(id)sender
+- (IBAction)openScrobblerHomepage:(id)sender
 {
     NSURL *url = [NSURL URLWithString:@"http://www.last.fm/group/iScrobbler"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
--(IBAction)openUserHomepage:(id)sender
+- (IBAction)openUserHomepage:(id)sender
 {
     NSString *prefix = @"http://www.last.fm/user/";
     NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
--(IBAction)openStatistics:(id)sender
+- (IBAction)openStatistics:(id)sender
 {
     [NSApp activateIgnoringOtherApps:YES];
     [[StatisticsController sharedInstance] showWindow:sender];
 }
 
--(IBAction)openTopLists:(id)sender
+- (IBAction)openTopLists:(id)sender
 {
     [NSApp activateIgnoringOtherApps:YES];
     [[TopListsController sharedInstance] showWindow:sender];
@@ -1389,7 +1342,7 @@ player_info_exit:
         [NSURL URLWithString:@"http://www.bergstrand.org/brian/donate"]];
 }
 
--(void) handlePrefsChanged:(NSNotification *)aNotification
+- (void)handlePrefsChanged:(NSNotification *)aNotification
 {
     // Song Count
     while([songList count]>[prefs integerForKey:@"Number of Songs to Save"])
@@ -1406,17 +1359,18 @@ player_info_exit:
 #endif
 }
 
--(void)dealloc{
+#if 0 // we are a singleton
+- (void)dealloc{
 	[nc removeObserver:self];
 	[nc release];
 	[statusItem release];
 	[songList release];
 	[script release];
-	KillQueueTimer();
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
 }
+#endif
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 #define IS_CC_MD5 CC_MD5
@@ -1426,7 +1380,7 @@ player_info_exit:
 unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 {
     CC_MD5_CTX ctx;
-    CC_MD5_Init (&ctx);
+    CC_MD5_Init(&ctx);
     CC_MD5_Update(&ctx, bytes, len);
     CC_MD5_Final(md, &ctx);
     return (md);
@@ -1450,7 +1404,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return (hashString);
 }
 
--(SongData*)nowPlaying
+- (SongData*)nowPlaying
 {
     return (!currentSongPaused ? currentSong : nil);
 }
@@ -1468,7 +1422,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return ([str autorelease]);
 }
 
--(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
+- (NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title
 {
     static NSString *baseURL = nil;
     static NSString *artistTitlePathSeparator = nil;
@@ -1501,12 +1455,12 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
 }
 
--(IBAction)cleanLog:(id)sender
+- (IBAction)cleanLog:(id)sender
 {
     ScrobLogTruncate();
 }
 
--(IBAction)performFindPanelAction:(id)sender
+- (IBAction)performFindPanelAction:(id)sender
 {
     NSWindow *w = [NSApp keyWindow];
     if (w && [[w windowController] respondsToSelector:@selector(performFindPanelAction:)])
@@ -1515,7 +1469,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         NSBeep();
 }
 
-- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void  *)contextInfo
+- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
     if (returnCode == NSAlertDefaultReturn)
 		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.0];
@@ -1551,7 +1505,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     [NSApp activateIgnoringOtherApps:YES];
     
     // Create a new transparent window (with click through) so that we don't block the app event loop
-    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0f, 0.0f, 100.0, 100.0)
+    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 100.0, 100.0)
         styleMask:NSBorderlessWindowMask
         backing:NSBackingStoreBuffered defer:NO];
     [w setReleasedWhenClosed:YES];
@@ -1562,6 +1516,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     // nasty console messages from the window server about an
     // "invalid window type"
     [w setBackingType:NSBackingStoreNonretained];
+    [w setLevel:NSModalPanelWindowLevel];
     // This has to be done before changing click through properties,
     // otherwise things won't work
     [w orderFront:nil];
@@ -1570,8 +1525,9 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
     #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
-    if ([w respondsToSelector:@selector(setCollectionBehavior:)])
-        [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
+    LEOPARD_BEGIN
+    [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
+    LEOPARD_END
     // [w setDelegate:self];
     [w center];
     
@@ -2098,20 +2054,20 @@ exit:
         r = [fmt rangeOfString:@"%d"];
         if (NSNotFound != r.location) {
             NSString *timeStr;
-            unsigned time = [[self duration] unsignedIntValue];
+            unsigned tDuration = [[self duration] unsignedIntValue];
             unsigned days, hours, mins, secs;
-            ISDurationsFromTime(time, &days, &hours, &mins, &secs);
+            ISDurationsFromTime(tDuration, &days, &hours, &mins, &secs);
             
-            if (time < 3600)
+            if (tDuration < 3600)
                 timeStr = [NSString stringWithFormat:@"%u:%02u", mins, secs];
             else
                 timeStr = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
             
-            time = [[self elapsedTime] unsignedIntValue];
+            tDuration = [[self elapsedTime] unsignedIntValue];
             if (time > 0) {
                 NSString *tmp;
-                ISDurationsFromTime(time, &days, &hours, &mins, &secs);
-                if (time < 3600)
+                ISDurationsFromTime(tDuration, &days, &hours, &mins, &secs);
+                if (tDuration < 3600)
                     tmp = [NSString stringWithFormat:@"%u:%02u", mins, secs];
                 else
                     tmp = [NSString stringWithFormat:@"%u:%02u:%02u", hours, mins, secs];
@@ -2204,17 +2160,15 @@ exit:
 
 - (void)loadProxy
 {
-    #ifdef notyet
     static BOOL setup = YES;
     if (setup) {
-        [[NSConnection defaultConnection] setRootObject:self];
+        [[NSConnection defaultConnection] setRootObject:[NSNull null]];
         [[NSConnection defaultConnection] setReplyTimeout:3.0];
         [[NSConnection defaultConnection] setRequestTimeout:3.0];
         setup = NO;
     }
-    #endif
     
-    if (!sProxy) {    
+    if (!sProxy) {
         sProxy = [[NSConnection rootProxyForConnectionWithRegisteredName:ISProxyName host:nil] retain];
         if (!sProxy) {
             [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
@@ -2235,7 +2189,55 @@ exit:
 
 #endif // IS_SCRIPT_PROXY
 
+@implementation NSFileManager (ISAliasExtensions)
+
+- (NSString*)destinationOfAliasAtPath:(NSString*)path error:(NSError**)error
+{
+    FSRef ref;
+    OSErr err;
+    Boolean isFolder, wasAliased, recursed = FALSE;
+    NSString *resolvedPath;
+
+resolvePath:
+    if (error)
+        *error = nil;
+    wasAliased = NO;
+    resolvedPath = nil;
+    const UInt8 *p = (const UInt8*)[path UTF8String];
+    err = fnfErr;
+    if (p && 0 == (err = FSPathMakeRef(p, &ref, &isFolder))) {
+        err = FSIsAliasFile (&ref, &wasAliased, &isFolder);
+        if (NO == wasAliased)
+            return (path);
+        
+        NSURL *url;
+        err = FSResolveAliasFileWithMountFlags (&ref, TRUE, &isFolder, &wasAliased, kResolveAliasFileNoUI);
+        if (!err) {
+            if ((url = (NSURL*)CFURLCreateFromFSRef (kCFAllocatorDefault, &ref))) {
+                return ([[url autorelease] path]);
+            }
+        }
+    } else if (dirNFErr == err && !recursed && NO == [@"/" isEqualToString:path]) {
+        // recurse the path to resovle any parent aliases
+        recursed = YES;
+        resolvedPath = [self destinationOfAliasAtPath:[path stringByDeletingLastPathComponent] error:error];
+        if (resolvedPath) {
+            path = [resolvedPath stringByAppendingPathComponent:[path lastPathComponent]];
+            goto resolvePath;
+        }
+    }
+    
+    if (error) {
+        *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:(NSInteger)err userInfo:nil];
+    }
+
+    return (nil);
+}
+
+@end
+
 @implementation NSMutableArray (iScrobblerContollerFifoAdditions)
+
 - (void)pushSong:(id)obj
 {
     if ([self count])
@@ -2243,12 +2245,13 @@ exit:
     else
         [self addObject:obj];
 }
+
 @end
 
 #if 0
 @implementation NSScriptCommand (ISExtensions)
 
-- (id) evaluatedDirectParameters
+- (id)evaluatedDirectParameters
 {
     id param = [self directParameter];
     if ([param isKindOfClass: [NSScriptObjectSpecifier class]])
@@ -2263,22 +2266,22 @@ exit:
 @end
 #endif
 
-void ISDurationsFromTime(unsigned int time, unsigned int *days, unsigned int *hours,
+void ISDurationsFromTime(unsigned int tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = time / 86400U;
-    *hours = (time % 86400U) / 3600U;
-    *minutes = ((time % 86400U) % 3600U) / 60U;
-    *seconds = ((time % 86400U) % 3600U) % 60U;
+    *days = tSeconds / 86400U;
+    *hours = (tSeconds % 86400U) / 3600U;
+    *minutes = ((tSeconds % 86400U) % 3600U) / 60U;
+    *seconds = ((tSeconds % 86400U) % 3600U) % 60U;
 }
 
-void ISDurationsFromTime64(unsigned long long time, unsigned int *days, unsigned int *hours,
+void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = (unsigned int)(time / 86400U);
-    *hours = (unsigned int)(time % 86400U) / 3600U;
-    *minutes = (unsigned int)((time % 86400U) % 3600U) / 60U;
-    *seconds = (unsigned int)((time % 86400U) % 3600U) % 60U;
+    *days = (unsigned int)(tSeconds / 86400U);
+    *hours = (unsigned int)(tSeconds % 86400U) / 3600U;
+    *minutes = (unsigned int)((tSeconds % 86400U) % 3600U) / 60U;
+    *seconds = (unsigned int)((tSeconds % 86400U) % 3600U) % 60U;
 }
 
 #include "iScrobblerController+Private.m"
@@ -2309,6 +2312,7 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
     };
 }
 
+// iTunes sends com.apple.iTunes.sourceSaved when it saves the XML - should we watch for that instead
 static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
 {
     io_service_t iomedia;
@@ -2327,4 +2331,3 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
         IOObjectRelease(iomedia);
     }
 }
-

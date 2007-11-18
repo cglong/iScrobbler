@@ -14,12 +14,31 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+b3:
+- Dropped support for AS protocol 1.1, 1.2 will always be used.
+- Local Chart dates are now shown from the date the database was created instead of a date in the past.
+- New Profile report stat for Artists: Play Count per day/week
+- If a new local charts database needs to be created, iScrobbler will first ask if you want to begin the import.
+- Added "Check for New Version Now" button to prefs.
+- Bug Fix: Possible duplicate entries in local charts when a Radio stream error occurred.
+- Bug Fix: Better handling of Radio stream errors to keep iScrobbler's currently playing track in sync.
+- Bug Fix: Regression - Tracks could spuriously be submitted multiple times when syncing an iPod because of an error in updating time of the last submission.
+- Bug Fix: Regression - restored the ability to play songs during an iPod sync (broke in a4).
+- Bug Fix: Regression - AutoLoveTracksRatedHigherThan has been broken since the switch to protocol 1.2 (in 1.5.1).
+b2:
+- Bug Fix: Aliases in the path to the iTunes library XML file are now resolved.
+b1:
+- 64bit version for Leopard+ and Intel Core 2+.
+- Artist and Album images now display better and faster on Leopard.
+- Growl warning can now be ignored.
+- Bug Fix: Possible crash when loading the Aritist info drawer.
+- Other minor bug fixes.
 a7:
 - Leopard Front Row support.
 - Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue. In addition this same change could result in duplicate iPod submissions.
 - Bug Fix: Possible (and likely) crash while generating a Profile report.
 - Bug Fix: iTunes import would fail to import any songs for non-English users.
-- Bug Fix (Regression): The Top Lists window was not remembering whether it was open or closed.
+- Bug Fix: Regression - The Top Lists window was not remembering whether it was open or closed.
 - Bug Fix: Explicitly deny manual-sync iPod support for multiple play detection.
 a6:
 - Bug Fix: Crash when syncing an iPod.
@@ -68,6 +87,10 @@ a2:
 a1:
 - Requires 10.4.9 or later
 - Radio support! (Plays through iTunes.)
+
+v1.5.2 (BDB)
+- Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue. In addition this same change could result in duplicate iPod submissions.
+- Minor version check improvement.
 
 v1.5.1 (BDB)
 - New Local Profile Chart: Top Hours - play counts and time broken down by hour

@@ -419,8 +419,9 @@ exitHistory:
             [[ASWebServices sharedInstance] streamURL], nil];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
-        NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed
-            object:self userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:999999] forKey:@"error"]];
+        NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed object:self
+            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:999999], @"error",
+                exception, @"reason", nil]];
         [self performSelector:@selector(wsStationTuneFailure:) withObject:n afterDelay:0.0];
         return;
     }
@@ -451,7 +452,7 @@ exitHistory:
     stationBeingTuned = nil;
     
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
-    NSString *msg = @"";
+    NSString *msg = @"", *errMsg;
     switch (err) {
         case 0:
             msg = NSLocalizedString(@"Network error.", "");
@@ -479,6 +480,8 @@ exitHistory:
         break;
         case 999999:
             msg = NSLocalizedString(@"iTunes received an error attempting to play the station. Please try another station.", "");
+            if ((errMsg = [[note userInfo] objectForKey:@"reason"]))
+                msg = [msg stringByAppendingFormat:@" (\"%@\")", errMsg];
         break;
         default:
             msg = NSLocalizedString(@"Unknown error.", "");
@@ -558,10 +561,9 @@ exitHistory:
     [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Failed to connect to Last.fm Radio", "")];
 }
 
+static NSTimer *ping = nil;
 - (void)wsNowPlayingUpdate:(NSNotification*)note
 {
-    static NSTimer *ping = nil;
-    
     [ping invalidate];
     [ping release];
     ping = nil;
@@ -570,13 +572,28 @@ exitHistory:
     NSDictionary *np = [note userInfo];
     NSString *state = np && (NSOrderedSame == [[np objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) ? @"Playing" : @"Stopped";
     
+    SongData *s = [[NSApp delegate] nowPlaying];
     if ([state isEqualToString:@"Stopped"]) {
         [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:NO];
-        SongData *s = [[NSApp delegate] nowPlaying];
         if (!s || ![s isLastFmRadio])
             return;
-    } else
+    } else {
+        // back-to-back repeats should not occur on the server because of label restrictions
+        NSString *al = [np objectForKey:@"album"];
+        if (s && [s isLastFmRadio]
+            && NSOrderedSame == [[s title] caseInsensitiveCompare:[np objectForKey:@"track"]]
+            && NSOrderedSame == [[s artist] caseInsensitiveCompare:[np objectForKey:@"artist"]]
+            && ((!al && [@"" isEqualToString:[s album]])
+                || (al && NSOrderedSame == [[s album] caseInsensitiveCompare:al]))) {
+            // ping again in the assumption that the radio state is out of sync
+            ScrobLog(SCROB_LOG_INFO, @"A repeat radio play was detected. This should not occur. Assuming 'Now Playing' state is out of sync.");
+            ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
+                target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
+            return;
+        }
+    
         [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:YES];
+    }
     
     int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -599,9 +616,8 @@ exitHistory:
     if (duration > 0) {
         int progress = [[np objectForKey:@"trackprogress"] intValue];
         duration -= progress;
-        ping = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
-            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO];
-        (void)[ping retain];
+        ping = [[NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
+            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.iscrobbler.lasfm.playerInfo" 
@@ -610,13 +626,23 @@ exitHistory:
 
 - (void)wsNowPlayingFailed:(NSNotification*)note
 {
-    [self wsNowPlayingUpdate:note];
+    SongData *s = [[NSApp delegate] nowPlaying];
+    if (s && [s isLastFmRadio]) {
+        // try to get the  info again
+        ScrobLog(SCROB_LOG_INFO, @"Radio 'Now Playing' failure while track was actively playing . Assuming state is out of sync.");
+        [ping invalidate];
+        [ping release];
+        ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
+            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
+    } else
+        [self wsNowPlayingUpdate:note];
 }
 
 - (void)wsExecComplete:(NSNotification*)note
 {
+    // update after a small delay to have a better chance of the info being up to date (such as a ban or skip)
     if ([[ASWebServices sharedInstance] nowPlayingInfo])
-        [[ASWebServices sharedInstance] updateNowPlaying];
+        [[ASWebServices sharedInstance] performSelector:@selector(updateNowPlaying) withObject:nil afterDelay:0.85];
 }
 
 - (void)nowPlaying:(NSNotification*)note

@@ -243,6 +243,13 @@ static NSMutableArray *topHours = nil;
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
+            && [PersistentProfile newProfile]) {
+            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
+                NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
+        }
+        
         (void)[PersistentProfile sharedInstance]; // this will start the import
 
         // Register for QM notes
@@ -256,15 +263,9 @@ static NSMutableArray *topHours = nil;
             name:PersistentProfileImportProgress
             object:nil];
         
-        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
-            && [[PersistentProfile sharedInstance] newProfile]) {
-            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
-                NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
-            if ([[PersistentProfile sharedInstance] importInProgress]) {
-                [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"iTunes Import", "") message:
-                    NSLocalizedString(@"Your iTunes library is now being imported into the new local charts. This can take several hours of intense CPU time and should not be interrupted.", "")];
-            }
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
+        if ([[PersistentProfile sharedInstance] importInProgress]) {
+            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"iTunes Import", "") message:
+                NSLocalizedString(@"Your iTunes library is now being imported into the new local charts. This can take several hours of intense CPU time and should not be interrupted.", "")];
         }
     }
     return (self);
@@ -432,7 +433,7 @@ static NSMutableArray *topHours = nil;
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];
     title = [NSString stringWithFormat:@"%C ", 0x2665];
     [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Love", "")]];
-    [item setToolTip:NSLocalizedString(@"Love the currently playing track.", "")];
+    [item setToolTip:NSLocalizedString(@"Love the selected track.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
     [item setAction:@selector(loveTrack:)];
@@ -444,7 +445,7 @@ static NSMutableArray *topHours = nil;
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"ban"];
     title = [NSString stringWithFormat:@"%C ", 0x2298];
     [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]];
-    [item setToolTip:NSLocalizedString(@"Ban the currently playing track from last.fm.", "")];
+    [item setToolTip:NSLocalizedString(@"Ban the selected track from last.fm.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
     [item setAction:@selector(banTrack:)];
@@ -456,7 +457,7 @@ static NSMutableArray *topHours = nil;
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"recommend"];
     title = [NSString stringWithFormat:@"%C ", 0x2709];
     [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Recommend", "")]];
-    [item setToolTip:NSLocalizedString(@"Recommend the currently playing track to another last.fm user.", "")];
+    [item setToolTip:NSLocalizedString(@"Recommend the selected track or artist to another last.fm user.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
     [item setAction:@selector(recommend:)];
@@ -468,7 +469,7 @@ static NSMutableArray *topHours = nil;
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"tag"];
     title = [NSString stringWithFormat:@"%C ", 0x270E];
     [item setLabel:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]];
-    [item setToolTip:NSLocalizedString(@"Tag the currently playing track.", "")];
+    [item setToolTip:NSLocalizedString(@"Tag the selected track or artist.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
     [item setAction:@selector(tag:)];
@@ -918,7 +919,7 @@ exit:
 #define TRCLOSE @"</tr>\n"
 #define TD @"<td>"
 #define TDTITLE @"<td class=\"title\">"
-#define TDGRAPH @"<td class=\"smallgraph\">"
+#define TDGRAPH @"<td class=\"smallgraph\">" 
 #define TDPOS @"<td class=\"position\">"
 #define TDCLOSE @"</td>\n"
 
@@ -963,7 +964,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     unsigned int days, hours, minutes, seconds;
     ISDurationsFromTime([totalTime unsignedIntValue], &days, &hours, &minutes, &seconds);
-    NSString *time = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
+    NSString *timeStr = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
     
@@ -996,7 +997,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         ([totalTime doubleValue] / 3600.0) / elapsedDays];
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%0.2f%% %@ %@ %@)</span>",
-        tmp, time, ([totalTime floatValue] / elapsedSeconds) * 100.0,
+        tmp, timeStr, ([totalTime floatValue] / elapsedSeconds) * 100.0,
         NSLocalizedString(@"of", ""), elapsedTime, NSLocalizedString(@"elapsed", "")]));
     HAdd(d, TRCLOSE TBLCLOSE @"</div>");
     
@@ -1004,7 +1005,13 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topartists\">\n" TR);
-    HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
+    HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
+    if (elapsedDays > 14.0) {
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Week", ""))));
+    } else
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Day", ""))));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
     HAdd(d, TRCLOSE);
     
     NSEnumerator *en = [artists reverseObjectEnumerator]; // high->low
@@ -1015,25 +1022,33 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     float width = 100.0f /* bar width */, percentage,
     basePlayCount = [[artists valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue],
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
+    float secondaryBasePlayCount = basePlayCount / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
+    float secondaryTotalPlayCount = [totalPlays floatValue] / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
-        time = [entry objectForKey:@"Play Time"];
+        timeStr = [entry objectForKey:@"Play Time"];
         
         HAdd(d, (position & 0x0000001) ? TR : TRALT);
         
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
-        HAdd(d, TDEntry(TDTITLE, artist));
+        HAdd(d, TDEntry(@"<td class=\"mediumtitle\">", artist));
         // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
         percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
+        // Per Day/Week count
+        float secondaryCount = [playCount floatValue] / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
+        width = rintf((secondaryCount / secondaryBasePlayCount) * 100.0f);
+        percentage = (secondaryCount / secondaryTotalPlayCount) * 100.0f;
+        tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+        HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, [NSString stringWithFormat:@"%.1f", secondaryCount])));
         // Total time bar
         width = rintf(([[entry objectForKey:@"Total Duration"] floatValue] / basePlayTime) * 100.0f);
         percentage = ([[entry objectForKey:@"Total Duration"] floatValue] / [totalTime floatValue]) * 100.0f;
         tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
-        HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
+        HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
         
         HAdd(d, TRCLOSE);
         ++position;
@@ -1044,7 +1059,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     pool = [[NSAutoreleasePool alloc] init];
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"toptracks\">\n" TR);
-    HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
+    HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Last Played", ""))));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
     HAdd(d, TRCLOSE);
     
     en = [tracks reverseObjectEnumerator]; // high->low
@@ -1053,7 +1070,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
-        time = [[entry objectForKey:@"Last Played"]
+        timeStr = [[entry objectForKey:@"Last Played"]
             descriptionWithCalendarFormat:PROFILE_DATE_FORMAT timeZone:nil locale:nil];
         track = [[entry objectForKey:@"Track"] stringByConvertingCharactersToHTMLEntities];
         
@@ -1062,7 +1079,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         tmp = [NSString stringWithFormat:@"%@ - %@", track, artist];
         HAdd(d, TDEntry(TDTITLE, tmp));
-        HAdd(d, TDEntry(TDGRAPH, time)); // Last play time
+        HAdd(d, TDEntry(TDGRAPH, timeStr)); // Last play time
         // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
         percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
@@ -1082,7 +1099,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
-        HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
+        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
         HAdd(d, TRCLOSE);
         
         keys = [topAlbums keysSortedByValueUsingSelector:@selector(sortByDuration:)];
@@ -1121,8 +1140,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
                 percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0f;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
                 ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
-                time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, time)));
+                timeStr = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
                 
                 HAdd(d, TRCLOSE);
                 ++position;
@@ -1137,7 +1156,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         pool = [[NSAutoreleasePool alloc] init];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topratings\">\n" TR);
-        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Ratings", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Top Ratings", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
         HAdd(d, TRCLOSE);
         
         // Determine max count
@@ -1177,7 +1197,9 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         pool = [[NSAutoreleasePool alloc] init];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
-        HAdd(d, TH(3, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
         HAdd(d, TRCLOSE);
         
         // Determine max count
@@ -1206,8 +1228,8 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             percentage = (ratingCount / [totalTime floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
             ISDurationsFromTime((unsigned)ratingCount, &days, &hours, &minutes, &seconds);
-            time = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, time)));
+            timeStr = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+            HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, timeStr)));
             
             HAdd(d, TRCLOSE);
         }

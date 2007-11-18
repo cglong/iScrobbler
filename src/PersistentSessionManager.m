@@ -436,7 +436,7 @@ __private_extern__ NSThread *mainThread;
     
     if ([validSongs count] > [invalidSongs count]) {
         [self removeSongs:invalidSongs fromSession:session moc:moc];
-        ScrobDebug(@"removed %lu songs from session %@", [invalidSongs count], sessionName);
+        ScrobLog(SCROB_LOG_TRACE, @"removed %lu songs from session %@", [invalidSongs count], sessionName);
     } else {
         // it's more efficient to destroy everything and add the valid songs back in
         NSEnumerator *en;
@@ -465,7 +465,8 @@ __private_extern__ NSThread *mainThread;
             }
         }
         
-        ScrobDebug(@"recreated session %@ with %lu valid songs (%lu invalid)", sessionName, [validSongs count], [invalidSongs count]);
+        ScrobLog(SCROB_LOG_TRACE, @"recreated session %@ with %lu valid songs (%lu invalid)",
+            sessionName, [validSongs count], [invalidSongs count]);
     }
     
     [session setValue:epoch forKey:@"epoch"];
@@ -511,7 +512,11 @@ __private_extern__ NSThread *mainThread;
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
+        @try {
         [moc reset];
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_WARN, @"updateLastfmSession: exception during reset: %@", e);
+        }
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
@@ -569,7 +574,11 @@ __private_extern__ NSThread *mainThread;
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
+        @try {
         [moc reset];
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_WARN, @"updateSessions: exception during reset: %@", e);
+        }
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
@@ -686,7 +695,7 @@ __private_extern__ NSThread *mainThread;
     return ([result objectAtIndex:0]);
 }
 
-- (void)updateSongHistory:(NSManagedObject*)psong count:(NSNumber*)count time:(NSNumber*)time moc:(NSManagedObjectContext*)moc
+- (void)updateSongHistory:(NSManagedObject*)psong count:(NSNumber*)count time:(NSNumber*)secs moc:(NSManagedObjectContext*)moc
 {
     // Create a last played history item
     NSManagedObject *lastPlayed;
@@ -696,13 +705,13 @@ __private_extern__ NSThread *mainThread;
     [lastPlayed setValue:psong forKey:@"song"];
     
     [psong incrementPlayCount:count];
-    [psong incrementPlayTime:time];
+    [psong incrementPlayTime:secs];
     [[psong valueForKey:@"artist"] incrementPlayCount:count];
-    [[psong valueForKey:@"artist"] incrementPlayTime:time];
+    [[psong valueForKey:@"artist"] incrementPlayTime:secs];
     [[psong valueForKey:@"artist"] setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
     if ([psong valueForKey:@"album"]) {
         [[psong valueForKey:@"album"] incrementPlayCount:count];
-        [[psong valueForKey:@"album"] incrementPlayTime:time];
+        [[psong valueForKey:@"album"] incrementPlayTime:secs];
     }
 }
 

@@ -17,7 +17,7 @@ on UpdateiPod(thePlaylistName, theDate)
 			set iTunesVer to version as string
 			-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
 			set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
-			with timeout of 60 seconds
+			with timeout of 600 seconds
 				repeat with theSource in allSources
 					tell theSource
 						set mytracks to {}
@@ -135,6 +135,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Friday, November 2, 2007 9:15:00 PM"
+	set when to date "Friday, November 2, 2007 9:15:00 PM GMT+02:00"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run
