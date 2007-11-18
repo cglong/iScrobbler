@@ -1126,7 +1126,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
     if (!build)
         build = ver;
-    return ([NSString stringWithFormat:@"%@/%@", ver, build]);
+    return ([NSString stringWithFormat:@"%@/%@ (%@)", ver, build, ISCPUArchitectureString()]);
 }
 
 - (void)enableLocalChartsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
