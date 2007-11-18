@@ -919,7 +919,7 @@ exit:
 #define TRCLOSE @"</tr>\n"
 #define TD @"<td>"
 #define TDTITLE @"<td class=\"title\">"
-#define TDGRAPH @"<td class=\"smallgraph\">"
+#define TDGRAPH @"<td class=\"smallgraph\">" 
 #define TDPOS @"<td class=\"position\">"
 #define TDCLOSE @"</td>\n"
 
@@ -1032,7 +1032,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, (position & 0x0000001) ? TR : TRALT);
         
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
-        HAdd(d, TDEntry(TDTITLE, artist));
+        HAdd(d, TDEntry(@"<td class=\"mediumtitle\">", artist));
         // Total Plays bar
         width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
         percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
