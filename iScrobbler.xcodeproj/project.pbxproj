@@ -367,6 +367,7 @@
 				F575CE9702FE0E8801A80164 /* iScrobblerController.m */,
 				D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */,
 				D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */,
+				D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */,
 				D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */,
 				D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */,
 				D37605560CB18BF700C04863 /* ISPluginController.m */,
@@ -393,8 +394,6 @@
 				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
 				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
-				D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */,
-				D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */,
 			);
 			name = Classes;
 			path = src;
@@ -622,6 +621,7 @@
 				D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */,
 				F575CE9802FE0E8801A80164 /* iScrobblerController.h */,
 				D3D3944F09BBF8D1004E215A /* ISArtistDetailsController.h */,
+				D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */,
 				D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */,
 				D38F74BC0B56CE2800230DBE /* ISLoveBanListController.h */,
 				D37605540CB18BF700C04863 /* ISPlugin.h */,
