@@ -76,7 +76,7 @@
     
     NSString *preamble = [@"\n" stringByAppendingFormat:@"%@ %@", bundleName,
         // XXX: iScrobbler specific
-        NSLocalizedString(@"appears to have crashed the last time you used it. Please copy the following text and report this in the iScrobbler support forum at http://www.last.fm/group/iScrobbler/forum\n\n", "")];
+        NSLocalizedString(@"appears to have crashed the last time you used it. Please copy the following text and report this in the iScrobbler support forum at http://www.last.fm/group/iScrobbler/forum. If possible, please also describe what you were doing when the crash occurred.\n\n", "")];
     NSAttributedString *s = [[[NSMutableAttributedString alloc] initWithString:preamble] autorelease];
     r = [preamble rangeOfString:@"http://www.last.fm/group/iScrobbler/forum"];
     [(NSMutableAttributedString*)s setAttributes:
