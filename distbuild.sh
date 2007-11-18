@@ -53,13 +53,6 @@ mkdir "/Volumes/${VOLUME}/hidden"
 cp res/bg_DS_Store "/Volumes/${VOLUME}/.DS_Store"
 cp res/bg.png "/Volumes/${VOLUME}/hidden/"
 
-#create src zipball of HEAD
-echo "Exporting source..."
-svn export . /tmp/issrc
-cd /tmp
-zip -qr -9 "${HOME}/Desktop/iscrobbler_src.${VER}.zip" issrc
-rm -rf issrc
-
 cd ~/Desktop
 
 hdiutil eject ${DEVICE}
