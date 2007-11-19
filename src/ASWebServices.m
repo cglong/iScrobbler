@@ -21,6 +21,18 @@ static float handshakeDelay = 60.0f;
 static NSURLConnection *tuneConn = nil, *npConn = nil, *execConn = nil;
 static NSMutableDictionary *connData = nil;
 
+#define POSE_AS_LASTFM
+
+#ifdef POSE_AS_LASTFM
+#define WS_VERSION @"1.3.2.13"
+#define WS_PLATFORM @"mac"
+#else
+#define WS_VERSION [[NSUserDefaults standardUserDefaults] stringForKey:@"version"]
+#define WS_PLATFORM [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"]
+#endif
+// XXX "jp" somehow indicates the radio is hidden?
+#define WS_LANG @"en"
+
 @implementation ASWebServices : NSObject
 
 + (ASWebServices*)sharedInstance
@@ -69,11 +81,11 @@ static NSMutableDictionary *connData = nil;
         account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS ROOT"]
         stringByAppendingFormat:@"/radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
-            [[NSUserDefaults standardUserDefaults] stringForKey:@"version"],
-            [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"],
+            WS_VERSION,
+            WS_PLATFORM,
             escapedusername,
             [[NSApp delegate] md5hash:pass],
-            @"en"]; // XXX "jp" somehow indicates the radio is hidden?
+            WS_LANG];
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
@@ -106,7 +118,9 @@ static NSMutableDictionary *connData = nil;
         sessionvars = [d retain];
     }
     
-    if (!sessionid || ![sessionvars objectForKey:@"stream_url"]) {
+    NSString *session = sessionid;
+    if (!session || NSOrderedSame == [session caseInsensitiveCompare:@"failed"] || 32 != [session length]
+        || ![sessionvars objectForKey:@"stream_url"]) {
         ScrobLog(SCROB_LOG_ERR, @"ASWS missing handshake session or stream_url: (%@)\n", result);
         [self scheduleNextHandshakeAttempt];
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSFailedHandshake object:self];
@@ -133,9 +147,9 @@ static NSMutableDictionary *connData = nil;
     if (!service)
         return (nil);
     
-    NSString *path = [NSString stringWithFormat:@"http://%@%@/adjust.php?session=%@&url=%@&debug=%d",
+    NSString *path = [NSString stringWithFormat:@"http://%@%@/adjust.php?session=%@&url=%@&lang=%@",
         [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"],
-        sessionid, service, 0];
+        sessionid, service, WS_LANG];
     @try {
     return (!needHandshake ? [NSURL URLWithString:path] : nil);
     } @catch (id e) {}
@@ -149,8 +163,8 @@ static NSMutableDictionary *connData = nil;
     npConn = nil;
     
     NSURL *url;
-    NSString *s = [NSString stringWithFormat:@"http://%@%@/np.php?session=%@&debug=%d",
-        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, 0];
+    NSString *s = [NSString stringWithFormat:@"http://%@%@/np.php?session=%@",
+        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid];
     ScrobTrace(@"%@", s);
     @try {
     url = [NSURL URLWithString:s];
@@ -273,8 +287,8 @@ static NSMutableDictionary *connData = nil;
     execConn = nil;
     
     NSURL *url;
-    NSString *s = [NSString stringWithFormat:@"http://%@%@/control.php?session=%@&command=%@&debug=%d",
-        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, command, 0];
+    NSString *s = [NSString stringWithFormat:@"http://%@%@/control.php?session=%@&command=%@&lang=%@",
+        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, command, WS_LANG];
     @try {
     url = [NSURL URLWithString:s];
     } @catch (id e) {
