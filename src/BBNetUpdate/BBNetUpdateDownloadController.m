@@ -262,7 +262,7 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     [self close];
 }
 
-- (void)download:(NSURLDownload *)download didReceiveDataOfLength:(unsigned)length;
+- (void)download:(NSURLDownload *)download didReceiveDataOfLength:(NSUInteger)length;
 {
    if (_totalBytes > 0.0) {
        double recvdBytes = ((double)length / _totalBytes) * 100.0;
@@ -292,12 +292,11 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 
 // Sheet handlers
 
-- (void)endAlertSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)endAlertSheet:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
    if ((void*)-1 == contextInfo) {
       // Error - close the parent
-      [NSTimer scheduledTimerWithTimeInterval:0.02 target:self
-            selector:@selector(close) userInfo:nil repeats:NO];
+      [NSTimer scheduledTimerWithTimeInterval:0.02 target:self selector:@selector(close) userInfo:nil repeats:NO];
    }
 }
 
