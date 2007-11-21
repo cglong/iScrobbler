@@ -80,7 +80,7 @@ static NSMutableDictionary *connData = nil;
     NSString *pass = [[KeyChain defaultKeyChain]  genericPasswordForService:@"iScrobbler"
         account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS ROOT"]
-        stringByAppendingFormat:@"/radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
+        stringByAppendingFormat:@"radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
             WS_VERSION,
             WS_PLATFORM,
             escapedusername,
@@ -325,13 +325,12 @@ static NSMutableDictionary *connData = nil;
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSFailedHandshake object:self];
             
             NSError *err = [NSError errorWithDomain:@"HTTPErrorDomain" code:code  userInfo:nil];
-            if (!needHandshake || 401 != code) {
-                ;
+            if (401 == code || 503 == code) {
+                ScrobLog(SCROB_LOG_ERR, @"ASWS handshake failure: %@; retry scheduled", err);
+                [self scheduleNextHandshakeAttempt];
             } else {
                 ScrobLog(SCROB_LOG_ERR, @"ASWS handshake failure: %@", err);
             }
-            if (401 == code)
-                [self scheduleNextHandshakeAttempt];
         }
     }
 }
