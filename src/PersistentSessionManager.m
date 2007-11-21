@@ -23,6 +23,7 @@ __private_extern__ NSThread *mainThread;
 - (void)setImportInProgress:(BOOL)import;
 - (NSManagedObjectContext*)mainMOC;
 - (void)addSongPlaysDidFinish:(id)obj;
+- (id)storeMetadataForKey:(NSString*)key moc:(NSManagedObjectContext*)moc;
 @end
 
 @interface SongData (PersistentAdditions)
@@ -180,11 +181,12 @@ __private_extern__ NSThread *mainThread;
     
     [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
     
+    thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
+    
     lfmUpdateTimer = sUpdateTimer = nil;
     [self performSelector:@selector(updateLastfmSession:) withObject:nil];
     [self performSelector:@selector(updateSessions:) withObject:nil];
-    
-    thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
+    [self performSelector:@selector(scrub:) withObject:nil];
     
     do {
         [pool release];
@@ -471,10 +473,103 @@ __private_extern__ NSThread *mainThread;
     
     [session setValue:epoch forKey:@"epoch"];
     
-    } @catch (id e) {
+    } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"exception while updating session %@ (%@)", sessionName, e);
     }
     return (YES);
+}
+
+- (BOOL)mergeSongsInSession:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
+{
+    NSString *sname = [session valueForKey:@"name"];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
+            ITEM_SONG, sname]];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
+    [request setSortDescriptors:
+        [NSArray arrayWithObjects:
+            [[[NSSortDescriptor alloc] initWithKey:@"item" ascending:NO] autorelease],
+            [[[NSSortDescriptor alloc] initWithKey:@"submitted" ascending:NO] autorelease],
+            nil]];
+    NSError *error;
+    NSArray *songs = [moc executeFetchRequest:request error:&error];
+    #ifdef ISDEBUG
+    // Validation setup
+    NSNumber *preMergePlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    NSNumber *preMergePlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    #endif
+    
+    NSManagedObject *s, *sprev;
+    NSEnumerator *en = [songs objectEnumerator];
+    sprev = [en nextObject];
+    NSMutableArray *rem = [NSMutableArray array];
+    while ((s = [en nextObject])) {
+        if ([[s valueForKey:@"item"] isEqualTo:[sprev valueForKey:@"item"]]) {
+            [s incrementPlayCountWithObject:sprev];
+            [s incrementPlayTimeWithObject:sprev];
+            [rem addObject:sprev];
+        }
+        sprev = s;
+    }
+    
+    en = [rem objectEnumerator];
+    while ((s = [en nextObject])) {
+        [moc deleteObject:s];
+    }
+    
+    NSUInteger ct = [songs count];
+    ScrobLog(SCROB_LOG_TRACE, @"Merged %lu song entries in session '%@' into %lu entries.", ct, sname, ct - [rem count]);
+    
+    #ifdef ISDEBUG
+    // Do some validation
+    songs = [[PersistentProfile sharedInstance] songsForSession:session];
+    NSNumber *postMergePlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    NSNumber *postMergePlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    ISASSERT([preMergePlayCount isEqualTo:postMergePlayCount], "song play counts don't match pre merge!");
+    ISASSERT([preMergePlayTime isEqualTo:postMergePlayTime], "song play times don't match pre merge!");
+    #endif
+    
+    return ([rem count] > 0);
+}
+
+- (void)scrub:(NSTimer*)t
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    
+    NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
+    if (!lastScrub)
+        lastScrub = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
+    
+    #ifndef ISDEBUG
+    NSCalendarDate *d = [NSCalendarDate date];
+    d = [d dateByAddingYears:0 months:-1 days:0 hours:-[d hourOfDay] minutes:-[d minuteOfHour] seconds:-[d secondOfMinute]];
+    if ([[lastScrub GMTDate] isGreaterThan:[d GMTDate]])
+        return;
+    #else
+    // stress testing 
+    (void)[NSTimer scheduledTimerWithTimeInterval:1800.0
+        target:self selector:@selector(scrub:) userInfo:nil repeats:NO];
+    #endif
+    
+    BOOL save;
+    @try {
+    save = [self mergeSongsInSession:[self sessionWithName:@"all" moc:moc] moc:moc];
+    // in the future we may decide to delete ancient archived sessions (> 1yr)
+    } @catch (NSException *e) {
+        save = NO;
+        [moc rollback];
+        ScrobLog(SCROB_LOG_ERR, @"exception while scrubbing:%@", e);
+    }
+    
+    if (save) {
+        (void)[[PersistentProfile sharedInstance] save:moc];
+        [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
+    }
 }
 
 - (void)updateLastfmSession:(NSTimer*)t
