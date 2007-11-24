@@ -24,9 +24,9 @@ __private_extern__ scrob_log_level_t ScrobLogLevel(void);
 __private_extern__ void SetScrobLogLevel(scrob_log_level_t level);
 
 __private_extern__ void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
-#define ScrobLog(level, ...) do { \
+#define ScrobLog(level, fmt, ...) do { \
     if (level <= ScrobLogLevel()) \
-        ScrobLogMsg(level, ## __VA_ARGS__); \
+        ScrobLogMsg(level, fmt, ## __VA_ARGS__); \
 } while(0)
 
 #define ScrobTrace(fmt, ...) do { \
