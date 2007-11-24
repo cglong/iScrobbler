@@ -275,7 +275,8 @@ static NSMutableDictionary *xmlCache = nil;
     NSError *err = nil;
     
     [self setXML:nil];
-    if (responseData) {
+    
+    if (responseData && [responseData length] && '<' == *(unsigned char*)[responseData bytes]) {
         id x = [[NSXMLDocument alloc] initWithData:responseData
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
             error:&err];
