@@ -174,7 +174,7 @@ static NSMutableDictionary *xmlCache = nil;
                 @try {
                 if (!(e2 = [e attributeForName:@"count"]))
                     e2 = [[e elementsForName:@"count"] objectAtIndex:0];
-                count = [NSNumber numberWithUnsignedInt:[[e2 stringValue] intValue]];
+                count = [NSNumber numberWithLong:[e2 integerValue]];
                 } @catch(id ex) {
                 count = [NSNumber numberWithUnsignedInt:0];
                 ScrobDebug(@"exception '%@' processing count for %@", ex, tagName);
