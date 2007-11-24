@@ -188,6 +188,23 @@
     [value appendAttributedString:newline];
     [value appendAttributedString:tmp];
     
+    prompt = [NSString stringWithFormat:NSLocalizedString(@"Play %@'s Recommendations", ""), name];
+    urlspec = [NSDictionary dictionaryWithObjectsAndKeys:
+        [ws station:@"recommended" forUser:name], @"radioURL",
+        [NSString stringWithFormat:NSLocalizedString(@"%@'s Recommendations", ""), name], @"name",
+        nil];
+    tmp = [[[NSMutableAttributedString alloc] initWithString:prompt attributes:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+                font, NSFontAttributeName,
+                urlspec, NSLinkAttributeName,
+                [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
+                textColor, NSForegroundColorAttributeName,
+                urlCursor, NSCursorAttributeName,
+            nil]] autorelease];
+    [value appendAttributedString:newline];
+    [value appendAttributedString:tmp];
+    
     prompt = [NSString stringWithFormat:NSLocalizedString(@"Open %@'s Profile", ""), name];
     urlspec = [NSDictionary dictionaryWithObjectsAndKeys:
         [selection objectForKey:@"url"], @"url",

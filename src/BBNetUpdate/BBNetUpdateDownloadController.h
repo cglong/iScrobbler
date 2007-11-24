@@ -34,7 +34,8 @@
     id bbDownload;
     NSString *_file, *bbTmpFile;
     NSDictionary *bbHash;
-    double _totalBytes;
+    double totalBytes, recvdBytes;
+    NSTimeInterval epoch;
     BOOL _didDownload;
 }
 

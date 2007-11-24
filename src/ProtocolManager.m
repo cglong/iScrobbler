@@ -907,13 +907,13 @@ static int npDelays = 0;
         reachContext.info = self;
         if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext) ||
              !SCNetworkReachabilityScheduleWithRunLoop(g_networkReachRef,
-                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopDefaultMode))
+                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopCommonModes))
         {
             ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor - assuming network is always available.\n");
             isNetworkAvailable = YES;
         }
         
-        // There's some bug in Tiger that cause notification events to not be sent (sometimes) on wake.
+        // There's some bug in Tiger that causes notification events to not be sent (sometimes) on wake.
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     } else { // @"IgnoreNetworkMonitor"

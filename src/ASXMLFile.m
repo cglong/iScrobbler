@@ -174,7 +174,7 @@ static NSMutableDictionary *xmlCache = nil;
                 @try {
                 if (!(e2 = [e attributeForName:@"count"]))
                     e2 = [[e elementsForName:@"count"] objectAtIndex:0];
-                count = [NSNumber numberWithUnsignedInt:[[e2 stringValue] intValue]];
+                count = [NSNumber numberWithLong:[e2 integerValue]];
                 } @catch(id ex) {
                 count = [NSNumber numberWithUnsignedInt:0];
                 ScrobDebug(@"exception '%@' processing count for %@", ex, tagName);
@@ -275,10 +275,13 @@ static NSMutableDictionary *xmlCache = nil;
     NSError *err = nil;
     
     [self setXML:nil];
-    if (responseData) {
-        [self setXML:[[NSXMLDocument alloc] initWithData:responseData
+    
+    if (responseData && [responseData length] && '<' == *(unsigned char*)[responseData bytes]) {
+        id x = [[NSXMLDocument alloc] initWithData:responseData
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err]];
+            error:&err];
+        [self setXML:x];
+        [x release];
     }
     
     if (!xml)

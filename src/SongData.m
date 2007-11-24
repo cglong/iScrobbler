@@ -74,8 +74,8 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     
     // initialize some empty values
     [self setTitle:@""];
-    [self setDuration:[NSNumber numberWithFloat:0.0f]];
-    [self setPosition:[NSNumber numberWithFloat:0.0f]];
+    [self setDuration:[NSNumber numberWithInt:0]];
+    [self setPosition:[NSNumber numberWithInt:0]];
     [self setArtist:@""];
     [self setAlbum:@""];
     [self setPath:@""];
@@ -610,7 +610,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 }
 
 - (NSNumber*)elapsedTime
-{
+{    
     NSNumber *zero = [NSNumber numberWithDouble:0.0];
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
     if (elapsed > 0.0) // We should never have a future value
@@ -621,8 +621,11 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         // This can happen if the song is scrubbed back to the beginning and the pause time is > 0
         [self setPausedTime:zero];
         n = zero;
-    } else if ([n isGreaterThan:[self duration]])
-        n = [self duration];
+    } else {
+        NSNumber *myDuration = [self duration];
+        if ([n isGreaterThan:myDuration])
+            n = myDuration;
+    }
     return (n);
 }
 

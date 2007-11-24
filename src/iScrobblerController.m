@@ -417,6 +417,7 @@ if (currentSong) { \
     isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
     BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]] && !frontRowActive;
     BOOL isRepeat = NO;
+    BOOL isStopped = NO;
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
@@ -434,15 +435,20 @@ if (currentSong) { \
             if (!(song = [[SongData alloc] initWithiTunesPlayerInfo:info]))
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
         } else {
+            isStopped = YES;
             ReleaseCurrentSong();
         }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
     if (!song) {
+        isiTunesPlaying = NO;
         [self updateMenu];
         goto player_info_exit;
     }
+    
+    if ([song isLastFmRadio])
+        isPlayeriTunes = NO;
     
     BOOL didInfoUpdate;
     if (isPlayeriTunes)
@@ -598,6 +604,7 @@ player_info_exit:
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithBool:isRepeat], @"repeat",
         [NSNumber numberWithBool:isiTunesPlaying], @"isPlaying",
+        [NSNumber numberWithBool:isStopped], @"isStopped",
         nil];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
         object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
@@ -1126,7 +1133,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
     if (!build)
         build = ver;
-    return ([NSString stringWithFormat:@"%@/%@", ver, build]);
+    return ([NSString stringWithFormat:@"%@/%@ (%@)", ver, build, ISCPUArchitectureString()]);
 }
 
 - (void)enableLocalChartsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
@@ -1945,6 +1952,12 @@ exit:
 
 @end
 
+@interface ISRadioController (SongDataSupport)
+- (NSString*)playerUUIDOfCurrentTrack;
+- (NSString*)albumImageURLForTrackUUID:(NSString*)uuid;
+- (NSNumber*)durationForTrackUUID:(NSString*)uuid;
+@end
+
 @implementation SongData (iScrobblerControllerAdditions)
 
 - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict
@@ -1975,18 +1988,23 @@ exit:
         } @catch(id e) {location = nil;}
     }
     
-    if (!iname || !iartist || !iduration /*|| (location && ![location isFileURL])*/) {
-        //if (!(location && [location isFileURL])) // don't allow streaming URLs
+    if (igenre && NSNotFound != [igenre rangeOfString:@"[last.fm]"].location) {
+        isLastFmRadio = YES;
+    }
+    
+    if (!iname || !iartist || (!iduration && !isLastFmRadio)) {
         if (!location || [location isFileURL])
-            ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
-        [self dealloc];
+            ScrobLog(SCROB_LOG_ERR, @"Invalid song data: track name, artist, or duration is missing.");
+        [self autorelease];
         return (nil);
     }
     
     [self setTitle:iname];
     [self setArtist:iartist];
-    durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
-    [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+    if (iduration) {
+        durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
+        [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+    }
     if (ialbum)
         [self setAlbum:ialbum];
     if (location && [location isFileURL])
@@ -2001,18 +2019,23 @@ exit:
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     
-    // extra data from a last.fm stream
-    id o = [dict objectForKey:@"last.fm"];
-    if (o) {
-        isLastFmRadio = YES;
+    if (isLastFmRadio) {
         [self setType:trackTypeShared];
+        [self setPlayerUUID:[[ISRadioController sharedInstance] playerUUIDOfCurrentTrack]];
+        iduration = [[ISRadioController sharedInstance] durationForTrackUUID:[self playerUUID]];
+        if (iduration) {
+            durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
+            [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+        } else {
+            ScrobLog(SCROB_LOG_ERR, @"Invalid song data: could not find song in list of radio tracks");
+            [[ISRadioController sharedInstance] stop];
+            [self autorelease];
+            return (nil);
+        }
         
         // Load artwork if possible
         @try {
-        if (!(ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_medium"]))
-            ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_small"];
-        
-        if (ialbum)
+        if ((ialbum = [[ISRadioController sharedInstance] albumImageURLForTrackUUID:[self playerUUID]]))
             [self loadAlbumArtFromURL:[NSURL URLWithString:ialbum]];
         } @catch (id e) {}
         
@@ -2232,6 +2255,19 @@ resolvePath:
     }
 
     return (nil);
+}
+
+@end
+
+@implementation NSXMLElement (ISAdditions)
+
+- (NSInteger)integerValue
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    return ([[self stringValue] integerValue]);
+    #else
+    return ((NSInteger)[[self stringValue] intValue]);
+    #endif
 }
 
 @end

@@ -167,7 +167,7 @@ static QueueManager *g_QManager = nil;
             [[ProtocolManager sharedInstance] submit:nil];
         else {
             id paths = [[NSApp delegate] valueForKey:@"iPodMounts"];
-            ScrobLog(SCROB_LOG_INFO, @"QM: Songs will not be submitted. ForcePlayCache: %u, iPodMountCount: %@, iPodMount paths: %@",
+            ScrobLog(SCROB_LOG_INFO, @"QM: Submission is delayed. ForcePlayCache: %u, iPodMountCount: %@, iPodMount paths: %@",
                 [[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"],
                 [[NSApp delegate] valueForKey:@"iPodMountCount"],
                 paths ? paths : @"{none}");
