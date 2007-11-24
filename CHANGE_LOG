@@ -53,7 +53,7 @@ a5:
 a4:
 - New local charts. They look the same, but there are now multiple separate charts maintained (including an Overall chart that starts with the import of your iTunes library).
 -- Note: Because of the amount of data that can be generated and the computation required to maintain the chart data, iScrobbler can use quite a bit of memory (and briefly) quite a bit of CPU time.
-- Multiple iPod play support.
+- Multiple iPod play support (courtesy of a donation from einsteinbqat).
 - New plugin to change the iChat status message to the currently playing Radio track. If you don't care for this, the plugin can be disabled from the Finder's 'Get Info' window.
 - The Last.fm Artist and Track pages can be opened from the currently playing track menu.
 - The last Radio station tuned can be accessed directly from the Radio menu.
