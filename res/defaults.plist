@@ -101,6 +101,9 @@
     <key>Now Playing Detail</key>
     <true />
     
+    <key>RadioPlaylist</key>
+    <string>iScrobbler Radio</string>
+    
     <key>RadioStationHistory</key>
     <array>
     </array>
