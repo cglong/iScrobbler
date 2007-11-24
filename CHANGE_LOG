@@ -14,6 +14,10 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+b4:
+- Radio works again after a fairly major rewrite because last.fm dropped support for the older Radio protocol.
+- Bug Fix: Regression - iPod playlist menu in prefs did not contain any actual playlists.
+- Bug Fix: Regression - searching for an artist or track would cause the search field to lose focus after typing a few characters.
 b3:
 - Dropped support for AS protocol 1.1, 1.2 will always be used.
 - Local Chart dates are now shown from the date the database was created instead of a date in the past.
