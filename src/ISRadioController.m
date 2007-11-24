@@ -181,7 +181,7 @@
         playing = [radioScript executeHandler:!nextTrack ? @"PlayRadioPlaylist" : @"PlayNextRadioTrack"
             withParameters:[self radioPlaylistName], nil];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't play radio playlist -- script error: %@.", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Radio: can't play playlist -- script error: %@.", exception);
     }
     return ([playing boolValue]);
 }
@@ -233,7 +233,7 @@
     @try {
         (void)[radioScript executeHandler:@"EmptyRadioPlaylst" withParameters:[self radioPlaylistName], nil];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't empty radio playlist -- script error: %@.", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Radio: can't empty playlist -- script error: %@.", exception);
     }
     
     [currentTrackID release];
@@ -253,7 +253,7 @@
     @try {
         (void)[stopScript executeAndReturnError:nil];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't stop iTunes -- script error: %@.", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Radio: can't stop iTunes -- script error: %@.", exception);
     }
     
     [self radioPlayDidStop];
@@ -429,7 +429,7 @@ exitHistory:
         [[NSNotificationCenter defaultCenter] postNotificationName:ISRadioHistoryDidUpdateNotification object:self];
         
         } @catch (id e) {
-            ScrobLog(SCROB_LOG_ERR, @"exception adding radio station to history: %@", e);
+            ScrobLog(SCROB_LOG_ERR, @"Radio: exception adding station to history: %@", e);
         }
     }
 }
@@ -456,16 +456,16 @@ exitHistory:
                     ISASSERT(nil == [activeRadioTracks objectForKey:uuid], "track is already active!");
                     [activeRadioTracks setObject:track forKey:uuid];
                 } else
-                    ScrobLog(SCROB_LOG_ERR, @"Failed to add radio track to iTunes: %@ (peristent id missing).", track);
+                    ScrobLog(SCROB_LOG_ERR, @"Radio: failed to add track to iTunes: %@ (peristent id missing).", track);
                 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
                 (void)[[NSFileManager defaultManager] removeItemAtPath:path error:nil];
                 #else
                 (void)[[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
                 #endif
             } else
-                ScrobLog(SCROB_LOG_ERR, @"Failed to add radio track to iTunes: %@ (m3u creation failed).", track);
+                ScrobLog(SCROB_LOG_ERR, @"Radio: failed to add track to iTunes: %@ (m3u creation failed).", track);
         } @catch (NSException *exception) {
-            ScrobLog(SCROB_LOG_ERR, @"Exception adding radio track to iTunes: %@ (%@).", track, exception);
+            ScrobLog(SCROB_LOG_ERR, @"Radio: exception adding track to iTunes: %@ (%@).", track, exception);
         }
     }
     
@@ -649,7 +649,7 @@ exitHistory:
         @try {
             (void)[radioScript executeHandler:@"RemoveRadioTrack" withParameters:[self radioPlaylistName], currentTrackID, nil];
         } @catch (NSException *exception) {
-            ScrobLog(SCROB_LOG_ERR, @"Can't remoove radio radio track '%@' -- script error: %@.", [s brief], exception);
+            ScrobLog(SCROB_LOG_ERR, @"Radio: can't remove radio track '%@' -- script error: %@.", [s brief], exception);
         }
         
         [currentTrackID release];
@@ -665,6 +665,35 @@ exitHistory:
     
     if (NO == [asws stopped] && [activeRadioTracks count] <= 2)
         [asws updatePlaylist];
+}
+
+- (void)iTunesPlayerDialogHandler:(NSNotification*)note
+{
+    id showing = [[note userInfo] objectForKey:@"Showing Dialog"];
+    if (showing && 0 == [showing intValue] && currentTrackID) {
+        NSString *trackID = [[currentTrackID copy] autorelease];
+        @try {
+            NSNumber *pos = [radioScript executeHandler:@"GetPositionOfTrack" withParameters:trackID, nil];
+            SongData *s = [[NSApp delegate] nowPlaying];
+            if (s && currentTrackID && [trackID isEqualTo:currentTrackID] && [trackID isEqualTo:[s playerUUID]]) {
+                if ([pos longValue] >= 0) {
+                    NSNumber *elapsed = [s elapsedTime];
+                    NSInteger paused = [elapsed longValue] - [pos longValue] + [[s pausedTime] longValue];
+                    if (paused > 0) {
+                        [s setPausedTime:[NSNumber numberWithLong:paused]];
+                        ISASSERT([[s elapsedTime] isLessThanOrEqualTo:pos], "invalid elapsed time!");
+                    }
+                    ScrobLog(SCROB_LOG_TRACE, @"Radio: adjusted current track elapsed time from %@s to %@s",
+                        elapsed, [s elapsedTime]);
+                } else
+                    ScrobLog(SCROB_LOG_WARN, @"Radio: lost current track while updating elapsed time (script).");
+            } else
+                ScrobLog(SCROB_LOG_WARN, @"Radio: lost current track while updating elapsed time.");
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"Radio: can't get elapsed time of current track -- script error: %@.", exception);
+        }
+        
+    }
 }
 
 - (BOOL)isDefaultLastFMRadioPlayer
@@ -882,6 +911,13 @@ exitHistory:
     
     [nc addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
     
+    // If a stream has to be rebuffered, its eleapsed play time will be longer than the actual time elapsed
+    // we use the dialog notification to check the elasped play time with iTunes.
+    // This is iTunes specific (which we try to avoid), but it doesn't actually break anything if we don't
+    // get the elapsed play time correct. At worse, a spurious entry will be made in the local charts.
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(iTunesPlayerDialogHandler:) name:@"com.apple.iTunes.dialogInfo" object:nil];
+    
     [self defaultRadioPlayerCheck];
     
     return (self);
@@ -928,7 +964,7 @@ exitHistory:
     @try {
         uuid = [radioScript executeHandler:@"GetPersistentIDOfCurrentTrack" withParameters:nil];
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Failed to get current track uuid -- script error: %@.", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Radio: failed to get current track uuid -- script error: %@.", exception);
     }
     return (uuid);
 }

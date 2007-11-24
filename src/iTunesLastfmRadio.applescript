@@ -90,7 +90,6 @@ end AddRadioTrack
 on RemoveRadioPlayList(targetPlaylist)
 	tell application "iTunes"
 		tell source "Library"
-			
 			set allPlaylists to (every user playlist whose name is targetPlaylist)
 			if allPlaylists is not {} then
 				set radioPlaylist to the first item of allPlaylists
@@ -98,10 +97,19 @@ on RemoveRadioPlayList(targetPlaylist)
 					delete radioPlaylist
 				end tell
 			end if
-			
 		end tell
 	end tell
 end RemoveRadioPlayList
+
+on GetPositionOfTrack(trackPersistentID)
+	tell application "iTunes"
+		set elapsedTime to -1
+		if the persistent ID of the current track is equal to trackPersistentID then
+			set elapsedTime to player position
+		end if
+		return elapsedTime
+	end tell
+end GetPositionOfTrack
 
 on GetPersistentIDOfCurrentTrack()
 	tell application "iTunes"
