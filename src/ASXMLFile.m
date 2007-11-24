@@ -276,9 +276,11 @@ static NSMutableDictionary *xmlCache = nil;
     
     [self setXML:nil];
     if (responseData) {
-        [self setXML:[[NSXMLDocument alloc] initWithData:responseData
+        id x = [[NSXMLDocument alloc] initWithData:responseData
             options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err]];
+            error:&err];
+        [self setXML:x];
+        [x release];
     }
     
     if (!xml)
