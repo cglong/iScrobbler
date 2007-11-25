@@ -275,13 +275,15 @@ static NSMutableDictionary *xmlCache = nil;
     NSError *err = nil;
     
     [self setXML:nil];
-    
-    if (responseData && [responseData length] && '<' == *(unsigned char*)[responseData bytes]) {
-        id x = [[NSXMLDocument alloc] initWithData:responseData
-            options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
-            error:&err];
-        [self setXML:x];
-        [x release];
+    if (responseData && [responseData length] > 6 && '<' == *(unsigned char*)[responseData bytes]) {
+        NSString *head = [[[NSString alloc] initWithBytes:[responseData bytes] length:6 encoding:NSUTF8StringEncoding] autorelease];
+        if (NSOrderedSame != [@"<html>" caseInsensitiveCompare:head]) {
+            id x = [[NSXMLDocument alloc] initWithData:responseData
+                options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
+                error:&err];
+            [self setXML:x];
+            [x release];
+        }
     }
     
     if (!xml)
