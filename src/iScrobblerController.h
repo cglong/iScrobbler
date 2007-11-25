@@ -86,6 +86,9 @@
 
 -(IBAction)donate:(id)sender;
 
+-(IBAction)loveTrack:(id)sender;
+-(IBAction)banTrack:(id)sender;
+
 -(NSString *)md5hash:(id)input;
 
 -(SongData*)nowPlaying;

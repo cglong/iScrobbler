@@ -840,7 +840,7 @@ static int npDelays = 0;
     NSDictionary *userInfo = [note userInfo];
     if (userInfo && (obj = [userInfo objectForKey:@"repeat"]))
         repeat = [obj boolValue];
-    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length] || [s isLastFmRadio]) {
+    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length]) {
         if (!s) {
             [npSong release];
             npSong = nil;
@@ -973,6 +973,19 @@ static int npDelays = 0;
         && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
         && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self elapsedTime] floatValue] > [pm minTimePlayed] || reconstituted) );
+    
+    if ([self isLastFmRadio]) {
+        // banned and skipped radio songs still get submitted even though they are not counted in stats
+        good = ([self banned] || [self skipped] || good);
+        if (good && [[self lastFmAuthCode] length] <= 0) {
+            ScrobLog(SCROB_LOG_WARN, @"Radio track \"%@\" will not be submitted because it is missing a last.fm authorization code.",
+                [self brief]);
+            good = NO;
+        }
+    } else {
+        good = (good && ![self banned] && ![self skipped]);
+    }
+    
     if (good && [self ignore]) {
         // Song should be ignored, but slipped through the upper layers
         [self setHasQueued:YES];
@@ -985,6 +998,20 @@ static int npDelays = 0;
         ScrobLog(SCROB_LOG_WARN, @"Track \"%@\" will not be submitted because it is missing "
             @"Artist, or Title information. Please correct this.", [self brief]);
     return (NO);
+}
+
+- (NSString*)lastFmRating
+{
+    NSString *r = @"";
+    if ([self loved])
+        r = @"L";
+    else if ([self isLastFmRadio]) {
+        if ([self banned]) // Ban supersedes skip
+            r = @"B";
+        else if ([self skipped])
+            r = @"S";
+    }
+    return (r);
 }
 
 - (NSTimeInterval)submitIntervalFromNow

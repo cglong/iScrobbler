@@ -214,8 +214,10 @@
     ISASSERT([s isLastFmRadio], "not a radio track!");
     ISASSERT([[s playerUUID] isEqualTo:currentTrackID], "tracks don't match!");
     [s setSkipped:YES];
+    #ifdef obsolete
+    [asws exec:@"skip"]; // this is not necessary as the skip is handled by the submission of the track
+    #endif
     [self playRadioPlaylist:YES];
-    [asws exec:@"skip"];
 }
 
 - (void)ban
@@ -225,7 +227,7 @@
     ISASSERT([[s playerUUID] isEqualTo:currentTrackID], "tracks don't match!");
     [s setBanned:YES];
     [self playRadioPlaylist:YES];
-    [asws exec:@"ban"];
+    [[NSApp delegate] banTrack:s];
 }
 
 - (void)radioPlayDidStop
@@ -295,7 +297,6 @@
     }
     
     [sender setState:enabled ? NSOnState : NSOffState];
-    [asws exec: enabled ? @"rtp" : @"nortp"];
 }
 
 - (void)setDiscoveryMode:(id)sender
@@ -639,7 +640,12 @@ exitHistory:
 - (void)nowPlaying:(NSNotification*)note
 {
     SongData *s = [note object];
-    if ((s && ![s isLastFmRadio]) || (![asws stopped] && [[[note userInfo] objectForKey:@"isStopped"] boolValue])) {
+    if (![asws stopped] && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
+        [self radioPlayDidStop];
+        return;
+    }
+    
+    if (s && ![s isLastFmRadio]) {
         [self radioPlayDidStop];
         return;
     } else if (currentTrackID && (!s || ![currentTrackID isEqualTo:[s playerUUID]])) {
@@ -663,7 +669,7 @@ exitHistory:
         ISASSERT(currentTrackID && [self isActiveRadioSong:s], "current track is not in the active radio list!");
     }
     
-    if (NO == [asws stopped] && [activeRadioTracks count] <= 2)
+    if (NO == [asws stopped] && [activeRadioTracks count] <= 1)
         [asws updatePlaylist];
 }
 
@@ -911,10 +917,12 @@ exitHistory:
     
     [nc addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
     
-    // If a stream has to be rebuffered, its eleapsed play time will be longer than the actual time elapsed
-    // we use the dialog notification to check the elasped play time with iTunes.
+    // If a stream has to be rebuffered, its eleapsed play time will be longer than the actual time elapsed.
+    // We use the dialog notification to check the elasped play time with iTunes.
     // This is iTunes specific (which we try to avoid), but it doesn't actually break anything if we don't
-    // get the elapsed play time correct. At worse, a spurious entry will be made in the local charts.
+    // get the elapsed play time correct. At worse, a spurious entry will be submitted to last.fm and created in the local charts.
+    // XXX
+    // However, note that this is kind of hackish in that iTunes may not show a "rebuffering" dialog in future version (7.5+)
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self
         selector:@selector(iTunesPlayerDialogHandler:) name:@"com.apple.iTunes.dialogInfo" object:nil];
     
@@ -954,6 +962,7 @@ exitHistory:
 - (NSString*)playerUUIDOfCurrentTrack;
 - (NSString*)albumImageURLForTrackUUID:(NSString*)uuid;
 - (NSNumber*)durationForTrackUUID:(NSString*)uuid;
+- (NSString*)authCodeForTrackUUID:(NSString*)uuid;
 @end
 
 @implementation ISRadioController (SongDataSupport)
@@ -977,6 +986,11 @@ exitHistory:
 - (NSNumber*)durationForTrackUUID:(NSString*)uuid
 {
     return ([[activeRadioTracks objectForKey:uuid] objectForKey:ISR_TRACK_DURATION]);
+}
+
+- (NSString*)authCodeForTrackUUID:(NSString*)uuid
+{
+    return ([[activeRadioTracks objectForKey:uuid] objectForKey:ISR_TRACK_LFMAUTH]);
 }
 
 @end

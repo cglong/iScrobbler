@@ -84,6 +84,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [self setPlayCount:[NSNumber numberWithInt:0]];
     [self setRating:[NSNumber numberWithInt:0]];
     [self setPlayerUUID:@""];
+    [self setLastFmAuthCode:@""];
 
     // initialize with current time
     [self setStartTime:[NSDate date]];
@@ -116,6 +117,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [copy setTrackNumber:[self trackNumber]];
     [copy setPlayCount:[self playCount]];
     [copy setPlayerUUID:[self playerUUID]];
+    [copy setLastFmAuthCode:[self lastFmAuthCode]];
     
     copy->iTunes = self->iTunes;
     copy->isLastFmRadio = self->isLastFmRadio;
@@ -193,6 +195,11 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 #define SD_KEY_ITUNES_DB_ID @"iTunes DB ID"
 #define SD_KEY_MBID @"MBID"
 #define SD_KEY_TRACKNUM @"Track Number"
+#define SD_KEY_LFMRADIO @"LastFM Radio"
+#define SD_KEY_LFMAUTH @"LastFM Auth"
+#define SD_KEY_LOVED @"Loved"
+#define SD_KEY_SKIPPED @"Skipped"
+#define SD_KEY_BANNED @"Banned"
 - (NSDictionary*)songData
 {
     NSString *ptitle, *palbum, *partist, *ppath, *pmbid;
@@ -239,6 +246,11 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         pstartTime, SD_KEY_STARTTIME,
         ptype, SD_KEY_TYPE,
         pitunesid, SD_KEY_ITUNES_DB_ID,
+        [NSNumber numberWithBool:[self isLastFmRadio]], SD_KEY_LFMRADIO,
+        [NSNumber numberWithBool:[self loved]], SD_KEY_LOVED,
+        [NSNumber numberWithBool:[self skipped]], SD_KEY_SKIPPED,
+        [NSNumber numberWithBool:[self banned]], SD_KEY_BANNED,
+        [self lastFmAuthCode], SD_KEY_LFMAUTH,
         ptrackNumber, SD_KEY_TRACKNUM,
         pmbid, SD_KEY_MBID,
         nil];
@@ -276,6 +288,17 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
             [self setMbid:obj];
         if ((obj = [data objectForKey:SD_KEY_TRACKNUM]))
             [self setTrackNumber:obj];
+        // 2.0 radio support
+        if ((obj = [data objectForKey:SD_KEY_LFMRADIO]))
+            isLastFmRadio = [obj boolValue];
+        if ((obj = [data objectForKey:SD_KEY_LOVED]))
+            [self setLoved:[obj boolValue]];
+        if ((obj = [data objectForKey:SD_KEY_SKIPPED]))
+            [self setSkipped:[obj boolValue]];
+        if ((obj = [data objectForKey:SD_KEY_BANNED]))
+            [self setBanned:[obj boolValue]];
+        if ((obj = [data objectForKey:SD_KEY_LFMAUTH]))
+            [self setLastFmAuthCode:obj];
         reconstituted = YES;
         return (YES);
     }
@@ -979,6 +1002,20 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     return (isLastFmRadio);
 }
 
+- (NSString*)lastFmAuthCode
+{
+    return (lastFmAuthCode);
+}
+
+- (void)setLastFmAuthCode:(NSString*)code
+{
+    if (!code)
+        code = @"";
+    (void)[code retain];
+    [lastFmAuthCode release];
+    lastFmAuthCode = code;
+}
+
 - (NSNumber*)trackNumber
 {
     return ([NSNumber numberWithUnsignedInt:trackNumber]);
@@ -1064,6 +1101,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [mbid release];
     [playCount release];
     [playerUUID release];
+    [lastFmAuthCode release];
     [super dealloc];
 }    
 

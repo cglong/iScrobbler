@@ -416,8 +416,8 @@ xspf format as of 2007/11:
         value = [NSNumber numberWithLong:[[[e elementsForName:@"duration"] objectAtIndex:0] integerValue]];
         // some tracks can have an invalid 0 duration, just set them to 3 minutes (avg of most songs)
         if (0 == [value intValue]) {
-            value = [NSNumber numberWithInt:180*1000];
-            ScrobLog(SCROB_LOG_WARN, @"Duration for '%@ by %@' is 0, set to 180 seconds automatically (which may be completely wrong).",
+            value = [NSNumber numberWithInt:60*1000];
+            ScrobLog(SCROB_LOG_WARN, @"Duration for '%@ by %@' is 0, set to 60 seconds automatically (which may be completely wrong).",
                 [trackData objectForKey:ISR_TRACK_TITLE], [trackData objectForKey:ISR_TRACK_ARTIST]);
         }
         [trackData setObject:value forKey:ISR_TRACK_DURATION];
@@ -426,10 +426,11 @@ xspf format as of 2007/11:
             value = [[value objectAtIndex:0] stringValue];
             [trackData setObject:value forKey:ISR_TRACK_IMGURL];
         }
+        value = [[[e elementsForName:@"lastfm:trackauth"] objectAtIndex:0] stringValue];
+        [trackData setObject:value forKey:ISR_TRACK_LFMAUTH];
+        
         #ifdef notyet
         @try {
-        value = [NSNumber numberWithLong:[[[e elementsForName:@"lastfm:trackauth"] objectAtIndex:0] integerValue]];
-        [trackData setObject:value forKey:ISR_TRACK_LFMAUTH];
         value = [NSNumber numberWithLong:[[[e elementsForName:@"lastfm:albumId"] objectAtIndex:0] integerValue]];
         [trackData setObject:value forKey:ISR_TRACK_LFMALBUMID];
         value = [NSNumber numberWithLong:[[[e elementsForName:@"lastfm:artistId"] objectAtIndex:0] integerValue]];

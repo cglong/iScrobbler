@@ -131,11 +131,13 @@
     return ([[NSString stringWithFormat:@"a[%u]=%@&t[%u]=%@&i[%u]=%qu&o[%u]=%@&b[%u]=%@&m[%u]=%@&l[%u]=%u&n[%u]=%@&r[%u]=%@&",
         submissionNumber, escapedartist, submissionNumber, escapedtitle,
         submissionNumber, (u_int64_t)[[song postDate] timeIntervalSince1970],
-        submissionNumber, @"P", // P == "song chosen by user"
+        // P & L are the only valid codes currently
+        // P == "song chosen by user" and L is a last.fm track
+        submissionNumber, NO == [song isLastFmRadio] ? @"P" : [@"L" stringByAppendingString:[song lastFmAuthCode]], 
         submissionNumber, escapedalbum, submissionNumber, [song mbid],
         submissionNumber, [[song duration] unsignedIntValue], // required only when source is "P"
         submissionNumber, trackNum > 0 ? [song trackNumber] : @"",
-        submissionNumber, @"" // love, ban, skip
+        submissionNumber, [song lastFmRating]
         ] dataUsingEncoding:NSUTF8StringEncoding]);
 }
 

@@ -208,13 +208,10 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     #else
     NSInteger r = (NSInteger)[[song scaledRating] intValue];
     #endif
-    if (![song loved] && 
+    if (![song loved] && ![song banned] && ![song skipped] && 
         r > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
         ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", song);
-        NSMenuItem *dummy = [[NSMenuItem alloc] initWithTitle:@"dummy" action:nil keyEquivalent:@""];
-        [dummy setRepresentedObject:song];
-        [self performSelector:@selector(loveTrack:) withObject:dummy];
-        [dummy release];
+        [self performSelector:@selector(loveTrack:) withObject:song];
     }
 }
 
@@ -383,8 +380,19 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
         ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && iPodMountCount > 0));
 }
 
-- (void)queueSong:(SongData*)song
+- (void)queueSong:(SongData*)song playerStopped:(BOOL)stopped
 {
+    if ([song isLastFmRadio] && ![song banned] && (!stopped || [song canSubmit])) {
+        double duration = [[song duration] doubleValue] - [SongData songTimeFudge];
+        if ([[song elapsedTime] doubleValue] < duration) {
+            ScrobLog(SCROB_LOG_TRACE,
+                @"Set radio track '%@' as skipped because its elapsed play time (%@) was less than its duration (%.0f) at the time of submission.",
+                [song brief], [song elapsedTime], duration);
+            [song setSkipped:YES];
+            [[ASWebServices sharedInstance] decrementPlaylistSkipsLeft];
+            // we don't send a "skip" command because this track is no longer playing
+        }
+    }
     [song setPosition:[song elapsedTime]];
     QueueResult_t qr = [[QueueManager sharedInstance] queueSong:song];
     if (kqFailed == qr) {
@@ -396,8 +404,9 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 if (currentSong) { \
     if ([currentSong isPaused]) \
         [currentSong didResumeFromPause]; \
-    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] && !submissionsDisabled) \
-        [self queueSong:currentSong]; \
+    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] \
+        && (!submissionsDisabled || [currentSong isLastFmRadio])) \
+        [self queueSong:currentSong playerStopped:isStopped]; \
     [currentSong setLastPlayed:[NSDate date]]; \
     [currentSong release]; \
     currentSong = nil; \
@@ -421,15 +430,7 @@ if (currentSong) { \
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
-    // Even if subs are disabled, we still have to update the iTunes play time, as the user
-    // could enable subs, plug-in the ipod, and then we'd pick up everything that was supposed to
-    // have been ignored in iTunes (because the play time had not been updated).
     SongData *song = nil;
-    if (submissionsDisabled) {
-        ReleaseCurrentSong();
-        goto player_info_exit;
-    }
-    
     @try {
         if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
             if (!(song = [[SongData alloc] initWithiTunesPlayerInfo:info]))
@@ -444,6 +445,10 @@ if (currentSong) { \
     if (!song) {
         isiTunesPlaying = NO;
         [self updateMenu];
+        goto player_info_exit;
+    } else if (submissionsDisabled && ![song isLastFmRadio]) {
+        [song release];
+        ReleaseCurrentSong();
         goto player_info_exit;
     }
     
@@ -1583,7 +1588,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 
 - (IBAction)loveTrack:(id)sender
 {
-    SongData *song = [sender representedObject];
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
     
     ASXMLRPC *req = [[ASXMLRPC alloc] init];
     [req setMethod:@"loveTrack"];
@@ -1598,7 +1603,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 
 - (IBAction)banTrack:(id)sender
 {
-    SongData *song = [sender representedObject];
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
     
     ASXMLRPC *req = [[ASXMLRPC alloc] init];
     [req setMethod:@"banTrack"];
@@ -1956,6 +1961,7 @@ exit:
 - (NSString*)playerUUIDOfCurrentTrack;
 - (NSString*)albumImageURLForTrackUUID:(NSString*)uuid;
 - (NSNumber*)durationForTrackUUID:(NSString*)uuid;
+- (NSString*)authCodeForTrackUUID:(NSString*)uuid;
 @end
 
 @implementation SongData (iScrobblerControllerAdditions)
@@ -2020,9 +2026,11 @@ exit:
     [self setHasQueued:NO];
     
     if (isLastFmRadio) {
+        ISRadioController *isr = [ISRadioController sharedInstance];
         [self setType:trackTypeShared];
-        [self setPlayerUUID:[[ISRadioController sharedInstance] playerUUIDOfCurrentTrack]];
-        iduration = [[ISRadioController sharedInstance] durationForTrackUUID:[self playerUUID]];
+        [self setPlayerUUID:[isr playerUUIDOfCurrentTrack]];
+        
+        iduration = [isr durationForTrackUUID:[self playerUUID]];
         if (iduration) {
             durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
             [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
@@ -2032,6 +2040,7 @@ exit:
             [self autorelease];
             return (nil);
         }
+        [self setLastFmAuthCode:[isr authCodeForTrackUUID:[self playerUUID]]];
         
         // Load artwork if possible
         @try {
@@ -2050,6 +2059,9 @@ exit:
     [self setPosition:[song position]];
     [self setRating:[song rating]];
     [self setIsPlayeriTunes:[song isPlayeriTunes]];
+    [self setSkipped:[song skipped]];
+    [self setBanned:[song banned]];
+    [self setLoved:[song loved]];
     if ((isLastFmRadio = [song isLastFmRadio]))
         [self setType:trackTypeShared];
 }

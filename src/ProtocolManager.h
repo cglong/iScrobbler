@@ -92,6 +92,7 @@
 - (BOOL)canSubmit;
 - (NSTimeInterval)submitIntervalFromNow;
 - (double)resubmitInterval;
+- (NSString*)lastFmRating;
 
 @end
 
