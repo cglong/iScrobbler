@@ -60,7 +60,6 @@
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
 		D376063F0CB230E300C04863 /* ChatStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D37606340CB2307F00C04863 /* ChatStatus.m */; };
-		D37606650CB2363F00C04863 /* ChatStatus.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D376063A0CB230A900C04863 /* ChatStatus.plugin */; };
 		D37606790CB236A900C04863 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		D37606AD0CB236CD00C04863 /* InstantMessage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37606AC0CB236CD00C04863 /* InstantMessage.framework */; };
 		D3760CCA0CB4241900C04863 /* Persistence.m in Sources */ = {isa = PBXBuildFile; fileRef = D3760CC90CB4241900C04863 /* Persistence.m */; };
@@ -131,13 +130,6 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
-		D37606610CB2360400C04863 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D37606390CB230A900C04863;
-			remoteInfo = iChatStatus;
-		};
 		D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -154,7 +146,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				D37606650CB2363F00C04863 /* ChatStatus.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -672,7 +663,6 @@
 				D3B2742D0826BC5800B8E08B /* PBXBuildRule */,
 			);
 			dependencies = (
-				D37606620CB2360400C04863 /* PBXTargetDependency */,
 				D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */,
 			);
 			name = iScrobbler;
@@ -874,11 +864,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D37606620CB2360400C04863 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D37606390CB230A900C04863 /* ChatStatus */;
-			targetProxy = D37606610CB2360400C04863 /* PBXContainerItemProxy */;
-		};
 		D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */;
