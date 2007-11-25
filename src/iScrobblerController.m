@@ -57,6 +57,8 @@ static NSDistantObject<ISProxyProtocol> *sProxy = nil;
 
 #endif
 
+static NSString *playerLibUUID = nil;
+
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
@@ -614,6 +616,11 @@ player_info_exit:
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
+    
+    if (isStopped) {
+        [playerLibUUID release];
+        playerLibUUID = nil;
+    }
 }
 
 - (void)frontRowWillShow:(NSNotification*)note
@@ -1242,12 +1249,21 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
                 }
                 [item release];
                 
-                // Use the radio ban instead of the XML one so that the track is skipped as well as banned
-                item = [m itemWithTag:MACTION_BAN_TAG];
+                item = [m itemWithTag:MACTION_BAN_TAG]; // Use the radio sepcific ban
                 [item setAction:@selector(ban)];
                 [item setTarget:[ISRadioController sharedInstance]];
             }
             [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
+            
+            if ([song banned]) {
+                if (![song isLastFmRadio]) {
+                    item = [m itemWithTag:MACTION_BAN_TAG];
+                    [item setAction:@selector(unBanTrack:)];
+                    [item setTitle:NSLocalizedString(@"Un-Ban", "")];
+                } else {
+                    [[m itemWithTag:MACTION_BAN_TAG] setEnabled:NO];
+                }
+            }
             
             item = [theMenu itemAtIndex:0];
             ISASSERT(song == [item representedObject], "songs don't match!");
@@ -1593,6 +1609,24 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     }
 }
 
+- (NSString*)playerLibraryUUID
+{
+    if(playerLibUUID)
+        return (playerLibUUID);
+    
+    NSString *uuid = @"";
+    @try {
+        uuid = [playerControlScript executeHandler:@"PlayerLibraryUUID" withParameters:nil];
+        if ([uuid length] >= 4) {
+            playerLibUUID = [uuid retain];
+        }
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't iTunes library UUID -- script error: %@.", exception);
+    }
+    
+    return (playerLibUUID);
+}
+
 // Track menu actions
 - (IBAction)openTrackURL:(id)sender
 {
@@ -1624,9 +1658,32 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 - (IBAction)banTrack:(id)sender
 {
     SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
+    SongData *np = [self nowPlaying];
+    
+    [song setBanned:YES];
+    if (np && ![np isLastFmRadio] && [np isEqualToSong:song]) {
+        [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
+    }
     
     ASXMLRPC *req = [[ASXMLRPC alloc] init];
     [req setMethod:@"banTrack"];
+    NSMutableArray *p = [req standardParams];
+    [p addObject:[song artist]];
+    [p addObject:[song title]];
+    [req setParameters:p];
+    [req setDelegate:self];
+    [req setRepresentedObject:song];
+    [req sendRequest];
+}
+
+- (IBAction)unBanTrack:(id)sender
+{
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
+    [song setBanned:NO];
+    [self performSelector:@selector(updateMenu) withObject:nil afterDelay:0.0];
+    
+    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    [req setMethod:@"unBanTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
     [p addObject:[song title]];
@@ -1778,7 +1835,6 @@ exit:
         [[request representedObject] setLoved:YES];
         tag = @"loved";
     } else if ([method isEqualToString:@"banTrack"]) {
-        [[request representedObject] setBanned:YES];
         tag = @"banned";
     } else if ([method hasPrefix:@"tag"])
         [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
@@ -1809,6 +1865,14 @@ exit:
 {
     ScrobLog(SCROB_LOG_ERR, @"RPC request '%@' for '%@' returned error: %@",
         [request method], [request representedObject], error);
+    
+    NSString *method = [request method];
+    if ([method isEqualToString:@"banTrack"]) {
+        [[request representedObject] setBanned:NO];
+    } else if ([method isEqualToString:@"unBanTrack"]) {
+        [[request representedObject] setBanned:YES];
+        [self performSelector:@selector(updateMenu) withObject:nil afterDelay:0.0];
+    }
     
     [request autorelease];
 }

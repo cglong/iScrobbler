@@ -967,6 +967,19 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     return (ignoreMe);
 }
 
+- (NSString*)uuid
+{
+    if (![self isLastFmRadio]) {
+        NSString *puuid = [[NSApp delegate] playerLibraryUUID];
+        NSString *suuid = [self playerUUID];
+        if (puuid && [suuid length] > 0) {
+            return ([puuid stringByAppendingString:suuid]);
+        }
+    }
+    
+    return (nil);
+}
+
 - (BOOL)loved
 {
     return (loved);
@@ -975,16 +988,48 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 - (void)setLoved:(BOOL)isLoved
 {
     loved = isLoved;
+    
+    if (banned && isLoved) {
+        NSString *uuid;
+        banned = NO;
+        if ((uuid = [self uuid])) {
+            NSMutableDictionary *d;
+            d = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"BannedSongs"] mutableCopy] autorelease];
+            [d removeObjectForKey:uuid];
+            [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"BannedSongs"];
+            ScrobLog(SCROB_LOG_TRACE, @"Song '%@' has been un-banned (uuid: %@)", [self brief], uuid);
+        }
+    }
 }
 
 - (BOOL)banned
 {
+    NSString *uuid;
+    if (!banned && (uuid = [self uuid])) {
+        banned = (nil != [[[NSUserDefaults standardUserDefaults] objectForKey:@"BannedSongs"] objectForKey:uuid]);
+    }
     return (banned);
 }
 
 - (void)setBanned:(BOOL)isBanned
 {
-    banned = isBanned;
+    if (banned != isBanned) {
+        NSString *uuid;
+        if ((uuid = [self uuid])) {
+            NSMutableDictionary *d;
+            d = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"BannedSongs"] mutableCopy] autorelease];
+            if (isBanned && nil == [d objectForKey:uuid]) {
+                [d setObject:[self brief] forKey:uuid];
+                [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"BannedSongs"];
+                ScrobLog(SCROB_LOG_TRACE, @"Song '%@' has been banned (uuid: %@)", [self brief], uuid);
+            } else if (!isBanned) {
+                [d removeObjectForKey:uuid];
+                [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"BannedSongs"];
+                ScrobLog(SCROB_LOG_TRACE, @"Song '%@' has been un-banned (uuid: %@)", [self brief], uuid);
+            }
+        }
+        banned = isBanned;
+    }
 }
 
 - (BOOL)skipped

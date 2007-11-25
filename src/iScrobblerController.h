@@ -92,6 +92,7 @@
 // Player control
 - (void)playerStop;
 - (void)playerNextTrack;
+- (NSString*)playerLibraryUUID;
 
 // Services
 -(IBAction)loveTrack:(id)sender;

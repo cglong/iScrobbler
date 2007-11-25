@@ -20,6 +20,10 @@
     <key>AutoLoveTracksRatedHigherThan</key>
     <integer>1000000</integer>
     
+    <key>BannedSongs</key>
+    <dict>
+    </dict>
+    
     <key>CheckDefaultRadioPlayer</key>
     <true />
     
