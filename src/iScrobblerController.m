@@ -509,17 +509,17 @@ if (currentSong) { \
         
         // Try to determine if the song is being played twice (or more in a row)
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
-        if (pos + [SongData songTimeFudge] <  [[currentSong elapsedTime] floatValue] &&
-             (pos <= [SongData songTimeFudge]) &&
+        if (![song isLastFmRadio] && (pos + [SongData songTimeFudge]) <  [[currentSong elapsedTime] floatValue]
+             && (pos <= [SongData songTimeFudge])
              // The following condition does not work with iTunes 4.7, since we are not
              // constantly updating the song's position by polling iTunes. With 4.7 we update
              // when the song first plays, when it's ready for submission or if the user
              // changes some song metadata -- that's it.
         #if 0
               // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
-             (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
+             && (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
         #endif
-             ([currentSong hasQueued] || [currentSong canSubmit])) {
+             && ([currentSong hasQueued] || [currentSong canSubmit])) {
             ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
             isRepeat = YES;
