@@ -17,7 +17,7 @@
 				D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */,
 				D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */,
 				D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */,
-				D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */,
+				D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */,
 				D38EA3950CF5A65100126BC2 /* iTunesLastfmRadio.applescript in AppleScript */,
 			);
 			isSharedContext = 0;
@@ -102,7 +102,7 @@
 		D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */; };
 		D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
-		D3C309980CA3D317001AEFEA /* iTunesStop.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesStop.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
+		D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesControl.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
 		D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
@@ -265,7 +265,7 @@
 		D3C304490CA291E2001AEFEA /* ASXMLFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASXMLFile.h; sourceTree = "<group>"; };
 		D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASXMLFile.m; sourceTree = "<group>"; };
 		D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISPrefix.h; sourceTree = "<group>"; };
-		D3C309970CA3D317001AEFEA /* iTunesStop.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesStop.applescript; sourceTree = "<group>"; };
+		D3C309970CA3D317001AEFEA /* iTunesControl.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesControl.applescript; sourceTree = "<group>"; };
 		D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASWebServices.h; sourceTree = "<group>"; };
 		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASWebServices.m; sourceTree = "<group>"; };
 		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRadioController.h; sourceTree = "<group>"; };
@@ -555,7 +555,7 @@
 		D3B19CB00B4F3049008F54BF /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
-				D3C309970CA3D317001AEFEA /* iTunesStop.applescript */,
+				D3C309970CA3D317001AEFEA /* iTunesControl.applescript */,
 				D38EA3940CF5A65100126BC2 /* iTunesLastfmRadio.applescript */,
 				D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */,
 				D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */,

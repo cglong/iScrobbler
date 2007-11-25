@@ -251,13 +251,7 @@
 - (void)stop
 {
     [asws stop];
-    
-    @try {
-        (void)[stopScript executeAndReturnError:nil];
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Radio: can't stop iTunes -- script error: %@.", exception);
-    }
-    
+    [[NSApp delegate] playerStop];
     [self radioPlayDidStop];
 }
 
@@ -880,16 +874,6 @@ exitHistory:
 - (id)init
 {
     NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                stringByAppendingPathComponent:@"Scripts/iTunesStop.scpt"]];
-    stopScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
-    if (!stopScript || ![stopScript compileAndReturnError:nil]) {
-        ScrobLog(SCROB_LOG_CRIT, @"Could not create iTunes stop script!");
-        [[NSApp delegate] showApplicationIsDamagedDialog];
-        [self autorelease];
-        return (nil);
-    }
-    
-    file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
                 stringByAppendingPathComponent:@"Scripts/iTunesLastfmRadio.scpt"]];
     radioScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
     if (!radioScript || ![radioScript compileAndReturnError:nil]) {

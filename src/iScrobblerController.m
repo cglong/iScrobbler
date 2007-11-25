@@ -309,7 +309,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 {
     // Run the script to get the info not included in the dict
     NSDictionary *errInfo = nil;
-    NSAppleEventDescriptor *result = [script executeAndReturnError:&errInfo] ;
+    NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo] ;
     if (result) {
         if ([result numberOfItems] > 1) {
             TrackType_t trackType = trackTypeUnknown;
@@ -692,13 +692,22 @@ player_info_exit:
         selector:@selector(aeImageConversionHandler:)
         forDescriptorTypes:typePict, typeTIFF, typeJPEG, typeGIF, nil];
     
-	// Create the GetInfo script
+	// Create the player scripts
     file = [[[NSBundle mainBundle] resourcePath]
                 stringByAppendingPathComponent:@"Scripts/iTunesGetCurrentTrackInfo.scpt"];
     NSURL *url = [NSURL fileURLWithPath:file];
-    script = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
-    if (!script || ![script compileAndReturnError:nil]) {
-        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetCurrentTrackInfo.scpt!\n");
+    currentTrackInfoScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+    if (!currentTrackInfoScript || ![currentTrackInfoScript compileAndReturnError:nil]) {
+        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetCurrentTrackInfo.scpt");
+        [self showApplicationIsDamagedDialog];
+        [NSApp terminate:nil];
+    }
+    file = [[[NSBundle mainBundle] resourcePath]
+                stringByAppendingPathComponent:@"Scripts/iTunesControl.scpt"];
+    url = [NSURL fileURLWithPath:file];
+    playerControlScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+    if (!playerControlScript || ![playerControlScript compileAndReturnError:nil]) {
+        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesControl.scpt");
         [self showApplicationIsDamagedDialog];
         [NSApp terminate:nil];
     }
@@ -1374,7 +1383,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 	[nc release];
 	[statusItem release];
 	[songList release];
-	[script release];
+	[currentTrackInfoScript release];
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
@@ -1563,6 +1572,25 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 		[self openScrobblerHomepage:self];
 	
 	[NSApp terminate:self];
+}
+
+// Player control
+- (void)playerStop
+{
+    @try {
+        (void)[playerControlScript executeHandler:@"StopPlaying" withParameters:nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't stop iTunes -- script error: %@.", exception);
+    }
+}
+
+- (void)playerNextTrack
+{
+    @try {
+        (void)[playerControlScript executeHandler:@"PlayNextTrack" withParameters:nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't play next iTunes track -- script error: %@.", exception);
+    }
 }
 
 // Track menu actions
