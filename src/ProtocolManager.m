@@ -1014,16 +1014,6 @@ static int npDelays = 0;
     return (r);
 }
 
-- (NSTimeInterval)submitIntervalFromNow
-{
-    return (PM_SUBMIT_AT_TRACK_END);
-}
-
-- (double)resubmitInterval
-{
-    return (0.0);
-}
-
 @end
 
 static void NetworkReachabilityCallback (SCNetworkReachabilityRef target, 

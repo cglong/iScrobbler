@@ -78,8 +78,6 @@
 -(IBAction)openStatistics:(id)sender;
 -(IBAction)openTopLists:(id)sender;
 
--(IBAction)cleanLog:(id)sender;
-
 -(IBAction)performFindPanelAction:(id)sender;
 
 -(IBAction)enableDisableSubmissions:(id)sender;

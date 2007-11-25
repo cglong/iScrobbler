@@ -390,7 +390,6 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
                 [song brief], [song elapsedTime], duration);
             [song setSkipped:YES];
             [[ASWebServices sharedInstance] decrementPlaylistSkipsLeft];
-            // we don't send a "skip" command because this track is no longer playing
         }
     }
     [song setPosition:[song elapsedTime]];
@@ -404,8 +403,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 if (currentSong) { \
     if ([currentSong isPaused]) \
         [currentSong didResumeFromPause]; \
-    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] \
-        && (!submissionsDisabled || [currentSong isLastFmRadio])) \
+    if (![currentSong hasQueued] && (!submissionsDisabled || [currentSong isLastFmRadio])) \
         [self queueSong:currentSong playerStopped:isStopped]; \
     [currentSong setLastPlayed:[NSDate date]]; \
     [currentSong release]; \
@@ -521,7 +519,7 @@ if (currentSong) { \
               // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
              (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
         #endif
-             ([currentSong hasQueued] || ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END) && [currentSong canSubmit])) {
+             ([currentSong hasQueued] || [currentSong canSubmit])) {
             ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
             isRepeat = YES;
@@ -538,7 +536,6 @@ if (currentSong) { \
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
             } else  if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
                 if (![currentSong hasQueued]) {
-                    ISASSERT([currentSong resubmitInterval] <= 0.0, "active resubmit interval!");
                     ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs)", [currentSong brief],
                         [[currentSong elapsedTime] floatValue]);
                 }
@@ -1465,11 +1462,6 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     // Replace spaces with + (why doesn't AS use %20)?
     [url replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [url length])];
     return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
-}
-
-- (IBAction)cleanLog:(id)sender
-{
-    ScrobLogTruncate();
 }
 
 - (IBAction)performFindPanelAction:(id)sender
