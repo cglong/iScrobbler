@@ -213,10 +213,11 @@ static NSMutableArray *topHours = nil;
 }
 
 #define PLAY_TIME_FORMAT @"%u:%02u:%02u:%02u"
-- (void)songQueuedHandler:(NSNotification*)note
+- (void)songDidQueuedHandler:(NSNotification*)note
 {
-    SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
-    [[PersistentProfile sharedInstance] addSongPlay:song];
+    SongData *s = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
+    if (![s banned] && ![s skipped])
+        [[PersistentProfile sharedInstance] addSongPlay:s];
 }
 
 - (void)persistentProfileImportProgress:(NSNotification*)note
@@ -254,7 +255,7 @@ static NSMutableArray *topHours = nil;
 
         // Register for QM notes
         [[NSNotificationCenter defaultCenter] addObserver:self
-            selector:@selector(songQueuedHandler:)
+            selector:@selector(songDidQueuedHandler:)
             name:QM_NOTIFICATION_SONG_QUEUED
             object:nil];
         

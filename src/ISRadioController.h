@@ -10,9 +10,15 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class ASWebServices;
+
 @interface ISRadioController : NSObject {
     NSMenuItem *rootMenu;
+    ASWebServices *asws;
     NSDictionary *stationBeingTuned;
+    NSAppleScript *stopScript, *radioScript;
+    NSMutableDictionary *activeRadioTracks;
+    NSString *currentTrackID;
 }
 
 + (ISRadioController*)sharedInstance;

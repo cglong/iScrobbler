@@ -22,6 +22,10 @@
 #define destinationOfAliasAtPath ISDestinationOfAliasAtPath
 @end
 
+@interface NSXMLElement (ISAdditions)
+- (NSInteger)integerValue; // this could be added at some point to 10.5.x or 10.6
+@end
+
 NS_INLINE NSString* ISCPUArchitectureString() {
 return (
 #ifdef __ppc__

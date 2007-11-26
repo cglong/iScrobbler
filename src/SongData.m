@@ -74,8 +74,8 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     
     // initialize some empty values
     [self setTitle:@""];
-    [self setDuration:[NSNumber numberWithFloat:0.0f]];
-    [self setPosition:[NSNumber numberWithFloat:0.0f]];
+    [self setDuration:[NSNumber numberWithInt:0]];
+    [self setPosition:[NSNumber numberWithInt:0]];
     [self setArtist:@""];
     [self setAlbum:@""];
     [self setPath:@""];
@@ -84,6 +84,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [self setPlayCount:[NSNumber numberWithInt:0]];
     [self setRating:[NSNumber numberWithInt:0]];
     [self setPlayerUUID:@""];
+    [self setLastFmAuthCode:@""];
 
     // initialize with current time
     [self setStartTime:[NSDate date]];
@@ -116,6 +117,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [copy setTrackNumber:[self trackNumber]];
     [copy setPlayCount:[self playCount]];
     [copy setPlayerUUID:[self playerUUID]];
+    [copy setLastFmAuthCode:[self lastFmAuthCode]];
     
     copy->iTunes = self->iTunes;
     copy->isLastFmRadio = self->isLastFmRadio;
@@ -193,6 +195,11 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 #define SD_KEY_ITUNES_DB_ID @"iTunes DB ID"
 #define SD_KEY_MBID @"MBID"
 #define SD_KEY_TRACKNUM @"Track Number"
+#define SD_KEY_LFMRADIO @"LastFM Radio"
+#define SD_KEY_LFMAUTH @"LastFM Auth"
+#define SD_KEY_LOVED @"Loved"
+#define SD_KEY_SKIPPED @"Skipped"
+#define SD_KEY_BANNED @"Banned"
 - (NSDictionary*)songData
 {
     NSString *ptitle, *palbum, *partist, *ppath, *pmbid;
@@ -239,6 +246,11 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         pstartTime, SD_KEY_STARTTIME,
         ptype, SD_KEY_TYPE,
         pitunesid, SD_KEY_ITUNES_DB_ID,
+        [NSNumber numberWithBool:[self isLastFmRadio]], SD_KEY_LFMRADIO,
+        [NSNumber numberWithBool:[self loved]], SD_KEY_LOVED,
+        [NSNumber numberWithBool:[self skipped]], SD_KEY_SKIPPED,
+        [NSNumber numberWithBool:[self banned]], SD_KEY_BANNED,
+        [self lastFmAuthCode], SD_KEY_LFMAUTH,
         ptrackNumber, SD_KEY_TRACKNUM,
         pmbid, SD_KEY_MBID,
         nil];
@@ -276,6 +288,17 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
             [self setMbid:obj];
         if ((obj = [data objectForKey:SD_KEY_TRACKNUM]))
             [self setTrackNumber:obj];
+        // 2.0 radio support
+        if ((obj = [data objectForKey:SD_KEY_LFMRADIO]))
+            isLastFmRadio = [obj boolValue];
+        if ((obj = [data objectForKey:SD_KEY_LOVED]))
+            [self setLoved:[obj boolValue]];
+        if ((obj = [data objectForKey:SD_KEY_SKIPPED]))
+            [self setSkipped:[obj boolValue]];
+        if ((obj = [data objectForKey:SD_KEY_BANNED]))
+            [self setBanned:[obj boolValue]];
+        if ((obj = [data objectForKey:SD_KEY_LFMAUTH]))
+            [self setLastFmAuthCode:obj];
         reconstituted = YES;
         return (YES);
     }
@@ -610,7 +633,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 }
 
 - (NSNumber*)elapsedTime
-{
+{    
     NSNumber *zero = [NSNumber numberWithDouble:0.0];
     NSTimeInterval elapsed = [[self startTime] timeIntervalSinceNow];
     if (elapsed > 0.0) // We should never have a future value
@@ -621,8 +644,11 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         // This can happen if the song is scrubbed back to the beginning and the pause time is > 0
         [self setPausedTime:zero];
         n = zero;
-    } else if ([n isGreaterThan:[self duration]])
-        n = [self duration];
+    } else {
+        NSNumber *myDuration = [self duration];
+        if ([n isGreaterThan:myDuration])
+            n = myDuration;
+    }
     return (n);
 }
 
@@ -941,6 +967,19 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     return (ignoreMe);
 }
 
+- (NSString*)uuid
+{
+    if (![self isLastFmRadio]) {
+        NSString *puuid = [[NSApp delegate] playerLibraryUUID];
+        NSString *suuid = [self playerUUID];
+        if (puuid && [suuid length] > 0) {
+            return ([puuid stringByAppendingString:suuid]);
+        }
+    }
+    
+    return (nil);
+}
+
 - (BOOL)loved
 {
     return (loved);
@@ -949,16 +988,48 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 - (void)setLoved:(BOOL)isLoved
 {
     loved = isLoved;
+    
+    if (banned && isLoved) {
+        NSString *uuid;
+        banned = NO;
+        if ((uuid = [self uuid])) {
+            NSMutableDictionary *d;
+            d = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"BannedSongs"] mutableCopy] autorelease];
+            [d removeObjectForKey:uuid];
+            [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"BannedSongs"];
+            ScrobLog(SCROB_LOG_TRACE, @"Song '%@' has been un-banned (uuid: %@)", [self brief], uuid);
+        }
+    }
 }
 
 - (BOOL)banned
 {
+    NSString *uuid;
+    if (!banned && (uuid = [self uuid])) {
+        banned = (nil != [[[NSUserDefaults standardUserDefaults] objectForKey:@"BannedSongs"] objectForKey:uuid]);
+    }
     return (banned);
 }
 
 - (void)setBanned:(BOOL)isBanned
 {
-    banned = isBanned;
+    if (banned != isBanned) {
+        NSString *uuid;
+        if ((uuid = [self uuid])) {
+            NSMutableDictionary *d;
+            d = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"BannedSongs"] mutableCopy] autorelease];
+            if (isBanned && nil == [d objectForKey:uuid]) {
+                [d setObject:[self brief] forKey:uuid];
+                [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"BannedSongs"];
+                ScrobLog(SCROB_LOG_TRACE, @"Song '%@' has been banned (uuid: %@)", [self brief], uuid);
+            } else if (!isBanned) {
+                [d removeObjectForKey:uuid];
+                [[NSUserDefaults standardUserDefaults] setObject:d forKey:@"BannedSongs"];
+                ScrobLog(SCROB_LOG_TRACE, @"Song '%@' has been un-banned (uuid: %@)", [self brief], uuid);
+            }
+        }
+        banned = isBanned;
+    }
 }
 
 - (BOOL)skipped
@@ -974,6 +1045,20 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 - (BOOL)isLastFmRadio
 {
     return (isLastFmRadio);
+}
+
+- (NSString*)lastFmAuthCode
+{
+    return (lastFmAuthCode);
+}
+
+- (void)setLastFmAuthCode:(NSString*)code
+{
+    if (!code)
+        code = @"";
+    (void)[code retain];
+    [lastFmAuthCode release];
+    lastFmAuthCode = code;
 }
 
 - (NSNumber*)trackNumber
@@ -1061,6 +1146,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [mbid release];
     [playCount release];
     [playerUUID release];
+    [lastFmAuthCode release];
     [super dealloc];
 }    
 

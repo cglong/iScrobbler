@@ -25,8 +25,9 @@
     // a sub-menu attached to recently played songs
     NSMenu *songActionMenu;
 
-    //the script to get information from iTunes
-    NSAppleScript *script;
+    // Player scripts
+    NSAppleScript *currentTrackInfoScript;
+    NSAppleScript *playerControlScript;
 
     //stores info about the songs iTunes has played
     NSMutableArray *songList;
@@ -78,19 +79,26 @@
 -(IBAction)openStatistics:(id)sender;
 -(IBAction)openTopLists:(id)sender;
 
--(IBAction)cleanLog:(id)sender;
-
 -(IBAction)performFindPanelAction:(id)sender;
 
 -(IBAction)enableDisableSubmissions:(id)sender;
 
 -(IBAction)donate:(id)sender;
 
--(NSString *)md5hash:(id)input;
-
+// Info
 -(SongData*)nowPlaying;
-
 - (BOOL)queueSongsForLaterSubmission;
+
+// Player control
+- (void)playerStop;
+- (void)playerNextTrack;
+- (NSString*)playerLibraryUUID;
+
+// Services
+-(IBAction)loveTrack:(id)sender;
+-(IBAction)banTrack:(id)sender;
+
+-(NSString *)md5hash:(id)input;
 
 -(NSString*)stringByEncodingURIChars:(NSString*)str;
 -(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
@@ -100,7 +108,6 @@
 
 // For last.fm communication events
 - (void)displayProtocolEvent:(NSString *)msg;
-
 - (void)displayNowPlayingWithMsg:(NSString*)msg;
 - (void)displayNowPlaying;
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg;

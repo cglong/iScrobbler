@@ -61,10 +61,16 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck;
 
 static BBNetUpdateDownloadController *gDLInstance = nil;
 
+static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
+
 @implementation BBNetUpdateDownloadController
 
 + (void)downloadTo:(NSString*)file from:(NSString*)url withHashInfo:(NSDictionary*)hash
 {
+    timeMonikers[0] = NSLocalizedStringFromTable(@"seconds", @"BBNetUpdate", @"");
+    timeMonikers[1] = NSLocalizedStringFromTable(@"minutes", @"BBNetUpdate", @"");
+    timeMonikers[2] = NSLocalizedStringFromTable(@"hours", @"BBNetUpdate", @"");
+        
    if (!gDLInstance) {
       gDLInstance = [[BBNetUpdateDownloadController alloc] initWithWindowNibName:@"BBNetUpdateDownload"];
       if (!gDLInstance) {
@@ -99,6 +105,8 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 
 - (IBAction)cancel:(id)sender
 {
+    // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
    [bbDownload cancel];
    [self close];
 }
@@ -222,12 +230,48 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     return (good);
 }
 
+- (NSString*)progressString
+{
+    NSString *s;
+    if (totalBytes > 0.0) {
+        static NSString* const byteMonikers[] = {@"bytes", @"KB", @"MB", @"GB", @"TB", @"PB", nil};
+        
+        NSTimeInterval delta = [[NSDate date] timeIntervalSince1970] - epoch;
+        double recvdPerSecond = recvdBytes / delta;
+        int rsi, ri, ti, timei;
+        for (rsi = 0; recvdPerSecond >= 1024.0; ++rsi)
+            recvdPerSecond /= 1024.0;
+        double recvdSize = recvdBytes;
+        for (ri = 0; recvdSize >= 1024.0; ++ri)
+            recvdSize /= 1024.0;
+        double totalSize = totalBytes;
+        for (ti = 0; totalSize >= 1024.0; ++ti)
+            totalSize /= 1024.0;
+        double remainingTime = (totalBytes - recvdBytes) / (recvdBytes / delta);
+        for (timei = 0; remainingTime >= 60.0 && timei < 2 /*cap to hours*/; ++timei)
+            remainingTime /= 60.0;
+        
+        s = [NSString stringWithFormat:
+            NSLocalizedStringFromTable(@"%.1f %@ of %.1f %@ (%.1f %@/sec), About %.1f %@ remaining", @"BBNetUpdate", @"received of total (received/second), About time remaining"),
+            recvdSize, byteMonikers[ri], totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
+            remainingTime, timeMonikers[timei]];
+    } else
+        s = [NSLocalizedStringFromTable(@"Establishing connection", @"BBNetUpdate", @"") stringByAppendingFormat:@"%C", 0x2026];
+    return (s);
+}
+
+- (void)setProgressString:(NSString*)s
+{
+    // just for bindings completeness
+}
+
 // NSURLDownload protocol
 
 - (void)download:(NSURLDownload *)download didReceiveResponse:(NSURLResponse *)response
 {
-    _totalBytes = (typeof(_totalBytes))[response expectedContentLength];
-    if (_totalBytes > 0.0) {
+    totalBytes = (typeof(totalBytes))[response expectedContentLength];
+    if (totalBytes > 0.0) {
+        epoch = [[NSDate date] timeIntervalSince1970];
         [progressBar stopAnimation:self];
         [progressBar setIndeterminate:NO];
         [progressBar setDoubleValue:0.0];
@@ -262,11 +306,13 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
     [self close];
 }
 
-- (void)download:(NSURLDownload *)download didReceiveDataOfLength:(unsigned)length;
+- (void)download:(NSURLDownload *)download didReceiveDataOfLength:(NSUInteger)length;
 {
-   if (_totalBytes > 0.0) {
-       double recvdBytes = ((double)length / _totalBytes) * 100.0;
-       [progressBar incrementBy:recvdBytes];
+   if (totalBytes > 0.0) {
+       recvdBytes += (double)length;
+       [progressBar incrementBy:((double)length / totalBytes) * 100.0];
+       [self willChangeValueForKey:@"progressString"];
+       [self didChangeValueForKey:@"progressString"];
     }
 }
 
@@ -292,12 +338,11 @@ static BBNetUpdateDownloadController *gDLInstance = nil;
 
 // Sheet handlers
 
-- (void)endAlertSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)endAlertSheet:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
    if ((void*)-1 == contextInfo) {
       // Error - close the parent
-      [NSTimer scheduledTimerWithTimeInterval:0.02 target:self
-            selector:@selector(close) userInfo:nil repeats:NO];
+      [NSTimer scheduledTimerWithTimeInterval:0.02 target:self selector:@selector(close) userInfo:nil repeats:NO];
    }
 }
 
