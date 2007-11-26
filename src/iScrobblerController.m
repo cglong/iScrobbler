@@ -912,15 +912,6 @@ player_info_exit:
     [songActionMenu addItem:item];
     [item release];
     
-    title = [NSString stringWithFormat:@"%C ", 0x2298];
-    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
-        action:@selector(banTrack:) keyEquivalent:@""];
-    [item setTarget:self];
-    [item setTag:MACTION_BAN_TAG];
-    [item setEnabled:YES];
-    [songActionMenu addItem:item];
-    [item release];
-    
     title = [NSString stringWithFormat:@"%C ", 0x270E];
     item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
         action:@selector(tagTrack:) keyEquivalent:@""];
@@ -935,6 +926,24 @@ player_info_exit:
         action:@selector(recommendTrack:) keyEquivalent:@""];
     [item setTarget:self];
     [item setTag:MACTION_RECOMEND_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x2298];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
+        action:@selector(banTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_BAN_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x27A0];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
+        action:@selector(skipTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_SKIP];
     [item setEnabled:YES];
     [songActionMenu addItem:item];
     [item release];
@@ -1236,34 +1245,28 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
             // Setup the action menu for the currently playing song  
             NSMenu *m = [songActionMenu copy];
             if ([song isLastFmRadio]) {
-                NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
-                item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
-                    action:@selector(skip) keyEquivalent:@""];
+                // Use the radio sepcific skip and ban
+                item = [m itemWithTag:MACTION_SKIP]; 
+                [item setAction:@selector(skip)];
                 [item setTarget:[ISRadioController sharedInstance]];
-                [item setTag:MACTION_SKIP];
-                [item setEnabled:YES];
-                @try {
-                [m insertItem:item atIndex:[m indexOfItemWithTag:MACTION_RECOMEND_TAG]+1];
-                } @catch (id e) {
-                    ScrobDebug(@"exception: %@", e);
-                }
-                [item release];
                 
-                item = [m itemWithTag:MACTION_BAN_TAG]; // Use the radio sepcific ban
+                item = [m itemWithTag:MACTION_BAN_TAG]; 
                 [item setAction:@selector(ban)];
                 [item setTarget:[ISRadioController sharedInstance]];
-            }
-            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
-            
-            if ([song banned]) {
-                if (![song isLastFmRadio]) {
+                if ([song banned])
+                    [item setEnabled:NO];
+            } else {
+                if ([song banned]) {
                     item = [m itemWithTag:MACTION_BAN_TAG];
                     [item setAction:@selector(unBanTrack:)];
                     [item setTitle:NSLocalizedString(@"Un-Ban", "")];
-                } else {
-                    [[m itemWithTag:MACTION_BAN_TAG] setEnabled:NO];
+                } else if ([song skipped]) {
+                    // this should not occur because a local skip tells the player to go to the next track,
+                    // but just in case...
+                    [[m itemWithTag:MACTION_SKIP] setEnabled:NO];
                 }
             }
+            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
             
             item = [theMenu itemAtIndex:0];
             ISASSERT(song == [item representedObject], "songs don't match!");
@@ -1691,6 +1694,17 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     [req setDelegate:self];
     [req setRepresentedObject:song];
     [req sendRequest];
+}
+
+- (IBAction)skipTrack:(id)sender
+{
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
+    if (![song isLastFmRadio]) {
+        [song setSkipped:YES];
+        [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
+        return;
+    }
+    ISASSERT(0, "local skip called with radio track!");
 }
 
 - (void)recommendSheetDidEnd:(NSNotification*)note
