@@ -5,12 +5,12 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>582b643d2685983a7d5f3e54a67500cb2d00c4ca</string>
+        	<string>9be222519ec91cc951f5931d451c0d64b05dad44</string>
         </dict>
         <key>Version</key>
-        <string>2.0.0b4</string>
+        <string>2.0.0b5</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0b4.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0b5.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -25,7 +25,7 @@
 - Basic Applescript support.
 - Expanded use of Growl.
 - Many other minor features and bug fixes.
-- 2.0b4: Support for new Last.fm Radio protocol (should fix radio errors) and bug fixes.
+- 2.0b5: More Radio changes to get radio sumbissions working and other chnages.
 		</string>
         </dict>
 </dict>
