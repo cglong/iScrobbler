@@ -1029,12 +1029,13 @@ __private_extern__ NSThread *mainThread;
     if ((aTitle = [self album]) && [aTitle length] > 0) {
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
-            ITEM_SONG, [self title], [self artist], aTitle];
+            ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves],
+            [[self artist] stringByEscapingNSPredicateReserves], [aTitle stringByEscapingNSPredicateReserves]];
     } else {
         aTitle = nil;
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
-            ITEM_SONG, [self title], [self artist]];
+            ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves], [[self artist] stringByEscapingNSPredicateReserves]];
     }
     [request setPredicate:predicate];
     
@@ -1081,7 +1082,7 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:
         [NSPredicate predicateWithFormat:@"(itemType == %@) AND (name LIKE[cd] %@)",
-            ITEM_ARTIST, [self artist]]];
+            ITEM_ARTIST, [[self artist] stringByEscapingNSPredicateReserves]]];
     
     result = [moc executeFetchRequest:request error:&error];
     if (1 == [result count]) {
@@ -1104,7 +1105,8 @@ __private_extern__ NSThread *mainThread;
         [request setPredicate:
             [NSPredicate predicateWithFormat:
                 @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
-                ITEM_ALBUM, aTitle, [self artist]]];
+                ITEM_ALBUM, [aTitle stringByEscapingNSPredicateReserves],
+                [[self artist] stringByEscapingNSPredicateReserves]]];
         
         result = [moc executeFetchRequest:request error:&error];
         if (1 == [result count]) {
@@ -1133,7 +1135,8 @@ __private_extern__ NSThread *mainThread;
             aTitle = @"Last.fm Radio";
         entity = [NSEntityDescription entityForName:@"PPlayer" inManagedObjectContext:moc];
         [request setEntity:entity];
-        [request setPredicate:[NSPredicate predicateWithFormat:@"name LIKE[cd] %@", aTitle]];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"name LIKE[cd] %@",
+            [aTitle stringByEscapingNSPredicateReserves]]];
         
         result = [moc executeFetchRequest:request error:&error];
         if (1 == [result count]) {
