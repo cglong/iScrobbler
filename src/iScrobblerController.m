@@ -1624,7 +1624,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
             playerLibUUID = [uuid retain];
         }
     } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't iTunes library UUID -- script error: %@.", exception);
+        ScrobLog(SCROB_LOG_ERR, @"Can't get iTunes library UUID -- script error: %@.", exception);
     }
     
     return (playerLibUUID);
