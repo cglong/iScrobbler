@@ -840,7 +840,7 @@ static int npDelays = 0;
     NSDictionary *userInfo = [note userInfo];
     if (userInfo && (obj = [userInfo objectForKey:@"repeat"]))
         repeat = [obj boolValue];
-    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length] || [s isLastFmRadio]) {
+    if (!isNetworkAvailable || !s || (!repeat && [npSong isEqualToSong:s]) || 0 == [[s artist] length] || 0 == [[s title] length]) {
         if (!s) {
             [npSong release];
             npSong = nil;
@@ -907,13 +907,13 @@ static int npDelays = 0;
         reachContext.info = self;
         if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext) ||
              !SCNetworkReachabilityScheduleWithRunLoop(g_networkReachRef,
-                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopDefaultMode))
+                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopCommonModes))
         {
             ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor - assuming network is always available.\n");
             isNetworkAvailable = YES;
         }
         
-        // There's some bug in Tiger that cause notification events to not be sent (sometimes) on wake.
+        // There's some bug in Tiger that causes notification events to not be sent (sometimes) on wake.
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     } else { // @"IgnoreNetworkMonitor"
@@ -973,6 +973,19 @@ static int npDelays = 0;
         && ([[self duration] floatValue] >= 30.0 || [[self mbid] length] > 0)
         && ([[self percentPlayed] floatValue] > [pm minPercentagePlayed] ||
         [[self elapsedTime] floatValue] > [pm minTimePlayed] || reconstituted) );
+    
+    if ([self isLastFmRadio]) {
+        // banned and skipped radio songs still get submitted even though they are not counted in stats
+        good = ([self banned] || [self skipped] || good);
+        if (good && [[self lastFmAuthCode] length] <= 0) {
+            ScrobLog(SCROB_LOG_WARN, @"Radio track \"%@\" will not be submitted because it is missing a last.fm authorization code.",
+                [self brief]);
+            good = NO;
+        }
+    } else {
+        good = (good && ![self banned] && ![self skipped]);
+    }
+    
     if (good && [self ignore]) {
         // Song should be ignored, but slipped through the upper layers
         [self setHasQueued:YES];
@@ -987,14 +1000,18 @@ static int npDelays = 0;
     return (NO);
 }
 
-- (NSTimeInterval)submitIntervalFromNow
+- (NSString*)lastFmRating
 {
-    return (PM_SUBMIT_AT_TRACK_END);
-}
-
-- (double)resubmitInterval
-{
-    return (0.0);
+    NSString *r = @"";
+    if ([self loved])
+        r = @"L";
+    else if ([self isLastFmRadio]) {
+        if ([self banned]) // Ban supersedes skip
+            r = @"B";
+        else if ([self skipped])
+            r = @"S";
+    }
+    return (r);
 }
 
 @end

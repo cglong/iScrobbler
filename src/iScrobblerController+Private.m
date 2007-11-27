@@ -546,6 +546,12 @@ validate:
                     }
                 }
                 
+                if (0 == [iqueue count]) {
+                    // this can occur when all the songs are filtered or had date problems
+                    errInfo = @"No Matching Tracks";
+                    goto sync_exit_with_note;
+                }
+                
                 NSMutableArray *extraPlays;
                 if (iTunesLib && [sourceIsiTunes boolValue]) {
                     workPool = [[NSAutoreleasePool alloc] init];

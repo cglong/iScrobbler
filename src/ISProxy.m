@@ -36,7 +36,7 @@
         
     } @catch (NSException *e) {
         return ([NSDictionary dictionaryWithObject:
-            [@"script failed to initialize" stringByAppendingString:[e description]] forKey:@"error"]);
+            [@"script exception: " stringByAppendingString:[e description]] forKey:@"error"]);
     }
     
     return (nil);
@@ -60,7 +60,6 @@
 }
 
 @end
-
 
 int main(int argc, char *argv[])
 {
