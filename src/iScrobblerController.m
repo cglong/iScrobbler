@@ -448,6 +448,7 @@ if (currentSong) { \
         goto player_info_exit;
     } else if (submissionsDisabled && ![song isLastFmRadio]) {
         [song release];
+        song = nil;
         ReleaseCurrentSong();
         goto player_info_exit;
     }
