@@ -1,6 +1,7 @@
 on EmptyRadioPlaylst(targetPlaylist)
 	tell application "iTunes"
-		tell source "Library"
+		set mainLib to the first item in (get every source whose kind is library)
+		tell mainLib
 			set allPlaylists to (every user playlist whose name is targetPlaylist)
 			if allPlaylists is not {} then
 				set radioPlaylist to the first item of allPlaylists
@@ -15,7 +16,8 @@ end EmptyRadioPlaylst
 
 on RemoveRadioTrack(targetPlaylist, trackPersistentID)
 	tell application "iTunes"
-		tell source "Library"
+		set mainLib to the first item in (get every source whose kind is library)
+		tell mainLib
 			set allPlaylists to (every user playlist whose name is targetPlaylist)
 			if allPlaylists is not {} then
 				set radioPlaylist to the first item of allPlaylists
@@ -43,7 +45,8 @@ end PlayNextRadioTrack
 
 on PlayRadioPlaylist(targetPlaylist)
 	tell application "iTunes"
-		tell source "Library"
+		set mainLib to the first item in (get every source whose kind is library)
+		tell mainLib
 			set allPlaylists to (every user playlist whose name is targetPlaylist)
 			if allPlaylists is not {} then
 				set radioPlaylist to the first item of allPlaylists
@@ -60,7 +63,8 @@ end PlayRadioPlaylist
 
 on AddRadioTrack(targetPlaylist, trackName, trackArtist, trackAlbum, trackURL, m3ufile)
 	tell application "iTunes"
-		tell source "Library"
+		set mainLib to the first item in (get every source whose kind is library)
+		tell mainLib
 			
 			set allPlaylists to (every user playlist whose name is targetPlaylist)
 			if allPlaylists is not {} then
@@ -89,7 +93,8 @@ end AddRadioTrack
 
 on RemoveRadioPlayList(targetPlaylist)
 	tell application "iTunes"
-		tell source "Library"
+		set mainLib to the first item in (get every source whose kind is library)
+		tell mainLib
 			set allPlaylists to (every user playlist whose name is targetPlaylist)
 			if allPlaylists is not {} then
 				set radioPlaylist to the first item of allPlaylists

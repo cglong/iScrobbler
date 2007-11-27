@@ -18,7 +18,8 @@ on PlayerLibraryUUID()
 	
 	if itunesActive is true then
 		tell application "iTunes"
-			tell source "Library"
+			set mainLib to the first item in (get every source whose kind is library)
+			tell mainLib
 				return persistent ID
 			end tell
 		end tell
