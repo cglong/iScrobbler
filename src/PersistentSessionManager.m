@@ -1195,14 +1195,30 @@ __private_extern__ NSThread *mainThread;
 
 - (void)decrementPlayCount:(NSNumber*)count
 {
-    u_int32_t playCount = [[self valueForKey:@"playCount"] unsignedIntValue] - [count unsignedIntValue];
-    [self setValue:[NSNumber numberWithUnsignedInt:playCount] forKey:@"playCount"];
+    u_int32_t myCount = [[self valueForKey:@"playCount"] unsignedIntValue];
+    u_int32_t playCount = [count unsignedIntValue];
+    if (myCount >= playCount) {
+        myCount -= playCount;
+        [self setValue:[NSNumber numberWithUnsignedInt:myCount] forKey:@"playCount"];
+    }
+    #ifdef ISDEBUG
+    else
+        ISASSERT(0, "count went south!");
+    #endif
 }
 
 - (void)decrementPlayTime:(NSNumber*)count
 {
-    u_int64_t playTime = [[self valueForKey:@"playTime"] unsignedLongLongValue] - [count unsignedLongLongValue];
-    [self setValue:[NSNumber numberWithUnsignedLongLong:playTime] forKey:@"playTime"];
+    u_int64_t myTime = [[self valueForKey:@"playTime"] unsignedLongLongValue];
+    u_int64_t playTime = [count unsignedLongLongValue];
+    if (myTime >= playTime) {
+        myTime -= playTime;
+        [self setValue:[NSNumber numberWithUnsignedLongLong:myTime] forKey:@"playTime"];
+    }
+    #ifdef ISDEBUG
+    else
+        ISASSERT(0, "time went south!");
+    #endif
 }
 
 @end
