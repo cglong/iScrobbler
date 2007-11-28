@@ -212,6 +212,62 @@ __private_extern__ NSThread *mainThread;
     [self performSelector:@selector(updateSessions:) withObject:nil];
 }
 
+- (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc
+{
+#ifdef ISDEBUG
+    NSArray *refetchedSongs = [[PersistentProfile sharedInstance] songsForSession:session];
+    ISASSERT([refetchedSongs count] == [songs count], "invalid session songs!");
+    
+    NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    NSNumber *rfcount = [refetchedSongs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    ISASSERT([count unsignedIntValue] == [rfcount unsignedIntValue], "counts don't match!");
+    
+    NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    NSNumber *rfptime = [refetchedSongs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    ISASSERT([ptime unsignedLongLongValue] == [rfptime unsignedLongLongValue], "times don't match!");
+    
+    ISASSERT([count isEqualTo:[session valueForKey:@"playCount"]], "counts don't match!");
+    ISASSERT([ptime isEqualTo:[session valueForKey:@"playTime"]], "times don't match!");
+#endif
+    
+    // Pre-fetch the songs
+    NSError *error = nil;
+    NSEntityDescription *entity;
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [songs valueForKeyPath:@"item.objectID"]]];
+    error = nil;
+    (void)[moc executeFetchRequest:request error:&error];
+    
+    NSEnumerator *en;
+    NSManagedObject *rating;
+    NSNumber *zero = [NSNumber numberWithInt:0];
+    // Zero our ratings
+    en = [[[PersistentProfile sharedInstance] ratingsForSession:session] objectEnumerator];
+    while ((rating = [en nextObject])) {
+        [rating setValue:zero forKey:@"playCount"];
+        [rating setValue:zero forKey:@"playTime"];
+    }
+    
+    en = [songs objectEnumerator];
+    NSManagedObject *sessionSong;
+    while ((sessionSong = [en nextObject])) {
+        rating = [self cacheForRating:[sessionSong valueForKeyPath:@"item.rating"] inSession:session moc:moc];
+        ISASSERT(rating != nil, "missing rating!");
+        [rating incrementPlayCount:[sessionSong valueForKey:@"playCount"]];
+        [rating incrementPlayTime:[sessionSong valueForKey:@"playTime"]];
+    }
+    
+#ifdef ISDEBUG
+    NSArray *ratings = [[PersistentProfile sharedInstance] ratingsForSession:session];
+    count = [ratings valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    ptime = [ratings valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    ISASSERT([count isEqualTo:[session valueForKey:@"playCount"]], "rating cache counts don't match session total!");
+    ISASSERT([ptime isEqualTo:[session valueForKey:@"playTime"]], "rating cache times don't match session total!");
+#endif    
+}
+
 - (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:newEpoch moc:(NSManagedObjectContext*)moc
 {
     NSString *sessionName = [[[session valueForKey:@"name"] retain] autorelease];
@@ -352,11 +408,7 @@ __private_extern__ NSThread *mainThread;
             sAlbum = nil;
         
         // Caches
-        mobj = [self cacheForRating:[sessionSong valueForKeyPath:@"item.rating"] inSession:session moc:moc];
-        if (mobj) {
-            [mobj decrementPlayCount:playCount];
-            [mobj decrementPlayTime:playTime];
-        }
+        // XXX - don't update rating cache - see removeSongsBefore
     
         NSCalendarDate *submitted = [NSCalendarDate dateWithTimeIntervalSince1970:
             [[sessionSong valueForKey:@"submitted"] timeIntervalSince1970]];
@@ -385,12 +437,6 @@ __private_extern__ NSThread *mainThread;
     totalPlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     ISASSERT([totalPlayCount isEqualTo:[session valueForKey:@"playCount"]], "song play counts don't match session total!");
     ISASSERT([totalPlayTime isEqualTo:[session valueForKey:@"playTime"]], "song play times don't match session total!");
-    
-    songs = [[PersistentProfile sharedInstance] ratingsForSession:session];
-    totalPlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
-    totalPlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
-    ISASSERT([totalPlayCount isEqualTo:[session valueForKey:@"playCount"]], "rating cache counts don't match session total!");
-    ISASSERT([totalPlayTime isEqualTo:[session valueForKey:@"playTime"]], "rating cache times don't match session total!");
     
     songs = [[PersistentProfile sharedInstance] hoursForSession:session];
     totalPlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
@@ -438,6 +484,8 @@ __private_extern__ NSThread *mainThread;
     
     if ([validSongs count] > [invalidSongs count]) {
         [self removeSongs:invalidSongs fromSession:session moc:moc];
+        // the PSong rating can change at any time, so we have to regenerate the whole cache from the remaining valid songs
+        [self recreateRatingsCacheForSession:session songs:validSongs moc:moc];
         ScrobLog(SCROB_LOG_TRACE, @"removed %lu songs from session %@", [invalidSongs count], sessionName);
     } else {
         // it's more efficient to destroy everything and add the valid songs back in
