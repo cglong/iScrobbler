@@ -18,6 +18,7 @@
 
 @interface ISRadioController (RadioPrivate)
 - (void)playStation:(id)sender;
+- (void)radioPlayDidStop;
 - (void)setDiscoveryMode:(id)sender;
 - (NSDictionary*)lastTunedStation;
 @end
@@ -183,6 +184,11 @@
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Radio: can't play playlist -- script error: %@.", exception);
     }
+    if ([playing boolValue]) {
+        NSMenuItem *item = [[rootMenu submenu] itemWithTag:MACTION_STOP];
+        [item setEnabled:YES];
+    } else
+        [self radioPlayDidStop];
     return ([playing boolValue]);
 }
 
