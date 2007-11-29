@@ -75,6 +75,14 @@
     } else if ([currentSearchType objectForKey:@"group"]) {
         url = [ws stationForGroup:searchFor];
         name = [NSString stringWithFormat:NSLocalizedString(@"%@ Group Radio", ""), searchFor];
+    } else if ([currentSearchType objectForKey:@"user"]) {
+        // display the user panel
+        NSDictionary *user = [NSDictionary dictionaryWithObjectsAndKeys:
+            searchFor, @"name",
+            [NSURL URLWithString:[@"http://www.last.fm/user/" stringByAppendingString:searchFor]], @"url",
+            nil];
+        [self performSelector:@selector(showUserPanel:) withObject:user afterDelay:0.0];
+        return;
     } else {
         NSBeep();
         return;
@@ -103,6 +111,8 @@
         name = NSLocalizedString(@"Enter a Tag", "");
     } else if ([currentSearchType objectForKey:@"group"]) {
         name = NSLocalizedString(@"Enter a Group", "");
+    } else if ([currentSearchType objectForKey:@"user"]) {
+        name = NSLocalizedString(@"Enter a Name", "");
     } else {
         NSBeep();
         return;
@@ -110,6 +120,9 @@
     [[searchText cell] setPlaceholderString:name];
     
     [searchText setStringValue:@""];
+    ISASSERT([currentSearchType objectForKey:@"buttonTitle"] != nil, "missing title!");
+    [searchButton setTitle:[currentSearchType objectForKey:@"buttonTitle"]];
+    [searchButton sizeToFit];
     [searchButton setEnabled:YES];
     [searchProgress stopAnimation:nil];
 }
@@ -509,16 +522,25 @@
                 NSLocalizedString(@"Artist", ""), @"name",
                 yes, @"artist",
                 action,  @"action",
+                NSLocalizedString(@"Play", @""), @"buttonTitle",
                 nil],
             [NSMutableDictionary dictionaryWithObjectsAndKeys:
                 NSLocalizedString(@"Tag", ""), @"name",
                 yes, @"tag",
                 action,  @"action",
+                NSLocalizedString(@"Play", @""), @"buttonTitle",
                 nil],
             [NSMutableDictionary dictionaryWithObjectsAndKeys:
                 NSLocalizedString(@"Group", ""), @"name",
                 yes, @"group",
                 action,  @"action",
+                NSLocalizedString(@"Play", @""), @"buttonTitle",
+                nil],
+            [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                NSLocalizedString(@"User", ""), @"name",
+                yes, @"user",
+                action,  @"action",
+                NSLocalizedString(@"Show Stations", @""), @"buttonTitle",
                 nil],
             nil], @"children",
         nil];
