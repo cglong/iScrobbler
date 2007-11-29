@@ -571,20 +571,19 @@ if (currentSong) { \
     if (isiTunesPlaying) {
         currentSongPaused = NO;
         // Update Recent Songs list
-        NSInteger i, found = 0, count = [songList count];
+        NSInteger i, found = -1, count = [songList count];
         for(i = 0; i < count; ++i) {
             if ([[songList objectAtIndex:i] isEqualToSong:song]) {
                 found = i;
                 break;
             }
         }
-
-        // If the track wasn't found anywhere in the list, we add a new item
-        if (found) {
+        
+        if (found >= 0) {
             // If the trackname was found elsewhere in the list, we remove the old item
             [songList removeObjectAtIndex:found];
         } else
-            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
+            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'", [song brief]);
         [songList pushSong:song];
         
         if ((count = [songList count] - [prefs integerForKey:@"Number of Songs to Save"]) > 0) {
