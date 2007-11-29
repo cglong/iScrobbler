@@ -14,7 +14,7 @@
     NSTimer *hstimer;
     NSMutableDictionary *sessionvars;
     NSInteger skipsLeft;
-    BOOL discovery, stopped;
+    BOOL discovery, stopped, canGetMoreTracks;
 }
 
 + (ASWebServices*)sharedInstance;

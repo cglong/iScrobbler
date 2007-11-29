@@ -137,22 +137,19 @@ static ASXMLFile *xspfReq = nil;
     [[NSNotificationCenter defaultCenter] postNotificationName:ASWSDidHandshake object:self];
 }
 
-#ifdef notyet
 - (NSURL*)playlistURLWithService:(NSString*)service
 {
     if (!service)
         return (nil);
     
-    NSString *path = [NSString stringWithFormat:@"http://%@%@/1.0/webclient/getresourceplaylist.php?sk=%@&url=%@&desktop=%@",
-        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"],
-        sessionid, service, WS_VERSION];
+    NSString *path = [NSString stringWithFormat:@"http://%@/1.0/webclient/getresourceplaylist.php?sk=%@&url=%@&desktop=1",
+        [sessionvars objectForKey:@"base_url"], sessionid, service];
     @try {
     return (!needHandshake ? [NSURL URLWithString:path] : nil);
     } @catch (id e) {}
     
     return (nil);
 }
-#endif
 
 - (NSURL*)radioURLWithService:(NSString*)service
 {
@@ -169,25 +166,32 @@ static ASXMLFile *xspfReq = nil;
     return (nil);
 }
 
+- (BOOL)isPlaylistService:(NSString*)service
+{
+    return (NSNotFound != [service rangeOfString:@"lastfm://playlist" options:NSCaseInsensitiveSearch].location
+        || NSNotFound != [service rangeOfString:@"lastfm://track" options:NSCaseInsensitiveSearch].location
+        || NSNotFound != [service rangeOfString:@"lastfm://preview" options:NSCaseInsensitiveSearch].location
+        || NSNotFound != [service rangeOfString:@"lastfm://play" options:NSCaseInsensitiveSearch].location);
+}
+
 - (void)tuneStation:(NSString*)station
 {
-    [tuneConn cancel];
-    tuneConn = nil;
+    [self stop];
     
     if (needHandshake)
         return;
     
-#ifdef notyet
-    if (NSNotFound == [service rangeOfString:@"playlist" options:NSCaseInsensitiveSearch]) {
+    NSURL *url;
+    if (NO == [self isPlaylistService:station]) {
         // normal radio station, we can ask for more playlist content
         canGetMoreTracks = YES;
+        url = [self radioURLWithService:station];
     } else {
-        // playlist or preview - this returns xspf data immediately and we cannot ask for more content
+        // playlist or preview track - this returns xspf data immediately and we cannot ask for more content
         canGetMoreTracks = NO;
+        url = [self playlistURLWithService:station];
     }
-#endif
     
-    NSURL *url = [self radioURLWithService:station];
     if (!url) {
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
         ScrobLog(SCROB_LOG_ERR, @"ASWS tuning failure: nil URL");
@@ -199,7 +203,10 @@ static ASXMLFile *xspfReq = nil;
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     
     ScrobLog(SCROB_LOG_TRACE, @"ASWS tuning: %@", url);
-    tuneConn = [NSURLConnection connectionWithRequest:req delegate:self];
+    if (canGetMoreTracks)
+        tuneConn = [NSURLConnection connectionWithRequest:req delegate:self];
+    else
+        xspfReq = [[ASXMLFile xmlFileWithURL:url delegate:self cachedForSeconds:0] retain];
 }
 
 - (NSString*)station:(NSString*)type forUser:(NSString*)user
@@ -289,7 +296,7 @@ static ASXMLFile *xspfReq = nil;
 - (void)stop
 {
     [xspfReq cancel];
-    [xspfReq release];
+    [xspfReq autorelease];
     xspfReq = nil;
     
     [tuneConn cancel];
@@ -301,6 +308,7 @@ static ASXMLFile *xspfReq = nil;
     [connData removeAllObjects];
     
     stopped = YES;
+    canGetMoreTracks = YES;
     skipsLeft = 0;
 }
 
@@ -314,6 +322,10 @@ static ASXMLFile *xspfReq = nil;
 {
     if (xspfReq) {
         ScrobLog(SCROB_LOG_TRACE, @"ASWS: xspf request already in progress");
+        return;
+    }
+    if (!canGetMoreTracks) {
+        ScrobLog(SCROB_LOG_TRACE, @"ASWS: playlist does not allow track refresh");
         return;
     }
     
@@ -359,21 +371,23 @@ xspf format as of 2007/11:
 {
     NSMutableArray *playlist = [NSMutableArray array];
     NSArray *tracks;
+    NSString *errMsg = nil;
+    int error = 0;
     @try {
         NSArray *trackList = [[xml rootElement] elementsForName:@"trackList"];
         if (!trackList || 1 != [trackList count]) {
-            ScrobLog(SCROB_LOG_ERR, @"ASWS: invalid xspf: missing or more than one trakcList element");
-            return;
+            errMsg = @"ASWS: invalid xspf: missing or more than one trackList element";
         }
         tracks = [[trackList objectAtIndex:0] elementsForName:@"track"];
         if (!tracks || ![tracks count]) {
-            ScrobLog(SCROB_LOG_ERR, @"ASWS: invalid xspf: no tracks to play!");
-            return;
+            errMsg = @"ASWS: invalid xspf: no tracks to play";
+            error = 1;
         }
     } @catch (NSException *ex) {
-        ScrobLog(SCROB_LOG_ERR, @"ASWS: Exception processing xml data as xspf reply: %@", ex);
-        return;
+        errMsg = [NSString stringWithFormat:@"ASWS: Exception processing xml data as xspf reply: %@", ex];
     }
+    if (errMsg)
+        goto playlist_error;
     
     NSEnumerator *en;
     NSXMLElement *e;
@@ -388,8 +402,8 @@ xspf format as of 2007/11:
             }
         }
     } @catch (NSException *ex) {
-        ScrobLog(SCROB_LOG_ERR, @"ASWS: Exception obtaining skip count from xspf reply: %@", ex);
-        return;
+        errMsg = [NSString stringWithFormat:@"ASWS: Exception obtaining skip count from xspf reply: %@", ex];
+        goto playlist_error;
     }
     ScrobLog(SCROB_LOG_TRACE, @"ASWS: xspf loaded with %li skips left", skipsLeft);
     
@@ -453,11 +467,16 @@ xspf format as of 2007/11:
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:
             [NSDictionary dictionaryWithObject:playlist forKey:ISR_PLAYLIST]];
         return;
-    }
+    } else
+        error = 1;
     
+playlist_error:
     stopped = YES;
-    ScrobLog(SCROB_LOG_ERR, @"ASWS xspf failure: no tracks to play!");
-    [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
+    if (!errMsg)
+        errMsg = @"ASWS xspf failure: no tracks to play!";
+    ScrobLog(SCROB_LOG_ERR, errMsg);
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:error], @"error", nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self userInfo:d];
 }
 
 - (NSInteger)playlistSkipsLeft
@@ -477,6 +496,13 @@ xspf format as of 2007/11:
     if (xspfReq == connection) {
         [xspfReq autorelease];
         xspfReq = nil;
+        
+        if (!canGetMoreTracks) {
+            // we have to send a tune notification
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationDidTune object:self userInfo:nil];
+            stopped = NO;
+        }
+        
         [self createRadioPlaylist:[connection xml]];
     }
 }
@@ -487,7 +513,12 @@ xspf format as of 2007/11:
         [xspfReq autorelease];
         xspfReq = nil;
         stopped = YES;
-        [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
+        
+        if (!canGetMoreTracks) {
+            [self stop];
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
+        } else
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
     }
 }
 
@@ -536,7 +567,7 @@ xspf format as of 2007/11:
     }
     
     if (connection == tuneConn) {
-        stopped = YES;
+        [self stop];
         tuneConn = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
         ScrobLog(SCROB_LOG_ERR, @"ASWS tuning connection failure: %@", reason);
