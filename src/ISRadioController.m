@@ -175,14 +175,40 @@
     return ((name = [[NSUserDefaults standardUserDefaults] stringForKey:@"RadioPlaylist"]) ? name : @"iScrobbler Radio");
 }
 
+- (void)handlePlayerError:(NSDictionary*)scriptResponse
+{
+    OSStatus err = 0;
+    NSString *errMsg;
+    if ([scriptResponse objectForKey:NSAppleScriptErrorNumber]) {
+        err = [[scriptResponse objectForKey:NSAppleScriptErrorNumber] intValue];
+    }
+    switch (err) {
+        case qtsConnectionFailedErr:
+        case qtsTimeoutErr:
+            errMsg = NSLocalizedString(@"The radio server cannot be contacted.", "");
+        break;
+        case qtsAddressBusyErr:
+            errMsg = NSLocalizedString(@"The radio server is refusing connections.", "");
+        break;
+        default:
+            errMsg = [NSString stringWithFormat:@"%@: %d", NSLocalizedString(@"Unknown error", ""), err];
+        break;
+    }
+    
+    errMsg = [NSLocalizedString(@"iTunes received an error attempting to play the station", "")
+        stringByAppendingFormat:@": \"%@\"", errMsg];
+    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to play station", "") message:errMsg];
+}
+
 - (BOOL)playRadioPlaylist:(BOOL)nextTrack
 {
     NSNumber *playing = [NSNumber numberWithBool:NO];
     @try {
         playing = [radioScript executeHandler:!nextTrack ? @"PlayRadioPlaylist" : @"PlayNextRadioTrack"
             withParameters:[self radioPlaylistName], nil];
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Radio: can't play playlist -- script error: %@.", exception);
+    } @catch (NSException *ex) {
+        ScrobLog(SCROB_LOG_ERR, @"Radio: can't play playlist -- script error: %@.", ex);
+        [self handlePlayerError:[ex userInfo]];
     }
     if ([playing boolValue]) {
         NSMenuItem *item = [[rootMenu submenu] itemWithTag:MACTION_STOP];
@@ -505,7 +531,7 @@ exitHistory:
     stationBeingTuned = nil;
     
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
-    NSString *msg = @"", *errMsg;
+    NSString *msg = @"";
     switch (err) {
         case 0:
             msg = NSLocalizedString(@"Network error.", "");
@@ -520,21 +546,16 @@ exitHistory:
             msg = NSLocalizedString(@"Not enough artist fans.", "");
         break;
         case 4:
-            msg = NSLocalizedString(@"Not available for streaming.", "");
+            msg = NSLocalizedString(@"The station is not available for streaming.", "");
         break;
         case 5:
-            msg = NSLocalizedString(@"You are not a subscriber.", "");
+            msg = NSLocalizedString(@"The station is available to subscribers only.", "");
         break;
         case 6:
             msg = NSLocalizedString(@"Not enough neighbors.", "");
         break;
         case 7:
             msg = NSLocalizedString(@"Stopped stream. Please try another station.", "");
-        break;
-        case 999999:
-            msg = NSLocalizedString(@"iTunes received an error attempting to play the station. Please try another station.", "");
-            if ((errMsg = [[note userInfo] objectForKey:@"reason"]))
-                msg = [msg stringByAppendingFormat:@" (\"%@\")", errMsg];
         break;
         default:
             msg = NSLocalizedString(@"Unknown error.", "");
@@ -622,6 +643,9 @@ exitHistory:
 
 - (void)wsNowPlayingFailed:(NSNotification*)note
 {
+    ScrobLog(SCROB_LOG_ERR, @"Radio: Failed to get playlist data");
+    if (0 == [activeRadioTracks count])
+        [self wsStationTuneFailure:note];
 }
 
 - (void)wsExecComplete:(NSNotification*)note
