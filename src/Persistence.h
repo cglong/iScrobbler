@@ -37,3 +37,9 @@
 - (NSArray*)hoursForSession:(id)session;
 
 @end
+
+@interface NSString (ISNSPredicateEscape)
+
+- (NSString*)stringByEscapingNSPredicateReserves;
+
+@end

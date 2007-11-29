@@ -46,6 +46,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSNumber *playCount;
     NSString *playerUUID;
     NSMutableData *albumArtData;
+    NSString *lastFmAuthCode;
     NSURLConnection *conn;
     TrackType_t trackType;
     unsigned trackNumber;
@@ -205,6 +206,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (void)setSkipped:(BOOL)isSkipped;
 
 - (BOOL)isLastFmRadio;
+
+- (NSString*)lastFmAuthCode;
+- (void)setLastFmAuthCode:(NSString*)code;
 
 - (NSNumber*)trackNumber;
 - (void)setTrackNumber:(NSNumber*)number;

@@ -29,16 +29,9 @@ on UpdateiPod(thePlaylistName, theDate)
 						
 						try
 							--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
-							-- For some reason, iTunes does not like the compound conditionals
-							--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
-							-- the more verbose version that works for 32bit and 64bit
-							set allPlaylists to (every user playlist whose name is thePlaylistName)
-							repeat with thePlaylist in allPlaylists
-								if visible of thePlaylist is true and smart of thePlaylist is true then
-									exit repeat
-								end if
-							end repeat
-							
+							--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and smart is true)
+							-- we'll just ignore the smart property, as it's enforced by the GUI
+							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
 							tell thePlaylist
 								(*The "whose played date" clause will cause a -10001 "type mismatch" error if
 										any track in the chosen playlist has not been played yet. This is because iTunes
@@ -135,6 +128,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Friday, November 2, 2007 9:15:00 PM GMT+02:00"
+	set when to date "Thursday, November 29, 2007 12:00:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run

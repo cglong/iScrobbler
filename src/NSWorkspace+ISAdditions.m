@@ -13,7 +13,9 @@
     if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#import "LoginItemsAE.h"
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+#import "LoginItemsAE/LoginItemsAE.c"
+#endif
 
 @interface NSWorkspace (ISAdditions)
 - (BOOL)addLoginItem:(NSString*)path hidden:(BOOL)hide;
@@ -22,18 +24,67 @@
 
 @implementation NSWorkspace (ISAdditions)
 
-#define STRING_ERROR_ADD_LOGIN_ITEM @"ErrorAddLoginItem"
-
 - (BOOL)addLoginItem:(NSString*)path hidden:(BOOL)hide
 {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    BOOL added = NO;
+    LSSharedFileListRef list = LSSharedFileListCreate(kCFAllocatorDefault, kLSSharedFileListSessionLoginItems, NULL);
+    if (list) {
+        NSDictionary *props = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:hide]
+            forKey:(NSString*)kLSSharedFileListItemHidden];
+        LSSharedFileListItemRef item = LSSharedFileListInsertItemURL(list, kLSSharedFileListItemLast, NULL, NULL,
+            (CFURLRef)[NSURL fileURLWithPath:path], (CFDictionaryRef)props, NULL);
+        if (item) {
+            added = YES;
+            CFRelease(item);
+        }
+        CFRelease(list);
+    }
+    return (added);
+#else
     OSStatus err;
     return (0 == (err = LIAEAddURLAtEnd((CFURLRef)[NSURL fileURLWithPath:path], hide)));
+#endif //  MAC_OS_X_VERSION_10_5
 }
 
 - (BOOL)isLoginItem:(NSString*)path
 {
+     BOOL exists = NO;
+     OSStatus err;
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    LSSharedFileListRef list = LSSharedFileListCreate(kCFAllocatorDefault, kLSSharedFileListSessionLoginItems, NULL);
+    if (list) {
+        UInt32 seed;
+        CFArrayRef items = LSSharedFileListCopySnapshot(list, &seed);
+        if (items) {
+            LSSharedFileListItemRef item;
+            CFIndex count = CFArrayGetCount(items);
+            NSURL *url;
+            NSString *itemPath, *myLeaf = [path lastPathComponent];
+            for (CFIndex i = 0; i < count; ++i) {
+                item = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(items, i);
+                if (0 == (err = LSSharedFileListItemResolve(item, kLSSharedFileListNoUserInteraction|kLSSharedFileListDoNotMountVolumes,
+                    (CFURLRef*)&url, NULL))) {
+                    itemPath = [url path];
+                    if ([itemPath isEqualToString:path]) {
+                        exists = YES;
+                        break;
+                    } else if ([[itemPath lastPathComponent] isEqualToString:myLeaf]) {
+                        // probably moved to a different volume
+                        CFBooleanRef hidden = LSSharedFileListItemCopyProperty(item, kLSSharedFileListItemHidden);
+                        err = LSSharedFileListItemRemove(list, item);
+                        exists = [self addLoginItem:path hidden:hidden ? CFBooleanGetValue(hidden) : NO];
+                        break;
+                    }
+                }
+            }
+            CFRelease(items);
+        }
+        CFRelease(list);
+    }
+    return (exists);
+#else
     NSArray *items = nil;
-    OSStatus err;
     if (0 != (err = LIAECopyLoginItems((CFArrayRef*)&items)) || !items)
         return (YES); // if we fail, don't tell the caller to attempt an add
     
@@ -42,8 +93,6 @@
     id	obj;
     NSString *myLeaf, *leaf, *item;
     NSEnumerator *itemEnumerator = [items objectEnumerator];
-    BOOL exists = NO;
-
     myLeaf = [path lastPathComponent];
     while ((obj = [itemEnumerator nextObject])) {
         item = [[obj objectForKey:(NSString*)kLIAEURL] path];
@@ -66,6 +115,7 @@
     }
     
     return (exists);
+#endif // MAC_OS_X_VERSION_10_5
 }
 
 @end

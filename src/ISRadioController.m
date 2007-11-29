@@ -18,6 +18,7 @@
 
 @interface ISRadioController (RadioPrivate)
 - (void)playStation:(id)sender;
+- (void)radioPlayDidStop;
 - (void)setDiscoveryMode:(id)sender;
 - (NSDictionary*)lastTunedStation;
 @end
@@ -41,14 +42,14 @@
         (void)[menu retain];
         [rootMenu release];
         if ((rootMenu = menu)) {
-            ASWebServices *ws = [ASWebServices sharedInstance];
+            ASWebServices *ws = asws;
             
             // Build and insert the Radio menu
             NSMenu *m = [[NSMenu alloc] init];
             [m setAutoenablesItems:NO];
             NSMenuItem *item;
             
-            if (![ws streamURL]) {
+            if ([ws needHandshake]) {
                 if (![[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"]) {
                     item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Connect", "")
                         action:@selector(handshake) keyEquivalent:@""];
@@ -168,58 +169,122 @@
     }
 }
 
+- (NSString*)radioPlaylistName
+{
+    NSString *name;
+    return ((name = [[NSUserDefaults standardUserDefaults] stringForKey:@"RadioPlaylist"]) ? name : @"iScrobbler Radio");
+}
+
+- (void)handlePlayerError:(NSDictionary*)scriptResponse
+{
+    OSStatus err = 0;
+    NSString *errMsg;
+    if ([scriptResponse objectForKey:NSAppleScriptErrorNumber]) {
+        err = [[scriptResponse objectForKey:NSAppleScriptErrorNumber] intValue];
+    }
+    switch (err) {
+        case qtsConnectionFailedErr:
+        case qtsTimeoutErr:
+            errMsg = NSLocalizedString(@"The radio server cannot be contacted.", "");
+        break;
+        case qtsAddressBusyErr:
+            errMsg = NSLocalizedString(@"The radio server is refusing connections.", "");
+        break;
+        default:
+            errMsg = [NSString stringWithFormat:@"%@: %d", NSLocalizedString(@"Unknown error", ""), err];
+        break;
+    }
+    
+    errMsg = [NSLocalizedString(@"iTunes received an error attempting to play the station", "")
+        stringByAppendingFormat:@": \"%@\"", errMsg];
+    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to play station", "") message:errMsg];
+}
+
+- (BOOL)playRadioPlaylist:(BOOL)nextTrack
+{
+    NSNumber *playing = [NSNumber numberWithBool:NO];
+    @try {
+        playing = [radioScript executeHandler:!nextTrack ? @"PlayRadioPlaylist" : @"PlayNextRadioTrack"
+            withParameters:[self radioPlaylistName], nil];
+    } @catch (NSException *ex) {
+        ScrobLog(SCROB_LOG_ERR, @"Radio: can't play playlist -- script error: %@.", ex);
+        [self handlePlayerError:[ex userInfo]];
+    }
+    if ([playing boolValue]) {
+        NSMenuItem *item = [[rootMenu submenu] itemWithTag:MACTION_STOP];
+        [item setEnabled:YES];
+    } else
+        [self radioPlayDidStop];
+    return ([playing boolValue]);
+}
+
 - (void)tuneStationWithName:(NSString*)name url:(NSString*)url
 {
     [stationBeingTuned release];
     stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:url, @"radioURL", name ? name : url, @"name", nil];
     
-    ASWebServices *ws = [ASWebServices sharedInstance];
-    if (![ws streamURL]) {
+    ASWebServices *ws = asws;
+    if ([ws needHandshake]) {
         [ws handshake];
         return;
     }
     
+    [self stop];
     [ws tuneStation:url];
 }
 
 - (void)skip
 {
+    if ([asws playlistSkipsLeft] > 0)
+        [asws decrementPlaylistSkipsLeft];
+    else {
+        [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Station Skip Limit Exceeded", "")
+            message:NSLocalizedString(@"You cannot skip any more tracks in this station due to a limit imposed by last.fm.", "")];
+        return;
+    }
     SongData *s = [[NSApp delegate] nowPlaying];
     ISASSERT([s isLastFmRadio], "not a radio track!");
+    ISASSERT([[s playerUUID] isEqualTo:currentTrackID], "tracks don't match!");
     [s setSkipped:YES];
-    [[ASWebServices sharedInstance] exec:@"skip"];
+    #ifdef obsolete
+    [asws exec:@"skip"]; // this is not necessary as the skip is handled by the submission of the track
+    #endif
+    [self playRadioPlaylist:YES];
 }
 
 - (void)ban
 {
     SongData *s = [[NSApp delegate] nowPlaying];
     ISASSERT([s isLastFmRadio], "not a radio track!");
+    ISASSERT([[s playerUUID] isEqualTo:currentTrackID], "tracks don't match!");
     [s setBanned:YES];
-    [[ASWebServices sharedInstance] exec:@"ban"];
+    [self playRadioPlaylist:YES];
+    [[NSApp delegate] banTrack:s];
+}
+
+- (void)radioPlayDidStop
+{
+    @try {
+        (void)[radioScript executeHandler:@"EmptyRadioPlaylst" withParameters:[self radioPlaylistName], nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Radio: can't empty playlist -- script error: %@.", exception);
+    }
+    
+    [currentTrackID release];
+    currentTrackID = nil;
+    [activeRadioTracks removeAllObjects];
+    [asws stop];
+    [stationBeingTuned release];
+    stationBeingTuned = nil;
+    [self performSelector:@selector(setNowPlayingStation:) withObject:nil];
+    [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:NO];
 }
 
 - (void)stop
 {
-    static NSAppleScript *stopScript = nil;
-    if (!stopScript) {
-        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                    stringByAppendingPathComponent:@"Scripts/iTunesStop.scpt"]];
-        stopScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
-        if (!stopScript || ![stopScript compileAndReturnError:nil]) {
-            ScrobLog(SCROB_LOG_CRIT, @"Could not create iTunes stop script!");
-            [[NSApp delegate] showApplicationIsDamagedDialog];
-            return;
-        }
-    }
-    
-    @try {
-        (void)[stopScript executeAndReturnError:nil];
-        [stationBeingTuned release];
-        stationBeingTuned = nil;
-        [self performSelector:@selector(setNowPlayingStation:) withObject:nil];
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't stop iTunes -- script error: %@.", exception);
-    }
+    [asws stop];
+    [[NSApp delegate] playerStop];
+    [self radioPlayDidStop];
 }
 
 - (void)playStation:(id)sender
@@ -227,9 +292,11 @@
     if ([sender respondsToSelector:@selector(representedObject)]) {
         
         id o = [sender representedObject];
+        #ifdef notyet
         if (!o) {
             // get the last played station
         }
+        #endif
         if (o && [o isKindOfClass:[NSString class]])
             [self tuneStationWithName:[sender title] url:o];
     }
@@ -256,7 +323,6 @@
     }
     
     [sender setState:enabled ? NSOnState : NSOffState];
-    [[ASWebServices sharedInstance] exec: enabled ? @"rtp" : @"nortp"];
 }
 
 - (void)setDiscoveryMode:(id)sender
@@ -281,7 +347,7 @@
     
     [sender setState:enabled ? NSOnState : NSOffState];
     [sender setToolTip:enabled ? NSLocalizedString(@"Play all music.", "") : NSLocalizedString(@"Play only music not in your profile.", "")];
-    [[ASWebServices sharedInstance] setDiscovery:enabled];
+    [asws setDiscovery:enabled];
 }
 
 - (BOOL)scrobbleRadioPlays
@@ -390,42 +456,55 @@ exitHistory:
         [[NSNotificationCenter defaultCenter] postNotificationName:ISRadioHistoryDidUpdateNotification object:self];
         
         } @catch (id e) {
-            ScrobLog(SCROB_LOG_ERR, @"exception adding radio station to history: %@", e);
+            ScrobLog(SCROB_LOG_ERR, @"Radio: exception adding station to history: %@", e);
         }
     }
 }
 
-- (void)pingNowPlaying:(NSTimer*)timer
+- (void)addPlaylistTracksToiTunes:(NSArray*)tracks
 {
-    [[ASWebServices sharedInstance] updateNowPlaying];
+    NSEnumerator *en = [tracks objectEnumerator];
+    NSDictionary *track;
+    NSString *m3u, *uuid;
+    while ((track = [en nextObject])) {
+        @try {
+            m3u = [NSString stringWithFormat:@"#EXTM3U\n\n#EXTINF:%li,%@\n%@\n",
+                [[track objectForKey:ISR_TRACK_DURATION] longValue] / 1000L,
+                [track objectForKey:ISR_TRACK_TITLE], [track objectForKey:ISR_TRACK_URL]];
+            
+            NSString *path = [@"/tmp" stringByAppendingPathComponent:
+                [[[[track objectForKey:ISR_TRACK_URL] lastPathComponent]
+                    stringByDeletingPathExtension] stringByAppendingPathExtension:@"m3u"]];
+            if ([m3u writeToFile:path atomically:NO encoding:NSUTF8StringEncoding error:nil]) {
+                uuid = [radioScript executeHandler:@"AddRadioTrack" withParameters:[self radioPlaylistName], 
+                    [track objectForKey:ISR_TRACK_TITLE], [track objectForKey:ISR_TRACK_ARTIST],
+                    [track objectForKey:ISR_TRACK_ALBUM], [track objectForKey:ISR_TRACK_URL], path, nil];
+                if (uuid && [uuid length] > 0) {
+                    ISASSERT(nil == [activeRadioTracks objectForKey:uuid], "track is already active!");
+                    [activeRadioTracks setObject:track forKey:uuid];
+                } else
+                    ScrobLog(SCROB_LOG_ERR, @"Radio: failed to add track to iTunes: %@ (peristent id missing).", track);
+                #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+                (void)[[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+                #else
+                (void)[[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
+                #endif
+            } else
+                ScrobLog(SCROB_LOG_ERR, @"Radio: failed to add track to iTunes: %@ (m3u creation failed).", track);
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"Radio: exception adding track to iTunes: %@ (%@).", track, exception);
+        }
+    }
+    
+    if ([activeRadioTracks count] > 0) {
+        SongData *s = [[NSApp delegate] nowPlaying];
+        if (!s || ![s isLastFmRadio])
+            [self playRadioPlaylist:NO];
+    }
 }
 
 - (void)wsStationTuned:(NSNotification*)note
 {
-    static NSAppleScript *playURLScript = nil;
-    if (!playURLScript) {
-        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                    stringByAppendingPathComponent:@"Scripts/iTunesPlayURL.scpt"]];
-        playURLScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
-        if (!playURLScript) {
-            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesPlayURL.scpt!\n");
-            [[NSApp delegate] showApplicationIsDamagedDialog];
-            return;
-        }
-    }
-    
-    @try {
-        (void)[playURLScript executeHandler:@"PlayURL" withParameters:
-            [[ASWebServices sharedInstance] streamURL], nil];
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Can't play last.fm radio -- script error: %@.", exception);
-        NSNotification *n = [NSNotification notificationWithName:ASWSStationTuneFailed object:self
-            userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:999999], @"error",
-                exception, @"reason", nil]];
-        [self performSelector:@selector(wsStationTuneFailure:) withObject:n afterDelay:0.0];
-        return;
-    }
-    
     // use the station info from last.fm if possible
     NSDictionary *d = [note userInfo];
     NSString *sname = [d objectForKey:@"stationname"];
@@ -442,7 +521,7 @@ exitHistory:
         stationBeingTuned = nil;
     }
     
-    [self pingNowPlaying:nil];
+    [asws updatePlaylist];
 }
 
 - (void)wsStationTuneFailure:(NSNotification*)note
@@ -452,7 +531,7 @@ exitHistory:
     stationBeingTuned = nil;
     
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
-    NSString *msg = @"", *errMsg;
+    NSString *msg = @"";
     switch (err) {
         case 0:
             msg = NSLocalizedString(@"Network error.", "");
@@ -467,21 +546,16 @@ exitHistory:
             msg = NSLocalizedString(@"Not enough artist fans.", "");
         break;
         case 4:
-            msg = NSLocalizedString(@"Not available for streaming.", "");
+            msg = NSLocalizedString(@"The station is not available for streaming.", "");
         break;
         case 5:
-            msg = NSLocalizedString(@"You are not a subscriber.", "");
+            msg = NSLocalizedString(@"The station is available to subscribers only.", "");
         break;
         case 6:
             msg = NSLocalizedString(@"Not enough neighbors.", "");
         break;
         case 7:
             msg = NSLocalizedString(@"Stopped stream. Please try another station.", "");
-        break;
-        case 999999:
-            msg = NSLocalizedString(@"iTunes received an error attempting to play the station. Please try another station.", "");
-            if ((errMsg = [[note userInfo] objectForKey:@"reason"]))
-                msg = [msg stringByAppendingFormat:@" (\"%@\")", errMsg];
         break;
         default:
             msg = NSLocalizedString(@"Unknown error.", "");
@@ -528,7 +602,7 @@ exitHistory:
     if ([item representedObject])
         [item setEnabled:YES];
     
-    if ([[ASWebServices sharedInstance] subscriber]) {
+    if ([asws subscriber]) {
         [[m itemWithTag:MSTATION_MYRADIO] setEnabled:YES];
         [[m itemWithTag:MSTATION_MYLOVED] setEnabled:YES];
         [[m itemWithTag:MACTION_DISCOVERY] setEnabled:YES];
@@ -546,7 +620,7 @@ exitHistory:
         }
     } else if (stationBeingTuned) {
         // station waiting for handshaked, tune it
-        [[ASWebServices sharedInstance] tuneStation:[stationBeingTuned objectForKey:@"radioURL"]];
+        [asws tuneStation:[stationBeingTuned objectForKey:@"radioURL"]];
         // leave 'stationBeingTuned' in tact for NP/history updates
     }
     
@@ -561,97 +635,95 @@ exitHistory:
     [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Failed to connect to Last.fm Radio", "")];
 }
 
-static NSTimer *ping = nil;
 - (void)wsNowPlayingUpdate:(NSNotification*)note
 {
-    [ping invalidate];
-    [ping release];
-    ping = nil;
-    
-    // emulate an iTunes Play event
-    NSDictionary *np = [note userInfo];
-    NSString *state = np && (NSOrderedSame == [[np objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) ? @"Playing" : @"Stopped";
-    
-    SongData *s = [[NSApp delegate] nowPlaying];
-    if ([state isEqualToString:@"Stopped"]) {
-        [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:NO];
-        if (!s || ![s isLastFmRadio])
-            return;
-    } else {
-        // back-to-back repeats should not occur on the server because of label restrictions
-        NSString *al = [np objectForKey:@"album"];
-        if (s && [s isLastFmRadio]
-            && NSOrderedSame == [[s title] caseInsensitiveCompare:[np objectForKey:@"track"]]
-            && NSOrderedSame == [[s artist] caseInsensitiveCompare:[np objectForKey:@"artist"]]
-            && ((!al && [@"" isEqualToString:[s album]])
-                || (al && NSOrderedSame == [[s album] caseInsensitiveCompare:al]))) {
-            // ping again in the assumption that the radio state is out of sync
-            ScrobLog(SCROB_LOG_INFO, @"A repeat radio play was detected. This should not occur. Assuming 'Now Playing' state is out of sync.");
-            ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
-                target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
-            return;
-        }
-    
-        [[[rootMenu submenu] itemWithTag:MACTION_STOP] setEnabled:YES];
-    }
-    
-    int duration = np ? [[np objectForKey:@"trackduration"] intValue] : 0;
-    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
-    // last.fm specific keys
-        [NSNumber numberWithBool:YES], @"last.fm",
-        // albumcover_small
-        // album_url
-    // iTunes keys
-        state, @"Player State",
-        [np objectForKey:@"track"], @"Name", // Required
-        [np objectForKey:@"artist"], @"Artist", // ditto
-        [NSNumber numberWithLongLong:(long  long)duration * 1000LL], @"Total Time", // ditto, iTunes gives this in milliseconds
-        [[[ASWebServices sharedInstance] streamURL] path], @"Location",
-        [NSNumber numberWithInt:0], @"Rating",
-        [np objectForKey:@"album"], @"Album", // may be missing and thus nil
-        @"", @"Genre",
-        //@"Track Number",
-        nil];
-    
-    if (duration > 0) {
-        int progress = [[np objectForKey:@"trackprogress"] intValue];
-        duration -= progress;
-        ping = [[NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)duration
-            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
-    }
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.iscrobbler.lasfm.playerInfo" 
-        object:self userInfo:d];
+    NSArray *playlist = [[note userInfo] objectForKey:ISR_PLAYLIST];
+    [self performSelector:@selector(addPlaylistTracksToiTunes:) withObject:playlist afterDelay:0.0];
 }
 
 - (void)wsNowPlayingFailed:(NSNotification*)note
 {
-    SongData *s = [[NSApp delegate] nowPlaying];
-    if (s && [s isLastFmRadio]) {
-        // try to get the  info again
-        ScrobLog(SCROB_LOG_INFO, @"Radio 'Now Playing' failure while track was actively playing . Assuming state is out of sync.");
-        [ping invalidate];
-        [ping release];
-        ping = [[NSTimer scheduledTimerWithTimeInterval:1.0
-            target:self selector:@selector(pingNowPlaying:) userInfo:nil repeats:NO] retain];
-    } else
-        [self wsNowPlayingUpdate:note];
+    ScrobLog(SCROB_LOG_ERR, @"Radio: Failed to get playlist data");
+    if (0 == [activeRadioTracks count])
+        [self wsStationTuneFailure:note];
 }
 
 - (void)wsExecComplete:(NSNotification*)note
 {
-    // update after a small delay to have a better chance of the info being up to date (such as a ban or skip)
-    if ([[ASWebServices sharedInstance] nowPlayingInfo])
-        [[ASWebServices sharedInstance] performSelector:@selector(updateNowPlaying) withObject:nil afterDelay:0.85];
 }
+
+#ifdef ISDEBUG
+- (BOOL)isActiveRadioSong:(SongData*)s
+{
+    NSDictionary *d = [activeRadioTracks objectForKey:[s playerUUID]];
+    return (d && NSOrderedSame == [[d objectForKey:ISR_TRACK_TITLE] caseInsensitiveCompare:[s title]]
+        && NSOrderedSame == [[d objectForKey:ISR_TRACK_ARTIST] caseInsensitiveCompare:[s artist]]);
+}
+#endif
 
 - (void)nowPlaying:(NSNotification*)note
 {
-    if ((![note object] && ![[[note userInfo] objectForKey:@"isPlaying"] boolValue])
-        || ![[note object] isLastFmRadio]) {
-        [[ASWebServices sharedInstance] stop];
-    } else if (![note object])
-        [[ASWebServices sharedInstance] updateNowPlaying];
+    SongData *s = [note object];
+    if (![asws stopped] && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
+        [self radioPlayDidStop];
+        return;
+    }
+    
+    if (s && ![s isLastFmRadio]) {
+        [self radioPlayDidStop];
+        return;
+    } else if (currentTrackID && (!s || ![currentTrackID isEqualTo:[s playerUUID]])) {
+        // current track stopped or paused (pause is not allowed by last.fm, so it's effectively a stop)
+        [activeRadioTracks removeObjectForKey:currentTrackID];
+        
+        @try {
+            (void)[radioScript executeHandler:@"RemoveRadioTrack" withParameters:[self radioPlaylistName], currentTrackID, nil];
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"Radio: can't remove radio track '%@' -- script error: %@.", [s brief], exception);
+        }
+        
+        [currentTrackID release];
+        currentTrackID = [[s playerUUID] retain];
+        #ifdef ISDEBUG
+        if (currentTrackID)
+            ISASSERT([self isActiveRadioSong:s], "current track is not in the active radio list!");
+        #endif
+    } else if (!currentTrackID && s && [s isLastFmRadio]) {
+        currentTrackID = [[s playerUUID] retain];
+        ISASSERT(currentTrackID && [self isActiveRadioSong:s], "current track is not in the active radio list!");
+    }
+    
+    if (NO == [asws stopped] && [activeRadioTracks count] <= 1)
+        [asws updatePlaylist];
+}
+
+- (void)iTunesPlayerDialogHandler:(NSNotification*)note
+{
+    id showing = [[note userInfo] objectForKey:@"Showing Dialog"];
+    if (showing && 0 == [showing intValue] && currentTrackID) {
+        NSString *trackID = [[currentTrackID copy] autorelease];
+        @try {
+            NSNumber *pos = [radioScript executeHandler:@"GetPositionOfTrack" withParameters:trackID, nil];
+            SongData *s = [[NSApp delegate] nowPlaying];
+            if (s && currentTrackID && [trackID isEqualTo:currentTrackID] && [trackID isEqualTo:[s playerUUID]]) {
+                if ([pos longValue] >= 0) {
+                    NSNumber *elapsed = [s elapsedTime];
+                    NSInteger paused = [elapsed longValue] - [pos longValue] + [[s pausedTime] longValue];
+                    if (paused > 0) {
+                        [s setPausedTime:[NSNumber numberWithLong:paused]];
+                        ISASSERT([[s elapsedTime] isLessThanOrEqualTo:pos], "invalid elapsed time!");
+                    }
+                    ScrobLog(SCROB_LOG_TRACE, @"Radio: adjusted current track elapsed time from %@s to %@s",
+                        elapsed, [s elapsedTime]);
+                } else
+                    ScrobLog(SCROB_LOG_WARN, @"Radio: lost current track while updating elapsed time (script).");
+            } else
+                ScrobLog(SCROB_LOG_WARN, @"Radio: lost current track while updating elapsed time.");
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"Radio: can't get elapsed time of current track -- script error: %@.", exception);
+        }
+        
+    }
 }
 
 - (BOOL)isDefaultLastFMRadioPlayer
@@ -754,18 +826,18 @@ static NSTimer *ping = nil;
 
 - (BOOL)connected
 {
-    return (nil != [[ASWebServices sharedInstance] streamURL]);
+    return (![asws needHandshake]);
 }
 
 - (void)setConnected:(BOOL)connect
 {
     if (connect)
-        [[ASWebServices sharedInstance] handshake];
+        [asws handshake];
 }
 
 - (BOOL)subscribed
 {
-    return ([[ASWebServices sharedInstance] subscriber]);
+    return ([asws subscriber]);
 }
 
 - (BOOL)scriptDiscoveryMode
@@ -831,6 +903,20 @@ static NSTimer *ping = nil;
 
 - (id)init
 {
+    NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
+                stringByAppendingPathComponent:@"Scripts/iTunesLastfmRadio.scpt"]];
+    radioScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
+    if (!radioScript || ![radioScript compileAndReturnError:nil]) {
+        ScrobLog(SCROB_LOG_CRIT, @"Could not create iTunes radio script!");
+        [[NSApp delegate] showApplicationIsDamagedDialog];
+        [self autorelease];
+        return (nil);
+    }
+    
+    activeRadioTracks = [[NSMutableDictionary alloc] init];
+    
+    asws = [ASWebServices sharedInstance];
+
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
     [nc addObserver:self selector:@selector(wsWillHandShake:) name:ASWSWillHandshake object:nil];
     [nc addObserver:self selector:@selector(wsDidHandShake:) name:ASWSDidHandshake object:nil];
@@ -844,6 +930,15 @@ static NSTimer *ping = nil;
     [nc addObserver:self selector:@selector(nowPlaying:) name:@"Now Playing" object:nil];
     
     [nc addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
+    
+    // If a stream has to be rebuffered, its eleapsed play time will be longer than the actual time elapsed.
+    // We use the dialog notification to check the elasped play time with iTunes.
+    // This is iTunes specific (which we try to avoid), but it doesn't actually break anything if we don't
+    // get the elapsed play time correct. At worse, a spurious entry will be submitted to last.fm and created in the local charts.
+    // XXX
+    // However, note that this is kind of hackish in that iTunes may not show a "rebuffering" dialog in future version (7.5+)
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(iTunesPlayerDialogHandler:) name:@"com.apple.iTunes.dialogInfo" object:nil];
     
     [self defaultRadioPlayerCheck];
     
@@ -873,6 +968,43 @@ static NSTimer *ping = nil;
 - (id)autorelease
 {
     return (self);
+}
+
+@end
+
+@interface ISRadioController (SongDataSupport)
+- (NSString*)playerUUIDOfCurrentTrack;
+- (NSString*)albumImageURLForTrackUUID:(NSString*)uuid;
+- (NSNumber*)durationForTrackUUID:(NSString*)uuid;
+- (NSString*)authCodeForTrackUUID:(NSString*)uuid;
+@end
+
+@implementation ISRadioController (SongDataSupport)
+
+- (NSString*)playerUUIDOfCurrentTrack
+{
+    NSString *uuid = @"";
+    @try {
+        uuid = [radioScript executeHandler:@"GetPersistentIDOfCurrentTrack" withParameters:nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Radio: failed to get current track uuid -- script error: %@.", exception);
+    }
+    return (uuid);
+}
+
+- (NSString*)albumImageURLForTrackUUID:(NSString*)uuid
+{
+    return ([[activeRadioTracks objectForKey:uuid] objectForKey:ISR_TRACK_IMGURL]);
+}
+
+- (NSNumber*)durationForTrackUUID:(NSString*)uuid
+{
+    return ([[activeRadioTracks objectForKey:uuid] objectForKey:ISR_TRACK_DURATION]);
+}
+
+- (NSString*)authCodeForTrackUUID:(NSString*)uuid
+{
+    return ([[activeRadioTracks objectForKey:uuid] objectForKey:ISR_TRACK_LFMAUTH]);
 }
 
 @end
