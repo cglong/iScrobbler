@@ -171,6 +171,23 @@
     [value appendAttributedString:newline];
     [value appendAttributedString:tmp];
     
+    prompt = [NSString stringWithFormat:NSLocalizedString(@"Play %@'s Playlist", ""), name];
+    urlspec = [NSDictionary dictionaryWithObjectsAndKeys:
+        [ws station:@"playlist" forUser:name], @"radioURL",
+        [NSString stringWithFormat:NSLocalizedString(@"%@'s Playlist", ""), name], @"name",
+        nil];
+    tmp = [[[NSMutableAttributedString alloc] initWithString:prompt attributes:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+                font, NSFontAttributeName,
+                urlspec, NSLinkAttributeName,
+                [urlspec objectForKey:@"radioURL"], NSToolTipAttributeName,
+                underlineStyle, NSUnderlineStyleAttributeName,
+                textColor, NSForegroundColorAttributeName,
+                urlCursor, NSCursorAttributeName,
+            nil]] autorelease];
+    [value appendAttributedString:newline];
+    [value appendAttributedString:tmp];
+    
     prompt = [NSString stringWithFormat:NSLocalizedString(@"Play %@'s Neighborhood", ""), name];
     urlspec = [NSDictionary dictionaryWithObjectsAndKeys:
         [ws station:@"neighbours" forUser:name], @"radioURL",
