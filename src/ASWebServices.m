@@ -370,7 +370,7 @@ xspf format as of 2007/11:
 - (void)createRadioPlaylist:(NSXMLDocument*)xml
 {
     NSMutableArray *playlist = [NSMutableArray array];
-    NSArray *tracks;
+    NSArray *tracks = nil;
     NSString *errMsg = nil;
     int error = 0;
     @try {
