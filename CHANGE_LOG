@@ -14,7 +14,14 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
-b6:
+b7:
+- Find a Station accepts arbitrary user names to "find" a user and provides links to user playlists.
+- Support for non-station Radio services (previews, full track plays, etc).
+- Bug Fix: Regression - crash when pausing submissions.
+- Bug Fix: Regression - Radio works again for non-English users.
+- Bug Fix: Regression - The Radio stop menu item was not being enabled when playback started.
+- Bug Fix: It was possible for the ratings stats in the Profile report to be completely wacky when viewing long term charts.
+b6 (not public):
 - Bug Fix: Possible hang while importing the iTunes library and/or spurious "duplicate entry" errors.
 - Bug Fix: iTunes was being launched by iScrobbler when it wasn't really necessary.
 b5:
