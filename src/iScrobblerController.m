@@ -405,9 +405,9 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 if (currentSong) { \
     if ([currentSong isPaused]) \
         [currentSong didResumeFromPause]; \
+    [currentSong setLastPlayed:[NSDate date]]; \
     if (![currentSong hasQueued] && (!submissionsDisabled || [currentSong isLastFmRadio])) \
         [self queueSong:currentSong playerStopped:isStopped]; \
-    [currentSong setLastPlayed:[NSDate date]]; \
     [currentSong release]; \
     currentSong = nil; \
 } \
