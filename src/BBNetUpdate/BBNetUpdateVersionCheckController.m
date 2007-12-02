@@ -153,12 +153,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    if (_interact)
       [[super window] makeKeyAndOrderFront:nil];
    
-   
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:
         NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
     [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
     NSDate *last = [BBNetUpdateVersionCheckController lastCheck];
-    if (last) {
+    if (!_interact && last) {
         NSString *since = [last descriptionWithCalendarFormat:HTTP_DATE_FMT_RAW
             timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
         [request setValue:since forHTTPHeaderField:@"If-Modified-Since"]; // conditonal load
