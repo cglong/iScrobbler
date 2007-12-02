@@ -29,15 +29,17 @@
 
 - (void)reportCrashWithArgs:(NSArray*)args
 {
-    if ([args count] < 2)
+    if ([args count] < 2) {
+        (void)[self autorelease];
         return;
+    }
     
     //NSDate *entryDate = [args objectAtIndex:0];
     NSString *data = [args objectAtIndex:1];
     NSRange r;
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    // On Tiger, we have to search the data for a marker, it doesn't exist
-    // the read the whole file in the assumption we are dealing with separte log files on Leopard
+    // On Tiger, we have to search the data for a marker, if it doesn't exist
+    // then read the whole file in the assumption we are dealing with separte log files on Leopard
     r = [data rangeOfString:@"*********" options:NSBackwardsSearch];
     if (NSNotFound != r.location) {
         data = [data substringFromIndex:r.location];
@@ -92,11 +94,12 @@
     r.location = [[tv textStorage] length];
     s = [[[NSAttributedString alloc] initWithString:data] autorelease];
     [[tv textStorage] appendAttributedString:s];
-    r.length = [s length]-1;
+    r.length = [s length];
     [tv setSelectedRanges:[NSArray arrayWithObject:[NSValue valueWithRange:r]]];
     
     [sv setDocumentView:tv];
-    [tv scrollRangeToVisible:NSMakeRange(0,0)];
+    r.location = r.length = 0;
+    [tv scrollRangeToVisible:r];
     [tv setDelegate:self];
     [[w contentView] addSubview:sv];
     
