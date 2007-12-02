@@ -287,6 +287,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
         @"OK", nil, nil, [super window],
         self, @selector(endAlertSheet:returnCode:contextInfo:), nil, (void*)-1,
         NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [error localizedDescription]);
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
 }
 
 - (void)downloadDidFinish:(NSURLDownload *)download
@@ -298,6 +299,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
         
         NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
         [self download:download didFailWithError:error];
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
         return;
     }
     
