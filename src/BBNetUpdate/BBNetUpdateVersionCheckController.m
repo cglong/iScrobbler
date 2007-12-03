@@ -134,9 +134,9 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       NSLocalizedStringFromTable(@"BBNetUpdateCheckNewVersionTitle", @"BBNetUpdate", @"")];
    [fieldText setStringValue:@""];
    
-   NSURL *url = [[NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
+   NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
          [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
-         objectForKey:@"BBNetUpdateDownloadInfoURL"]] retain];
+         objectForKey:@"BBNetUpdateDownloadInfoURL"]];
    
    if (!url) {
       checkingVersion = NO;
