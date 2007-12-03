@@ -42,6 +42,15 @@ static NSMutableDictionary *xmlCache = nil;
     }
 }
 
+- (void)sendDidFinishLoadingForCacheFill
+{
+    id o = delegate;
+    if (o) {
+        delegate = nil; // no more messages now that we have finished
+        [o xmlFileDidFinishLoading:self];
+    }
+}
+
 + (void)reaper:(NSTimer*)timer
 {
     NSEnumerator *en = [xmlCache keyEnumerator];
@@ -82,13 +91,17 @@ static NSMutableDictionary *xmlCache = nil;
         @try {
         [f setXML:[d objectForKey:@"xml"]];
         f->cached = YES;
-        [delegate performSelector:@selector(xmlFileDidFinishLoading:) withObject:f afterDelay:0.0];
+        f->delegate = delegate;
+        #ifdef ISDEBUG
+        f->url = [url retain];
+        #endif
         } @catch (id e) {
             ScrobLog(SCROB_LOG_ERR, @"exception creating ASXMLFile (%@) from cache: %@", url, e);
             (void)[f autorelease];
             return (nil);
         }
         
+        [f performSelector:@selector(sendDidFinishLoadingForCacheFill) withObject:nil afterDelay:0.0];
         return ([f autorelease]);
     }
     
@@ -141,9 +154,13 @@ static NSMutableDictionary *xmlCache = nil;
 - (void)cancel
 {
     delegate = nil;
-    [conn cancel];
-    [conn release];
-    conn = nil;
+    if (conn) {
+        [conn cancel];
+        [conn release];
+        conn = nil;
+        
+        [xmlCache removeObjectForKey:url];
+    }
 }
 
 - (NSArray*)tags
@@ -257,7 +274,7 @@ static NSMutableDictionary *xmlCache = nil;
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
 {
-    [conn release];
+    [conn autorelease];
     conn = nil;
     ScrobLog(SCROB_LOG_TRACE, @"Connection failure: %@\n", reason);
     [responseData release];
@@ -270,7 +287,7 @@ static NSMutableDictionary *xmlCache = nil;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    [conn release];
+    [conn autorelease];
     conn = nil;
     NSError *err = nil;
     
