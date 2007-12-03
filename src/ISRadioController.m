@@ -534,16 +534,16 @@ exitHistory:
     NSString *msg = @"";
     switch (err) {
         case 0:
-            msg = NSLocalizedString(@"Network error.", "");
+            msg = NSLocalizedString(@"A network error occurred.", "");
             break;
         case 1:
-            msg = NSLocalizedString(@"Not enough content.", "");
+            msg = NSLocalizedString(@"There is not enough content to play the station. Due to restrictions imposed by the music labels, a radio station must have more than 15 tracks; each by different artists.", "");
         break;
         case 2:
-            msg = NSLocalizedString(@"Not enough group members.", "");
+            msg = NSLocalizedString(@"The group does not have enough members to have a radio station.", "");
         break;
         case 3:
-            msg = NSLocalizedString(@"Not enough artist fans.", "");
+            msg = NSLocalizedString(@"The artist does not have enough fans to have a radio station.", "");
         break;
         case 4:
             msg = NSLocalizedString(@"The station is not available for streaming.", "");
@@ -552,16 +552,20 @@ exitHistory:
             msg = NSLocalizedString(@"The station is available to subscribers only.", "");
         break;
         case 6:
-            msg = NSLocalizedString(@"Not enough neighbors.", "");
+            msg = NSLocalizedString(@"The user does not have enough neighbors to have a radio station.", "");
         break;
         case 7:
-            msg = NSLocalizedString(@"Stopped stream. Please try another station.", "");
+        case 8:
+            msg = NSLocalizedString(@"The stream has stopped. Please try again later, or try another station.", "");
+        break;
+        case -1: // empty response from server
+            msg = NSLocalizedString(@"The station may not exist or may not be properly setup.", "");
         break;
         default:
-            msg = NSLocalizedString(@"Unknown error.", "");
+            msg = NSLocalizedString(@"An unknown error occurred.", "");
         break;
     }
-    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to tune station", "") message:msg];
+    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to Tune Station", "") message:msg];
 }
 
 - (void)wsWillHandShake:(NSNotification*)note
