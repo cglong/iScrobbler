@@ -28,8 +28,9 @@
     NSString *imagePath;
     int detailsToLoad, detailsLoaded;
     int requestCacheSeconds;
-    BOOL detailsOpen;
+    unsigned delayedLoadSeed;
     id delegate;
+    BOOL detailsOpen;
 }
 
 + (ISArtistDetailsController*)artistDetailsWithDelegate:(id)obj;
