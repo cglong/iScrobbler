@@ -34,6 +34,8 @@ return (
     @"Intel"
 #elif defined(__x86_64__)
     @"Intel 64-bit"
+#elif defined(__ppc64__)
+    @"PPC 64-bit"
 #else
 #error unknown arch
 #endif
@@ -50,7 +52,7 @@ return (
 
 #endif
 
-#ifdef __ppc__
+#if defined(__ppc__) || defined(__ppc64__)
 #define IS_BADADDR (void*)0xdeadbeefUL
 #define trap() asm volatile("trap")
 #elif defined(__i386__) || defined(__x86_64__)
