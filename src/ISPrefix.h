@@ -51,8 +51,10 @@ return (
 #endif
 
 #ifdef __ppc__
+#define IS_BADADDR (void*)0xdeadbeefUL
 #define trap() asm volatile("trap")
 #elif defined(__i386__) || defined(__x86_64__)
+#define IS_BADADDR (void*)0xbaadf00dUL
 #define trap() asm volatile("int $3")
 #else
 #error unknown arch
