@@ -360,7 +360,7 @@ validate:
 #ifndef IS_SCRIPT_PROXY
     static NSAppleScript *iPodUpdateScript = nil;
 #endif
-    ScrobTrace (@"syncIpod: called: sync pref=%i\n", [prefs boolForKey:@"Sync iPod"]);
+    ScrobTrace (@"syncIpod: using playlist %@", [prefs stringForKey:@"iPod Submission Playlist"]);
     
     NSAutoreleasePool *workPool = nil;
     NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
@@ -524,8 +524,7 @@ validate:
                             [song release];
                             continue;
                         }
-                        // Since this song was played "offline", we set the post date
-                        // in the past 
+                        // Since this song was played "offline", we set the post date in the past 
                         postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
                         [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
                         // Make sure the song passes submission rules                            
@@ -636,8 +635,7 @@ sync_exit_with_note:
         [workPool release];
     }
         
-    // clean up our extra "fake" count
-    --iPodMountCount;
+    --iPodMountCount; // clean up our extra "fake" count
     ISASSERT(iPodMountCount > -1, "negative ipod count!");
     
     if (iTunesLib) {
