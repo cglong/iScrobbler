@@ -31,23 +31,24 @@ on UpdateiPod(thePlaylistName, theDate)
 						try
 							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
 						on error
-							exit repeat
-							-- any errors getting the playlist will be interpreted as "no Mathcing Tracks"
+							set errMsg to {iTunesError, "Playlist not found in source " & theSourceName as Unicode text, 0}
 						end try
-						try
-							--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
-							--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and smart is true)
-							-- we'll just ignore the smart property, as it's enforced by the GUI
-							tell thePlaylist
-								(*The "whose played date" clause will cause a -10001 "type mismatch" error if
+						if thePlaylist is not null then
+							try
+								--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
+								--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and smart is true)
+								-- we'll just ignore the smart property, as it's enforced by the GUI
+								tell thePlaylist
+									(*The "whose played date" clause will cause a -10001 "type mismatch" error if
 										any track in the chosen playlist has not been played yet. This is because iTunes
 										apparently can't handle comparing a date type to a missing value internally.*)
-								set mytracks to get (every file track whose played date is greater than theDate)
-								-- 10.5 64-bit bug: greater than acts as less than and less than gives a -10001 error, WTF!
-							end tell
-						on error errDescription number errnum
-							set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
-						end try
+									set mytracks to get (every file track whose played date is greater than theDate)
+									-- 10.5 64-bit bug: greater than acts as less than and less than gives a -10001 error, WTF!
+								end tell
+							on error errDescription number errnum
+								set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
+							end try
+						end if
 						
 						repeat with theTrack in mytracks
 							set trackID to database ID of theTrack
@@ -135,5 +136,5 @@ end UpdateiPod
 -- for testing in ScriptEditor
 on run
 	set when to date "Wednesday, December 5, 2007 9:40:00 PM"
-	UpdateiPod("Recently Played" as Unicode text, when)
+	UpdateiPod("Recentl Played" as Unicode text, when)
 end run
