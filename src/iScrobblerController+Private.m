@@ -363,8 +363,6 @@ validate:
             path, IPOD_SYNC_KEY_PATH,
             epoch, @"epoch",
             nil];
-        // add a "fake" count while we wait for the lib to load so plays are still queued until we are done
-        ++iPodMountCount; // don't need to update the binding
         [[ISiTunesLibrary sharedInstance] loadInBackgroundFromPath:ISCOPY_OF_ITUNES_LIB
             withDelegate:self didFinishSelector:@selector(synciPodWithiTunesLibrary:) context:d];
     }
@@ -622,8 +620,8 @@ validate_song_queue:
                 
                 [self setITunesLastPlayedTime:[NSDate date]];
                 if (added > 0) {
-                    // we have to delay this, so the plays are submitted AFTER the [volumeUnmount;] finishes
-                    // otherwise, the queue won't submit because it thinks the iPod is still mounted
+                    // we have to delay this, so the plays are submitted AFTER the we finish
+                    // otherwise, the queue won't submit because it thinks an iPod is still mounted
                     [[QueueManager sharedInstance] performSelector:@selector(submit) withObject:nil afterDelay:0.0];
                 }
             }
@@ -688,7 +686,6 @@ sync_exit_with_note:
         ++iPodMountCount;
         [self didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
-        [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
         
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
             [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
@@ -722,10 +719,11 @@ sync_exit_with_note:
         [self didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [iPodMounts removeObjectForKey:mountPath];
-        if (0 == iPodMountCount) {
-            [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
-            [[QueueManager sharedInstance] submit];
-        }
+        
+        // beginiPodSync is async and will return before updating actually begins so,
+        // add a "fake" count while we wait for the lib to load so plays are still queued until we are done.
+        // This is done outside of a binding update so the GUI does not notice it.
+        ++iPodMountCount;
     }
 }
 
