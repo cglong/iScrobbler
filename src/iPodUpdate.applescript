@@ -14,10 +14,10 @@ on UpdateiPod(thePlaylistName, theDate)
 		set out to {}
 		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
-			set iTunesVer to version as string
-			-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
-			set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 			with timeout of 600 seconds
+				set iTunesVer to version as string
+				-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
+				set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 				repeat with theSource in allSources
 					tell theSource
 						set mytracks to {}
@@ -27,11 +27,17 @@ on UpdateiPod(thePlaylistName, theDate)
 							set theSourceName to (name of theSource as Unicode text)
 						end try
 						
+						set thePlaylist to null
+						try
+							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
+						on error
+							exit repeat
+							-- any errors getting the playlist will be interpreted as "no Mathcing Tracks"
+						end try
 						try
 							--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
 							--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and smart is true)
 							-- we'll just ignore the smart property, as it's enforced by the GUI
-							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
 							tell thePlaylist
 								(*The "whose played date" clause will cause a -10001 "type mismatch" error if
 										any track in the chosen playlist has not been played yet. This is because iTunes
@@ -128,6 +134,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Thursday, November 29, 2007 12:00:00 PM"
+	set when to date "Wednesday, December 5, 2007 9:40:00 PM"
 	UpdateiPod("Recently Played" as Unicode text, when)
 end run
