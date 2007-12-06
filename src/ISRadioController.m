@@ -667,14 +667,16 @@ exitHistory:
 
 - (void)nowPlaying:(NSNotification*)note
 {
+    BOOL radioPlaying = ![asws stopped];
     SongData *s = [note object];
-    if (![asws stopped] && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
+    if (radioPlaying && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
         [self radioPlayDidStop];
         return;
     }
     
     if (s && ![s isLastFmRadio]) {
-        [self radioPlayDidStop];
+        if (radioPlaying)
+            [self radioPlayDidStop];
         return;
     } else if (currentTrackID && (!s || ![currentTrackID isEqualTo:[s playerUUID]])) {
         // current track stopped or paused (pause is not allowed by last.fm, so it's effectively a stop)
@@ -697,7 +699,7 @@ exitHistory:
         ISASSERT(currentTrackID && [self isActiveRadioSong:s], "current track is not in the active radio list!");
     }
     
-    if (NO == [asws stopped] && [activeRadioTracks count] <= 1)
+    if (radioPlaying && [activeRadioTracks count] <= 1)
         [asws updatePlaylist];
 }
 
