@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 3/5/06.
 //  Copyright 2006 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>

@@ -2,10 +2,9 @@
 //  ScrobLog.h
 //  iScrobbler
 //
-//  Copyright 2004,2005 Brian Bergstrand.
+//  Copyright 2004,2005,2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 #import <Cocoa/Cocoa.h>
 

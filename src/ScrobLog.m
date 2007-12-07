@@ -4,8 +4,7 @@
 //
 //  Copyright 2005-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 #import <sys/stat.h>
 #import "ScrobLog.h"
