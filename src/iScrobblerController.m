@@ -2296,8 +2296,9 @@ exit:
     static BOOL setup = YES;
     if (setup) {
         [[NSConnection defaultConnection] setRootObject:[NSNull null]];
-        [[NSConnection defaultConnection] setReplyTimeout:3.0];
-        [[NSConnection defaultConnection] setRequestTimeout:3.0];
+        // If running a script via the proxy takes longer than this timeout then the script will fail
+        [[NSConnection defaultConnection] setReplyTimeout:60.0];
+        [[NSConnection defaultConnection] setRequestTimeout:60.0];
         setup = NO;
     }
     
