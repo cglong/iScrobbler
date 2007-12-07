@@ -6,7 +6,7 @@
 //  Major re-write in 2005 by Brian Bergstrand.
 //  Copyright (c) 2005-2007 Brian Bergstrand. All rights reserved.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <sys/types.h>

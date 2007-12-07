@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 2/8/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <Foundation/Foundation.h>

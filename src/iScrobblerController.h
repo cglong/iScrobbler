@@ -4,7 +4,7 @@
 //
 //  Created by Sam Ley on Feb 14, 2003.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>

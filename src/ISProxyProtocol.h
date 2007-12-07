@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 11/6/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 // There are serious Applescript bugs in 10.5.0 for 64bit apps.

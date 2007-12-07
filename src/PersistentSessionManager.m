@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 10/17/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 #import "PersistentSessionManager.h"
 #import "Persistence.h"

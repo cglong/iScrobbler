@@ -6,7 +6,7 @@
 //  Completely re-written by Brian Bergstrand sometime in Feb 2005.
 //  Copyright 2005-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 
 #import <CommonCrypto/CommonDigest.h>
 #import <IOKit/IOMessage.h>

@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 12/18/04.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "iScrobblerController.h"

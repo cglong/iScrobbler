@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 10/31/04.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
