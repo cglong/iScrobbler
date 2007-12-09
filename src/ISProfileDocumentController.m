@@ -45,6 +45,8 @@
 
 - (void)showWindowWithHTMLData:(NSData*)data withWindowTitle:(NSString*)title
 {
+    [myWebView stopLoading:nil];
+    
     // Save data to temp file
     char buf[] = "iScrobblerXXXXXX";
     char *name = mktemp(buf);
@@ -113,7 +115,8 @@
 }
 
 - (void)windowWillClose:(NSNotification*)note
-{ 
+{
+    [myWebView stopLoading:nil];
     if (myURLPath)
         [[NSFileManager defaultManager] removeFileAtPath:[myURLPath path] handler:nil];
     [myURLPath release];
