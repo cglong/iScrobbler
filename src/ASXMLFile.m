@@ -292,11 +292,14 @@ static NSMutableDictionary *xmlCache = nil;
     NSError *err = nil;
     
     [self setXML:nil];
-    if (responseData && [responseData length] > 6 && '<' == *(unsigned char*)[responseData bytes]) {
-        NSString *head = [[[NSString alloc] initWithBytes:[responseData bytes] length:6 encoding:NSUTF8StringEncoding] autorelease];
-        if (NSOrderedSame != [@"<html>" caseInsensitiveCompare:head]) {
+    NSUInteger len;
+    if (responseData && (len = [responseData length]) > 0) {
+        const char *bytes = [responseData bytes];
+        NSString *head = [[[NSString alloc] initWithBytes:bytes length:MIN(len,500) encoding:NSUTF8StringEncoding] autorelease];
+        // There's some crashers in NSXMLDocument, so avoid passing HTML and run the parser with lint enabled
+        if (NSNotFound == [head rangeOfString:@"<html>" options:NSLiteralSearch].location) {
             id x = [[NSXMLDocument alloc] initWithData:responseData
-                options:0 //(NSXMLNodePreserveWhitespace|NSXMLNodePreserveCDATA)
+                options:NSXMLDocumentTidyXML // attempts to correct invalid XML
                 error:&err];
             [self setXML:x];
             [x release];
