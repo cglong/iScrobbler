@@ -5,14 +5,20 @@
 //  Created by Brian Bergstrand on 9/16/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
 
+@class ASWebServices;
+
 @interface ISRadioController : NSObject {
     NSMenuItem *rootMenu;
+    ASWebServices *asws;
     NSDictionary *stationBeingTuned;
+    NSAppleScript *stopScript, *radioScript;
+    NSMutableDictionary *activeRadioTracks;
+    NSString *currentTrackID;
 }
 
 + (ISRadioController*)sharedInstance;

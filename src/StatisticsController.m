@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 12/18/04.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "StatisticsController.h"
@@ -503,6 +502,14 @@ static NSImage *prevIcon = nil;
 
 - (IBAction)banTrack:(id)sender
 {
+    if (![g_nowPlaying isLastFmRadio]) {
+        [g_nowPlaying setBanned:YES];
+        [[NSApp delegate] performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
+    } else {
+        [[ISRadioController sharedInstance] ban];
+        return;
+    }
+        
     ASXMLRPC *req = [[ASXMLRPC alloc] init];
     [req setMethod:@"banTrack"];
     NSMutableArray *p = [req standardParams];
@@ -646,7 +653,6 @@ exit:
         [[request representedObject] setLoved:YES];
         tag = @"loved";
     } else if ([method isEqualToString:@"banTrack"]) {
-        [[request representedObject] setBanned:YES];
         tag = @"banned";
     } else if ([method hasPrefix:@"tag"])
         [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
@@ -682,6 +688,10 @@ exit:
 {
     ScrobLog(SCROB_LOG_ERR, @"RPC request '%@' for '%@' returned error: %@",
         [request method], [request representedObject], error);
+    
+    if ([[request method] isEqualToString:@"banTrack"]) {
+        [[request representedObject] setBanned:NO];
+    }
     
     [rpcreq autorelease];
     rpcreq = nil;

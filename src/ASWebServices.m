@@ -5,21 +5,35 @@
 //  Created by Brian Bergstrand on 2/8/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "ASWebServices.h"
 #import "ProtocolManager.h"
 #import "iScrobblerController.h"
 #import "keychain.h"
+#import "ASXMLFile.h"
 
 static BOOL needHandshake = YES;
 static float handshakeDelay = 60.0f;
 
 #define sessionid [sessionvars objectForKey:@"session"]
 
-static NSURLConnection *tuneConn = nil, *npConn = nil, *execConn = nil;
+static NSURLConnection *tuneConn = nil, *execConn = nil;
 static NSMutableDictionary *connData = nil;
+static ASXMLFile *xspfReq = nil;
+
+#define POSE_AS_LASTFM
+
+#ifdef POSE_AS_LASTFM
+#define WS_VERSION @"1.3.2.13"
+#define WS_PLATFORM @"mac"
+#else
+#define WS_VERSION [[NSUserDefaults standardUserDefaults] stringForKey:@"version"]
+#define WS_PLATFORM [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"]
+#endif
+// XXX "jp" somehow indicates the radio is hidden?
+#define WS_LANG @"en"
 
 @implementation ASWebServices : NSObject
 
@@ -68,12 +82,12 @@ static NSMutableDictionary *connData = nil;
     NSString *pass = [[KeyChain defaultKeyChain]  genericPasswordForService:@"iScrobbler"
         account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS ROOT"]
-        stringByAppendingFormat:@"/radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
-            [[NSUserDefaults standardUserDefaults] stringForKey:@"version"],
-            [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"],
+        stringByAppendingFormat:@"radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
+            WS_VERSION,
+            WS_PLATFORM,
             escapedusername,
             [[NSApp delegate] md5hash:pass],
-            @"en"]; // XXX "jp" somehow indicates the radio is hidden?
+            WS_LANG];
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
@@ -82,6 +96,11 @@ static NSMutableDictionary *connData = nil;
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     
     /*conn =*/ [NSURLConnection connectionWithRequest:req delegate:self];
+}
+
+- (BOOL)needHandshake
+{
+    return (needHandshake);
 }
 
 - (void)scheduleNextHandshakeAttempt
@@ -101,13 +120,12 @@ static NSMutableDictionary *connData = nil;
 - (void)completeHandshake:(NSString*)result
 {
     NSDictionary *d = [self parseWSResponse:result];
-    if (d) {
-        [sessionvars release];
-        sessionvars = [d retain];
-    }
+    [sessionvars release];
+    sessionvars = [d retain];
     
-    if (!sessionid || ![sessionvars objectForKey:@"stream_url"]) {
-        ScrobLog(SCROB_LOG_ERR, @"ASWS missing handshake session or stream_url: (%@)\n", result);
+    NSString *session = sessionid;
+    if (!session || NSOrderedSame == [session caseInsensitiveCompare:@"failed"] || 32 != [session length]) {
+        ScrobLog(SCROB_LOG_ERR, @"ASWS missing handshake session: (%@)", result);
         [self scheduleNextHandshakeAttempt];
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSFailedHandshake object:self];
         return;
@@ -119,10 +137,15 @@ static NSMutableDictionary *connData = nil;
     [[NSNotificationCenter defaultCenter] postNotificationName:ASWSDidHandshake object:self];
 }
 
-- (NSURL*)streamURL
+- (NSURL*)playlistURLWithService:(NSString*)service
 {
+    if (!service)
+        return (nil);
+    
+    NSString *path = [NSString stringWithFormat:@"http://%@/1.0/webclient/getresourceplaylist.php?sk=%@&url=%@&desktop=1",
+        [sessionvars objectForKey:@"base_url"], sessionid, service];
     @try {
-    return (!needHandshake ? [NSURL URLWithString:[sessionvars objectForKey:@"stream_url"]] : nil);
+    return (!needHandshake ? [NSURL URLWithString:path] : nil);
     } @catch (id e) {}
     
     return (nil);
@@ -133,9 +156,9 @@ static NSMutableDictionary *connData = nil;
     if (!service)
         return (nil);
     
-    NSString *path = [NSString stringWithFormat:@"http://%@%@/adjust.php?session=%@&url=%@&debug=%d",
+    NSString *path = [NSString stringWithFormat:@"http://%@%@/adjust.php?session=%@&url=%@&lang=%@",
         [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"],
-        sessionid, service, 0];
+        sessionid, service, WS_LANG];
     @try {
     return (!needHandshake ? [NSURL URLWithString:path] : nil);
     } @catch (id e) {}
@@ -143,44 +166,35 @@ static NSMutableDictionary *connData = nil;
     return (nil);
 }
 
-- (void)updateNowPlaying
+- (BOOL)isPlaylistService:(NSString*)service
 {
-    [npConn cancel];
-    npConn = nil;
-    
-    NSURL *url;
-    NSString *s = [NSString stringWithFormat:@"http://%@%@/np.php?session=%@&debug=%d",
-        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, 0];
-    ScrobTrace(@"%@", s);
-    @try {
-    url = [NSURL URLWithString:s];
-    } @catch (id e) {
-        url = nil;
-    }
-    
-    if (url) {
-        NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url
-            cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
-        [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-        npConn = [NSURLConnection connectionWithRequest:req delegate:self];
-    } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
-        ScrobLog(SCROB_LOG_ERR, @"ASWS 'now playing' failure: nil URL");
-    }
+    return (NSNotFound != [service rangeOfString:@"lastfm://playlist" options:NSCaseInsensitiveSearch].location
+        || NSNotFound != [service rangeOfString:@"lastfm://track" options:NSCaseInsensitiveSearch].location
+        || NSNotFound != [service rangeOfString:@"lastfm://preview" options:NSCaseInsensitiveSearch].location
+        || NSNotFound != [service rangeOfString:@"lastfm://play" options:NSCaseInsensitiveSearch].location);
 }
 
 - (void)tuneStation:(NSString*)station
 {
-    [tuneConn cancel];
-    tuneConn = nil;
+    [self stop];
     
     if (needHandshake)
         return;
     
-    NSURL *url = [self radioURLWithService:station];
+    NSURL *url;
+    if (NO == [self isPlaylistService:station]) {
+        // normal radio station, we can ask for more playlist content
+        canGetMoreTracks = YES;
+        url = [self radioURLWithService:station];
+    } else {
+        // playlist or preview track - this returns xspf data immediately and we cannot ask for more content
+        canGetMoreTracks = NO;
+        url = [self playlistURLWithService:station];
+    }
+    
     if (!url) {
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
-        ScrobLog(SCROB_LOG_ERR, @"ASWS tuning failure: nil URL\n");
+        ScrobLog(SCROB_LOG_ERR, @"ASWS tuning failure: nil URL");
         return;
     }
     
@@ -189,7 +203,10 @@ static NSMutableDictionary *connData = nil;
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     
     ScrobLog(SCROB_LOG_TRACE, @"ASWS tuning: %@", url);
-    tuneConn = [NSURLConnection connectionWithRequest:req delegate:self];
+    if (canGetMoreTracks)
+        tuneConn = [NSURLConnection connectionWithRequest:req delegate:self];
+    else
+        xspfReq = [[ASXMLFile xmlFileWithURL:url delegate:self cachedForSeconds:0] retain];
 }
 
 - (NSString*)station:(NSString*)type forUser:(NSString*)user
@@ -236,30 +253,13 @@ static NSMutableDictionary *connData = nil;
 #ifdef notyet
 - (BOOL)discovery
 {
-    return (!needHandshake && NSOrderedSame == [[sessionvars objectForKey:@"discovery"] caseInsensitiveCompare:@"true"]);
+    return (discovery);
 }
 #endif
 
 - (void)setDiscovery:(BOOL)state
 {
-    NSURL *url = [self radioURLWithService:[NSString stringWithFormat:@"lastfm://settings/discovery/%@",
-        state ? @"on" : @"off"]];
-    if (!url) {
-        ScrobLog(SCROB_LOG_ERR, @"ASWS discovery failure: nil URL\n");
-        return;
-    }
-    
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url
-        cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
-    [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
-    
-    ScrobDebug(@"%@", url);
-    (void)[NSURLConnection connectionWithRequest:req delegate:self];
-}
-
-- (NSDictionary*)nowPlayingInfo
-{
-    return (nowplaying);
+    discovery = state;
 }
 
 - (BOOL)subscriber
@@ -273,8 +273,8 @@ static NSMutableDictionary *connData = nil;
     execConn = nil;
     
     NSURL *url;
-    NSString *s = [NSString stringWithFormat:@"http://%@%@/control.php?session=%@&command=%@&debug=%d",
-        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, command, 0];
+    NSString *s = [NSString stringWithFormat:@"http://%@%@/control.php?session=%@&command=%@&lang=%@",
+        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid, command, WS_LANG];
     @try {
     url = [NSURL URLWithString:s];
     } @catch (id e) {
@@ -289,19 +289,240 @@ static NSMutableDictionary *connData = nil;
         execConn = [NSURLConnection connectionWithRequest:req delegate:self];
     } else {
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSExecFailed object:self];
-        ScrobLog(SCROB_LOG_ERR, @"ASWS 'exec command' failure: nil URL\n");
+        ScrobLog(SCROB_LOG_ERR, @"ASWS 'exec command' failure: nil URL");
     }
 }
 
 - (void)stop
 {
-    [nowplaying release];
-    nowplaying = nil;
+    [xspfReq cancel];
+    [xspfReq autorelease];
+    xspfReq = nil;
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:
-        [NSDictionary dictionaryWithObjectsAndKeys:@"false", @"streaming", nil]];
+    [tuneConn cancel];
+    tuneConn = nil;
+    
+    [execConn cancel];
+    execConn = nil;
+    
+    [connData removeAllObjects];
+    
+    stopped = YES;
+    canGetMoreTracks = YES;
+    skipsLeft = 0;
 }
 
+- (BOOL)stopped
+{
+    return (stopped);
+}
+
+// radio playlist
+- (void)updatePlaylist
+{
+    if (xspfReq) {
+        ScrobLog(SCROB_LOG_TRACE, @"ASWS: xspf request already in progress");
+        return;
+    }
+    if (!canGetMoreTracks) {
+        ScrobLog(SCROB_LOG_TRACE, @"ASWS: playlist does not allow track refresh");
+        return;
+    }
+    
+    NSURL *url = [NSURL URLWithString:
+        [NSString stringWithFormat:@"http://%@%@/xspf.php?sk=%@&discovery=%d&desktop=%@",
+        [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"], sessionid,
+        discovery, WS_VERSION]];
+    ScrobLog(SCROB_LOG_TRACE, @"ASWS: fetching xspf");
+    xspfReq = [[ASXMLFile xmlFileWithURL:url delegate:self cachedForSeconds:0] retain];
+}
+
+/*
+xspf format as of 2007/11:
+
+<playlist version="1" xmlns:lastfm="http://www.audioscrobbler.net/dtd/xspf-lastfm">
+<title>+metal+Tag+Radio</title>
+<creator>Last.fm</creator>
+<link rel="http://www.last.fm/skipsLeft">6</link>
+<trackList>
+    <track>
+        <location>http://play.last.fm/user/e7c6219b87c03a7f27df36dc4806ac82.mp3</location>
+        <title>Living Dead Girl</title>
+        <id>1070141</id>
+        <album>Hellbilly Deluxe</album>
+        <creator>Rob Zombie</creator>
+        <duration>201000</duration>
+        <image>http://images.amazon.com/images/P/B00000AEFH.01._SCMZZZZZZZ_.jpg</image>
+        <lastfm:trackauth>15950</lastfm:trackauth>
+        <lastfm:albumId>1414353</lastfm:albumId>
+        <lastfm:artistId>5734</lastfm:artistId>        
+        <link rel="http://www.last.fm/artistpage">http://www.last.fm/music/Rob+Zombie</link>
+        <link rel="http://www.last.fm/albumpage">http://www.last.fm/music/Rob+Zombie/Hellbilly+Deluxe</link>
+        <link rel="http://www.last.fm/trackpage">http://www.last.fm/music/Rob+Zombie/_/Living+Dead+Girl</link>
+        <link rel="http://www.last.fm/buyTrackURL"></link>
+        <link rel="http://www.last.fm/buyAlbumURL">http://www.last.fm/affiliate_sendto.php?link=catch&amp;prod=1414353&amp;pos=65633c2c6d40fbe9c8bf27ce82d2ca5a</link>
+        <link rel="http://www.last.fm/freeTrackURL"></link>
+    </track>
+    ... more tracks
+</tracklist>
+</playlist>
+*/
+- (void)createRadioPlaylist:(NSXMLDocument*)xml
+{
+    NSMutableArray *playlist = [NSMutableArray array];
+    NSArray *tracks = nil;
+    NSString *errMsg = nil;
+    int error = 0;
+    @try {
+        NSArray *trackList = [[xml rootElement] elementsForName:@"trackList"];
+        if (!trackList || 1 != [trackList count]) {
+            errMsg = @"ASWS: invalid xspf: missing or more than one trackList element";
+        }
+        tracks = [[trackList objectAtIndex:0] elementsForName:@"track"];
+        if (!tracks || ![tracks count]) {
+            errMsg = @"ASWS: invalid xspf: no tracks to play";
+            error = 1;
+        }
+    } @catch (NSException *ex) {
+        errMsg = [NSString stringWithFormat:@"ASWS: Exception processing xml data as xspf reply: %@", ex];
+    }
+    if (errMsg)
+        goto playlist_error;
+    
+    NSEnumerator *en;
+    NSXMLElement *e;
+    id value;
+    @try {
+        en = [[[xml rootElement] elementsForName:@"link"] objectEnumerator];
+        while ((e = [en nextObject])) {
+            if (NSOrderedSame == [[[e attributeForName:@"rel"] stringValue]
+                caseInsensitiveCompare:@"http://www.last.fm/skipsLeft"]) {
+                skipsLeft = [e integerValue];
+                break;
+            }
+        }
+    } @catch (NSException *ex) {
+        errMsg = [NSString stringWithFormat:@"ASWS: Exception obtaining skip count from xspf reply: %@", ex];
+        goto playlist_error;
+    }
+    ScrobLog(SCROB_LOG_TRACE, @"ASWS: xspf loaded with %li skips left", skipsLeft);
+    
+    en = [tracks objectEnumerator];
+    while ((e = [en nextObject])) {
+        NSMutableDictionary *trackData = [NSMutableDictionary dictionary];
+        @try {
+        // apparently, there can be more than one location, we just take the first
+        value = [[[e elementsForName:@"location"] objectAtIndex:0] stringValue];
+        [trackData setObject:value forKey:ISR_TRACK_URL];
+        value = [[[e elementsForName:@"title"] objectAtIndex:0] stringValue];
+        [trackData setObject:value forKey:ISR_TRACK_TITLE];
+        #ifdef notyet
+        value = [NSNumber numberWithLong:[[[e elementsForName:@"id"] objectAtIndex:0] integerValue]];
+        [trackData setObject:value forKey:ISR_TRACK_LFMID];
+        #endif
+        value = [e elementsForName:@"album"];
+        if (value && [value count] > 0) {
+            value = [[value objectAtIndex:0] stringValue];
+            [trackData setObject:value forKey:ISR_TRACK_ALBUM];
+        }
+        value = [[[e elementsForName:@"creator"] objectAtIndex:0] stringValue];
+        [trackData setObject:value forKey:ISR_TRACK_ARTIST];
+        value = [NSNumber numberWithLong:[[[e elementsForName:@"duration"] objectAtIndex:0] integerValue]];
+        // some tracks can have an invalid 0 duration, just set them to 3 minutes (avg of most songs)
+        if (0 == [value intValue]) {
+            value = [NSNumber numberWithInt:60*1000];
+            ScrobLog(SCROB_LOG_WARN, @"Duration for '%@ by %@' is 0, set to 60 seconds automatically (which may be completely wrong).",
+                [trackData objectForKey:ISR_TRACK_TITLE], [trackData objectForKey:ISR_TRACK_ARTIST]);
+        }
+        [trackData setObject:value forKey:ISR_TRACK_DURATION];
+        value = [e elementsForName:@"image"];
+        if (value && [value count] > 0) {
+            value = [[value objectAtIndex:0] stringValue];
+            [trackData setObject:value forKey:ISR_TRACK_IMGURL];
+        }
+        value = [[[e elementsForName:@"lastfm:trackauth"] objectAtIndex:0] stringValue];
+        [trackData setObject:value forKey:ISR_TRACK_LFMAUTH];
+        
+        #ifdef notyet
+        @try {
+        value = [NSNumber numberWithLong:[[[e elementsForName:@"lastfm:albumId"] objectAtIndex:0] integerValue]];
+        [trackData setObject:value forKey:ISR_TRACK_LFMALBUMID];
+        value = [NSNumber numberWithLong:[[[e elementsForName:@"lastfm:artistId"] objectAtIndex:0] integerValue]];
+        [trackData setObject:value forKey:ISR_TRACK_LFMARTISTID];
+        // other lastfm elements we just ignore currently:
+        // lastfm:sponsored
+        } @catch (NSException *exAttr) {
+            ScrobLog(SCROB_LOG_TRACE, @"exception parsing xpsf lastfm attributes: %@", exAttr);
+        }
+        #endif
+        
+        [playlist addObject:trackData];
+        
+        } @catch (NSException *ex) {
+            ScrobLog(SCROB_LOG_ERR, @"ASWS: Exception processing xspf track entry: %@ (%@)", e, ex);
+        }
+    }
+    
+    if ([playlist count] > 0) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:
+            [NSDictionary dictionaryWithObject:playlist forKey:ISR_PLAYLIST]];
+        return;
+    } else
+        error = 1;
+    
+playlist_error:
+    stopped = YES;
+    if (!errMsg)
+        errMsg = @"ASWS xspf failure: no tracks to play!";
+    ScrobLog(SCROB_LOG_ERR, errMsg);
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:error], @"error", nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self userInfo:d];
+}
+
+- (NSInteger)playlistSkipsLeft
+{
+    return (skipsLeft);
+}
+
+- (void)decrementPlaylistSkipsLeft
+{
+    if (skipsLeft > 0)
+        --skipsLeft;
+}
+
+// XML file callbacks - only used for playlist support currently
+- (void)xmlFileDidFinishLoading:(ASXMLFile*)connection
+{
+    if (xspfReq == connection) {
+        [xspfReq autorelease];
+        xspfReq = nil;
+        
+        if (!canGetMoreTracks) {
+            // we have to send a tune notification
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationDidTune object:self userInfo:nil];
+            stopped = NO;
+        }
+        
+        [self createRadioPlaylist:[connection xml]];
+    }
+}
+
+- (void)xmlFile:(ASXMLFile*)connection didFailWithError:(NSError *)reason
+{
+    if (xspfReq == connection) {
+        [xspfReq autorelease];
+        xspfReq = nil;
+        stopped = YES;
+        
+        if (!canGetMoreTracks) {
+            [self stop];
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
+        } else
+            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
+    }
+}
+
+// Connection callbacks
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)uresponse
 {
     if (needHandshake) {
@@ -311,13 +532,12 @@ static NSMutableDictionary *connData = nil;
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSFailedHandshake object:self];
             
             NSError *err = [NSError errorWithDomain:@"HTTPErrorDomain" code:code  userInfo:nil];
-            if (!needHandshake || 401 != code) {
-                ;
+            if (401 == code || 503 == code) {
+                ScrobLog(SCROB_LOG_ERR, @"ASWS handshake failure: %@; retry scheduled", err);
+                [self scheduleNextHandshakeAttempt];
             } else {
                 ScrobLog(SCROB_LOG_ERR, @"ASWS handshake failure: %@", err);
             }
-            if (401 == code)
-                [self scheduleNextHandshakeAttempt];
         }
     }
 }
@@ -336,22 +556,21 @@ static NSMutableDictionary *connData = nil;
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)reason
 {
-    ScrobLog(SCROB_LOG_ERR, @"ASWS Connection failure: %@\n", reason);
+    ScrobLog(SCROB_LOG_ERR, @"ASWS Connection failure: %@", reason);
     [connData removeObjectForKey:[NSValue valueWithPointer:connection]];
     
     if (needHandshake) {
+        stopped = YES;
         [self scheduleNextHandshakeAttempt];
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSFailedHandshake object:self];
         return;
     }
     
     if (connection == tuneConn) {
+        [self stop];
         tuneConn = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
-        ScrobLog(SCROB_LOG_ERR, @"ASWS tuning connection failure: %@\n", reason);
-    } else if (connection == npConn) {
-        npConn = nil;
-        [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
+        ScrobLog(SCROB_LOG_ERR, @"ASWS tuning connection failure: %@", reason);
     } else if (connection == execConn) {
         execConn = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSExecFailed object:self];
@@ -370,6 +589,7 @@ static NSMutableDictionary *connData = nil;
     
     if (needHandshake) {
         [self completeHandshake:result];
+        stopped = !needHandshake;
         return;
     }
     
@@ -380,30 +600,15 @@ static NSMutableDictionary *connData = nil;
         
         int err = [[d objectForKey:@"error"] intValue];
         if (!err) {
-            ScrobLog(SCROB_LOG_TRACE, @"ASWS station tuned\n");
+            ScrobLog(SCROB_LOG_TRACE, @"ASWS station tuned");
+            stopped = NO;
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationDidTune object:self userInfo:d];
         } else {
+            stopped = YES;
             [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self userInfo:
                 [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:err], @"error", nil]];
-            ScrobLog(SCROB_LOG_ERR, @"ASWS tuning failure: %@\n", d);
+            ScrobLog(SCROB_LOG_ERR, @"ASWS tuning failure: %@", d);
         }
-        return;
-    }
-    
-    if (connection == npConn) {
-        npConn = nil;
-        
-        [nowplaying release];
-        nowplaying = nil;
-        
-        if (NSOrderedSame == [[d objectForKey:@"streaming"] caseInsensitiveCompare:@"true"]) {
-            nowplaying = [d retain];
-            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingDidUpdate object:self userInfo:d];
-        } else {
-            [[NSNotificationCenter defaultCenter] postNotificationName:ASWSNowPlayingFailed object:self];
-            ScrobLog(SCROB_LOG_ERR, @"ASWS now playing failure: not streaming\n", d);
-        }
-        
         return;
     }
     
@@ -424,6 +629,7 @@ static NSMutableDictionary *connData = nil;
     self = [super init];
     sessionvars = [[NSMutableDictionary alloc] init];
     connData = [[NSMutableDictionary alloc] init];
+    stopped = YES;
     return (self);
 }
 

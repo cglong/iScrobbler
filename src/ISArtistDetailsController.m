@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 3/5/06.
 //  Copyright 2006-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "iScrobblerController.h"
@@ -134,7 +133,7 @@ static NSImage *artistImgPlaceholder = nil;
 
 - (void)cancelDetails
 {
-    [self setDetails:nil];
+    ++delayedLoadSeed;
     
     [detailsProfile cancel];
     [detailsProfile release];
@@ -148,16 +147,19 @@ static NSImage *artistImgPlaceholder = nil;
     [detailsSimArtists cancel];
     [detailsSimArtists release];
     detailsSimArtists = nil;
-    [detailsArtistData cancel];
-    [detailsArtistData release];
-    detailsArtistData = nil; 
     [detailsArtistTags cancel];
     [detailsArtistTags release];
     detailsArtistTags = nil;
+    [detailsArtistData cancel];
+    [detailsArtistData release];
+    detailsArtistData = nil;
     
     [imageRequest cancel];
     [imageRequest release];
     imageRequest = nil;
+    
+    ScrobDebug(@"%@: cancel load", [[[artistController selection] valueForKey:@"Artist"] string]);
+    [self setDetails:nil];
     
     if (detailsData) {
         [detailsData release];
@@ -167,7 +169,7 @@ static NSImage *artistImgPlaceholder = nil;
     }
 }
 
-- (void)releaseConnection:(id)conn
+- (BOOL)releaseConnection:(id)conn
 {
     if (conn == detailsProfile) {
         detailsProfile = nil;
@@ -181,8 +183,13 @@ static NSImage *artistImgPlaceholder = nil;
         detailsArtistData = nil;
     } else if (conn == detailsArtistTags) {
         detailsArtistTags = nil;
+    } else {
+        ScrobLog(SCROB_LOG_TRACE, @"ArtistDetails: invalid connection: %p", conn);
+        return (NO);
     }
+    
     [conn release];
+    return (YES);
 }
 
 - (void)loadTopFansData:(NSXMLDocument*)xml
@@ -419,6 +426,9 @@ static NSImage *artistImgPlaceholder = nil;
 {
     NSURL *url = [args objectAtIndex:0];
     NSConnection **p = [[args objectAtIndex:1] pointerValue];
+    unsigned seed = [[args objectAtIndex:2] unsignedIntValue];
+    if (seed != delayedLoadSeed)
+        return;
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
@@ -429,6 +439,9 @@ static NSImage *artistImgPlaceholder = nil;
 {
     NSURL *url = [args objectAtIndex:0];
     ASXMLFile **p = [[args objectAtIndex:1] pointerValue];
+    unsigned seed = [[args objectAtIndex:2] unsignedIntValue];
+    if (seed != delayedLoadSeed)
+        return;
     
     *p = [[ASXMLFile xmlFileWithURL:url delegate:self cachedForSeconds:requestCacheSeconds] retain];
 }
@@ -438,7 +451,8 @@ static NSImage *artistImgPlaceholder = nil;
     /* Last.fm uses '+' instead of %20 */ \
     [urlStr replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [urlStr length])]; \
     url = [NSURL URLWithString:urlStr]; \
-    NSArray *args = [NSArray arrayWithObjects:url, [NSValue valueWithPointer:(&(req))], nil]; \
+    NSArray *args = [NSArray arrayWithObjects:url, [NSValue valueWithPointer:(&(req))], \
+        [NSNumber numberWithUnsignedInt:delayedLoadSeed], nil]; \
     [self performSelector:@selector(openXML:) withObject:args afterDelay:delay]; \
 } while(0)
 
@@ -448,7 +462,8 @@ static NSImage *artistImgPlaceholder = nil;
         [[[artistController selection] valueForKey:@"Artist"] string]])
         return;
     
-    [self cancelDetails];
+    [self cancelDetails]; // increments delayedLoadSeed
+    ScrobDebug(@"%@: load", artist);
     
     NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
     [style setAlignment:NSCenterTextAlignment];
@@ -502,64 +517,52 @@ static NSImage *artistImgPlaceholder = nil;
     /* Last.fm uses '+' instead of %20 */
     [urlStr replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [urlStr length])];
     url = [NSURL URLWithString:urlStr];
-    NSArray *args = [NSArray arrayWithObjects:url, [NSValue valueWithPointer:(&detailsArtistData)], nil];
+    NSArray *args = [NSArray arrayWithObjects:url, [NSValue valueWithPointer:(&detailsArtistData)],
+        [NSNumber numberWithUnsignedInt:delayedLoadSeed], nil];
     [self performSelector:@selector(openConnection:) withObject:args afterDelay:delay];
 }
 
 - (void)loadDetailsDidFinish:(id)obj
 {
     NSValue *key = [NSValue valueWithPointer:obj];
-    NSXMLDocument *xml = nil;
-    NSData  *data = nil;
+    NSData  *data = [detailsData objectForKey:key];
     
-    if ([[detailsData objectForKey:key] isKindOfClass:[NSXMLDocument class]]) {
-        xml = [[detailsData objectForKey:key] retain];
+    if (data && [data isKindOfClass:[NSXMLDocument class]]) {
+        NSXMLDocument *xml = [detailsData objectForKey:key];
+        @try {
+            if (obj == detailsTopFans) {
+                [self loadTopFansData:xml];
+            } else if (obj == detailsSimArtists) {
+                [self loadSimilarArtistsData:xml];
+            } else if (obj == detailsArtistTags) {
+                [self loadArtistTags:xml];
+            }
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_ERR, @"Exception while loading artist data from %@: %@\n", [xml URI], e);
+        }
     } else {
-        data = [detailsData objectForKey:key];
-        if (!data || 0 == [data length])
-            goto loadDetailsExit;
-    
         // currently, the only document we load is the artistmetadata link which is not XML
         // all other docuemnts (which are XML) are handled by ASXMLFile
-    }
-    
-    if (!xml) {
-        if (obj == detailsArtistData) {
+        if (data && [data length] > 0 && obj == detailsArtistData) {
             @try {
                 [self loadArtistData:data];
             } @catch (NSException *e) {
                 ScrobLog(SCROB_LOG_ERR, @"Exception while loading artist meta data: %@\n", e);
             }
         }
-        goto loadDetailsExit;
     }
     
-    @try {
-    
-    if (obj == detailsTopFans) {
-        [self loadTopFansData:xml];
-    } else if (obj == detailsSimArtists) {
-        [self loadSimilarArtistsData:xml];
-    } else if (obj == detailsArtistTags) {
-        [self loadArtistTags:xml];
-    }
-    
-    } @catch (NSException *e) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception while loading artist data from %@: %@\n", [xml URI], e);
-    }
-    
-    [xml release];
-
-loadDetailsExit:
     [detailsData removeObjectForKey:key];
-    [self releaseConnection:obj];
-    if (detailsLoaded >= detailsToLoad) {
-        [detailsData release];
-        detailsData = nil;
-        [imageRequest cancel];
-        [imageRequest release];
-        imageRequest = nil;
-        [detailsProgress stopAnimation:nil];
+    if ([self releaseConnection:obj]) {
+        ++detailsLoaded;
+        if (detailsLoaded >= detailsToLoad) {
+            [detailsData release];
+            detailsData = nil;
+            [imageRequest cancel];
+            [imageRequest release];
+            imageRequest = nil;
+            [detailsProgress stopAnimation:nil];
+        }
     }
 }
 
@@ -626,7 +629,6 @@ loadDetailsExit:
     id xml = [connection xml];
     if (xml)
         [detailsData setObject:xml forKey:key];
-    ++detailsLoaded;
     [self loadDetailsDidFinish:connection];
 }
 
@@ -652,14 +654,13 @@ loadDetailsExit:
         [recvdData appendData:data];
     } else {
         [connection cancel];
-        [self releaseConnection:connection];
+        (void)[self releaseConnection:connection];
     }
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     //dbgprint("Finished loading for %p\n", connection);
-    ++detailsLoaded;
     [self loadDetailsDidFinish:connection];
 }
 
@@ -702,7 +703,6 @@ loadDetailsExit:
         }
         [[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
     }
-    ++detailsLoaded;
     [imagePath release];
     imagePath = nil;
     [self loadDetailsDidFinish:nil];

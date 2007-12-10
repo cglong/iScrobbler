@@ -6,8 +6,7 @@
 //  Re-written in late 2004 by Eric Seidel.
 //  Copyright 2004 Eric Seidel.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "PreferenceController.h"

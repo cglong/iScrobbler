@@ -2,10 +2,9 @@
 //  ScrobLog.h
 //  iScrobbler
 //
-//  Copyright 2004,2005 Brian Bergstrand.
+//  Copyright 2004,2005,2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 #import <Cocoa/Cocoa.h>
 
@@ -23,15 +22,22 @@ typedef NSInteger scrob_log_level_t;
 __private_extern__ scrob_log_level_t ScrobLogLevel(void);
 __private_extern__ void SetScrobLogLevel(scrob_log_level_t level);
 
-__private_extern__ void ScrobLog (scrob_log_level_t level, NSString *fmt, ...);
+__private_extern__ void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
+#define ScrobLog(level, fmt, ...) do { \
+    if (level <= ScrobLogLevel()) \
+        ScrobLogMsg(level, fmt, ## __VA_ARGS__); \
+} while(0)
+
 #define ScrobTrace(fmt, ...) do { \
-    NSString *newfmt = [NSString stringWithFormat:@"%s:%ld -- %@", __PRETTY_FUNCTION__, __LINE__, (fmt)]; \
-    ScrobLog (SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
+    if (ScrobLogLevel() >= SCROB_LOG_TRACE) { \
+        NSString *newfmt = [NSString stringWithFormat:@"%s:%ld -- %@", __PRETTY_FUNCTION__, __LINE__, (fmt)]; \
+        ScrobLogMsg(SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
+    } \
 } while (0)
 #ifdef ISDEBUG
 #define ScrobDebug(fmt, ...) do { \
     NSString *newfmt = [NSString stringWithFormat:@"%s:%ld -- %@", __PRETTY_FUNCTION__, __LINE__, (fmt)]; \
-    ScrobLog (SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
+    ScrobLogMsg(SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
 } while (0)
 #else
 #define ScrobDebug(fmt, ...)

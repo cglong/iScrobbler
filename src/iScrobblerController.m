@@ -6,7 +6,7 @@
 //  Completely re-written by Brian Bergstrand sometime in Feb 2005.
 //  Copyright 2005-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 
 #import <CommonCrypto/CommonDigest.h>
 #import <IOKit/IOMessage.h>
@@ -56,6 +56,8 @@ static NSDistantObject<ISProxyProtocol> *sProxy = nil;
 @end
 
 #endif
+
+static NSString *playerLibUUID = nil;
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -208,13 +210,10 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     #else
     NSInteger r = (NSInteger)[[song scaledRating] intValue];
     #endif
-    if (![song loved] && 
+    if (![song loved] && ![song banned] && ![song skipped] && 
         r > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
         ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", song);
-        NSMenuItem *dummy = [[NSMenuItem alloc] initWithTitle:@"dummy" action:nil keyEquivalent:@""];
-        [dummy setRepresentedObject:song];
-        [self performSelector:@selector(loveTrack:) withObject:dummy];
-        [dummy release];
+        [self performSelector:@selector(loveTrack:) withObject:song];
     }
 }
 
@@ -312,7 +311,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 {
     // Run the script to get the info not included in the dict
     NSDictionary *errInfo = nil;
-    NSAppleEventDescriptor *result = [script executeAndReturnError:&errInfo] ;
+    NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo] ;
     if (result) {
         if ([result numberOfItems] > 1) {
             TrackType_t trackType = trackTypeUnknown;
@@ -383,8 +382,18 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
         ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && iPodMountCount > 0));
 }
 
-- (void)queueSong:(SongData*)song
+- (void)queueSong:(SongData*)song playerStopped:(BOOL)stopped
 {
+    if ([song isLastFmRadio] && ![song banned] && (!stopped || [song canSubmit])) {
+        double duration = [[song duration] doubleValue] - [SongData songTimeFudge];
+        if ([[song elapsedTime] doubleValue] < duration) {
+            ScrobLog(SCROB_LOG_TRACE,
+                @"Set radio track '%@' as skipped because its elapsed play time (%@) was less than its duration (%.0f) at the time of submission.",
+                [song brief], [song elapsedTime], duration);
+            [song setSkipped:YES];
+            [[ASWebServices sharedInstance] decrementPlaylistSkipsLeft];
+        }
+    }
     [song setPosition:[song elapsedTime]];
     QueueResult_t qr = [[QueueManager sharedInstance] queueSong:song];
     if (kqFailed == qr) {
@@ -396,9 +405,9 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 if (currentSong) { \
     if ([currentSong isPaused]) \
         [currentSong didResumeFromPause]; \
-    if ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END && ![currentSong hasQueued] && !submissionsDisabled) \
-        [self queueSong:currentSong]; \
     [currentSong setLastPlayed:[NSDate date]]; \
+    if (![currentSong hasQueued] && (!submissionsDisabled || [currentSong isLastFmRadio])) \
+        [self queueSong:currentSong playerStopped:isStopped]; \
     [currentSong release]; \
     currentSong = nil; \
 } \
@@ -417,32 +426,35 @@ if (currentSong) { \
     isiTunesPlaying = [@"Playing" isEqualToString:[info objectForKey:@"Player State"]];
     BOOL isPlayeriTunes = [@"com.apple.iTunes.playerInfo" isEqualToString:[note name]] && !frontRowActive;
     BOOL isRepeat = NO;
+    BOOL isStopped = NO;
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ notification received: %@\n", [note name], [info objectForKey:@"Player State"]);
     
-    // Even if subs are disabled, we still have to update the iTunes play time, as the user
-    // could enable subs, plug-in the ipod, and then we'd pick up everything that was supposed to
-    // have been ignored in iTunes (because the play time had not been updated).
     SongData *song = nil;
-    if (submissionsDisabled) {
-        ReleaseCurrentSong();
-        goto player_info_exit;
-    }
-    
     @try {
         if (![@"Stopped" isEqualToString:[info objectForKey:@"Player State"]]) {
             if (!(song = [[SongData alloc] initWithiTunesPlayerInfo:info]))
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
         } else {
+            isStopped = YES;
             ReleaseCurrentSong();
         }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
     if (!song) {
+        isiTunesPlaying = NO;
         [self updateMenu];
         goto player_info_exit;
+    } else if (submissionsDisabled && ![song isLastFmRadio]) {
+        [song release];
+        song = nil;
+        ReleaseCurrentSong();
+        goto player_info_exit;
     }
+    
+    if ([song isLastFmRadio])
+        isPlayeriTunes = NO;
     
     BOOL didInfoUpdate;
     if (isPlayeriTunes)
@@ -500,17 +512,17 @@ if (currentSong) { \
         
         // Try to determine if the song is being played twice (or more in a row)
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
-        if (pos + [SongData songTimeFudge] <  [[currentSong elapsedTime] floatValue] &&
-             (pos <= [SongData songTimeFudge]) &&
+        if (![song isLastFmRadio] && (pos + [SongData songTimeFudge]) <  [[currentSong elapsedTime] floatValue]
+             && (pos <= [SongData songTimeFudge])
              // The following condition does not work with iTunes 4.7, since we are not
              // constantly updating the song's position by polling iTunes. With 4.7 we update
              // when the song first plays, when it's ready for submission or if the user
              // changes some song metadata -- that's it.
         #if 0
               // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
-             (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
+             && (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
         #endif
-             ([currentSong hasQueued] || ([currentSong submitIntervalFromNow] >= PM_SUBMIT_AT_TRACK_END) && [currentSong canSubmit])) {
+             && ([currentSong hasQueued] || [currentSong canSubmit])) {
             ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
             isRepeat = YES;
@@ -527,7 +539,6 @@ if (currentSong) { \
                 ScrobLog(SCROB_LOG_TRACE, @"'%@' paused", [currentSong brief]);
             } else  if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
                 if (![currentSong hasQueued]) {
-                    ISASSERT([currentSong resubmitInterval] <= 0.0, "active resubmit interval!");
                     ScrobLog(SCROB_LOG_TRACE, @"'%@' resumed (elapsed: %.1fs)", [currentSong brief],
                         [[currentSong elapsedTime] floatValue]);
                 }
@@ -560,20 +571,19 @@ if (currentSong) { \
     if (isiTunesPlaying) {
         currentSongPaused = NO;
         // Update Recent Songs list
-        NSInteger i, found = 0, count = [songList count];
+        NSInteger i, found = -1, count = [songList count];
         for(i = 0; i < count; ++i) {
             if ([[songList objectAtIndex:i] isEqualToSong:song]) {
                 found = i;
                 break;
             }
         }
-
-        // If the track wasn't found anywhere in the list, we add a new item
-        if (found) {
+        
+        if (found >= 0) {
             // If the trackname was found elsewhere in the list, we remove the old item
             [songList removeObjectAtIndex:found];
         } else
-            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'\n", [song brief]);
+            ScrobLog(SCROB_LOG_VERBOSE, @"Added '%@'", [song brief]);
         [songList pushSong:song];
         
         if ((count = [songList count] - [prefs integerForKey:@"Number of Songs to Save"]) > 0) {
@@ -598,6 +608,7 @@ player_info_exit:
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithBool:isRepeat], @"repeat",
         [NSNumber numberWithBool:isiTunesPlaying], @"isPlaying",
+        [NSNumber numberWithBool:isStopped], @"isStopped",
         nil];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Now Playing"
         object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
@@ -605,6 +616,11 @@ player_info_exit:
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
         [self setITunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
+    
+    if (isStopped) {
+        [playerLibUUID release];
+        playerLibUUID = nil;
+    }
 }
 
 - (void)frontRowWillShow:(NSNotification*)note
@@ -683,13 +699,22 @@ player_info_exit:
         selector:@selector(aeImageConversionHandler:)
         forDescriptorTypes:typePict, typeTIFF, typeJPEG, typeGIF, nil];
     
-	// Create the GetInfo script
+	// Create the player scripts
     file = [[[NSBundle mainBundle] resourcePath]
                 stringByAppendingPathComponent:@"Scripts/iTunesGetCurrentTrackInfo.scpt"];
     NSURL *url = [NSURL fileURLWithPath:file];
-    script = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
-    if (!script || ![script compileAndReturnError:nil]) {
-        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetCurrentTrackInfo.scpt!\n");
+    currentTrackInfoScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+    if (!currentTrackInfoScript || ![currentTrackInfoScript compileAndReturnError:nil]) {
+        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetCurrentTrackInfo.scpt");
+        [self showApplicationIsDamagedDialog];
+        [NSApp terminate:nil];
+    }
+    file = [[[NSBundle mainBundle] resourcePath]
+                stringByAppendingPathComponent:@"Scripts/iTunesControl.scpt"];
+    url = [NSURL fileURLWithPath:file];
+    playerControlScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
+    if (!playerControlScript || ![playerControlScript compileAndReturnError:nil]) {
+        ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesControl.scpt");
         [self showApplicationIsDamagedDialog];
         [NSApp terminate:nil];
     }
@@ -887,15 +912,6 @@ player_info_exit:
     [songActionMenu addItem:item];
     [item release];
     
-    title = [NSString stringWithFormat:@"%C ", 0x2298];
-    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
-        action:@selector(banTrack:) keyEquivalent:@""];
-    [item setTarget:self];
-    [item setTag:MACTION_BAN_TAG];
-    [item setEnabled:YES];
-    [songActionMenu addItem:item];
-    [item release];
-    
     title = [NSString stringWithFormat:@"%C ", 0x270E];
     item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Tag", "")]
         action:@selector(tagTrack:) keyEquivalent:@""];
@@ -910,6 +926,24 @@ player_info_exit:
         action:@selector(recommendTrack:) keyEquivalent:@""];
     [item setTarget:self];
     [item setTag:MACTION_RECOMEND_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x2298];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Ban", "")]
+        action:@selector(banTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_BAN_TAG];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
+    
+    title = [NSString stringWithFormat:@"%C ", 0x27A0];
+    item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
+        action:@selector(skipTrack:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_SKIP];
     [item setEnabled:YES];
     [songActionMenu addItem:item];
     [item release];
@@ -1126,7 +1160,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     NSString *build = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
     if (!build)
         build = ver;
-    return ([NSString stringWithFormat:@"%@/%@", ver, build]);
+    return ([NSString stringWithFormat:@"%@/%@ (%@)", ver, build, ISCPUArchitectureString()]);
 }
 
 - (void)enableLocalChartsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
@@ -1211,23 +1245,26 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
             // Setup the action menu for the currently playing song  
             NSMenu *m = [songActionMenu copy];
             if ([song isLastFmRadio]) {
-                NSString *title = [NSString stringWithFormat:@"%C ", 0x27A0];
-                item = [[NSMenuItem alloc] initWithTitle:[title stringByAppendingString:NSLocalizedString(@"Skip", "")]
-                    action:@selector(skip) keyEquivalent:@""];
+                // Use the radio sepcific skip and ban
+                item = [m itemWithTag:MACTION_SKIP]; 
+                [item setAction:@selector(skip)];
                 [item setTarget:[ISRadioController sharedInstance]];
-                [item setTag:MACTION_SKIP];
-                [item setEnabled:YES];
-                @try {
-                [m insertItem:item atIndex:[m indexOfItemWithTag:MACTION_RECOMEND_TAG]+1];
-                } @catch (id e) {
-                    ScrobDebug(@"exception: %@", e);
-                }
-                [item release];
                 
-                // Use the radio ban instead of the XML one so that the track is skipped as well as banned
-                item = [m itemWithTag:MACTION_BAN_TAG];
+                item = [m itemWithTag:MACTION_BAN_TAG]; 
                 [item setAction:@selector(ban)];
                 [item setTarget:[ISRadioController sharedInstance]];
+                if ([song banned])
+                    [item setEnabled:NO];
+            } else {
+                if ([song banned]) {
+                    item = [m itemWithTag:MACTION_BAN_TAG];
+                    [item setAction:@selector(unBanTrack:)];
+                    [item setTitle:NSLocalizedString(@"Un-Ban", "")];
+                } else if ([song skipped]) {
+                    // this should not occur because a local skip tells the player to go to the next track,
+                    // but just in case...
+                    [[m itemWithTag:MACTION_SKIP] setEnabled:NO];
+                }
             }
             [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
             
@@ -1365,7 +1402,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 	[nc release];
 	[statusItem release];
 	[songList release];
-	[script release];
+	[currentTrackInfoScript release];
 	[prefs release];
 	[preferenceController release];
 	[super dealloc];
@@ -1453,11 +1490,6 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     // Replace spaces with + (why doesn't AS use %20)?
     [url replaceOccurrencesOfString:@" " withString:@"+" options:0 range:NSMakeRange(0, [url length])];
     return ([NSURL URLWithString:url]); // This will throw if nil or an invalid url
-}
-
-- (IBAction)cleanLog:(id)sender
-{
-    ScrobLogTruncate();
 }
 
 - (IBAction)performFindPanelAction:(id)sender
@@ -1561,6 +1593,43 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 	[NSApp terminate:self];
 }
 
+// Player control
+- (void)playerStop
+{
+    @try {
+        (void)[playerControlScript executeHandler:@"StopPlaying" withParameters:nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't stop iTunes -- script error: %@.", exception);
+    }
+}
+
+- (void)playerNextTrack
+{
+    @try {
+        (void)[playerControlScript executeHandler:@"PlayNextTrack" withParameters:nil];
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't play next iTunes track -- script error: %@.", exception);
+    }
+}
+
+- (NSString*)playerLibraryUUID
+{
+    if(playerLibUUID)
+        return (playerLibUUID);
+    
+    NSString *uuid = @"";
+    @try {
+        uuid = [playerControlScript executeHandler:@"PlayerLibraryUUID" withParameters:nil];
+        if ([uuid length] >= 4) {
+            playerLibUUID = [uuid retain];
+        }
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Can't get iTunes library UUID -- script error: %@.", exception);
+    }
+    
+    return (playerLibUUID);
+}
+
 // Track menu actions
 - (IBAction)openTrackURL:(id)sender
 {
@@ -1576,7 +1645,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 
 - (IBAction)loveTrack:(id)sender
 {
-    SongData *song = [sender representedObject];
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
     
     ASXMLRPC *req = [[ASXMLRPC alloc] init];
     [req setMethod:@"loveTrack"];
@@ -1591,7 +1660,13 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 
 - (IBAction)banTrack:(id)sender
 {
-    SongData *song = [sender representedObject];
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
+    SongData *np = [self nowPlaying];
+    
+    [song setBanned:YES];
+    if (np && ![np isLastFmRadio] && [np isEqualToSong:song]) {
+        [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
+    }
     
     ASXMLRPC *req = [[ASXMLRPC alloc] init];
     [req setMethod:@"banTrack"];
@@ -1602,6 +1677,34 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     [req setDelegate:self];
     [req setRepresentedObject:song];
     [req sendRequest];
+}
+
+- (IBAction)unBanTrack:(id)sender
+{
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
+    [song setBanned:NO];
+    [self performSelector:@selector(updateMenu) withObject:nil afterDelay:0.0];
+    
+    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    [req setMethod:@"unBanTrack"];
+    NSMutableArray *p = [req standardParams];
+    [p addObject:[song artist]];
+    [p addObject:[song title]];
+    [req setParameters:p];
+    [req setDelegate:self];
+    [req setRepresentedObject:song];
+    [req sendRequest];
+}
+
+- (IBAction)skipTrack:(id)sender
+{
+    SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
+    if (![song isLastFmRadio]) {
+        [song setSkipped:YES];
+        [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
+        return;
+    }
+    ISASSERT(0, "local skip called with radio track!");
 }
 
 - (void)recommendSheetDidEnd:(NSNotification*)note
@@ -1746,7 +1849,6 @@ exit:
         [[request representedObject] setLoved:YES];
         tag = @"loved";
     } else if ([method isEqualToString:@"banTrack"]) {
-        [[request representedObject] setBanned:YES];
         tag = @"banned";
     } else if ([method hasPrefix:@"tag"])
         [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
@@ -1777,6 +1879,14 @@ exit:
 {
     ScrobLog(SCROB_LOG_ERR, @"RPC request '%@' for '%@' returned error: %@",
         [request method], [request representedObject], error);
+    
+    NSString *method = [request method];
+    if ([method isEqualToString:@"banTrack"]) {
+        [[request representedObject] setBanned:NO];
+    } else if ([method isEqualToString:@"unBanTrack"]) {
+        [[request representedObject] setBanned:YES];
+        [self performSelector:@selector(updateMenu) withObject:nil afterDelay:0.0];
+    }
     
     [request autorelease];
 }
@@ -1945,6 +2055,13 @@ exit:
 
 @end
 
+@interface ISRadioController (SongDataSupport)
+- (NSString*)playerUUIDOfCurrentTrack;
+- (NSString*)albumImageURLForTrackUUID:(NSString*)uuid;
+- (NSNumber*)durationForTrackUUID:(NSString*)uuid;
+- (NSString*)authCodeForTrackUUID:(NSString*)uuid;
+@end
+
 @implementation SongData (iScrobblerControllerAdditions)
 
 - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict
@@ -1975,18 +2092,23 @@ exit:
         } @catch(id e) {location = nil;}
     }
     
-    if (!iname || !iartist || !iduration /*|| (location && ![location isFileURL])*/) {
-        //if (!(location && [location isFileURL])) // don't allow streaming URLs
+    if (igenre && NSNotFound != [igenre rangeOfString:@"[last.fm]"].location) {
+        isLastFmRadio = YES;
+    }
+    
+    if (!iname || !iartist || (!iduration && !isLastFmRadio)) {
         if (!location || [location isFileURL])
-            ScrobLog(SCROB_LOG_WARN, @"Invalid song data: track name, artist, or duration is missing.\n");
-        [self dealloc];
+            ScrobLog(SCROB_LOG_ERR, @"Invalid song data: track name, artist, or duration is missing.");
+        [self autorelease];
         return (nil);
     }
     
     [self setTitle:iname];
     [self setArtist:iartist];
-    durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
-    [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+    if (iduration) {
+        durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
+        [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+    }
     if (ialbum)
         [self setAlbum:ialbum];
     if (location && [location isFileURL])
@@ -2001,18 +2123,26 @@ exit:
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     
-    // extra data from a last.fm stream
-    id o = [dict objectForKey:@"last.fm"];
-    if (o) {
-        isLastFmRadio = YES;
+    if (isLastFmRadio) {
+        ISRadioController *isr = [ISRadioController sharedInstance];
         [self setType:trackTypeShared];
+        [self setPlayerUUID:[isr playerUUIDOfCurrentTrack]];
+        
+        iduration = [isr durationForTrackUUID:[self playerUUID]];
+        if (iduration) {
+            durationInSeconds = floor([iduration doubleValue] / 1000.0); // Convert from milliseconds
+            [self setDuration:[NSNumber numberWithDouble:durationInSeconds]];
+        } else {
+            ScrobLog(SCROB_LOG_ERR, @"Invalid song data: could not find song in list of radio tracks");
+            [[ISRadioController sharedInstance] stop];
+            [self autorelease];
+            return (nil);
+        }
+        [self setLastFmAuthCode:[isr authCodeForTrackUUID:[self playerUUID]]];
         
         // Load artwork if possible
         @try {
-        if (!(ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_medium"]))
-            ialbum = [[[ASWebServices sharedInstance] nowPlayingInfo] objectForKey:@"albumcover_small"];
-        
-        if (ialbum)
+        if ((ialbum = [[ISRadioController sharedInstance] albumImageURLForTrackUUID:[self playerUUID]]))
             [self loadAlbumArtFromURL:[NSURL URLWithString:ialbum]];
         } @catch (id e) {}
         
@@ -2027,6 +2157,9 @@ exit:
     [self setPosition:[song position]];
     [self setRating:[song rating]];
     [self setIsPlayeriTunes:[song isPlayeriTunes]];
+    [self setSkipped:[song skipped]];
+    [self setBanned:[song banned]];
+    [self setLoved:[song loved]];
     if ((isLastFmRadio = [song isLastFmRadio]))
         [self setType:trackTypeShared];
 }
@@ -2163,8 +2296,9 @@ exit:
     static BOOL setup = YES;
     if (setup) {
         [[NSConnection defaultConnection] setRootObject:[NSNull null]];
-        [[NSConnection defaultConnection] setReplyTimeout:3.0];
-        [[NSConnection defaultConnection] setRequestTimeout:3.0];
+        // If running a script via the proxy takes longer than this timeout then the script will fail
+        [[NSConnection defaultConnection] setReplyTimeout:60.0];
+        [[NSConnection defaultConnection] setRequestTimeout:60.0];
         setup = NO;
     }
     
@@ -2232,6 +2366,19 @@ resolvePath:
     }
 
     return (nil);
+}
+
+@end
+
+@implementation NSXMLElement (ISAdditions)
+
+- (NSInteger)integerValue
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    return ([[self stringValue] integerValue]);
+    #else
+    return ((NSInteger)[[self stringValue] intValue]);
+    #endif
 }
 
 @end

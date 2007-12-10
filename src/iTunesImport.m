@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 10/7/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "ISiTunesLibrary.h"
@@ -114,12 +114,14 @@
     if ((aTitle = [song album]) && [aTitle length] > 0) {
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
-            ITEM_SONG, [song title], [song artist], aTitle];
+            ITEM_SONG, [[song title] stringByEscapingNSPredicateReserves],
+            [[song artist] stringByEscapingNSPredicateReserves], [aTitle stringByEscapingNSPredicateReserves]];
     } else {
         aTitle = nil;
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
-            ITEM_SONG, [song title], [song artist]];
+            ITEM_SONG, [[song title] stringByEscapingNSPredicateReserves],
+            [[song artist] stringByEscapingNSPredicateReserves]];
     }
     [request setPredicate:predicate];
     
@@ -129,6 +131,9 @@
     if (1 == [result count]) {
          // Update song values
         moSong = [result objectAtIndex:0];
+        ScrobDebug(@"import: %@ already in database as (%@, %@, %@)", [song brief],
+            [moSong valueForKey:@"name"], [[moSong valueForKey:@"album"] valueForKey:@"name"],
+            [[moSong valueForKey:@"artist"] valueForKey:@"name"]);
         [moSong setValue:[song lastPlayed] forKey:@"lastPlayed"];
         [sMgr updateSongHistory:moSong count:playCount time:playTime moc:moc];
         
