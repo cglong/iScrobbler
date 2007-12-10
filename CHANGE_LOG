@@ -14,6 +14,21 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.0 (BDB)
+- Full Radio support (played through iTunes).
+- Multiple iPod play count support.
+- Brand new local charts, with multiple separate charts (including your complete iTunes history).
+- Leopard specific enhancements, including Front Row support and a native 64-bit Intel binary.
+- Basic Applescript support.
+- Expanded use of Growl.
+
+v2.0 beta (BDB)
+b8:
+- Release memory faster after loading a large Local Chart.
+- Removed requirement to eject a manual/disk mode iPod before the played songs are submitted.
+- Bug Fix: Could not connect to Radio service after playing a song locally.
+- Bug Fix: Possible crash, wrong artist data or memory leak in the Artist Details drawer when skipping tracks in iTunes.
+- Bug Fix: "connection timeout" error while syncing an iPod (64-bit only)
+- Bug Fix: Spurious errors when syncing a manual or disk mode iPod.
 b7:
 - Find a Station accepts arbitrary user names to "find" a user and provides links to user playlists.
 - Support for non-station Radio services (previews, full track plays, etc).
