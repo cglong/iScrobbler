@@ -652,6 +652,12 @@ __private_extern__ NSThread *mainThread;
     [epoch setTimeZone:[NSTimeZone defaultTimeZone]];
     
     BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
+    
+    epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
+    
+    lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
+        target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
+    
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
@@ -663,11 +669,6 @@ __private_extern__ NSThread *mainThread;
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
-    
-    epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
-    
-    lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
-        target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
 }
 
 - (void)updateSessions:(NSTimer*)t
@@ -714,6 +715,15 @@ __private_extern__ NSThread *mainThread;
     if ([self removeSongsBefore:lastYear inSession:@"pastyear" moc:moc])
         didRemove = YES;
     
+#ifndef REAP_DEBUG
+    midnight = [midnight dateByAddingYears:0 months:0 days:0 hours:24 minutes:0 seconds:0];
+#else
+    midnight = [now dateByAddingYears:0 months:0 days:0 hours:1 minutes:0 seconds:0];
+#endif
+    
+    sUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[midnight timeIntervalSinceNow]
+        target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
+    
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
@@ -725,15 +735,6 @@ __private_extern__ NSThread *mainThread;
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 #endif
-    
-#ifndef REAP_DEBUG
-    midnight = [midnight dateByAddingYears:0 months:0 days:0 hours:24 minutes:0 seconds:0];
-#else
-    midnight = [now dateByAddingYears:0 months:0 days:0 hours:1 minutes:0 seconds:0];
-#endif
-    
-    sUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[midnight timeIntervalSinceNow]
-        target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
 }
 
 - (void)processSongPlays:(NSArray*)queue
