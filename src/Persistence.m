@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 10/3/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <libkern/OSAtomic.h>
@@ -245,7 +245,9 @@ __private_extern__ NSThread *mainThread = nil;
         format = [format stringByAppendingString:@" AND (song.album.name LIKE[cd] %@)"];
     else
         album = nil;
-    [request setPredicate:[NSPredicate predicateWithFormat:format, ITEM_SONG, [song title], [song artist], album]];
+    [request setPredicate:[NSPredicate predicateWithFormat:format, ITEM_SONG,
+        [[song title] stringByEscapingNSPredicateReserves], [[song artist] stringByEscapingNSPredicateReserves],
+        [album stringByEscapingNSPredicateReserves]]];
     
     return ([mainMOC executeFetchRequest:request error:&error]);
 }
@@ -263,7 +265,9 @@ __private_extern__ NSThread *mainThread = nil;
         format = [format stringByAppendingString:@" AND (album.name LIKE[cd] %@)"];
     else
         album = nil;
-    [request setPredicate:[NSPredicate predicateWithFormat:format, ITEM_SONG, [song title], [song artist], album]];
+    [request setPredicate:[NSPredicate predicateWithFormat:format, ITEM_SONG,
+        [[song title] stringByEscapingNSPredicateReserves], [[song artist] stringByEscapingNSPredicateReserves],
+        [album stringByEscapingNSPredicateReserves]]];
     
     NSArray *result = [mainMOC executeFetchRequest:request error:&error];
     if (1 == [result count]) {
@@ -285,7 +289,7 @@ __private_extern__ NSThread *mainThread = nil;
 {
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:[NSEntityDescription entityForName:@"PPlayer" inManagedObjectContext:moc]];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"name LIKE[cd] %@", name]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"name LIKE[cd] %@", [name stringByEscapingNSPredicateReserves]]];
     
     NSArray *result = [moc executeFetchRequest:request error:nil];
     if (1 == [result count])
@@ -583,3 +587,25 @@ __private_extern__ NSThread *mainThread = nil;
 @end
 
 #import "iTunesImport.m"
+
+@implementation NSString (ISNSPredicateEscape)
+
+- (NSString*)stringByEscapingNSPredicateReserves
+{
+    NSMutableString *s = [self mutableCopy];
+    NSRange r;
+    r.location = 0;
+    r.length = [s length];
+    NSUInteger replaced;
+    replaced = [s replaceOccurrencesOfString:@"?" withString:@"\\?" options:NSLiteralSearch range:r];
+    r.length = [s length];
+    replaced += [s replaceOccurrencesOfString:@"*" withString:@"\\*" options:NSLiteralSearch range:r];
+    if (replaced > 0) {
+        return ([s autorelease]);
+    }
+    
+    [s release];
+    return (self);
+}
+
+@end

@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 11/6/2007.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "ISProxy.h"
@@ -36,7 +36,7 @@
         
     } @catch (NSException *e) {
         return ([NSDictionary dictionaryWithObject:
-            [@"script failed to initialize" stringByAppendingString:[e description]] forKey:@"error"]);
+            [@"script exception: " stringByAppendingString:[e description]] forKey:@"error"]);
     }
     
     return (nil);
@@ -55,12 +55,11 @@
     [[NSConnection defaultConnection] registerName:ISProxyName];
     [[NSConnection defaultConnection] setRootObject:
         [NSProtocolChecker protocolCheckerWithTarget:self protocol:@protocol(ISProxyProtocol)]];
-    [[NSConnection defaultConnection] setReplyTimeout:3.0];
-    [[NSConnection defaultConnection] setRequestTimeout:3.0];
+    [[NSConnection defaultConnection] setReplyTimeout:ISPROXY_TIMEOUT];
+    [[NSConnection defaultConnection] setRequestTimeout:ISPROXY_TIMEOUT];
 }
 
 @end
-
 
 int main(int argc, char *argv[])
 {

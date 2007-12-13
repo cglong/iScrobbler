@@ -4,8 +4,7 @@
 //
 //  Copyright 2005-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 #import <sys/stat.h>
 #import "ScrobLog.h"
@@ -116,6 +115,8 @@ __private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, 
         }
     }
     
+    CreateStringToLevelDict();
+    
     return (fh);
 }
 
@@ -157,16 +158,13 @@ __private_extern__ void ScrobLogTruncate(void)
     [scrobLogFile truncateFileAtOffset:UTF8_BOM_SIZE];
 }
 
-__private_extern__ void ScrobLog (scrob_log_level_t level, NSString *fmt, ...)
+__private_extern__ void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
 {
     NSString *msg;
     va_list  args;
     
     if (level > SCROB_LOG_TRACE)
         level = SCROB_LOG_TRACE;
-    
-    if (level > ScrobLogLevel())
-        return;
     
     va_start(args, fmt);
     msg = [[NSString alloc] initWithFormat:fmt arguments:args];
@@ -178,7 +176,6 @@ __private_extern__ void ScrobLog (scrob_log_level_t level, NSString *fmt, ...)
 
 __private_extern__ scrob_log_level_t ScrobLogLevel(void)
 {
-    CreateStringToLevelDict();
     NSNumber *lev =  [string_to_scrob_level objectForKey:
 #ifndef ISDEBUG
         [[NSUserDefaults standardUserDefaults] objectForKey:@"Log Level"]];

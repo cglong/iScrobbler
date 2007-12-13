@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BBNetUpdateVersion</key>
-    <string>2.0.0b3</string>
+    <string>2.0.0</string>
     <key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
