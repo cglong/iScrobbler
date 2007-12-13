@@ -2297,8 +2297,8 @@ exit:
     if (setup) {
         [[NSConnection defaultConnection] setRootObject:[NSNull null]];
         // If running a script via the proxy takes longer than this timeout then the script will fail
-        [[NSConnection defaultConnection] setReplyTimeout:60.0];
-        [[NSConnection defaultConnection] setRequestTimeout:60.0];
+        [[NSConnection defaultConnection] setReplyTimeout:ISPROXY_TIMEOUT];
+        [[NSConnection defaultConnection] setRequestTimeout:ISPROXY_TIMEOUT];
         setup = NO;
     }
     
@@ -2314,8 +2314,8 @@ exit:
             object:[sProxy connectionForProxy]];
         
         //[sProxy setProtocolForProxy:@protocol(ISProxyClientProtocol)];
-        [[sProxy connectionForProxy] setReplyTimeout:3.0];
-        [[sProxy connectionForProxy] setRequestTimeout:3.0];
+        [[sProxy connectionForProxy] setReplyTimeout:ISPROXY_TIMEOUT];
+        [[sProxy connectionForProxy] setRequestTimeout:ISPROXY_TIMEOUT];
     }
 }
 

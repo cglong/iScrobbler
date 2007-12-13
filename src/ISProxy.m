@@ -55,8 +55,8 @@
     [[NSConnection defaultConnection] registerName:ISProxyName];
     [[NSConnection defaultConnection] setRootObject:
         [NSProtocolChecker protocolCheckerWithTarget:self protocol:@protocol(ISProxyProtocol)]];
-    [[NSConnection defaultConnection] setReplyTimeout:3.0];
-    [[NSConnection defaultConnection] setRequestTimeout:3.0];
+    [[NSConnection defaultConnection] setReplyTimeout:ISPROXY_TIMEOUT];
+    [[NSConnection defaultConnection] setRequestTimeout:ISPROXY_TIMEOUT];
 }
 
 @end
