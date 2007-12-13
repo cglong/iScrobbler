@@ -22,6 +22,8 @@ v2.0 (BDB)
 - Expanded use of Growl.
 
 v2.0 beta (BDB)
+rc1:
+- Bug Fix: Truly fixed the "connection timeout" error while syncing an iPod (64-bit only)
 b8:
 - Release memory faster after loading a large Local Chart.
 - Removed requirement to eject a manual/disk mode iPod before the played songs are submitted.
