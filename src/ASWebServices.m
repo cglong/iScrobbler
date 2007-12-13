@@ -26,13 +26,14 @@ static ASXMLFile *xspfReq = nil;
 #define POSE_AS_LASTFM
 
 #ifdef POSE_AS_LASTFM
-#define WS_VERSION @"1.3.2.13"
+#define WS_VERSION @"1.4.0.56102"
 #define WS_PLATFORM @"mac"
 #else
 #define WS_VERSION [[NSUserDefaults standardUserDefaults] stringForKey:@"version"]
 #define WS_PLATFORM [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"]
 #endif
 // XXX "jp" somehow indicates the radio is hidden?
+// [[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode]
 #define WS_LANG @"en"
 
 @implementation ASWebServices : NSObject
