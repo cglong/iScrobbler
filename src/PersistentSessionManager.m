@@ -658,7 +658,7 @@ __private_extern__ NSThread *mainThread;
     lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
         target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
     
-    (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         @try {
@@ -671,6 +671,7 @@ __private_extern__ NSThread *mainThread;
 #endif
 }
 
+#define REAP_DEBUG
 - (void)updateSessions:(NSTimer*)t
 {
     if (!t)
@@ -688,6 +689,7 @@ __private_extern__ NSThread *mainThread;
     NSCalendarDate *now = [NSCalendarDate calendarDate];
     NSCalendarDate *midnight = [now dateByAddingYears:0 months:0 days:0
 #ifndef REAP_DEBUG
+#warning "REAP_DEBUG set"
             hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
 #else
 /*1 hour*/  hours:0 minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
@@ -724,7 +726,7 @@ __private_extern__ NSThread *mainThread;
     sUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[midnight timeIntervalSinceNow]
         target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
     
-    (void)[[PersistentProfile sharedInstance] save:moc withNotification:didRemove];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
 #if IS_THREAD_SESSIONMGR
     if (didRemove) {
         @try {
