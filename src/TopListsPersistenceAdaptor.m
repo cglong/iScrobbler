@@ -117,8 +117,7 @@ topHours = nil; \
 
 - (void)persistentProfileDidReset:(NSNotification*)note
 {
-    [self willChangeValueForKey:@"allSessions"];
-    [self didChangeValueForKey:@"allSessions"];
+    [self performSelector:@selector(persistentProfileDidUpdate:) withObject:nil];
 }
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
