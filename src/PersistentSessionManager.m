@@ -671,7 +671,6 @@ __private_extern__ NSThread *mainThread;
 #endif
 }
 
-#define REAP_DEBUG
 - (void)updateSessions:(NSTimer*)t
 {
     if (!t)
@@ -689,9 +688,9 @@ __private_extern__ NSThread *mainThread;
     NSCalendarDate *now = [NSCalendarDate calendarDate];
     NSCalendarDate *midnight = [now dateByAddingYears:0 months:0 days:0
 #ifndef REAP_DEBUG
-#warning "REAP_DEBUG set"
             hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
 #else
+#warning "REAP_DEBUG set"
 /*1 hour*/  hours:0 minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
 #endif
     if ([self removeSongsBefore:midnight inSession:@"pastday" moc:moc])
