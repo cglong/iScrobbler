@@ -138,12 +138,12 @@
 	<string>1.2</string>
         
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.0</string>
+	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.1</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>2.0</string>
+	<string>2.1</string>
 </dict>
 </plist>
