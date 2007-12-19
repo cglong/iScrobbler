@@ -1,5 +1,6 @@
 KNOWN ISSUES:
 
+- Radio Applescript support is broken in 10.5.x - may be an Apple bug.
 - If you are burning a CD or editing a song's information or your computer is very busy, then iTunes may not be able to process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
 - The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
 - There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu items may be unusable.
@@ -15,113 +16,28 @@ CHANGE HISTORY:
 
 v2.0 (BDB)
 - Full Radio support (played through iTunes).
-- Multiple iPod play count support.
+- Multiple iPod play count support (courtesy of a donation from einsteinbqat).
 - Brand new local charts, with multiple separate charts (including your complete iTunes history).
 - Leopard specific enhancements, including Front Row support and a native 64-bit Intel binary.
 - Basic Applescript support.
 - Expanded use of Growl.
-
-v2.0 beta (BDB)
-rc1:
-- Bug Fix: Truly fixed the "connection timeout" error while syncing an iPod (64-bit only)
-b8:
-- Release memory faster after loading a large Local Chart.
 - Removed requirement to eject a manual/disk mode iPod before the played songs are submitted.
-- Bug Fix: Could not connect to Radio service after playing a song locally.
-- Bug Fix: Possible crash, wrong artist data or memory leak in the Artist Details drawer when skipping tracks in iTunes.
-- Bug Fix: "connection timeout" error while syncing an iPod (64-bit only)
-- Bug Fix: Spurious errors when syncing a manual or disk mode iPod.
-b7:
-- Find a Station accepts arbitrary user names to "find" a user and provides links to user playlists.
-- Support for non-station Radio services (previews, full track plays, etc).
-- Bug Fix: Regression - crash when pausing submissions.
-- Bug Fix: Regression - Radio works again for non-English users.
-- Bug Fix: Regression - The Radio stop menu item was not being enabled when playback started.
-- Bug Fix: It was possible for the ratings stats in the Profile report to be completely wacky when viewing long term charts.
-b6 (not public):
-- Bug Fix: Possible hang while importing the iTunes library and/or spurious "duplicate entry" errors.
-- Bug Fix: iTunes was being launched by iScrobbler when it wasn't really necessary.
-b5:
-- Radio songs are now submitted as required by the new Radio protocol (initial support in b4).
 - Skip and Ban now affect locally played songs. The track will not be submitted, nor will it appear in the local charts. In addition, banned tracks are remembered and will not be submitted if played in the future.
-- Removed ChatStatus plugin. It's obsoleted with the new Radio protocol implemented in b4.
-b4:
-- Radio works again after a fairly major rewrite because last.fm dropped support for the older Radio protocol.
-- Bug Fix: Regression - iPod playlist menu in prefs did not contain any actual playlists.
-- Bug Fix: Regression - searching for an artist or track would cause the search field to lose focus after typing a few characters.
-b3:
-- Dropped support for AS protocol 1.1, 1.2 will always be used.
-- Local Chart dates are now shown from the date the database was created instead of a date in the past.
 - New Profile report stat for Artists: Play Count per day/week
-- If a new local charts database needs to be created, iScrobbler will first ask if you want to begin the import.
+- Dropped support for AS protocol 1.1, 1.2 will always be used.
 - Added "Check for New Version Now" button to prefs.
-- Bug Fix: Possible duplicate entries in local charts when a Radio stream error occurred.
-- Bug Fix: Better handling of Radio stream errors to keep iScrobbler's currently playing track in sync.
-- Bug Fix: Regression - Tracks could spuriously be submitted multiple times when syncing an iPod because of an error in updating time of the last submission.
-- Bug Fix: Regression - restored the ability to play songs during an iPod sync (broke in a4).
-- Bug Fix: Regression - AutoLoveTracksRatedHigherThan has been broken since the switch to protocol 1.2 (in 1.5.1).
-b2:
-- Bug Fix: Aliases in the path to the iTunes library XML file are now resolved.
-b1:
-- 64bit version for Leopard+ and Intel Core 2+.
 - Artist and Album images now display better and faster on Leopard.
-- Growl warning can now be ignored.
-- Bug Fix: Possible crash when loading the Aritist info drawer.
-- Other minor bug fixes.
-a7:
-- Leopard Front Row support.
-- Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue. In addition this same change could result in duplicate iPod submissions.
-- Bug Fix: Possible (and likely) crash while generating a Profile report.
-- Bug Fix: iTunes import would fail to import any songs for non-English users.
-- Bug Fix: Regression - The Top Lists window was not remembering whether it was open or closed.
-- Bug Fix: Explicitly deny manual-sync iPod support for multiple play detection.
-a6:
-- Bug Fix: Crash when syncing an iPod.
-- Bug Fix: The iTunes library import progress was not being displayed.
-a5:
-- Bug Fix: Crash on importing iTunes library.
-- Bug Fix: The Tag window now opens with the text field having default focus.
-a4:
-- New local charts. They look the same, but there are now multiple separate charts maintained (including an Overall chart that starts with the import of your iTunes library).
--- Note: Because of the amount of data that can be generated and the computation required to maintain the chart data, iScrobbler can use quite a bit of memory (and briefly) quite a bit of CPU time.
-- Multiple iPod play support (courtesy of a donation from einsteinbqat).
-- New plugin to change the iChat status message to the currently playing Radio track. If you don't care for this, the plugin can be disabled from the Finder's 'Get Info' window.
 - The Last.fm Artist and Track pages can be opened from the currently playing track menu.
-- The last Radio station tuned can be accessed directly from the Radio menu.
-- New Applescript command "show now playing" will display the Growl NP window.
-- New Applescript commands "tag current track", "love current track", and "ban current track"
-- The Growl 'Now Playing' note displays the currently tuned Radio station (if the radio is playing).
-- If iScrobbler is quit and the Radio is playing, it will stop iTunes.
-- Bug Fix: Possible crash when viewing the Artist Details drawer (intro'd in a2).
-- Bug Fix: "Find Station" window always appears in front of other applications when it is opened.
-- Bug Fix: In the stats detail, display "Listening to Radio" instead of the last local submission response if the radio is playing.
-- Bug Fix: Don't send protocol 1.2 "now playing" if the network is not available.
-- Bug Fix: The 'scrobble track plays' AppleScript command did not update the menu icon when changed.
-- Bug Fix: After syncing an iPod, the queue would not submit until the next track play from iTunes.
-- Bug Fix: Possible issues with iPod syncing and DST switches (mainly because iTunes doesn't compensate for the iPod DST being wrong until it syncs for the first time).
-a3:
-- AppleScript support, including Radio control.
-- Added option to tune an Artist's top fans radio instead of their similar artists radio.
 - The Growl 'Now playing' notification can be displayed at any time by hovering the mouse over the menu.
-- Elapsed and total track time are now included in the default track Growl display
-- Album art for Radio tracks is displayed if possible.
+- Elapsed and total track time are now included in the default track Growl display.
 - A revised album artwork cache now expires entries based on time and use and no longer has a fixed size. This should result in less memory use.
 - iScrobbler will warn you (via Growl) if another Last.fm client application is running.
-- Version checks are only attempted if the network monitor determines there's an active network connection.
-- Bug fixes related to Radio track detection/display.
-a2:
-- Added Radio support for Friends, Neighbors, Tags, Global Tags, Groups and Artists stations.
-- Added Radio history (limited by the "Number of Recent Tracks" pref).
-- iScrobbler will not auto-connect to the Last.fm Radio during launch unless the "Auto Tune Last Played Radio Station" pref is checked.
-- Added Connect item to the Radio submenu to start a connection when the Auto-Tune pref is not checked.
-- Added "Now Playing" station to the Last.fm submenu.
-- Added "My Playlist" station item to the Radio submenu.
-- Played Radio tracks are recorded to the local profile.
-- iScrobbler can handle external requests for lastfm:// URLs (for instance the "Play In Software" links on the last.fm website).
-- When playing a Radio track, the duration of the track is part of the track title in the Stats window and is a tooltip for the song in the Notes menu.
-a1:
-- Requires 10.4.9 or later
-- Radio support! (Plays through iTunes.)
+- Bug Fix: Possible crash, wrong artist data or memory leak in the Artist Details drawer when skipping tracks in iTunes.
+- Bug Fix: Regression - AutoLoveTracksRatedHigherThan has been broken since the switch to protocol 1.2 (in 1.5.1).
+- Bug Fix: Don't send AS protocol "now playing" if the network is not available.
+- Bug Fix: Version checks are only attempted if the network monitor determines there's an active network connection.
+- Bug Fix: After syncing an iPod, the queue would not submit until the next track play from iTunes.
+- Bug Fix: Possible issues with iPod syncing and DST switches (mainly because iTunes doesn't compensate for the iPod DST being wrong until it syncs for the first time).
 
 v1.5.2 (BDB)
 - Bug Fix: Due to a change in Leopard, iScrobbler would fail to restore the persistent queue. In addition this same change could result in duplicate iPod submissions.
