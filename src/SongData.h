@@ -6,7 +6,7 @@
 //  Copyright (c) 2003 Sam Ley. All rights reserved.
 //  Copyright 2004-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <Cocoa/Cocoa.h>
@@ -46,6 +46,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     NSNumber *playCount;
     NSString *playerUUID;
     NSMutableData *albumArtData;
+    NSString *lastFmAuthCode;
     NSURLConnection *conn;
     TrackType_t trackType;
     unsigned trackNumber;
@@ -205,6 +206,9 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
 - (void)setSkipped:(BOOL)isSkipped;
 
 - (BOOL)isLastFmRadio;
+
+- (NSString*)lastFmAuthCode;
+- (void)setLastFmAuthCode:(NSString*)code;
 
 - (NSNumber*)trackNumber;
 - (void)setTrackNumber:(NSNumber*)number;

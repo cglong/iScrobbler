@@ -2,8 +2,7 @@
 //  Created by Brian Bergstrand on 4/4/2005.
 //  Copyright 2005-2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  iscrobbler/res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 @interface SongData (iScrobblerControllerPrivateAdditions)
@@ -337,6 +336,21 @@ validate:
 
 - (IBAction)syncIPod:(id)sender
 {
+    NSString *path = [self valueForKey:@"iPodMountPath"];
+    ISASSERT(path != nil, "bad iPod path!");
+    
+    ScrobLog(SCROB_LOG_TRACE, @"User initiated iPod sync for: %@", path);
+    
+    // Fake an unmount event for the current mount path. When the volume is actually unmounted,
+    // volumeDidUnmount: won't find it in the iPodMounts dict anymore and we won't try to sync again.
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
+    NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidUnmountNotification
+        object:[NSWorkspace sharedWorkspace] userInfo:d];
+    [self volumeDidUnmount:note];
+}
+
+- (void)beginiPodSync:(id)sender
+{
     if ([prefs boolForKey:@"Sync iPod"] && !submissionsDisabled) {
         NSString *path = [self valueForKey:@"iPodMountPath"];
         ISASSERT(path != nil, "bad iPod path!");
@@ -348,8 +362,6 @@ validate:
             path, IPOD_SYNC_KEY_PATH,
             epoch, @"epoch",
             nil];
-        // add a "fake" count while we wait for the lib to load so plays are still queued until we are done
-        ++iPodMountCount;
         [[ISiTunesLibrary sharedInstance] loadInBackgroundFromPath:ISCOPY_OF_ITUNES_LIB
             withDelegate:self didFinishSelector:@selector(synciPodWithiTunesLibrary:) context:d];
     }
@@ -360,7 +372,7 @@ validate:
 #ifndef IS_SCRIPT_PROXY
     static NSAppleScript *iPodUpdateScript = nil;
 #endif
-    ScrobTrace (@"syncIpod: called: sync pref=%i\n", [prefs boolForKey:@"Sync iPod"]);
+    ScrobTrace (@"synciPod: using playlist %@", [prefs stringForKey:@"iPod Submission Playlist"]);
     
     NSAutoreleasePool *workPool = nil;
     NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
@@ -388,7 +400,7 @@ validate:
                 [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"]];
             iPodUpdateScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
             if (!iPodUpdateScript) {
-                ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!\n");
+                ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!");
                 @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"Failed to load iPodUpdateScript!" userInfo:nil]);
             }
         }
@@ -442,7 +454,7 @@ validate:
         
         NSDate *requestDateGMT= [requestDate GMTDate];
         
-        ScrobLog(SCROB_LOG_VERBOSE, @"syncIPod: Requesting songs played after '%@'\n",
+        ScrobLog(SCROB_LOG_VERBOSE, @"synciPod: Requesting songs played after '%@'",
             requestDate);
         // Run script
         @try {
@@ -489,10 +501,10 @@ validate:
                 }
                 // Display dialog instead of logging?
                 if (errnum)
-                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: iPodUpdateScript returned error: \"%@\" (%@)\n",
+                    ScrobLog(SCROB_LOG_ERR, @"synciPod: iPodUpdateScript returned error: \"%@\" (%@)",
                         errmsg, errnum);
                 else
-                    ScrobLog(SCROB_LOG_ERR, @"syncIPod: \"%@\" (%@)\n", errmsg, errnum);
+                    ScrobLog(SCROB_LOG_ERR, @"synciPod: \"%@\" (%@)", errmsg, errnum);
                 errInfo = errmsg;
                 goto sync_exit_with_note;
             }
@@ -520,12 +532,11 @@ validate:
                     song = [[SongData alloc] initWithiPodUpdateArray:trackData];
                     if (song) {
                         if ([song ignore]) {
-                            ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
+                            ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.", [song brief]);
                             [song release];
                             continue;
                         }
-                        // Since this song was played "offline", we set the post date
-                        // in the past 
+                        // Since this song was played "offline", we set the post date in the past 
                         postDate = [[song lastPlayed] timeIntervalSince1970] - [[song duration] doubleValue];
                         [song setPostDate:[NSCalendarDate dateWithTimeIntervalSince1970:postDate]];
                         // Make sure the song passes submission rules                            
@@ -544,6 +555,12 @@ validate:
                         [iqueue addObject:song];
                         [song release];
                     }
+                }
+                
+                if (0 == [iqueue count]) {
+                    // this can occur when all the songs are filtered or had date problems
+                    errInfo = @"No Matching Tracks";
+                    goto sync_exit_with_note;
                 }
                 
                 NSMutableArray *extraPlays;
@@ -588,7 +605,7 @@ validate_song_queue:
                     [song setType:trackTypeFile]; // Only type that's valid for iPod
                     [song setReconstituted:YES];
                     [song setPlayCount:zero]; // we don't want the iTunes play count to update the db
-                    ScrobLog(SCROB_LOG_TRACE, @"syncIPod: Queuing '%@' with postDate '%@'\n", [song brief], [song postDate]);
+                    ScrobLog(SCROB_LOG_TRACE, @"synciPod: Queuing '%@' with postDate '%@'", [song brief], [song postDate]);
                     (void)[[QueueManager sharedInstance] queueSong:song submit:NO];
                     ++added;
                 }
@@ -602,14 +619,14 @@ validate_song_queue:
                 
                 [self setITunesLastPlayedTime:[NSDate date]];
                 if (added > 0) {
-                    // we have to delay this, so the plays are submitted AFTER the [volumeUnmount;] finishes
-                    // otherwise, the queue won't submit because it thinks the iPod is still mounted
+                    // we have to delay this, so the plays are submitted AFTER the we finish
+                    // otherwise, the queue won't submit because it thinks an iPod is still mounted
                     [[QueueManager sharedInstance] performSelector:@selector(submit) withObject:nil afterDelay:0.0];
                 }
             }
         } else {
             // Script error
-            ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript execution error: %@\n", errInfo);
+            ScrobLog(SCROB_LOG_ERR, @"iPodUpdateScript execution error: %@", errInfo);
         }
 
 sync_exit_with_note:
@@ -626,12 +643,11 @@ sync_exit_with_note:
         [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
         
     } @catch (id e) {
-        ScrobLog(SCROB_LOG_ERR, @"syncIpod: exception %@", e);
+        ScrobLog(SCROB_LOG_ERR, @"synciPod: exception %@", e);
         [workPool release];
     }
-        
-    // clean up our extra "fake" count
-    --iPodMountCount;
+    
+    --iPodMountCount; // clean up our extra "fake" count, don't need to update the binding
     ISASSERT(iPodMountCount > -1, "negative ipod count!");
     
     if (iTunesLib) {
@@ -665,13 +681,14 @@ sync_exit_with_note:
                 [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
             [iPodIcon setName:IPOD_ICON_NAME];
         }
+        [self willChangeValueForKey:@"isIPodMounted"]; // update our binding
         ++iPodMountCount;
+        [self didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
-        [self setValue:[NSNumber numberWithBool:YES] forKey:@"isIPodMounted"];
         
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
             [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
-                message:NSLocalizedString(@"An iPod has been detected. All non-radio track plays will be queued until the iPod is ejected.", "")];
+                message:NSLocalizedString(@"An iPod has been detected. All track plays will be queued until the iPod is ejected.", "")];
         }
     }
 }
@@ -681,28 +698,31 @@ sync_exit_with_note:
     NSDictionary *info = [notification userInfo];
 	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
 	
-    ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.\n", info);
+    ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.", info);
     
     if ([iPodMounts objectForKey:mountPath]) {
         NSString *curPath = [self valueForKey:@"iPodMountPath"];
-        if ([curPath isEqualToString:mountPath])
+        if ([curPath isEqualToString:mountPath]) {
             curPath = nil;
-        else
-            [self setValue:mountPath forKey:@"iPodMountPath"];
+            [iPodIcon release];
+            iPodIcon = nil;
+        } else
+            [self setValue:mountPath forKey:@"iPodMountPath"]; // temp for syncIPod
         
-        [self syncIPod:nil]; // now that we're sure iTunes synced, we can sync...
+        [self beginiPodSync:nil]; // now that we're sure iTunes synced, we can sync...
         
         [self setValue:curPath forKey:@"iPodMountPath"];
-        [iPodIcon release];
-        iPodIcon = nil;
         
+        [self willChangeValueForKey:@"isIPodMounted"]; // update our binding
         --iPodMountCount;
+        [self didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [iPodMounts removeObjectForKey:mountPath];
-        if (0 == iPodMountCount) {
-            [self setValue:[NSNumber numberWithBool:NO] forKey:@"isIPodMounted"];
-            [[QueueManager sharedInstance] submit];
-        }
+        
+        // beginiPodSync is async and will return before updating actually begins so,
+        // add a "fake" count while we wait for the lib to load so plays are still queued until we are done.
+        // This is done outside of a binding update so the GUI does not notice it.
+        ++iPodMountCount;
     }
 }
 
@@ -713,7 +733,7 @@ sync_exit_with_note:
 - (SongData*)initWithiPodUpdateArray:(NSArray*)data
 {
     self = [self init];
-    ScrobLog(SCROB_LOG_TRACE, @"Song components from iPodUpdate result: %@\n", data);
+    ScrobLog(SCROB_LOG_TRACE, @"Song components from iPodUpdate result: %@", data);
     
     if (IPOD_SYNC_VALUE_COUNT != [data count]) {
 bad_song_data:

@@ -5,8 +5,7 @@
 //  Created by Brian Bergstrand on 4/10/2005.
 //  Copyright 2005,2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <unistd.h>
@@ -46,6 +45,8 @@
 
 - (void)showWindowWithHTMLData:(NSData*)data withWindowTitle:(NSString*)title
 {
+    [myWebView stopLoading:nil];
+    
     // Save data to temp file
     char buf[] = "iScrobblerXXXXXX";
     char *name = mktemp(buf);
@@ -114,7 +115,8 @@
 }
 
 - (void)windowWillClose:(NSNotification*)note
-{ 
+{
+    [myWebView stopLoading:nil];
     if (myURLPath)
         [[NSFileManager defaultManager] removeFileAtPath:[myURLPath path] handler:nil];
     [myURLPath release];

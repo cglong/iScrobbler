@@ -134,9 +134,9 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       NSLocalizedStringFromTable(@"BBNetUpdateCheckNewVersionTitle", @"BBNetUpdate", @"")];
    [fieldText setStringValue:@""];
    
-   NSURL *url = [[NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
+   NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
          [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
-         objectForKey:@"BBNetUpdateDownloadInfoURL"]] retain];
+         objectForKey:@"BBNetUpdateDownloadInfoURL"]];
    
    if (!url) {
       checkingVersion = NO;
@@ -153,12 +153,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    if (_interact)
       [[super window] makeKeyAndOrderFront:nil];
    
-   
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:
         NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
     [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
     NSDate *last = [BBNetUpdateVersionCheckController lastCheck];
-    if (last) {
+    if (!_interact && last) {
         NSString *since = [last descriptionWithCalendarFormat:HTTP_DATE_FMT_RAW
             timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
         [request setValue:since forHTTPHeaderField:@"If-Modified-Since"]; // conditonal load
@@ -395,7 +394,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     // Alert the user
     NSBeginAlertSheet(NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
       @"OK", nil, nil, [super window], self, nil, nil, nil,
-    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), reason);
+    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [reason localizedDescription]);
 
     [fieldTitle setStringValue:
          NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];

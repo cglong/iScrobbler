@@ -3,8 +3,7 @@
 //  iScrobbler
 //
 //  Created by Sam Ley on Feb 14, 2003.
-//  Released under the GPL, license details available at
-//  http://iscrobbler.sourceforge.net
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <AppKit/AppKit.h>

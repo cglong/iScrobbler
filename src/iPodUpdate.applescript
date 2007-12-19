@@ -14,10 +14,10 @@ on UpdateiPod(thePlaylistName, theDate)
 		set out to {}
 		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
-			set iTunesVer to version as string
-			-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
-			set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 			with timeout of 600 seconds
+				set iTunesVer to version as string
+				-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
+				set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
 				repeat with theSource in allSources
 					tell theSource
 						set mytracks to {}
@@ -27,28 +27,28 @@ on UpdateiPod(thePlaylistName, theDate)
 							set theSourceName to (name of theSource as Unicode text)
 						end try
 						
+						set thePlaylist to null
 						try
-							--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
-							-- For some reason, iTunes does not like the compound conditionals
-							--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and visible is true and smart is true)
-							-- the more verbose version that works for 32bit and 64bit
-							set allPlaylists to (every user playlist whose name is thePlaylistName)
-							repeat with thePlaylist in allPlaylists
-								if visible of thePlaylist is true and smart of thePlaylist is true then
-									exit repeat
-								end if
-							end repeat
-							
-							tell thePlaylist
-								(*The "whose played date" clause will cause a -10001 "type mismatch" error if
+							set thePlaylist to the first item in (every user playlist whose name is thePlaylistName)
+						on error
+							set errMsg to {iTunesError, "Playlist not found in source " & theSourceName as Unicode text, 0}
+						end try
+						if thePlaylist is not null then
+							try
+								--This simple statement to get the playlist breaks when run from a 64bit app with: "iTunes got an error: Illegal logical operator called." (-1725)
+								--set thePlaylist to the first item in (every user playlist whose name is thePlaylistName and smart is true)
+								-- we'll just ignore the smart property, as it's enforced by the GUI
+								tell thePlaylist
+									(*The "whose played date" clause will cause a -10001 "type mismatch" error if
 										any track in the chosen playlist has not been played yet. This is because iTunes
 										apparently can't handle comparing a date type to a missing value internally.*)
-								set mytracks to get (every file track whose played date is greater than theDate)
-								-- 10.5 64-bit bug: greater than acts as less than and less than gives a -10001 error, WTF!
-							end tell
-						on error errDescription number errnum
-							set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
-						end try
+									set mytracks to get (every file track whose played date is greater than theDate)
+									-- 10.5 64-bit bug: greater than acts as less than and less than gives a -10001 error, WTF!
+								end tell
+							on error errDescription number errnum
+								set errMsg to {iTunesError, ("(" & theSourceName & ", " & thePlaylistName & ") " & errDescription) as Unicode text, errnum}
+							end try
+						end if
 						
 						repeat with theTrack in mytracks
 							set trackID to database ID of theTrack
@@ -135,6 +135,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Friday, November 2, 2007 9:15:00 PM GMT+02:00"
-	UpdateiPod("Recently Played" as Unicode text, when)
+	set when to date "Wednesday, December 5, 2007 9:40:00 PM"
+	UpdateiPod("Recentl Played" as Unicode text, when)
 end run

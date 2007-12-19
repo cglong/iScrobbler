@@ -5,7 +5,7 @@
 //  Created by Brian Bergstrand on 10/21/07.
 //  Copyright 2007 Brian Bergstrand.
 //
-//  Released under the GPL, license details available res/gpl.txt
+//  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import <libkern/OSAtomic.h>
@@ -117,8 +117,7 @@ topHours = nil; \
 
 - (void)persistentProfileDidReset:(NSNotification*)note
 {
-    [self willChangeValueForKey:@"allSessions"];
-    [self didChangeValueForKey:@"allSessions"];
+    [self performSelector:@selector(persistentProfileDidUpdate:) withObject:nil];
 }
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
@@ -255,10 +254,19 @@ topHours = nil; \
 
     [self performSelectorOnMainThread:@selector(sessionWillLoad:) withObject:nil waitUntilDone:YES];
     
+    // if our last session load was large, reset the MOC so we reclaim some memory
+    static NSUInteger lastLoadCount = 0;
+    
     @try {
     
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing thread moc!");
+    
+    if (lastLoadCount >= 5000UL /*XXX: arbitrary */) {
+        @try {
+            [moc reset];
+        } @catch (NSException *ex) {}
+    }
     
     NSManagedObject *session = [moc objectWithID:sessionID];
     ISASSERT(session != nil, "session not found!");
@@ -269,9 +277,9 @@ topHours = nil; \
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     // get the session songs
     NSArray *sessionSongs = [[PersistentProfile sharedInstance] songsForSession:session];
-    if (0 == [sessionSongs count])
-        goto loadExit;
-    // pre-fetch in the relationships (individual backing store faults are VERY expensive)
+    if (0 == (lastLoadCount = [sessionSongs count]))
+        goto loadExit; 
+    // pre-fetch the relationships (individual backing store faults are VERY expensive)
     // processing the artists is much less work and we can present the data faster to the user
     NSArray *sessionArtists = [[PersistentSessionManager sharedInstance] artistsForSession:session moc:moc];
     entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
@@ -396,8 +404,9 @@ loadExit:
     // fault our copy of the session, just so we are assured of good data
     [moc refreshObject:session mergeChanges:NO];
     
-    } @catch (id e) {
-        ScrobLog(SCROB_LOG_ERR, @"[loadInitialSessionData:] exception: %@", e);
+    } @catch (NSException *ex) {
+        ScrobLog(SCROB_LOG_ERR, @"[loadInitialSessionData:] exception: %@", ex);
+        lastLoadCount = NSUIntegerMax; // force a MOC reset on the next load
     }
     
     [self performSelectorOnMainThread:@selector(setLoadingWithBool:) withObject:[NSNumber numberWithBool:NO] waitUntilDone:NO];
