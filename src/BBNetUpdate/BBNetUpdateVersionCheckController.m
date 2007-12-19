@@ -394,7 +394,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     // Alert the user
     NSBeginAlertSheet(NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
       @"OK", nil, nil, [super window], self, nil, nil, nil,
-    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), reason);
+    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [reason localizedDescription]);
 
     [fieldTitle setStringValue:
          NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
