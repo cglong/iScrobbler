@@ -11,11 +11,10 @@
 #import <Cocoa/Cocoa.h>
 
 @class ASXMLFile;
-@class LNSSourceListView;
 
 @interface ISRadioSearchController : NSWindowController {
     IBOutlet NSSplitView *splitView;
-    IBOutlet LNSSourceListView *sourceList;
+    IBOutlet NSOutlineView *sourceList;
     IBOutlet id placeholderView;
     IBOutlet NSTreeController *sourceListController;
     

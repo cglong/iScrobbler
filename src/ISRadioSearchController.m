@@ -10,7 +10,6 @@
 
 #import "ISRadioSearchController.h"
 #import "ISRadioController.h"
-#import "LNSSourceListView.h"
 #import "ASXMLFile.h"
 #import "ASWebServices.h"
 
@@ -684,6 +683,10 @@
 
 - (void)awakeFromNib
 {
+    LEOPARD_BEGIN
+    [sourceList setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
+    [sourceList setDelegate:self];
+    LEOPARD_END
     [super setWindowFrameAutosaveName:@"RadioSearch"];
     if ([[sourceListController content] count])
         [sourceListController setContent:[NSMutableArray array]];
@@ -692,6 +695,29 @@
 - (id)init
 {
     return ((self = [super initWithWindowNibName:@"ISRadioSearch"]));
+}
+
+#ifdef notyet
+- (void)dealloc
+{
+    [super dealloc];
+}
+#endif
+
+// delegate methods
+- (BOOL)outlineView:(NSOutlineView *)sender isGroupItem:(id)item {
+	//ISASSERT([item isKindOfClass:[NSDictionary class]], "invalid item!");
+    return ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue] ? YES : NO);
+}
+
+- (void)outlineView:(NSOutlineView *)sender willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+    //ISASSERT([item isKindOfClass:[NSDictionary class]], "invalid item!");
+    if ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue]) {
+        NSMutableAttributedString *uc = [[cell attributedStringValue] mutableCopy];
+        [uc replaceCharactersInRange:NSMakeRange(0,[uc length]) withString:[[uc string] uppercaseString]];
+        [cell setAttributedStringValue:uc];
+        [uc release];
+    }
 }
 
 #define SearchPanelMaxRatio 0.80
@@ -729,13 +755,6 @@
 		[right setFrame:bounds];
 	}
 }
-
-#ifdef notyet
-- (void)dealloc
-{
-    [super dealloc];
-}
-#endif
 
 // Singleton support
 - (id)copyWithZone:(NSZone *)zone

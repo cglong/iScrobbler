@@ -95,12 +95,6 @@
 		D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
-		D3C3042D0CA28879001AEFEA /* highlight_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D3C304230CA28879001AEFEA /* highlight_blue.tiff */; };
-		D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D3C304240CA28879001AEFEA /* highlight_grey.tiff */; };
-		D3C304300CA28879001AEFEA /* LNSSourceListCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C304260CA28879001AEFEA /* LNSSourceListCell.m */; };
-		D3C304320CA28879001AEFEA /* LNSSourceListColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C304280CA28879001AEFEA /* LNSSourceListColumn.m */; };
-		D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */; };
-		D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
 		D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesControl.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
@@ -250,16 +244,6 @@
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScrobLog.h; path = src/ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScrobLog.m; path = src/ScrobLog.m; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
-		D3C304230CA28879001AEFEA /* highlight_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = highlight_blue.tiff; sourceTree = "<group>"; };
-		D3C304240CA28879001AEFEA /* highlight_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = highlight_grey.tiff; sourceTree = "<group>"; };
-		D3C304250CA28879001AEFEA /* LNSSourceListCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListCell.h; sourceTree = "<group>"; };
-		D3C304260CA28879001AEFEA /* LNSSourceListCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListCell.m; sourceTree = "<group>"; };
-		D3C304270CA28879001AEFEA /* LNSSourceListColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListColumn.h; sourceTree = "<group>"; };
-		D3C304280CA28879001AEFEA /* LNSSourceListColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListColumn.m; sourceTree = "<group>"; };
-		D3C304290CA28879001AEFEA /* LNSSourceListSourceGroupCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListSourceGroupCell.h; sourceTree = "<group>"; };
-		D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListSourceGroupCell.m; sourceTree = "<group>"; };
-		D3C3042B0CA28879001AEFEA /* LNSSourceListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNSSourceListView.h; sourceTree = "<group>"; };
-		D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNSSourceListView.m; sourceTree = "<group>"; };
 		D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISRadioSearchController.h; path = src/ISRadioSearchController.h; sourceTree = "<group>"; };
 		D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISRadioSearchController.m; path = src/ISRadioSearchController.m; sourceTree = "<group>"; };
 		D3C304490CA291E2001AEFEA /* ASXMLFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASXMLFile.h; path = src/ASXMLFile.h; sourceTree = "<group>"; };
@@ -424,7 +408,6 @@
 			isa = PBXGroup;
 			children = (
 				D32907080CDB4E0600CAAB66 /* LoginItemsAE */,
-				D3C304220CA28879001AEFEA /* LNSourceList */,
 				D31791150A6A9B5C00B0F081 /* BBNetUpdate */,
 				D3EC7C98080858F800392110 /* KFASAdditions */,
 			);
@@ -498,12 +481,12 @@
 		D3712B7F0D19D2A80011F980 /* Web Services */ = {
 			isa = PBXGroup;
 			children = (
+				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
+				D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */,
 				D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */,
 				D3C304490CA291E2001AEFEA /* ASXMLFile.h */,
 				D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */,
 				D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */,
-				D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */,
-				D3C3FBA50C9D95A3001AEFEA /* ASWebServices.h */,
 			);
 			name = "Web Services";
 			sourceTree = "<group>";
@@ -644,23 +627,6 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		D3C304220CA28879001AEFEA /* LNSourceList */ = {
-			isa = PBXGroup;
-			children = (
-				D3C304230CA28879001AEFEA /* highlight_blue.tiff */,
-				D3C304240CA28879001AEFEA /* highlight_grey.tiff */,
-				D3C304250CA28879001AEFEA /* LNSSourceListCell.h */,
-				D3C304260CA28879001AEFEA /* LNSSourceListCell.m */,
-				D3C304270CA28879001AEFEA /* LNSSourceListColumn.h */,
-				D3C304280CA28879001AEFEA /* LNSSourceListColumn.m */,
-				D3C304290CA28879001AEFEA /* LNSSourceListSourceGroupCell.h */,
-				D3C3042A0CA28879001AEFEA /* LNSSourceListSourceGroupCell.m */,
-				D3C3042B0CA28879001AEFEA /* LNSSourceListView.h */,
-				D3C3042C0CA28879001AEFEA /* LNSSourceListView.m */,
-			);
-			path = LNSourceList;
-			sourceTree = "<group>";
-		};
 		D3D7C26F080B99ED005EF5CA /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
@@ -791,8 +757,6 @@
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
 				D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */,
-				D3C3042D0CA28879001AEFEA /* highlight_blue.tiff in Resources */,
-				D3C3042E0CA28879001AEFEA /* highlight_grey.tiff in Resources */,
 				D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */,
 				D398FB470CDE016A008CB4C8 /* ArtistDetails.xib in Resources */,
 				D398FB480CDE016A008CB4C8 /* ISProfileReport.xib in Resources */,
@@ -863,10 +827,6 @@
 				D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */,
 				D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */,
 				D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */,
-				D3C304300CA28879001AEFEA /* LNSSourceListCell.m in Sources */,
-				D3C304320CA28879001AEFEA /* LNSSourceListColumn.m in Sources */,
-				D3C304340CA28879001AEFEA /* LNSSourceListSourceGroupCell.m in Sources */,
-				D3C304360CA28879001AEFEA /* LNSSourceListView.m in Sources */,
 				D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */,
 				D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */,
 				D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */,
