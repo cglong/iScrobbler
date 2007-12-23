@@ -26,7 +26,7 @@ static ASXMLFile *xspfReq = nil;
 #define POSE_AS_LASTFM
 
 #ifdef POSE_AS_LASTFM
-#define WS_VERSION @"1.4.0.56102"
+#define WS_VERSION @"1.4.1.57486"
 #define WS_PLATFORM @"mac"
 #else
 #define WS_VERSION [[NSUserDefaults standardUserDefaults] stringForKey:@"version"]
