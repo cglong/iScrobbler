@@ -107,7 +107,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
-   [bbDownload cancel];
+   
    [self close];
 }
 
@@ -117,11 +117,9 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             cachePolicy:NSURLRequestReloadIgnoringCacheData
             timeoutInterval:60.0];
     
-    
-    
     [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
     
-    bbDownload = [[[NSURLDownload alloc] initWithRequest:request delegate:self] autorelease];
+    bbDownload = [[NSURLDownload alloc] initWithRequest:request delegate:self];
    
    if (!bbDownload) {
       NSBeep();
@@ -139,6 +137,10 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 
 - (void)close
 {
+    [bbDownload cancel];
+    [bbDownload autorelease];
+    bbDownload = nil;
+
    [_file release];
    [_url release];
    [bbTmpFile release];

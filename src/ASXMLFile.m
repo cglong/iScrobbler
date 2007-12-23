@@ -154,9 +154,11 @@ static NSMutableDictionary *xmlCache = nil;
 - (void)cancel
 {
     delegate = nil;
+    [responseData release];
+    responseData = nil;
     if (conn) {
         [conn cancel];
-        [conn release];
+        [conn autorelease];
         conn = nil;
         
         [xmlCache removeObjectForKey:url];
@@ -333,7 +335,7 @@ static NSMutableDictionary *xmlCache = nil;
 - (void)dealloc
 {
     [conn cancel];
-    [conn release];
+    [conn autorelease];
     [url release];
     [xml release];
     [super dealloc];
