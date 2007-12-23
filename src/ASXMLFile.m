@@ -154,6 +154,8 @@ static NSMutableDictionary *xmlCache = nil;
 - (void)cancel
 {
     delegate = nil;
+    [responseData release];
+    responseData = nil;
     if (conn) {
         [conn cancel];
         [conn autorelease];
