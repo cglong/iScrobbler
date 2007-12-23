@@ -19,7 +19,7 @@ static float handshakeDelay = 60.0f;
 
 #define sessionid [sessionvars objectForKey:@"session"]
 
-static NSURLConnection *tuneConn = nil, *execConn = nil;
+static NSURLConnection *hsConn = nil, *tuneConn = nil, *execConn = nil;
 static NSMutableDictionary *connData = nil;
 static ASXMLFile *xspfReq = nil;
 
@@ -96,7 +96,9 @@ static ASXMLFile *xspfReq = nil;
     
     [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     
-    /*conn =*/ [NSURLConnection connectionWithRequest:req delegate:self];
+    [hsConn cancel];
+    [hsConn autorelease];
+    hsConn = [[NSURLConnection connectionWithRequest:req delegate:self] retain];
 }
 
 - (BOOL)needHandshake
@@ -120,6 +122,9 @@ static ASXMLFile *xspfReq = nil;
 
 - (void)completeHandshake:(NSString*)result
 {
+    [hsConn autorelease];
+    hsConn = nil;
+
     NSDictionary *d = [self parseWSResponse:result];
     [sessionvars release];
     sessionvars = [d retain];
@@ -205,7 +210,7 @@ static ASXMLFile *xspfReq = nil;
     
     ScrobLog(SCROB_LOG_TRACE, @"ASWS tuning: %@", url);
     if (canGetMoreTracks)
-        tuneConn = [NSURLConnection connectionWithRequest:req delegate:self];
+        tuneConn = [[NSURLConnection connectionWithRequest:req delegate:self] retain];
     else
         xspfReq = [[ASXMLFile xmlFileWithURL:url delegate:self cachedForSeconds:0] retain];
 }
@@ -271,6 +276,7 @@ static ASXMLFile *xspfReq = nil;
 - (void)exec:(NSString*)command
 {
     [execConn cancel];
+    [execConn autorelease];
     execConn = nil;
     
     NSURL *url;
@@ -287,7 +293,7 @@ static ASXMLFile *xspfReq = nil;
             cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
         [req setValue:[[ProtocolManager sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
         ScrobDebug(@"%@", url);
-        execConn = [NSURLConnection connectionWithRequest:req delegate:self];
+        execConn = [[NSURLConnection connectionWithRequest:req delegate:self] retain];
     } else {
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSExecFailed object:self];
         ScrobLog(SCROB_LOG_ERR, @"ASWS 'exec command' failure: nil URL");
@@ -301,9 +307,11 @@ static ASXMLFile *xspfReq = nil;
     xspfReq = nil;
     
     [tuneConn cancel];
+    [tuneConn autorelease];
     tuneConn = nil;
     
     [execConn cancel];
+    [execConn autorelease];
     execConn = nil;
     
     [connData removeAllObjects];
@@ -569,10 +577,10 @@ playlist_error:
     
     if (connection == tuneConn) {
         [self stop];
-        tuneConn = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSStationTuneFailed object:self];
         ScrobLog(SCROB_LOG_ERR, @"ASWS tuning connection failure: %@", reason);
     } else if (connection == execConn) {
+        [execConn autorelease];
         execConn = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSExecFailed object:self];
     }
@@ -597,6 +605,7 @@ playlist_error:
     NSDictionary *d = [self parseWSResponse:result];
     ScrobDebug(@"((%@)) == %@", result, d);
     if (connection == tuneConn) {
+        [tuneConn autorelease];
         tuneConn = nil;
         
         int err = [[d objectForKey:@"error"] intValue];
@@ -614,6 +623,7 @@ playlist_error:
     }
     
     if (connection == execConn) {
+        [execConn autorelease];
         execConn = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:ASWSExecDidComplete object:self userInfo:nil];
         return;

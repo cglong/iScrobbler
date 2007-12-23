@@ -19,10 +19,9 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 
-#define REQUEST_TIMEOUT 60.0f
+#define REQUEST_TIMEOUT 60.0
 #define HANDSHAKE_DEFAULT_DELAY 60.0f
-/* From IRC:
-   Russ​​: ...The server cuts any submission off at 1000,
+/* Russ on IRC: The server cuts any submission off at 1000,
    I personally recommend you don't go over 50 or 100 in a single submission */
 #define DEFAULT_MAX_TRACKS_PER_SUB 25
 #define MAX_MISSING_VAR_ERRORS 2
@@ -250,11 +249,12 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         NSURLRequestReloadIgnoringCacheData timeoutInterval:REQUEST_TIMEOUT];
 	[request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
+    // we don't need to explicitly retain the connection because of the kill timer
     NSURLConnection *connection = [NSURLConnection connectionWithRequest:request delegate:self];
     
     // Setup timer to kill the current handhskake and reset state
-    // if we've been in progress for 5 minutes
-    killTimer = [NSTimer scheduledTimerWithTimeInterval:300.0 target:self
+    // if we've been in progress for double our timeout period
+    killTimer = [NSTimer scheduledTimerWithTimeInterval:REQUEST_TIMEOUT*2.0 target:self
         selector:@selector(killHandshake:)
         userInfo:[NSDictionary dictionaryWithObjectsAndKeys:connection, @"Handle", nil]
         repeats:NO];
@@ -450,6 +450,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     if (npInProgress) {
         [myData release];
         myData = nil;
+        [myConnection autorelease];
         myConnection = nil;
         npInProgress = NO;
         ScrobLog(SCROB_LOG_VERBOSE, @"NP result: %@", result);
@@ -526,6 +527,7 @@ didFinishLoadingExit:
     [myData release];
     myData = nil;
     
+    [myConnection autorelease];
     myConnection = nil;
     
     @try {
@@ -568,6 +570,7 @@ didFinishLoadingExit:
         return;
     }
     
+    [myConnection autorelease];
     myConnection = nil;
     
     if (npInProgress) {
@@ -703,7 +706,7 @@ didFinishLoadingExit:
     [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
     ++submissionAttempts;
-    myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+    myConnection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
     
     ScrobLog(SCROB_LOG_INFO, @"%lu song(s) submitted...\n", [inFlight count]);
     if (SCROB_LOG_TRACE == ScrobLogLevel())
@@ -817,7 +820,7 @@ static int npDelays = 0;
         // Set the user-agent to something Mozilla-compatible
         [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
         
-        myConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+        myConnection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
         npInProgress = YES;
         npDelays = 0;
         
