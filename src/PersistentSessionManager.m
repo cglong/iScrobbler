@@ -17,6 +17,8 @@ __private_extern__ NSThread *mainThread;
 #endif
 
 @interface PersistentProfile (Private)
++ (PersistentProfile*)sharedInstance;
+
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify;
 - (BOOL)save:(NSManagedObjectContext*)moc;
 - (void)resetMain;

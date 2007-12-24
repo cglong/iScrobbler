@@ -13,6 +13,7 @@
 #import "Persistence.h"
 #import "PersistentSessionManager.h"
 #import "SongData.h"
+#import "ISThreadMessenger.h"
 
 /**
 Simple CoreDate overview: http://cocoadevcentral.com/articles/000086.php
@@ -28,7 +29,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 #define PERSISTENT_STORE_DB \
 [@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]
 
-#import "ISThreadMessenger.h"
 #ifdef ISDEBUG
 __private_extern__ NSThread *mainThread = nil;
 #endif
@@ -50,7 +50,6 @@ __private_extern__ NSThread *mainThread = nil;
 @interface PersistentProfile (SessionManagement)
 - (void)pingSessionManager;
 - (BOOL)addSongPlaysToAllSessions:(NSArray*)queue;
-- (PersistentSessionManager*)sessionManager;
 @end
 
 @implementation PersistentProfile
@@ -138,6 +137,20 @@ __private_extern__ NSThread *mainThread = nil;
 }
 
 //******* public API ********//
+
+- (PersistentSessionManager*)sessionManager
+{
+    return (sessionMgr);
+}
+
+- (BOOL)newProfile
+{
+    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    // while technically indicating a new profile, the last check is also true while an import is in progress
+    // and [iScrobblerController applicatinoShouldTerminate:] would break in this case.
+    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
+}
 
 - (BOOL)importInProgress
 {
@@ -317,7 +330,7 @@ __private_extern__ NSThread *mainThread = nil;
     [self addSongPlay:nil]; // process any queued songs
 }
 
-- (void)initDB
+- (void)createDatabase
 {
     NSDate *dbEpoch = [self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC];
     
@@ -376,7 +389,7 @@ __private_extern__ NSThread *mainThread = nil;
 }
 
 #define CURRENT_STORE_VERSION @"1"
-- (id)init
+- (BOOL)initDatabase
 {
     NSError *error = nil;
     id mainStore;
@@ -384,7 +397,8 @@ __private_extern__ NSThread *mainThread = nil;
     [mainMOC setUndoManager:nil];
     
     NSPersistentStoreCoordinator *psc;
-    psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:nil]];
+    psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:
+        [NSManagedObjectModel mergedModelFromBundles:[NSArray arrayWithObjects:[NSBundle bundleForClass:[self class]], nil]]];
     [mainMOC setPersistentStoreCoordinator:psc];
     [psc release];
     
@@ -414,7 +428,7 @@ __private_extern__ NSThread *mainThread = nil;
                 nil]
             forPersistentStore:mainStore];
         
-        [self initDB];
+        [self createDatabase];
         NSManagedObject *allSession = [sessionMgr sessionWithName:@"all" moc:mainMOC];
         ISASSERT(allSession != nil, "missing all session!");
         [allSession setValue:now forKey:@"epoch"];
@@ -423,7 +437,7 @@ __private_extern__ NSThread *mainThread = nil;
     } else {
         if (![[metadata objectForKey:(NSString*)kMDItemVersion] isEqualTo:CURRENT_STORE_VERSION]) {
             [mainMOC release];
-            return (nil);
+            return (NO);
         #ifdef notyet
             [psc migratePersistentStore:mainStore toURL:nil options:nil withType:NSSQLiteStoreType error:nil];
         #endif
@@ -466,23 +480,14 @@ __private_extern__ NSThread *mainThread = nil;
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
         selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     
-    return (self);
+    return (YES);
 }
 
 // singleton support
+static PersistentProfile *shared = nil;
 + (PersistentProfile*)sharedInstance
 {
-    static PersistentProfile *shared = nil;
-    return (shared ? shared : (shared = [[PersistentProfile alloc] init]));
-}
-
-+ (BOOL)newProfile
-{
-    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    // while technically indicating a new profile, the last check is also true while an import is in progress
-    // and [iScrobblerController applicatinoShouldTerminate:] would break in this case.
-    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
+    return (shared);
 }
 
 - (id)copyWithZone:(NSZone *)zone
@@ -507,6 +512,28 @@ __private_extern__ NSThread *mainThread = nil;
 - (id)autorelease
 {
     return (self);
+}
+
+// ISPlugin protocol
+
+- (id)initWithAppProxy:(id<ISPluginProxy>)proxy
+{
+    self = [super init];
+    ISASSERT(shared == nil, "double load!");
+    shared = self;
+    mProxy = proxy;
+    
+    return (self);
+}
+
+- (NSString*)description
+{
+    return (NSLocalizedString(@"Temlate Plugin", ""));
+}
+
+- (void)applicationWillTerminate
+{
+
 }
 
 @end
@@ -542,11 +569,6 @@ __private_extern__ NSThread *mainThread = nil;
 {
     ISASSERT([sessionMgr threadMessenger] != nil, "nil send port!");
     return ([self performSelectorOnSessionMgrThread:@selector(processSongPlays:) withObject:[[queue copy] autorelease]]);
-}
-
-- (PersistentSessionManager*)sessionManager
-{
-    return (sessionMgr);
 }
 
 @end

@@ -11,6 +11,7 @@
 #import <Cocoa/Cocoa.h>
 
 @class ISThreadMessenger;
+@class PersistentProfile;
 
 @interface TopListsController : NSWindowController
 {
@@ -25,13 +26,18 @@
     NSMutableArray *rpcreqs;
     id artistDetails;
     // Persistence support
+    PersistentProfile *persistence;
     ISThreadMessenger *persistenceTh;
     NSTimer *rearrangeTimer;
     int sessionLoads, cancelLoad, wantLoad, loadIssued;
     BOOL windowIsVisisble;
 }
 
-+ (TopListsController*) sharedInstance;
++ (TopListsController*)sharedInstance;
++ (BOOL)isActive;
++ (BOOL)willCreateNewProfile;
+
+- (PersistentProfile*)persistence;
 
 @end
 

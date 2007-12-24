@@ -977,7 +977,7 @@ player_info_exit:
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(id /*NSApplication**/)sender
 {
-    if (isTopListsActive && ![PersistentProfile newProfile] && [[PersistentProfile sharedInstance] importInProgress]) {
+    if (isTopListsActive && [TopListsController isActive] && [[[TopListsController sharedInstance] persistence] importInProgress]) {
         #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
             // documented as not implemented, and it's not (as of 10.4.10
@@ -1042,7 +1042,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     [ISCrashReporter crashReporter];
     
     if (isTopListsActive) {
-        if ([PersistentProfile newProfile]) {
+        if ([TopListsController willCreateNewProfile]) {
             // Disable this so the TopListsController is not allocated (which begins the import)
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
             
@@ -2446,7 +2446,7 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
         break;
         
         case kIOMessageCanSystemPowerOff:
-            if (isTopListsActive && [[PersistentProfile sharedInstance] importInProgress]) {
+            if (isTopListsActive && [TopListsController isActive] && [[[TopListsController sharedInstance] persistence] importInProgress]) {
                 IOCancelPowerChange(powerPort, (long)arg);
             } else
                 IOAllowPowerChange(powerPort, (long)arg);

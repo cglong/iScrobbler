@@ -24,6 +24,7 @@
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
 #import "ISThreadMessenger.h"
+#import "ISPluginController.h"
 
 #import "Persistence.h"
 #import "PersistentSessionManager.h"
@@ -67,6 +68,11 @@ static NSMutableArray *topHours = nil;
 @implementation TopListsController
 
 // singleton support
++ (BOOL)willCreateNewProfile
+{
+    return (NO);
+}
+
 + (TopListsController*)sharedInstance
 {
     if (g_topLists)
@@ -84,6 +90,11 @@ static NSMutableArray *topHours = nil;
     }
 
     return (g_topLists);
+}
+
++ (BOOL)isActive
+{
+    return (g_topLists != nil);
 }
 
 - (id)copyWithZone:(NSZone *)zone
@@ -111,6 +122,11 @@ static NSMutableArray *topHours = nil;
 }
 
 // session support
+- (PersistentProfile*)persistence
+{
+    return (persistence);
+}
+
 - (id)selectedSession
 {
     NSArray *a = [sessionController selectedObjects];
@@ -130,12 +146,12 @@ static NSMutableArray *topHours = nil;
     if (!s || [[s valueForKey:@"name"] isNotEqualTo:saved]) {
         if (!s || nil == [s valueForKey:@"archive"]) {
             // Get the default session
-            s = [[PersistentSessionManager sharedInstance] sessionWithName:saved
-                moc:[[PersistentProfile sharedInstance] performSelector:@selector(mainMOC)]];
+            s = [[persistence sessionManager] sessionWithName:saved
+                moc:[persistence performSelector:@selector(mainMOC)]];
             if (!s) {
                 // somethings wrong, retry with the default of lastfm
-                s = [[PersistentSessionManager sharedInstance] sessionWithName:@"lastfm"
-                    moc:[[PersistentProfile sharedInstance] performSelector:@selector(mainMOC)]];
+                s = [[persistence sessionManager] sessionWithName:@"lastfm"
+                    moc:[persistence performSelector:@selector(mainMOC)]];
                 if (s)
                     [[NSUserDefaults standardUserDefaults] setObject:[s valueForKey:@"name"] forKey:@"LocalChartsSessionName"];
             }
@@ -168,7 +184,7 @@ static NSMutableArray *topHours = nil;
         
     NSMutableArray *arrangedSessions = [NSMutableArray arrayWithObjects:
         @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
-    NSEnumerator *en = [[[PersistentProfile sharedInstance] allSessions] objectEnumerator];
+    NSEnumerator *en = [[persistence allSessions] objectEnumerator];
     id s;
     NSUInteger i;
     NSMutableArray *archivedSessions = [NSMutableArray array];
@@ -217,7 +233,7 @@ static NSMutableArray *topHours = nil;
 {
     SongData *s = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
     if (![s banned] && ![s skipped])
-        [[PersistentProfile sharedInstance] addSongPlay:s];
+        [persistence addSongPlay:s];
 }
 
 - (void)persistentProfileImportProgress:(NSNotification*)note
@@ -244,14 +260,20 @@ static NSMutableArray *topHours = nil;
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
+        // load the persistence plugin
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+        persistence = (PersistentProfile*)[[ISPluginController sharedInstance] loadCorePlugin:@"Persistence"];
+        #else
+        #endif
+        
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
-            && [PersistentProfile newProfile]) {
+            && [persistence newProfile]) {
             [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
                 NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
         }
         
-        (void)[PersistentProfile sharedInstance]; // this will start the import
+        (void)[persistence initDatabase];
 
         // Register for QM notes
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -264,7 +286,7 @@ static NSMutableArray *topHours = nil;
             name:PersistentProfileImportProgress
             object:nil];
         
-        if ([[PersistentProfile sharedInstance] importInProgress]) {
+        if ([persistence importInProgress]) {
             [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"iTunes Import", "") message:
                 NSLocalizedString(@"Your iTunes library is now being imported into the new local charts. This can take several hours of intense CPU time and should not be interrupted.", "")];
         }

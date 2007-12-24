@@ -18,7 +18,7 @@
 
 - (BOOL)loading
 {
-    return (sessionLoads > 0 || [[PersistentProfile sharedInstance] importInProgress]);
+    return (sessionLoads > 0 || [persistence importInProgress]);
 }
 
 - (void)setLoading:(BOOL)isLoading
@@ -249,7 +249,7 @@ topHours = nil; \
 // methods that run on the background thread
 - (void)loadInitialSessionData:(NSManagedObjectID*)sessionID
 {
-    if ([[PersistentProfile sharedInstance] importInProgress])
+    if ([persistence importInProgress])
         return;
 
     [self performSelectorOnMainThread:@selector(sessionWillLoad:) withObject:nil waitUntilDone:YES];
@@ -276,12 +276,12 @@ topHours = nil; \
     NSEntityDescription *entity;
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     // get the session songs
-    NSArray *sessionSongs = [[PersistentProfile sharedInstance] songsForSession:session];
+    NSArray *sessionSongs = [persistence songsForSession:session];
     if (0 == (lastLoadCount = [sessionSongs count]))
         goto loadExit; 
     // pre-fetch the relationships (individual backing store faults are VERY expensive)
     // processing the artists is much less work and we can present the data faster to the user
-    NSArray *sessionArtists = [[PersistentSessionManager sharedInstance] artistsForSession:session moc:moc];
+    NSArray *sessionArtists = [[persistence sessionManager] artistsForSession:session moc:moc];
     entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionArtists valueForKeyPath:@"item.objectID"]]];
@@ -414,7 +414,7 @@ loadExit:
 
 - (void)loadExtendedSessionData:(NSManagedObjectID*)sessionID // profile report data not seen in the GUI
 {
-    if ([[PersistentProfile sharedInstance] importInProgress])
+    if ([persistence importInProgress])
         return;
     
     // loadInitial should have completed
@@ -432,7 +432,7 @@ loadExit:
     NSError *error = nil;
     NSEntityDescription *entity;
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];;
-    NSArray *sessionAlbums = [[PersistentSessionManager sharedInstance] albumsForSession:session moc:moc];
+    NSArray *sessionAlbums = [[persistence sessionManager] albumsForSession:session moc:moc];
     // pre-fetch the albums
     entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
     [request setEntity:entity];
@@ -476,7 +476,7 @@ loadExit:
         goto loadExit;
     
     NSMutableDictionary *ratingEntries = [NSMutableDictionary dictionaryWithCapacity:5];
-    NSArray *sessionRatings = [[PersistentProfile sharedInstance] ratingsForSession:session];
+    NSArray *sessionRatings = [persistence ratingsForSession:session];
     en = [sessionRatings objectEnumerator];
     while ((mobj = [en nextObject])) {
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -496,7 +496,7 @@ loadExit:
     for (i = 0; i < 24; ++i) {
         [hourEntries addObject:zeroHour];
     }
-    NSArray *sessionHours = [[[PersistentProfile sharedInstance] hoursForSession:session] sortedArrayUsingDescriptors:
+    NSArray *sessionHours = [[persistence hoursForSession:session] sortedArrayUsingDescriptors:
         [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"hour" ascending:NO] autorelease]]];
     en = [sessionHours objectEnumerator];
     while ((mobj = [en nextObject])) {
@@ -545,7 +545,7 @@ loadExit: ;
     [moc setUndoManager:nil];
     // we don't allow the user to make changes and the session mgr background thread handles all internal changes
     [moc setMergePolicy:NSRollbackMergePolicy];
-    id psc = [[[PersistentProfile sharedInstance] performSelector:@selector(mainMOC)] persistentStoreCoordinator];
+    id psc = [[persistence performSelector:@selector(mainMOC)] persistentStoreCoordinator];
     [moc setPersistentStoreCoordinator:psc];
     
     [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];

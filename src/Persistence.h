@@ -9,6 +9,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "ISPlugin.h"
 
 @class SongData;
 @class PersistentSessionManager;
@@ -18,16 +19,18 @@
 #define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
 #define PersistentProfileImportProgress @"ISPersistentProfileImportProgress"
 
-@interface PersistentProfile : NSObject {
+@interface PersistentProfile : NSObject <ISPlugin> {
     NSManagedObjectContext *mainMOC;
     PersistentSessionManager *sessionMgr;
+    id mProxy;
     int importing;
 }
 
-+ (PersistentProfile*)sharedInstance;
-+ (BOOL)newProfile;
+- (PersistentSessionManager*)sessionManager;
 
+- (BOOL)newProfile;
 - (BOOL)importInProgress;
+- (BOOL)initDatabase;
 
 // adds the song, and updates all sessions
 - (void)addSongPlay:(SongData*)song;

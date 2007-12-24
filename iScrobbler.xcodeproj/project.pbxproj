@@ -6,6 +6,35 @@
 	objectVersion = 44;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		D37005BA0D2002B40057EFBD /* Copy Core Plugins */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = D37005E20D20033F0057EFBD /* Build configuration list for PBXAggregateTarget "Copy Core Plugins" */;
+			buildPhases = (
+				D37005B90D2002B40057EFBD /* CopyFiles */,
+			);
+			dependencies = (
+				D31E803B0D20072E00D47F2B /* PBXTargetDependency */,
+				D31E803D0D20073400D47F2B /* PBXTargetDependency */,
+			);
+			name = "Copy Core Plugins";
+			productName = "Copy Core Plugins";
+		};
+		D37005CB0D20031E0057EFBD /* Build All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = D37005E30D20033F0057EFBD /* Build configuration list for PBXAggregateTarget "Build All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				D37005D00D2003230057EFBD /* PBXTargetDependency */,
+				D37005D20D2003260057EFBD /* PBXTargetDependency */,
+				D37005D40D20032B0057EFBD /* PBXTargetDependency */,
+			);
+			name = "Build All";
+			productName = "Build All";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXAppleScriptBuildPhase section */
 		D3191C9807E3A51700821D03 /* AppleScript */ = {
 			isa = PBXAppleScriptBuildPhase;
@@ -16,7 +45,6 @@
 				D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */,
 				D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */,
 				D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */,
-				D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */,
 				D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */,
 				D38EA3950CF5A65100126BC2 /* iTunesLastfmRadio.applescript in AppleScript */,
 			);
@@ -28,7 +56,6 @@
 /* Begin PBXBuildFile section */
 		D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306F89009EC34F80011CEE1 /* no_artist.tiff */; };
 		D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D306FC7909EF550C0011CEE1 /* no_album.tiff */; };
-		D30BBF9D0CCF5EE0005DCFA2 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
 		D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3044A0CA291E2001AEFEA /* ASXMLFile.m */; };
 		D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */; };
 		D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */; };
@@ -38,6 +65,10 @@
 		D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */; };
 		D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */; };
 		D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */; };
+		D318A6DD0D1FC582003068D5 /* Persistence.m in Sources */ = {isa = PBXBuildFile; fileRef = D3760CC90CB4241900C04863 /* Persistence.m */; };
+		D318A6DE0D1FC583003068D5 /* PersistentSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */; };
+		D318A6E00D1FC587003068D5 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
+		D318A70C0D1FC960003068D5 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		D3191CAA07E3A51700821D03 /* defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = EBBB2F1E03F7C3F2005DC01B /* defaults.plist */; };
 		D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */ = {isa = PBXBuildFile; fileRef = DC00A46205B21B9200674DB4 /* iscrobbler.icns */; };
 		D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -58,12 +89,12 @@
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
+		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
+		D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
 		D376063F0CB230E300C04863 /* ChatStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D37606340CB2307F00C04863 /* ChatStatus.m */; };
 		D37606790CB236A900C04863 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		D37606AD0CB236CD00C04863 /* InstantMessage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37606AC0CB236CD00C04863 /* InstantMessage.framework */; };
-		D3760CCA0CB4241900C04863 /* Persistence.m in Sources */ = {isa = PBXBuildFile; fileRef = D3760CC90CB4241900C04863 /* Persistence.m */; };
-		D37610AD0CB5314900C04863 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D37622750CBD803500C04863 /* keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = EB50662D03FBB239005DC01B /* keychain.m */; };
 		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
 		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
@@ -92,7 +123,6 @@
 		D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
-		D3B19F610B5174CF008F54BF /* iPodUpdate.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
@@ -109,7 +139,6 @@
 		D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */ = {isa = PBXBuildFile; fileRef = D3EE90A20A093FF80024A013 /* checkmark.tif */; };
 		D3EE9CC70A144A470024A013 /* MBID.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EE9CC50A144A470024A013 /* MBID.c */; };
 		D3F4A4350CC4FF4B000DCBB6 /* ISThreadMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4340CC4FF4B000DCBB6 /* ISThreadMessenger.m */; };
-		D3F4A4E90CC56EA9000DCBB6 /* PersistentSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -124,6 +153,48 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
+		D31E80360D20070F00D47F2B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3191C9707E3A51700821D03;
+			remoteInfo = iScrobbler;
+		};
+		D31E803A0D20072E00D47F2B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3191C9707E3A51700821D03;
+			remoteInfo = iScrobbler;
+		};
+		D31E803C0D20073400D47F2B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3712C480D1A3B810011F980;
+			remoteInfo = Persistence;
+		};
+		D37005CF0D2003230057EFBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3191C9707E3A51700821D03;
+			remoteInfo = iScrobbler;
+		};
+		D37005D10D2003260057EFBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3712C480D1A3B810011F980;
+			remoteInfo = Persistence;
+		};
+		D37005D30D20032B0057EFBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D37005BA0D2002B40057EFBD;
+			remoteInfo = "Copy Core Plugins";
+		};
 		D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -134,11 +205,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		D37005B90D2002B40057EFBD /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "iScrobbler.app/Contents/Core Plugins";
+			dstSubfolderSpec = 16;
+			files = (
+				D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D37606630CB2362D00C04863 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
+			dstPath = "Core Plugins";
+			dstSubfolderSpec = 1;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -189,12 +270,14 @@
 		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
 		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
 		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
+		D318A6C30D1FC534003068D5 /* Persistence-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Persistence-Info.plist"; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoginItemsAE.c; sourceTree = "<group>"; };
 		D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginItemsAE.h; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
+		D3712C490D1A3B810011F980 /* Persistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Persistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPlugin.h; path = src/ISPlugin.h; sourceTree = "<group>"; };
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPluginController.h; path = src/ISPluginController.h; sourceTree = "<group>"; };
 		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISPluginController.m; path = src/ISPluginController.m; sourceTree = "<group>"; };
@@ -202,10 +285,10 @@
 		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatStatus.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		D376063B0CB230A900C04863 /* ChatStatus-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "ChatStatus-Info.plist"; sourceTree = "<group>"; };
 		D37606AC0CB236CD00C04863 /* InstantMessage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InstantMessage.framework; path = /System/Library/Frameworks/InstantMessage.framework; sourceTree = "<absolute>"; };
-		D3760C640CB421A400C04863 /* Persistence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Persistence.h; path = src/Persistence.h; sourceTree = "<group>"; };
-		D3760CC90CB4241900C04863 /* Persistence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Persistence.m; path = src/Persistence.m; sourceTree = "<group>"; };
-		D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcdatamodel; name = iScrobbler.xcdatamodel; path = res/iScrobbler.xcdatamodel; sourceTree = "<group>"; };
-		D37619A10CBA576000C04863 /* iTunesImport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = iTunesImport.m; path = src/iTunesImport.m; sourceTree = "<group>"; };
+		D3760C640CB421A400C04863 /* Persistence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Persistence.h; path = ../../Persistence.h; sourceTree = "<group>"; };
+		D3760CC90CB4241900C04863 /* Persistence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Persistence.m; path = ../../Persistence.m; sourceTree = "<group>"; };
+		D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcdatamodel; path = iScrobbler.xcdatamodel; sourceTree = "<group>"; };
+		D37619A10CBA576000C04863 /* iTunesImport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = iTunesImport.m; path = ../../iTunesImport.m; sourceTree = "<group>"; };
 		D376EC690CA8E21900C04863 /* ISStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItem.h; sourceTree = "<group>"; };
 		D376EC6A0CA8E21900C04863 /* ISStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItem.m; sourceTree = "<group>"; };
 		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
@@ -238,7 +321,6 @@
 		D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProtocolManager_v12.h; path = src/ProtocolManager_v12.h; sourceTree = "<group>"; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
 		D39C17FA0801CF5100F3816B /* iScrobblerController+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iScrobblerController+Private.m"; sourceTree = "<group>"; };
-		D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iPodUpdate.applescript; sourceTree = "<group>"; };
 		D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASXMLRPC.h; path = src/ASXMLRPC.h; sourceTree = "<group>"; };
 		D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASXMLRPC.m; path = src/ASXMLRPC.m; sourceTree = "<group>"; };
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScrobLog.h; path = src/ScrobLog.h; sourceTree = "<group>"; };
@@ -281,8 +363,8 @@
 		D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ISSearchArrayController.m; path = src/ISSearchArrayController.m; sourceTree = "<group>"; };
 		D3F4A4300CC4FF2F000DCBB6 /* ISThreadMessenger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISThreadMessenger.h; path = src/ISThreadMessenger.h; sourceTree = "<group>"; };
 		D3F4A4340CC4FF4B000DCBB6 /* ISThreadMessenger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISThreadMessenger.m; path = src/ISThreadMessenger.m; sourceTree = "<group>"; };
-		D3F4A4E60CC56EA9000DCBB6 /* PersistentSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PersistentSessionManager.h; path = src/PersistentSessionManager.h; sourceTree = "<group>"; };
-		D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PersistentSessionManager.m; path = src/PersistentSessionManager.m; sourceTree = "<group>"; };
+		D3F4A4E60CC56EA9000DCBB6 /* PersistentSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PersistentSessionManager.h; path = ../../PersistentSessionManager.h; sourceTree = "<group>"; };
+		D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PersistentSessionManager.m; path = ../../PersistentSessionManager.m; sourceTree = "<group>"; };
 		DC00A46205B21B9200674DB4 /* iscrobbler.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = iscrobbler.icns; sourceTree = "<group>"; };
 		EB16394A04080C51005DC01B /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		EB24D529040AECC8005DC01B /* CHANGE_LOG */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGE_LOG; sourceTree = "<group>"; };
@@ -311,8 +393,16 @@
 				D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */,
 				D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */,
 				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
-				D30BBF9D0CCF5EE0005DCFA2 /* IOKit.framework in Frameworks */,
 				D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */,
+				D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3712C470D1A3B810011F980 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D318A70C0D1FC960003068D5 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -379,6 +469,7 @@
 				D3191CC907E3A51700821D03 /* iScrobbler.app */,
 				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
 				D39802400CE0FE41008CB4C8 /* iScrobblerProxy */,
+				D3712C490D1A3B810011F980 /* Persistence.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -393,6 +484,7 @@
 				D3712B840D19D2BE0011F980 /* AS Protocol */,
 				D3712B7F0D19D2A80011F980 /* Web Services */,
 				D3712B940D19D57B0011F980 /* Support */,
+				D3712C410D1A3B0A0011F980 /* Core Plugins */,
 				D37606320CB2307F00C04863 /* Plugins */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				D3B19CB00B4F3049008F54BF /* Scripts */,
@@ -469,6 +561,21 @@
 			path = BBNetUpdate;
 			sourceTree = "<group>";
 		};
+		D318A6C20D1FC534003068D5 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				D3760CC90CB4241900C04863 /* Persistence.m */,
+				D3760C640CB421A400C04863 /* Persistence.h */,
+				D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */,
+				D3F4A4E60CC56EA9000DCBB6 /* PersistentSessionManager.h */,
+				D37619A10CBA576000C04863 /* iTunesImport.m */,
+				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
+				D318A6C30D1FC534003068D5 /* Persistence-Info.plist */,
+			);
+			name = Persistence;
+			path = src/Plugins/Persistence;
+			sourceTree = "<group>";
+		};
 		D32907080CDB4E0600CAAB66 /* LoginItemsAE */ = {
 			isa = PBXGroup;
 			children = (
@@ -532,7 +639,6 @@
 		D3712B910D19D3E60011F980 /* Local Lists */ = {
 			isa = PBXGroup;
 			children = (
-				D376223C0CBD7F0900C04863 /* Persistence */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
@@ -570,6 +676,14 @@
 			name = Support;
 			sourceTree = "<group>";
 		};
+		D3712C410D1A3B0A0011F980 /* Core Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				D318A6C20D1FC534003068D5 /* Persistence */,
+			);
+			name = "Core Plugins";
+			sourceTree = "<group>";
+		};
 		D37606320CB2307F00C04863 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
@@ -589,19 +703,6 @@
 			path = ChatStatus;
 			sourceTree = "<group>";
 		};
-		D376223C0CBD7F0900C04863 /* Persistence */ = {
-			isa = PBXGroup;
-			children = (
-				D3760CC90CB4241900C04863 /* Persistence.m */,
-				D3760C640CB421A400C04863 /* Persistence.h */,
-				D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */,
-				D3F4A4E60CC56EA9000DCBB6 /* PersistentSessionManager.h */,
-				D37619A10CBA576000C04863 /* iTunesImport.m */,
-				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
-			);
-			name = Persistence;
-			sourceTree = "<group>";
-		};
 		D39802380CE0FD9B008CB4C8 /* iScrobblerProxy */ = {
 			isa = PBXGroup;
 			children = (
@@ -617,7 +718,6 @@
 			children = (
 				D3C309970CA3D317001AEFEA /* iTunesControl.applescript */,
 				D38EA3940CF5A65100126BC2 /* iTunesLastfmRadio.applescript */,
-				D3B19F600B5174CF008F54BF /* iPodUpdate.applescript */,
 				D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */,
 				D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */,
 				D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */,
@@ -676,6 +776,23 @@
 			productReference = D3191CC907E3A51700821D03 /* iScrobbler.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D3712C480D1A3B810011F980 /* Persistence */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3712C4E0D1A3B830011F980 /* Build configuration list for PBXNativeTarget "Persistence" */;
+			buildPhases = (
+				D3712C460D1A3B810011F980 /* Sources */,
+				D3712C470D1A3B810011F980 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D31E80370D20070F00D47F2B /* PBXTargetDependency */,
+			);
+			name = Persistence;
+			productName = iPod;
+			productReference = D3712C490D1A3B810011F980 /* Persistence.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
 		D37606390CB230A900C04863 /* ChatStatus */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */;
@@ -732,9 +849,12 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				D37005CB0D20031E0057EFBD /* Build All */,
 				D3191C9707E3A51700821D03 /* iScrobbler */,
-				D37606390CB230A900C04863 /* ChatStatus */,
 				D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */,
+				D3712C480D1A3B810011F980 /* Persistence */,
+				D37606390CB230A900C04863 /* ChatStatus */,
+				D37005BA0D2002B40057EFBD /* Copy Core Plugins */,
 			);
 		};
 /* End PBXProject section */
@@ -831,14 +951,21 @@
 				D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */,
 				D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */,
 				D37605590CB18BF700C04863 /* ISPluginController.m in Sources */,
-				D3760CCA0CB4241900C04863 /* Persistence.m in Sources */,
-				D37610AD0CB5314900C04863 /* iScrobbler.xcdatamodel in Sources */,
 				D37622750CBD803500C04863 /* keychain.m in Sources */,
 				D3F4A4350CC4FF4B000DCBB6 /* ISThreadMessenger.m in Sources */,
-				D3F4A4E90CC56EA9000DCBB6 /* PersistentSessionManager.m in Sources */,
 				D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */,
 				D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */,
 				D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3712C460D1A3B810011F980 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D318A6DD0D1FC582003068D5 /* Persistence.m in Sources */,
+				D318A6DE0D1FC583003068D5 /* PersistentSessionManager.m in Sources */,
+				D318A6E00D1FC587003068D5 /* iScrobbler.xcdatamodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -863,6 +990,36 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D31E80370D20070F00D47F2B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3191C9707E3A51700821D03 /* iScrobbler */;
+			targetProxy = D31E80360D20070F00D47F2B /* PBXContainerItemProxy */;
+		};
+		D31E803B0D20072E00D47F2B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3191C9707E3A51700821D03 /* iScrobbler */;
+			targetProxy = D31E803A0D20072E00D47F2B /* PBXContainerItemProxy */;
+		};
+		D31E803D0D20073400D47F2B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3712C480D1A3B810011F980 /* Persistence */;
+			targetProxy = D31E803C0D20073400D47F2B /* PBXContainerItemProxy */;
+		};
+		D37005D00D2003230057EFBD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3191C9707E3A51700821D03 /* iScrobbler */;
+			targetProxy = D37005CF0D2003230057EFBD /* PBXContainerItemProxy */;
+		};
+		D37005D20D2003260057EFBD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3712C480D1A3B810011F980 /* Persistence */;
+			targetProxy = D37005D10D2003260057EFBD /* PBXContainerItemProxy */;
+		};
+		D37005D40D20032B0057EFBD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D37005BA0D2002B40057EFBD /* Copy Core Plugins */;
+			targetProxy = D37005D30D20032B0057EFBD /* PBXContainerItemProxy */;
+		};
 		D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */;
@@ -1007,6 +1164,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1028,6 +1186,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1141,6 +1300,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1176,6 +1336,122 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			name = "Debug-Internal";
+		};
+		D37005BB0D2002B40057EFBD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "Copy Core Plugins";
+			};
+			name = Debug;
+		};
+		D37005BC0D2002B40057EFBD /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Copy Core Plugins";
+			};
+			name = "Debug-Internal";
+		};
+		D37005BD0D2002B40057EFBD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = "Copy Core Plugins";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		D37005CC0D20031E0057EFBD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "Build All";
+			};
+			name = Debug;
+		};
+		D37005CD0D20031E0057EFBD /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Build All";
+			};
+			name = "Debug-Internal";
+		};
+		D37005CE0D20031E0057EFBD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = "Build All";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		D3712C4B0D1A3B820011F980 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = Persistence;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Debug;
+		};
+		D3712C4C0D1A3B820011F980 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = Persistence;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = "Debug-Internal";
+		};
+		D3712C4D0D1A3B820011F980 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = Persistence;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Release;
 		};
 		D376063D0CB230AA00C04863 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1311,6 +1587,36 @@
 				D328478308566B30009B4D14 /* Debug */,
 				D32906770CDA8D9700CAAB66 /* Debug-Internal */,
 				D328478408566B30009B4D14 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D37005E20D20033F0057EFBD /* Build configuration list for PBXAggregateTarget "Copy Core Plugins" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D37005BB0D2002B40057EFBD /* Debug */,
+				D37005BC0D2002B40057EFBD /* Debug-Internal */,
+				D37005BD0D2002B40057EFBD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D37005E30D20033F0057EFBD /* Build configuration list for PBXAggregateTarget "Build All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D37005CC0D20031E0057EFBD /* Debug */,
+				D37005CD0D20031E0057EFBD /* Debug-Internal */,
+				D37005CE0D20031E0057EFBD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D3712C4E0D1A3B830011F980 /* Build configuration list for PBXNativeTarget "Persistence" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3712C4B0D1A3B820011F980 /* Debug */,
+				D3712C4C0D1A3B820011F980 /* Debug-Internal */,
+				D3712C4D0D1A3B820011F980 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
