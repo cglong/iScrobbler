@@ -23,7 +23,36 @@ static NSMutableArray *allPlugins = nil;
 
 - (void)pluginsDidLoad:(NSMutableArray*)plugs
 {
-    allPlugins = [plugs retain];
+    [allPlugins addObjectsFromArray:[plugs retain]];
+}
+
+- (id)loadPlugin:(NSString*)path
+{
+    NSBundle *bundle;
+    id plug = nil;
+    @try {
+        if ((bundle = [NSBundle bundleWithPath:path])) {
+            if ([bundle isLoaded) {
+                ScrobLog(SCROB_LOG_ERR, @"exception loading plugin '%@': %@", path, @"Bundle already loaded");
+                return (nil);
+            }
+            
+            Class c = [bundle principalClass];
+            if ([c conformsToProtocol:@protocol(ISPlugin)]) {
+                if ((plug = [[c alloc] initWithAppProxy:self])) {
+                    ScrobLog(SCROB_LOG_INFO, @"Loaded plugin '%@' from '%@'", [plug description], [path lastPathComponent]);
+                    (void)[plug autorelease];
+                } else
+                    @throw ([NSException exceptionWithName:NSObjectInaccessibleException reason:@"Failed to instantiate plugin" userInfo:nil]);
+            } else
+                @throw ([NSException exceptionWithName:NSObjectNotAvailableException reason:@"Plugin does not conform to protocol" userInfo:nil]);
+        } else
+            @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"Not a valid bundle" userInfo:nil]);
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_ERR, @"exception loading plugin '%@': %@", path, e);
+    }
+    
+    return  (plug);
 }
 
 - (void)loadPlugins:(id)arg
@@ -33,26 +62,12 @@ static NSMutableArray *allPlugins = nil;
     NSString *pluginsPath = [[NSBundle mainBundle] builtInPlugInsPath];
     NSDirectoryEnumerator *den = [[NSFileManager defaultManager] enumeratorAtPath:pluginsPath];
     NSString *path;
-    NSBundle *bundle;
     id plug;
     while ((path = [den nextObject])) {
         [den skipDescendents];
-        @try {
-            if ((bundle = [NSBundle bundleWithPath:[pluginsPath stringByAppendingPathComponent:path]])) {
-                Class c = [bundle principalClass];
-                if ([c conformsToProtocol:@protocol(ISPlugin)]) {
-                    if ((plug = [[c alloc] initWithAppProxy:self])) {
-                        ScrobLog(SCROB_LOG_INFO, @"Loaded plugin '%@' from '%@'", [plug description], [path lastPathComponent]);
-                        [plugs addObject:plug];
-                        [plug release];
-                    } else
-                        @throw ([NSException exceptionWithName:NSObjectInaccessibleException reason:@"Failed to instantiate plugin" userInfo:nil]);
-                } else
-                    @throw ([NSException exceptionWithName:NSObjectNotAvailableException reason:@"Plugin does not conform to protocol" userInfo:nil]);
-            } else
-                @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"Not a valid bundle" userInfo:nil]);
-        } @catch (id e) {
-            ScrobLog(SCROB_LOG_ERR, @"exception loading bundle '%@': %@", path, e);
+        if ((plug = [self loadPlugin:[pluginsPath stringByAppendingPathComponent:path]])) {
+            [plugs addObject:plug];
+            [plug release];
         }
     }
     
@@ -69,6 +84,8 @@ static NSMutableArray *allPlugins = nil;
 
 - (id)init
 {
+    allPlugins = [[NSMutableArray alloc] init];
+    
 #ifdef THREADED_LOAD
     [NSThread detachNewThreadSelector:@selector(loadPlugins:) toTarget:self withObject:nil];
 #else
@@ -78,6 +95,14 @@ static NSMutableArray *allPlugins = nil;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillTerm:)
         name:NSApplicationWillTerminateNotification object:NSApp];
     return (self);
+}
+
+- (id)loadCorePlugin:(NSString*)name
+{
+    name = [[[[[NSBundle mainBundle] builtInPlugInsPath] stringByDeletingLastPathComponent]
+        stringByAppendingPathComponent:@"Core Plugins"] stringByAppendingPathComponent:name];
+ 
+    [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:[NSArray arrayWithObject:plug] waitUntilDone:NO];
 }
 
 // ISPluginProxy protocol

@@ -17,4 +17,6 @@
 
 + (ISPluginController*)sharedInstance;
 
+- (id)loadCorePlugin:(NSString*)name;
+
 @end
