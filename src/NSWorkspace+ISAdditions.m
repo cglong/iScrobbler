@@ -74,6 +74,8 @@
                         CFBooleanRef hidden = LSSharedFileListItemCopyProperty(item, kLSSharedFileListItemHidden);
                         err = LSSharedFileListItemRemove(list, item);
                         exists = [self addLoginItem:path hidden:hidden ? CFBooleanGetValue(hidden) : NO];
+                        if (hidden)
+                            CFRelease(hidden);
                         break;
                     }
                 }
