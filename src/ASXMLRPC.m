@@ -121,7 +121,8 @@
     [req setHTTPMethod:@"POST"];
 	[req setHTTPBody:[request XMLData]];
     
-    conn = [NSURLConnection connectionWithRequest:req delegate:self];
+    ISASSERT(conn == nil, "connection active!");
+    conn = [[NSURLConnection connectionWithRequest:req delegate:self] retain];
     ScrobLog(SCROB_LOG_TRACE, @"RPC request: %@", [[[NSString alloc] initWithData:[request XMLData] encoding:NSUTF8StringEncoding] autorelease]);
 }
 
@@ -144,7 +145,8 @@
 {
     NSInteger code = [(NSHTTPURLResponse*)uresponse statusCode];
     if (200 != code) {
-        [connection cancel];
+        [conn cancel];
+        [conn autorelease];
         conn = nil;
         NSError *err = [NSError errorWithDomain:@"HTTPErrorDomain" code:code  userInfo:nil];
         [self connection:connection didFailWithError:err];
@@ -170,6 +172,7 @@
     response = nil;
     
     [adelegate error:reason receivedForRequest:self];
+    [conn autorelease];
     conn = nil;
 }
 
@@ -191,6 +194,7 @@
     responseData = nil;
     
     [adelegate responseReceivedForRequest:self];
+    [conn autorelease];
     conn = nil;
 }
 
@@ -216,6 +220,7 @@
 - (void)dealloc
 {
     [conn cancel];
+    [conn autorelease];
     [request release];
     [responseData release];
     [response release];

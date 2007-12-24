@@ -231,7 +231,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 - (void)close
 {
     [connection cancel];
-    [connection release];
+    [connection autorelease];
     connection = nil;
     [verData release];
     verData = nil;
@@ -272,7 +272,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         && 304 == [(NSHTTPURLResponse*)response statusCode]) {
         // not modified since last check
         [connection cancel];
-        [connection release];
+        [connection autorelease];
         connection = nil;
         [verInfo release]; verInfo = nil;
         

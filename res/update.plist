@@ -5,12 +5,12 @@
         <key>Hash</key>
         <dict>
         	<key>SHA1</key>
-        	<string>ad87da0afc732d5265821dc2d751f2262e844da6</string>
+        	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.0.0b7</string>
+        <string>2.0.0</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0b7.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -25,7 +25,6 @@
 - Basic Applescript support.
 - Expanded use of Growl.
 - Many other minor features and bug fixes.
-- 2.0b7: Bug fixes for Radio, iTunes import and a crash.
 		</string>
         </dict>
 </dict>

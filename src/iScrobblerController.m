@@ -544,7 +544,7 @@ if (currentSong) { \
                 }
                 
                 if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlOnResume"]) {
-                    goto notify_growl;
+                    [self displayNowPlaying];
                 }
             }
             
@@ -597,8 +597,6 @@ if (currentSong) { \
         song = nil; // Make sure it's not released
         
         [self updateMenu];
-        
-notify_growl:
         [self displayNowPlaying];
     }
     
