@@ -32,7 +32,8 @@ static NSMutableArray *allPlugins = nil;
     id plug = nil;
     @try {
         if ((bundle = [NSBundle bundleWithPath:path])) {
-            if ([bundle isLoaded) {
+            if ([bundle isLoaded]) {
+                /// XXX: todo - find existing instance and return it
                 ScrobLog(SCROB_LOG_ERR, @"exception loading plugin '%@': %@", path, @"Bundle already loaded");
                 return (nil);
             }
@@ -101,8 +102,12 @@ static NSMutableArray *allPlugins = nil;
 {
     name = [[[[[NSBundle mainBundle] builtInPlugInsPath] stringByDeletingLastPathComponent]
         stringByAppendingPathComponent:@"Core Plugins"] stringByAppendingPathComponent:name];
- 
-    [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:[NSArray arrayWithObject:plug] waitUntilDone:NO];
+    
+    id plug;
+    if ((plug = [self loadPlugin:name])) {
+        [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:[NSArray arrayWithObject:plug] waitUntilDone:NO];
+    }
+    return ([plug autorelease]);
 }
 
 // ISPluginProxy protocol
