@@ -307,14 +307,12 @@ __private_extern__ NSThread *mainThread;
         [obj release];
         [[moc persistentStoreCoordinator] unlock];
         
-#if IS_THREAD_SESSIONMGR
         // we've replaced a session object, it's important other threads and class clients are notified ASAP
         [[PersistentProfile sharedInstance] save:moc withNotification:NO];
         ISASSERT(moc != [[PersistentProfile sharedInstance] mainMOC], "invalid MOC!");
         #ifdef notyet
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
         #endif
-#endif
         return;
     }
     
@@ -659,7 +657,6 @@ __private_extern__ NSThread *mainThread;
         target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
     
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
-#if IS_THREAD_SESSIONMGR
     if (didRemove) {
         @try {
         [moc reset];
@@ -668,7 +665,6 @@ __private_extern__ NSThread *mainThread;
         }
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
-#endif
 }
 
 - (void)updateSessions:(NSTimer*)t
@@ -726,7 +722,6 @@ __private_extern__ NSThread *mainThread;
         target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
     
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
-#if IS_THREAD_SESSIONMGR
     if (didRemove) {
         @try {
         [moc reset];
@@ -735,20 +730,15 @@ __private_extern__ NSThread *mainThread;
         }
         [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
-#endif
 }
 
 - (void)processSongPlays:(NSArray*)queue
 {
     NSManagedObjectContext *moc;
-#if IS_THREAD_SESSIONMGR
     ISASSERT(mainThread && (mainThread != [NSThread currentThread]), "wrong thread!");
     
     moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing thread MOC!");
-#else
-    moc = [[PersistentProfile sharedInstance] mainMOC];
-#endif
     
     [[PersistentProfile sharedInstance] setImportInProgress:YES];
     
@@ -773,14 +763,12 @@ __private_extern__ NSThread *mainThread;
     [[PersistentProfile sharedInstance] setImportInProgress:NO];
     (void)[[PersistentProfile sharedInstance] save:moc];
     [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(addSongPlaysDidFinish:) withObject:nil waitUntilDone:NO];
-#if IS_THREAD_SESSIONMGR
     // Turn the added songs into faults as we probably won't need them anytime soon
     // (we may need the artist/album/session objects though). This should save on some memory.
     en = [addedSongs objectEnumerator];
     while ((moSong = [en nextObject])) {
         [[moSong managedObjectContext] refreshObject:moSong mergeChanges:NO];
     }
-#endif
 }
 
 - (ISThreadMessenger*)threadMessenger

@@ -28,13 +28,9 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 #define PERSISTENT_STORE_DB \
 [@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]
 
-#define IS_THREAD_IMPORT 1
-
-#if IS_THREAD_SESSIONMGR
 #import "ISThreadMessenger.h"
 #ifdef ISDEBUG
 __private_extern__ NSThread *mainThread = nil;
-#endif
 #endif
 
 @interface NSManagedObject (ISProfileAdditions)
@@ -463,13 +459,8 @@ __private_extern__ NSThread *mainThread = nil;
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
         PersistentProfileImport *import = [[PersistentProfileImport alloc] init];
-    #if IS_THREAD_IMPORT
         [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:self];
         [import release];
-    #else
-        [import importiTunesDB:self];
-        // leak import, but for debugging it's OK
-    #endif
     }
     
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
@@ -522,7 +513,6 @@ __private_extern__ NSThread *mainThread = nil;
 
 @implementation PersistentProfile (SessionManagement)
 
-#if IS_THREAD_SESSIONMGR
 - (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object
 {
     ISASSERT(mainThread && (mainThread == [NSThread currentThread]), "wrong thread!");
@@ -533,11 +523,9 @@ __private_extern__ NSThread *mainThread = nil;
     [ISThreadMessenger makeTarget:[sessionMgr threadMessenger] performSelector:selector withObject:object];
     return (YES);
 }
-#endif
 
 - (void)pingSessionManager
 {
-#if IS_THREAD_SESSIONMGR
     static BOOL init = YES;
     if (init && ![self importInProgress]) {
         #ifdef ISDEBUG
@@ -548,22 +536,12 @@ __private_extern__ NSThread *mainThread = nil;
     } else if (![self importInProgress]) {
         (void)[self performSelectorOnSessionMgrThread:@selector(sessionManagerUpdate) withObject:nil];
     }
-#else
-    [sessionMgr updateLastfmSession:nil];
-    [sessionMgr updateSessions:nil];
-    [sessionMgr resetMain];
-#endif
 }
 
 - (BOOL)addSongPlaysToAllSessions:(NSArray*)queue
 {
-#if IS_THREAD_SESSIONMGR
     ISASSERT([sessionMgr threadMessenger] != nil, "nil send port!");
     return ([self performSelectorOnSessionMgrThread:@selector(processSongPlays:) withObject:[[queue copy] autorelease]]);
-#else
-    [sessionMgr processSongPlays:queue];
-    return (YES);
-#endif
 }
 
 - (PersistentSessionManager*)sessionManager

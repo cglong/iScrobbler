@@ -201,15 +201,11 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     profile = obj;
-#if IS_THREAD_IMPORT
     moc = [[NSManagedObjectContext alloc] init];
     [moc setPersistentStoreCoordinator:[[profile valueForKey:@"mainMOC"] persistentStoreCoordinator]];
     [moc setUndoManager:nil];
     double pri = [NSThread threadPriority];
     [NSThread setThreadPriority:pri - (pri * 0.20)];
-#else
-    moc = [[profile valueForKey:@"mainMOC"] retain];
-#endif
     
     [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISWillImportiTunesLibrary" moc:moc];
     [profile setImportInProgress:YES];
@@ -331,9 +327,7 @@
     [profile performSelectorOnMainThread:@selector(importDidFinish:) withObject:nil waitUntilDone:NO];
     [pool release];
     
-#if IS_THREAD_IMPORT
     [NSThread exit];
-#endif
 }
 
 @end

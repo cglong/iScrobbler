@@ -10,7 +10,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-#define IS_THREAD_SESSIONMGR 1
 @class ISThreadMessenger;
 @class SongData;
 
