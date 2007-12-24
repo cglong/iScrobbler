@@ -264,6 +264,7 @@ static NSMutableArray *topHours = nil;
         #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         persistence = (PersistentProfile*)[[ISPluginController sharedInstance] loadCorePlugin:@"Persistence"];
         #else
+        persistence = (PersistentProfile*)[[ISPluginController sharedInstance] loadCorePlugin:@"TigerPersistence"];
         #endif
         
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
