@@ -158,7 +158,7 @@ __private_extern__ void ScrobLogTruncate(void)
     [scrobLogFile truncateFileAtOffset:UTF8_BOM_SIZE];
 }
 
-__private_extern__ void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
+void ISEXPORT ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
 {
     NSString *msg;
     va_list  args;
@@ -174,7 +174,7 @@ __private_extern__ void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
     [msg release];
 }
 
-__private_extern__ scrob_log_level_t ScrobLogLevel(void)
+scrob_log_level_t ISEXPORT ScrobLogLevel(void)
 {
     NSNumber *lev =  [string_to_scrob_level objectForKey:
 #ifndef ISDEBUG

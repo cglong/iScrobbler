@@ -19,10 +19,10 @@ enum {
 };
 typedef NSInteger scrob_log_level_t;
 
-__private_extern__ scrob_log_level_t ScrobLogLevel(void);
+extern scrob_log_level_t ScrobLogLevel(void);
 __private_extern__ void SetScrobLogLevel(scrob_log_level_t level);
 
-__private_extern__ void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
+extern void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
 #define ScrobLog(level, fmt, ...) do { \
     if (level <= ScrobLogLevel()) \
         ScrobLogMsg(level, fmt, ## __VA_ARGS__); \

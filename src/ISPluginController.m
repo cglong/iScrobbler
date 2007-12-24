@@ -100,8 +100,8 @@ static NSMutableArray *allPlugins = nil;
 
 - (id)loadCorePlugin:(NSString*)name
 {
-    name = [[[[[NSBundle mainBundle] builtInPlugInsPath] stringByDeletingLastPathComponent]
-        stringByAppendingPathComponent:@"Core Plugins"] stringByAppendingPathComponent:name];
+    name = [[[[[[NSBundle mainBundle] builtInPlugInsPath] stringByDeletingLastPathComponent]
+        stringByAppendingPathComponent:@"Core Plugins"] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"plugin"];
     
     id plug;
     if ((plug = [self loadPlugin:name])) {

@@ -50,7 +50,9 @@ return (
 #define LEOPARD_END }
 #endif
 
-#endif
+#endif // OBJC
+
+#define ISEXPORT __attribute__((visibility("default")))
 
 #if defined(__ppc__) || defined(__ppc64__)
 #define IS_BADADDR (void*)0xdeadbeefUL
