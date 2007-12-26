@@ -70,7 +70,13 @@ static NSMutableArray *topHours = nil;
 // singleton support
 + (BOOL)willCreateNewProfile
 {
-    return (NO);
+    // XXX this belongs in the persistence plugin, but it's here so we don't have to load the plugin to test
+    // whether a new profile will be created or not.
+    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    // while technically indicating a new profile, the last check is also true while an import is in progress
+    // and [iScrobblerController applicationShouldTerminate:] would break in this case.
+    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
 }
 
 + (TopListsController*)sharedInstance
@@ -268,7 +274,7 @@ static NSMutableArray *topHours = nil;
         #endif
         
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
-            && [persistence newProfile]) {
+            && [[self class] willCreateNewProfile]) {
             [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"New Local Charts", "") message:
                 NSLocalizedString(@"The local chart data used in previous versions is incompatible with this version. A new data store will be created.", "")];
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
@@ -451,7 +457,7 @@ static NSMutableArray *topHours = nil;
     [tb setAllowsUserCustomization:NO];
     [tb setAutosavesConfiguration:NO];
     #ifdef looksalittleweird
-    [tb setShowsBaselineSeparator:NO]; // 10.4 only, but ASXMLRPC won't load w/o it
+    [tb setShowsBaselineSeparator:NO];
     #endif
     
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:@"love"];

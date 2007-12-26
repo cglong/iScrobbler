@@ -46,3 +46,7 @@
 - (NSString*)stringByEscapingNSPredicateReserves;
 
 @end
+
+// Private, exposed only for TopListsController
+#define PERSISTENT_STORE_DB \
+[@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]

@@ -26,9 +26,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 (at the risk of data corruption if the machine crashes or loses power).
 **/
 
-#define PERSISTENT_STORE_DB \
-[@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]
-
 #ifdef ISDEBUG
 __private_extern__ NSThread *mainThread = nil;
 #endif
@@ -141,15 +138,6 @@ __private_extern__ NSThread *mainThread = nil;
 - (PersistentSessionManager*)sessionManager
 {
     return (sessionMgr);
-}
-
-- (BOOL)newProfile
-{
-    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    // while technically indicating a new profile, the last check is also true while an import is in progress
-    // and [iScrobblerController applicatinoShouldTerminate:] would break in this case.
-    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
 }
 
 - (BOOL)importInProgress
