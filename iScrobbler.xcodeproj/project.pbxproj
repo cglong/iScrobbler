@@ -212,7 +212,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D38835950D200A5D005B6D1D /* TigerPersistence */;
+			remoteGlobalIDString = D38835950D200A5D005B6D1D;
 			remoteInfo = TigerPersistence;
 		};
 		D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */ = {
