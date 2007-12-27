@@ -41,9 +41,9 @@ __private_extern__ NSThread *mainThread;
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive == NULL)", ITEM_SESSION]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *results = [moc executeFetchRequest:request error:&error];
@@ -68,9 +68,9 @@ __private_extern__ NSThread *mainThread;
     } else
         predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL)", ITEM_SESSION];
     [request setPredicate:predicate];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *results = [moc executeFetchRequest:request error:&error];
@@ -86,9 +86,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType = %@) AND (name == %@)",
         ITEM_SESSION, name]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -113,9 +113,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_ARTIST, [session valueForKey:@"name"]]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -127,9 +127,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_ALBUM, [session valueForKey:@"name"]]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -535,9 +535,9 @@ __private_extern__ NSThread *mainThread;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_SONG, sname]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     [request setSortDescriptors:
         [NSArray arrayWithObjects:
             [[[NSSortDescriptor alloc] initWithKey:@"item" ascending:NO] autorelease],

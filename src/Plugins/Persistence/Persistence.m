@@ -189,9 +189,9 @@ __private_extern__ NSThread *mainThread = nil;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_SONG, [session valueForKey:@"name"]]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -204,9 +204,9 @@ __private_extern__ NSThread *mainThread = nil;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_RATING_CCH, [session valueForKey:@"name"]]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -219,9 +219,9 @@ __private_extern__ NSThread *mainThread = nil;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
             ITEM_HOUR_CCH, [session valueForKey:@"name"]]];
-    LEOPARD_BEGIN
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
+    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -516,7 +516,7 @@ static PersistentProfile *shared = nil;
 
 - (NSString*)description
 {
-    return (NSLocalizedString(@"Temlate Plugin", ""));
+    return (NSLocalizedString(@"Persistence Plugin", ""));
 }
 
 - (void)applicationWillTerminate
