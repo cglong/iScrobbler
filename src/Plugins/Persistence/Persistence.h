@@ -28,7 +28,6 @@
 
 - (PersistentSessionManager*)sessionManager;
 
-- (BOOL)newProfile;
 - (BOOL)importInProgress;
 - (BOOL)initDatabase;
 
