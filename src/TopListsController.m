@@ -519,6 +519,17 @@ static NSMutableArray *topHours = nil;
     [toolbarItems setObject:item forKey:@"showloveban"];
     [item release];
     
+    item = [[NSToolbarItem alloc] initWithItemIdentifier:@"trackhistory"];
+    [item setLabel:NSLocalizedString(@"History", "")];
+    [item setToolTip:NSLocalizedString(@"Show track play history.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(showTrackHistory:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:kTBItemRequiresSelection|kTBItemNoMultipleSelection|kTBItemRequiresTrackSelection];
+    [toolbarItems setObject:item forKey:@"trackhistory"];
+    [item release];
+    
     [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
     [toolbarItems setObject:[NSNull null] forKey:NSToolbarFlexibleSpaceItemIdentifier];
     [toolbarItems setObject:[NSNull null] forKey:NSToolbarSpaceItemIdentifier];
@@ -764,6 +775,10 @@ exit:
     [[ISLoveBanListController sharedController] showWindow:[self window]];
 }
 
+- (IBAction)showTrackHistory:(id)sender
+{
+}
+
 // ASXMLRPC
 - (void)responseReceivedForRequest:(ASXMLRPC*)request
 {
@@ -847,6 +862,8 @@ exit:
 {
     return [NSArray arrayWithObjects:
         NSToolbarFlexibleSpaceItemIdentifier,
+        @"trackhistory",
+        NSToolbarSeparatorItemIdentifier,
         @"showloveban",
         NSToolbarSeparatorItemIdentifier,
         @"recommend",
