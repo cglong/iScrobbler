@@ -316,7 +316,6 @@
 		D376EE930CA9153E00C04863 /* ISStatusItemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItemView.m; sourceTree = "<group>"; };
 		D376FC690CAD00A000C04863 /* iScrobbler.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; path = iScrobbler.sdef; sourceTree = "<group>"; };
 		D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TigerPersistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
-		D38835B80D200A5D005B6D1D /* Persistence-Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Persistence-Info copy.plist"; sourceTree = "<group>"; };
 		D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISCrashReporter.h; path = src/ISCrashReporter.h; sourceTree = "<group>"; };
 		D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISCrashReporter.m; path = src/ISCrashReporter.m; sourceTree = "<group>"; };
 		D38EA3940CF5A65100126BC2 /* iTunesLastfmRadio.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesLastfmRadio.applescript; sourceTree = "<group>"; };
@@ -603,7 +602,6 @@
 				D37619A10CBA576000C04863 /* iTunesImport.m */,
 				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
 				D318A6C30D1FC534003068D5 /* Persistence-Info.plist */,
-				D38835B80D200A5D005B6D1D /* Persistence-Info copy.plist */,
 			);
 			name = Persistence;
 			path = src/Plugins/Persistence;
@@ -1571,7 +1569,7 @@
 				);
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info copy.plist";
+				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1592,7 +1590,7 @@
 				ARCHS = i386;
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info copy.plist";
+				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1616,7 +1614,7 @@
 				);
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info copy.plist";
+				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
