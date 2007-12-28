@@ -35,7 +35,7 @@ static PlayHistoryController *sharedController = nil;
 {
     NSUInteger style = NSTitledWindowMask|NSUtilityWindowMask|NSClosableWindowMask|NSResizableWindowMask;
     LEOPARD_BEGIN
-    // this does not affect the window subviews - how do we get HUD style controls?
+    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
     LEOPARD_END
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
@@ -43,7 +43,7 @@ static PlayHistoryController *sharedController = nil;
     if (0 == (style & NSHUDWindowMask))
         [w setAlphaValue:.85];
     
-    [w setReleasedWhenClosed:YES];
+    [w setReleasedWhenClosed:NO];
     [w setContentView:contentView];
     [w setMinSize:[contentView frame].size];
     
