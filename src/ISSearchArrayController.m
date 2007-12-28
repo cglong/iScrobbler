@@ -8,6 +8,7 @@
 //  Released under the GPL, license details available in res/gpl.txt
 //
 #import "ISSearchArrayController.h"
+#import "TopListsController.h"
 
 @interface NSTableView (ISPasteboardCopyAddition)
 - (void)copy:(id)sender;
@@ -86,7 +87,7 @@
     return (searchString && [searchString length]);
 }
 
-// requrend delegate methods (even with bindings)
+// required delegate methods (even with bindings)
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
 {
     return (0);
@@ -151,6 +152,12 @@
     dropOperation:(NSTableViewDropOperation)op
 {
     return (NO);
+}
+
+- (NSString *)tableView:(NSTableView *)tv toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tc row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation
+{
+    // forward it
+    return ([[TopListsController sharedInstance] tableView:tv toolTipForCell:cell rect:rect tableColumn:tc row:row mouseLocation:mouseLocation]);
 }
 
 @end

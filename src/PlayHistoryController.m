@@ -12,25 +12,45 @@
 #import "TopListsController.h"
 #import "Persistence.h"
 
+#define TABLE_ID 9999
+#define OKBUTTON_ID 10000
+
+static PlayHistoryController *sharedController = nil;
+
 @implementation PlayHistoryController
+
++ (PlayHistoryController*)sharedController
+{
+    return (sharedController);
+}
 
 - (id)init
 {
-    self = [super initWithWindowNibName:@"PlayHistory"];
+    ISASSERT(sharedController == nil, "sharedController active!");
+    sharedController = self = [super initWithWindowNibName:@"PlayHistory"];
     return (self);
 }
 
 - (void)awakeFromNib
 {
-    NSWindow *w = [[NSWindow alloc] initWithContentRect:[contentView frame]
-        styleMask:NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask
-        backing:NSBackingStoreBuffered defer:NO];
+    NSUInteger style = NSTitledWindowMask|NSUtilityWindowMask|NSClosableWindowMask|NSResizableWindowMask;
+    LEOPARD_BEGIN
+    // this does not affect the window subviews - how do we get HUD style controls?
+    style |= NSHUDWindowMask;
+    LEOPARD_END
+    NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
+    [w setHidesOnDeactivate:NO];
+    if (0 == (style & NSHUDWindowMask))
+        [w setAlphaValue:.85];
+    
     [w setReleasedWhenClosed:YES];
     [w setContentView:contentView];
     [w setMinSize:[contentView frame].size];
     
     [self setWindow:w];
+    [w setDelegate:self]; // setWindow: does not do this for us (why?)
     [w autorelease];
+    [self setWindowFrameAutosaveName:@"PlayHistory"];
     
     NSSortDescriptor *sort = [[NSSortDescriptor alloc] initWithKey:@"lastPlayed" ascending:NO];
     [historyController setSortDescriptors:[NSArray arrayWithObjects:sort, nil]];
@@ -48,33 +68,28 @@
 
 - (IBAction)showWindow:(id)sender
 {
-    if (sender)
-        [NSApp beginSheet:[self window] modalForWindow:sender modalDelegate:self didEndSelector:nil contextInfo:nil];
-    else
-        [super showWindow:nil];
-    
-}
-
-- (void)closeWindow
-{
-    if ([[self window] isSheet])
-        [NSApp endSheet:[self window]];
-    [[self window] close];
-    
-    [moc release];
-    moc = nil;
-    [self autorelease];
+    [super showWindow:nil];
 }
 
 - (IBAction)performClose:(id)sender
 {
-    [self closeWindow];
+    [[self window] close];
+}
+
+- (void)windowWillClose:(NSNotification*)note
+{
+    [moc release];
+    moc = nil;
+    
+    ISASSERT(sharedController == self, "sharedController does not match!");
+    sharedController = nil;
+    [self autorelease];
 }
 
 - (void)loadHistoryForTrack:(NSDictionary*)trackInfo
 {
-    [[self window] setTitle:[NSString stringWithFormat:@"%@ - %@",
-        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"]]];
+    [[self window] setTitle:[NSString stringWithFormat:@"%@ - %@ %@",
+        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")]];
     
     NSMutableArray *content = [NSMutableArray array];
     [historyController setContent:content];

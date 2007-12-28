@@ -311,7 +311,21 @@ static NSMutableArray *topHours = nil;
     @try {
     NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
     [artistDetails setArtist:artist];
+    
+    if ([[[tabView selectedTabViewItem] identifier] isEqualToString:@"Tracks"])
+        [[PlayHistoryController sharedController] loadHistoryForTrack:
+            [[topTracksController selectedObjects] objectAtIndex:0]];
     } @catch (id e) {}
+}
+
+- (NSString *)tableView:(NSTableView *)tv toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tc row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation
+{
+    if ([[[tabView selectedTabViewItem] identifier] isEqualToString:@"Tracks"]) {
+        NSArray *contents = [topTracksController arrangedObjects];
+        if (row >= 0 && row < [contents count])
+            [[PlayHistoryController sharedController] loadHistoryForTrack:[contents objectAtIndex:row]];
+    }
+    return (nil);
 }
 
 #if 0
@@ -369,6 +383,7 @@ static NSMutableArray *topHours = nil;
     //[rpcreqs removeAll];
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     [self hideDetails:nil];
+    [[PlayHistoryController sharedController] performClose:nil];
 }
 
 - (void)handleDoubleClick:(NSTableView*)sender
@@ -530,7 +545,7 @@ static NSMutableArray *topHours = nil;
     [item setTarget:self];
     [item setAction:@selector(showTrackHistory:)];
     // [item setImage:[NSImage imageNamed:@""]];
-    [item setTag:kTBItemRequiresSelection|kTBItemNoMultipleSelection|kTBItemRequiresTrackSelection];
+    [item setTag:0]; // kTBItemRequiresSelection|kTBItemNoMultipleSelection|kTBItemRequiresTrackSelection
     [toolbarItems setObject:item forKey:@"trackhistory"];
     [item release];
     
@@ -781,9 +796,13 @@ exit:
 
 - (IBAction)showTrackHistory:(id)sender
 {
-    PlayHistoryController *hc = [[PlayHistoryController alloc] init];
-    [hc showWindow:[self window]];
-    [hc loadHistoryForTrack:[[topTracksController selectedObjects] objectAtIndex:0]];
+    if (![PlayHistoryController sharedController]) {
+        PlayHistoryController *hc = [[PlayHistoryController alloc] init];
+        [hc showWindow:nil];
+        NSArray *selection;
+        if ((selection = [topTracksController selectedObjects]) && [selection count] > 0)
+            [hc loadHistoryForTrack:[selection objectAtIndex:0]];
+    }
 }
 
 // ASXMLRPC
