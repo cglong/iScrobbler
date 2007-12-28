@@ -23,6 +23,7 @@
 #import "ISRecommendController.h"
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
+#import "PlayHistoryController.h"
 #import "ISThreadMessenger.h"
 #import "ISPluginController.h"
 
@@ -780,6 +781,9 @@ exit:
 
 - (IBAction)showTrackHistory:(id)sender
 {
+    PlayHistoryController *hc = [[PlayHistoryController alloc] init];
+    [hc showWindow:[self window]];
+    [hc loadHistoryForTrack:[[topTracksController selectedObjects] objectAtIndex:0]];
 }
 
 // ASXMLRPC

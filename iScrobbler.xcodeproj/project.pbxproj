@@ -135,6 +135,8 @@
 		D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesControl.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3C3FBA80C9D95A3001AEFEA /* ASWebServices.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */; };
 		D3C3FBB70C9DACA6001AEFEA /* ISRadioController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */; };
+		D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */ = {isa = PBXBuildFile; fileRef = D3CA425D0D23FD71006CB485 /* PlayHistory.xib */; };
+		D3CA42640D23FDB4006CB485 /* PlayHistoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CA42630D23FDB4006CB485 /* PlayHistoryController.m */; };
 		D3D3945209BBF8D1004E215A /* ISArtistDetailsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D3945009BBF8D1004E215A /* ISArtistDetailsController.m */; };
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
@@ -358,6 +360,9 @@
 		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASWebServices.m; path = src/ASWebServices.m; sourceTree = "<group>"; };
 		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISRadioController.h; path = src/ISRadioController.h; sourceTree = "<group>"; };
 		D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISRadioController.m; path = src/ISRadioController.m; sourceTree = "<group>"; };
+		D3CA425E0D23FD71006CB485 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/PlayHistory.xib; sourceTree = "<group>"; };
+		D3CA42620D23FDB4006CB485 /* PlayHistoryController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayHistoryController.h; path = src/PlayHistoryController.h; sourceTree = "<group>"; };
+		D3CA42630D23FDB4006CB485 /* PlayHistoryController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayHistoryController.m; path = src/PlayHistoryController.m; sourceTree = "<group>"; };
 		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
 		D3CB1314077509D3009236FF /* StatisticsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = StatisticsController.m; sourceTree = "<group>"; };
 		D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iTunesGetPlaylists.applescript; sourceTree = "<group>"; };
@@ -551,6 +556,7 @@
 				D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */,
 				D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */,
 				D398FB3D0CDE016A008CB4C8 /* MainMenu.xib */,
+				D3CA425D0D23FD71006CB485 /* PlayHistory.xib */,
 				D398FB3F0CDE016A008CB4C8 /* Preferences.xib */,
 				D398FB410CDE016A008CB4C8 /* Recommend.xib */,
 				D398FB430CDE016A008CB4C8 /* StatisticsController.xib */,
@@ -672,6 +678,8 @@
 			children = (
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D3CA42630D23FDB4006CB485 /* PlayHistoryController.m */,
+				D3CA42620D23FDB4006CB485 /* PlayHistoryController.h */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
 				D3CB38A507A59AFE009236FF /* TopListsController.h */,
 				D30BB08F0CCB56D3005DCFA2 /* TopListsPersistenceAdaptor.m */,
@@ -937,6 +945,7 @@
 				D398FB4E0CDE016A008CB4C8 /* TopLists.xib in Resources */,
 				D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */,
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
+				D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1005,6 +1014,7 @@
 				D30BC00A0CCF650C005DCFA2 /* ASXMLFile.m in Sources */,
 				D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */,
 				D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */,
+				D3CA42640D23FDB4006CB485 /* PlayHistoryController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1223,6 +1233,14 @@
 				D3C1126D084565DF000AA2BC /* de */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		D3CA425D0D23FD71006CB485 /* PlayHistory.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3CA425E0D23FD71006CB485 /* English */,
+			);
+			name = PlayHistory.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
