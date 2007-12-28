@@ -678,6 +678,8 @@
 			children = (
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
+				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
+				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
 				D3CA42630D23FDB4006CB485 /* PlayHistoryController.m */,
 				D3CA42620D23FDB4006CB485 /* PlayHistoryController.h */,
 				D3CB38A607A59AFE009236FF /* TopListsController.m */,
@@ -699,8 +701,6 @@
 				D37605560CB18BF700C04863 /* ISPluginController.m */,
 				D37605550CB18BF700C04863 /* ISPluginController.h */,
 				D3C308F00CA3BCD3001AEFEA /* ISPrefix.h */,
-				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
-				D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */,
 				D3F4A4340CC4FF4B000DCBB6 /* ISThreadMessenger.m */,
 				D3F4A4300CC4FF2F000DCBB6 /* ISThreadMessenger.h */,
 				EB50662F03FBB284005DC01B /* keychain.h */,
