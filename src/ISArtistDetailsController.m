@@ -24,6 +24,30 @@ static NSImage *artistImgPlaceholder = nil;
 
 @implementation ISArtistDetailsController
 
+// we should inherit from NSWindowController, but for legacy reasons we don't
+- (NSWindow*)window
+{
+    return (window);
+}
+
+- (void)setWindow:(NSWindow*)w
+{
+    ISASSERT(window == nil, "window exists!");
+    window = [w retain];
+}
+
+- (IBAction)showWindow:(id)sender
+{
+    if (![window isVisible])
+        [window orderFront:sender];
+}
+
+- (void)setWindowFrameAutosaveName:(NSString*)string
+{
+    [window setFrameAutosaveName:string];
+}
+
+//
 - (ISArtistDetailsController*)initWithDelegate:(id)obj
 {
     [super init];
@@ -57,6 +81,7 @@ static NSImage *artistImgPlaceholder = nil;
         NSFont *font = [NSFont systemFontOfSize:[NSFont systemFontSize]];
         NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:
             font, NSFontAttributeName,
+            ([[self window] styleMask] & NSHUDWindowMask) ? [NSColor lightGrayColor] : nil, NSForegroundColorAttributeName,
             nil];
         NSAttributedString *topFan = [[[NSAttributedString alloc] initWithString:unk
             attributes:attrs] autorelease];
@@ -76,14 +101,58 @@ static NSImage *artistImgPlaceholder = nil;
     [artistController addObject:details];
 }
 
+- (NSColor*)textFieldColor
+{
+    #if 0
+    return (([[self window] styleMask] & NSHUDWindowMask) ? [NSColor grayColor] : [NSColor blackColor]);
+    #endif
+    // window may not be set when the binding calls us
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    return ([NSColor grayColor]);
+    #else
+    return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor grayColor] : [NSColor blackColor]);
+    #endif
+    
+}
+
+- (void)setViewTextAttributes:(NSView*)v
+{
+    NSEnumerator *en = [[v subviews] objectEnumerator];
+    while ((v = [en nextObject])) {
+        if ([v respondsToSelector:@selector(setLinkTextAttributes:)])
+            [v performSelector:@selector(setLinkTextAttributes:) withObject:nil];
+        else if ([v subviews] != nil)
+            [self setViewTextAttributes:v];
+    }
+}
+
 - (void)awakeFromNib
 {
     if (nil ==  artistImgPlaceholder) {
         artistImgPlaceholder = [[NSImage imageNamed:@"no_artist"] retain];
     }
     
-    [detailsDrawer setParentWindow:[delegate window]];
-    [detailsDrawer setDelegate:self];
+    NSUInteger style = NSTitledWindowMask|NSUtilityWindowMask|NSClosableWindowMask|NSResizableWindowMask;
+    LEOPARD_BEGIN
+    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
+    style |= NSHUDWindowMask;
+    LEOPARD_END
+    
+    NSWindow *w = [[NSPanel alloc] initWithContentRect:[[detailsDrawer contentView] frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
+    [w setHidesOnDeactivate:NO];
+    if (0 == (style & NSHUDWindowMask))
+        [w setAlphaValue:.85];
+    
+    [w setReleasedWhenClosed:NO];
+    [w setContentView:[detailsDrawer contentView]];
+    [w setMinSize:[[w contentView] frame].size];
+    
+    [self setWindow:w];
+    [w setDelegate:self]; // setWindow: does not do this for us (why?)
+    [w autorelease];
+    [self setWindowFrameAutosaveName:@"ArtistDetails"];
+    
+    [self setViewTextAttributes:[detailsDrawer contentView]];
     
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
     
@@ -109,14 +178,13 @@ static NSImage *artistImgPlaceholder = nil;
 
 - (IBAction)openDetails:(id)sender
 {
-    [detailsDrawer open];
+    [self showWindow:nil];
     [self setValue:[NSNumber numberWithBool:YES] forKey:@"detailsOpen"];
-
 }
 
 - (IBAction)closeDetails:(id)sender
 {
-    [detailsDrawer close];
+    [[self window] close];
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
 }
 
@@ -199,6 +267,10 @@ static NSImage *artistImgPlaceholder = nil;
     if (!all || [all count] <= 0)
         return;
     
+    NSColor *linkColor = ([[self window] styleMask] & NSHUDWindowMask) ? [NSColor lightGrayColor] : [NSColor blueColor];
+    NSCursor *pointingHand = [NSCursor pointingHandCursor];
+    NSNumber *showUnderline = [NSNumber numberWithInt:NSUnderlineStyleSingle];
+    
     NSAttributedString *comma = [[[NSAttributedString alloc] initWithString:@", "] autorelease];
     NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
         [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
@@ -220,9 +292,9 @@ static NSImage *artistImgPlaceholder = nil;
                     tmp = [[[NSMutableAttributedString alloc] initWithString:user attributes:
                         [NSDictionary dictionaryWithObjectsAndKeys:
                             url, NSLinkAttributeName,
-                            [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
-                            [NSColor blueColor], NSForegroundColorAttributeName,
-                            [NSCursor pointingHandCursor], NSCursorAttributeName,
+                            showUnderline, NSUnderlineStyleAttributeName,
+                            linkColor, NSForegroundColorAttributeName,
+                            pointingHand, NSCursorAttributeName,
                         nil]] autorelease];
                 }
             } else
@@ -379,6 +451,9 @@ static NSImage *artistImgPlaceholder = nil;
         NSXMLElement *e;
         NSMutableAttributedString *value = nil;
         NSAttributedString *comma = [[[NSAttributedString alloc] initWithString:@", "] autorelease];
+        NSColor *linkColor = ([[self window] styleMask] & NSHUDWindowMask) ? [NSColor lightGrayColor] : [NSColor blueColor];
+        NSCursor *pointingHand = [NSCursor pointingHandCursor];
+        NSNumber *showUnderline = [NSNumber numberWithInt:NSUnderlineStyleSingle];
         
         while ((e = [en nextObject])) {
             if ((tagName = [[e attributeForName:@"name"] stringValue])
@@ -394,9 +469,9 @@ static NSImage *artistImgPlaceholder = nil;
                     NSMutableAttributedString *tmp = [[[NSMutableAttributedString alloc] initWithString:tagName attributes:
                         [NSDictionary dictionaryWithObjectsAndKeys:
                             url, NSLinkAttributeName,
-                            [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
-                            [NSColor blueColor], NSForegroundColorAttributeName,
-                            [NSCursor pointingHandCursor], NSCursorAttributeName,
+                            showUnderline, NSUnderlineStyleAttributeName,
+                            linkColor, NSForegroundColorAttributeName,
+                            pointingHand, NSCursorAttributeName,
                         nil]] autorelease];
                     if (!value)
                         value = tmp;
@@ -465,9 +540,12 @@ static NSImage *artistImgPlaceholder = nil;
     [self cancelDetails]; // increments delayedLoadSeed
     ScrobDebug(@"%@: load", artist);
     
+    [[self window] setTitle:artist];
+    
     NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
     [style setAlignment:NSCenterTextAlignment];
     [style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+    NSColor *linkColor = ([[self window] styleMask] & NSHUDWindowMask) ? [NSColor lightGrayColor] : [NSColor blueColor];
     
     NSURL *url = [[NSApp delegate] audioScrobblerURLWithArtist:artist trackTitle:nil];
     NSFont *font = [[artistController selection] valueForKey:@"Font"];
@@ -475,8 +553,8 @@ static NSImage *artistImgPlaceholder = nil;
         style, NSParagraphStyleAttributeName,
         // If url is nil, style will be the only pair in the dict
         url, NSLinkAttributeName,
-        [NSNumber numberWithInt:1], NSUnderlineStyleAttributeName,
-        [NSColor blueColor], NSForegroundColorAttributeName,
+        [NSNumber numberWithInt:NSUnderlineStyleSingle], NSUnderlineStyleAttributeName,
+        linkColor, NSForegroundColorAttributeName,
         font, NSFontAttributeName,
         [NSCursor pointingHandCursor], NSCursorAttributeName,
         nil];
@@ -568,12 +646,13 @@ static NSImage *artistImgPlaceholder = nil;
 
 - (void)setArtist:(NSString*)artist
 {
-    if (!artist || NO == [artist isKindOfClass:[NSString class]]
+    if (![[self window] isVisible] || !artist || NO == [artist isKindOfClass:[NSString class]]
         // Assume it's some kind of place holder indicating no selection, multiple selection, etc
         || NO == [[ProtocolManager sharedInstance] isNetworkAvailable]
         || NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Artist Detail"]) {
+        #ifdef obsolete
         [self closeDetails:nil];
-        //[self cancelDetails];
+        #endif
         return;
     }
     
@@ -593,6 +672,7 @@ static NSImage *artistImgPlaceholder = nil;
     }
 }
 
+#ifdef obsolete
 - (BOOL)drawerShouldOpen:(NSDrawer*)sender
 {
     return (YES);
@@ -612,6 +692,7 @@ static NSImage *artistImgPlaceholder = nil;
         contentSize.height = minSize.height;
     return (contentSize);
 }
+#endif
 
 - (void)dealloc
 {

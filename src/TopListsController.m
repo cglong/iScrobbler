@@ -337,8 +337,22 @@ static NSMutableArray *topHours = nil;
 
 - (IBAction)hideDetails:(id)sender
 {
+#ifdef obsolete
     [topArtistsTable deselectAll:nil];
     [topTracksTable deselectAll:nil];
+#endif
+    [artistDetails closeDetails:nil];
+}
+
+- (IBAction)showArtistDetails:(id)sender
+{
+    [artistDetails performSelector:@selector(showWindow:) withObject:sender];
+    NSArray *selection;
+    if ((selection = [topTracksController selectedObjects]) && [selection count] > 0) {
+        NSTabViewItem *activeTab = [tabView selectedTabViewItem];
+        NSArrayController *data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+        [artistDetails setArtist:[data valueForKeyPath:@"selection.Artist"]];
+    }
 }
 
 - (void)loadDetails
@@ -540,13 +554,24 @@ static NSMutableArray *topHours = nil;
     
     item = [[NSToolbarItem alloc] initWithItemIdentifier:@"trackhistory"];
     [item setLabel:NSLocalizedString(@"History", "")];
-    [item setToolTip:NSLocalizedString(@"Show track play history.", "")];
+    [item setToolTip:NSLocalizedString(@"Display track play history.", "")];
     [item setPaletteLabel:[item label]];
     [item setTarget:self];
     [item setAction:@selector(showTrackHistory:)];
     // [item setImage:[NSImage imageNamed:@""]];
     [item setTag:0]; // kTBItemRequiresSelection|kTBItemNoMultipleSelection|kTBItemRequiresTrackSelection
     [toolbarItems setObject:item forKey:@"trackhistory"];
+    [item release];
+    
+    item = [[NSToolbarItem alloc] initWithItemIdentifier:@"artistdetails"];
+    [item setLabel:NSLocalizedString(@"Artist Details", "")];
+    [item setToolTip:NSLocalizedString(@"Display detailed artist information.", "")];
+    [item setPaletteLabel:[item label]];
+    [item setTarget:self];
+    [item setAction:@selector(showArtistDetails:)];
+    // [item setImage:[NSImage imageNamed:@""]];
+    [item setTag:0]; // kTBItemRequiresSelection|kTBItemNoMultipleSelection|kTBItemRequiresTrackSelection
+    [toolbarItems setObject:item forKey:@"artistdetails"];
     [item release];
     
     [toolbarItems setObject:[NSNull null] forKey:NSToolbarSeparatorItemIdentifier];
@@ -888,6 +913,7 @@ exit:
 {
     return [NSArray arrayWithObjects:
         NSToolbarFlexibleSpaceItemIdentifier,
+        @"artistdetails",
         @"trackhistory",
         NSToolbarSeparatorItemIdentifier,
         @"showloveban",
@@ -906,13 +932,16 @@ exit:
     NSTabViewItem *activeTab;
     id data;
     
+    NSInteger flags = [item tag];
+    if (0 == flags)
+        return (YES);
+    
     @try {
     activeTab = [tabView selectedTabViewItem];
     data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
     } @catch (id e) {
         return (NO);
     }
-    NSInteger flags = [item tag];
     if ((flags & kTBItemDisabledForFeedback))
         return (NO);
     

@@ -18,6 +18,7 @@
     IBOutlet NSProgressIndicator *detailsProgress;
     IBOutlet NSImageView *artistImage;
     IBOutlet NSTableView *similarArtistsTable;
+    NSWindow *window;
     
     ASXMLFile *detailsProfile, *detailsTopArtists,
         *detailsTopFans, *detailsSimArtists, *detailsArtistTags;
