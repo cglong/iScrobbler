@@ -80,7 +80,6 @@
 		D3191CB907E3A51700821D03 /* QueueManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EB560735548F00A2CFD5 /* QueueManager.m */; };
 		D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D312EDA007359DE000A2CFD5 /* ProtocolManager.m */; };
 		D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B61DF30744151D00AF5A33 /* ScrobLog.m */; };
-		D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB1314077509D3009236FF /* StatisticsController.m */; };
 		D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3CB38A607A59AFE009236FF /* TopListsController.m */; };
 		D3191CBF07E3A51700821D03 /* ISSearchArrayController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */; };
 		D3191CC107E3A51700821D03 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -120,7 +119,6 @@
 		D398FB4A0CDE016A008CB4C8 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB3D0CDE016A008CB4C8 /* MainMenu.xib */; };
 		D398FB4B0CDE016A008CB4C8 /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB3F0CDE016A008CB4C8 /* Preferences.xib */; };
 		D398FB4C0CDE016A008CB4C8 /* Recommend.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB410CDE016A008CB4C8 /* Recommend.xib */; };
-		D398FB4D0CDE016A008CB4C8 /* StatisticsController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB430CDE016A008CB4C8 /* StatisticsController.xib */; };
 		D398FB4E0CDE016A008CB4C8 /* TopLists.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB450CDE016A008CB4C8 /* TopLists.xib */; };
 		D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */; };
 		D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB520CDE01E5008CB4C8 /* Tag.xib */; };
@@ -337,7 +335,6 @@
 		D398FB3E0CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		D398FB400CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Preferences.xib; sourceTree = "<group>"; };
 		D398FB420CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Recommend.xib; sourceTree = "<group>"; };
-		D398FB440CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/StatisticsController.xib; sourceTree = "<group>"; };
 		D398FB460CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/TopLists.xib; sourceTree = "<group>"; };
 		D398FB500CDE01C0008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/LoveBanList.xib; sourceTree = "<group>"; };
 		D398FB530CDE01E5008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Tag.xib; sourceTree = "<group>"; };
@@ -363,8 +360,6 @@
 		D3CA425E0D23FD71006CB485 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/PlayHistory.xib; sourceTree = "<group>"; };
 		D3CA42620D23FDB4006CB485 /* PlayHistoryController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayHistoryController.h; path = src/PlayHistoryController.h; sourceTree = "<group>"; };
 		D3CA42630D23FDB4006CB485 /* PlayHistoryController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayHistoryController.m; path = src/PlayHistoryController.m; sourceTree = "<group>"; };
-		D3CB1313077509D3009236FF /* StatisticsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StatisticsController.h; sourceTree = "<group>"; };
-		D3CB1314077509D3009236FF /* StatisticsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = StatisticsController.m; sourceTree = "<group>"; };
 		D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.applescript; path = iTunesGetPlaylists.applescript; sourceTree = "<group>"; };
 		D3CB38A507A59AFE009236FF /* TopListsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TopListsController.h; path = src/TopListsController.h; sourceTree = "<group>"; };
 		D3CB38A607A59AFE009236FF /* TopListsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = TopListsController.m; path = src/TopListsController.m; sourceTree = "<group>"; };
@@ -476,8 +471,6 @@
 				F575CEAB02FF7F3501A80164 /* PreferenceController.h */,
 				EB607519042A747B005DC01B /* SongData.m */,
 				EB607518042A747B005DC01B /* SongData.h */,
-				D3CB1314077509D3009236FF /* StatisticsController.m */,
-				D3CB1313077509D3009236FF /* StatisticsController.h */,
 			);
 			name = iScrobbler;
 			path = src;
@@ -559,7 +552,6 @@
 				D3CA425D0D23FD71006CB485 /* PlayHistory.xib */,
 				D398FB3F0CDE016A008CB4C8 /* Preferences.xib */,
 				D398FB410CDE016A008CB4C8 /* Recommend.xib */,
-				D398FB430CDE016A008CB4C8 /* StatisticsController.xib */,
 				D398FB520CDE01E5008CB4C8 /* Tag.xib */,
 				D398FB450CDE016A008CB4C8 /* TopLists.xib */,
 				D376FC690CAD00A000C04863 /* iScrobbler.sdef */,
@@ -941,7 +933,6 @@
 				D398FB4A0CDE016A008CB4C8 /* MainMenu.xib in Resources */,
 				D398FB4B0CDE016A008CB4C8 /* Preferences.xib in Resources */,
 				D398FB4C0CDE016A008CB4C8 /* Recommend.xib in Resources */,
-				D398FB4D0CDE016A008CB4C8 /* StatisticsController.xib in Resources */,
 				D398FB4E0CDE016A008CB4C8 /* TopLists.xib in Resources */,
 				D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */,
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
@@ -987,7 +978,6 @@
 				D3191CB907E3A51700821D03 /* QueueManager.m in Sources */,
 				D3191CBA07E3A51700821D03 /* ProtocolManager.m in Sources */,
 				D3191CBC07E3A51700821D03 /* ScrobLog.m in Sources */,
-				D3191CBD07E3A51700821D03 /* StatisticsController.m in Sources */,
 				D3191CBE07E3A51700821D03 /* TopListsController.m in Sources */,
 				D3191CBF07E3A51700821D03 /* ISSearchArrayController.m in Sources */,
 				D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */,
@@ -1193,14 +1183,6 @@
 				D398FB420CDE016A008CB4C8 /* English */,
 			);
 			name = Recommend.xib;
-			sourceTree = "<group>";
-		};
-		D398FB430CDE016A008CB4C8 /* StatisticsController.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D398FB440CDE016A008CB4C8 /* English */,
-			);
-			name = StatisticsController.xib;
 			sourceTree = "<group>";
 		};
 		D398FB450CDE016A008CB4C8 /* TopLists.xib */ = {

@@ -76,7 +76,6 @@
 -(IBAction)openScrobblerHomepage:(id)sender;
 -(IBAction)openUserHomepage:(id)sender;
 
--(IBAction)openStatistics:(id)sender;
 -(IBAction)openTopLists:(id)sender;
 
 -(IBAction)performFindPanelAction:(id)sender;

@@ -21,7 +21,6 @@
 #import "QueueManager.h"
 #import "ProtocolManager.h"
 #import "ScrobLog.h"
-#import "StatisticsController.h"
 #import "TopListsController.h"
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
@@ -1074,9 +1073,6 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    if ([ud boolForKey:OPEN_STATS_WINDOW_AT_LAUNCH]) {
-        [self openStatistics:nil];
-    }
     if ([ud boolForKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH] && isTopListsActive) {
         [self openTopLists:nil];
     }
@@ -1357,12 +1353,6 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     NSString *prefix = @"http://www.last.fm/user/";
     NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
     [[NSWorkspace sharedWorkspace] openURL:url];
-}
-
-- (IBAction)openStatistics:(id)sender
-{
-    [NSApp activateIgnoringOtherApps:YES];
-    [[StatisticsController sharedInstance] showWindow:sender];
 }
 
 - (IBAction)openTopLists:(id)sender
