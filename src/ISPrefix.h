@@ -50,6 +50,8 @@ return (
 #define LEOPARD_END }
 #endif
 
+#define IS_UTIL_WINDOW_ALPHA 0.85
+
 #endif // OBJC
 
 #define ISEXPORT __attribute__((visibility("default")))

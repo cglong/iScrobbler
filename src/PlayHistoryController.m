@@ -41,7 +41,7 @@ static PlayHistoryController *sharedController = nil;
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     if (0 == (style & NSHUDWindowMask))
-        [w setAlphaValue:.85];
+        [w setAlphaValue:IS_UTIL_WINDOW_ALPHA];
     
     [w setReleasedWhenClosed:NO];
     [w setContentView:contentView];
