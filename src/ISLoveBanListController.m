@@ -235,6 +235,11 @@
     }
 }
 
+- (void)windowDidLoad
+{
+    [[self window] setAlphaValue:IS_UTIL_WINDOW_ALPHA];
+}
+
 - (id)init
 {
     return ((self = [super initWithWindowNibName:@"LoveBanList"]));

@@ -149,6 +149,11 @@
     conn = [[ASXMLFile xmlFileWithURL:[NSURL URLWithString:url] delegate:self cachedForSeconds:600] retain];
 }
 
+- (void)windowDidLoad
+{
+    [[self window] setAlphaValue:IS_UTIL_WINDOW_ALPHA];
+}
+
 - (void)setArtistEnabled:(BOOL)enabled
 {
     artistEnabled = enabled;

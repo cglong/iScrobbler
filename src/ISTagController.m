@@ -206,6 +206,11 @@
     userConn = [[ASXMLFile xmlFileWithURL:[ASWebServices currentUserTagsURL] delegate:self cachedForSeconds:TAG_CACHE_TTL] retain];
 }
 
+- (void)windowDidLoad
+{
+    [[self window] setAlphaValue:IS_UTIL_WINDOW_ALPHA];
+}
+
 - (void)setArtistEnabled:(BOOL)enabled
 {
     artistEnabled = enabled;
