@@ -812,11 +812,10 @@ exitHistory:
     if (spec)
         return (spec);
     
-    //spec = [[NSPropertySpecifier alloc]
-    spec = [[NSUniqueIDSpecifier alloc]
+    // for Leopard compat we must use NSPropertySpecifier and not NSUniqueIDSpecifier
+    spec = [[NSPropertySpecifier alloc]
         initWithContainerClassDescription:(NSScriptClassDescription *)[NSApp classDescription]
-        containerSpecifier:nil key:@"radioController"
-        uniqueID:AS_RADIO_UUID];
+        containerSpecifier:nil key:@"radioController"];
     return (spec);
 }
 
