@@ -48,7 +48,7 @@ static NSImage *artistImgPlaceholder = nil;
 }
 
 //
-- (ISArtistDetailsController*)initWithDelegate:(id)obj
+- (ISArtistDetailsController*)initWithDelegate:(id)obj withSongDetails:(BOOL)_songDetails
 {
     [super init];
     delegate = obj;
@@ -66,13 +66,21 @@ static NSImage *artistImgPlaceholder = nil;
         return (nil);
     }
     
+    songDetails = _songDetails;
     return (self);
 }
 
 + (ISArtistDetailsController*)artistDetailsWithDelegate:(id)obj
 {
-    return ([[[ISArtistDetailsController alloc] initWithDelegate:obj] autorelease]);
+    return ([[[ISArtistDetailsController alloc] initWithDelegate:obj withSongDetails:NO] autorelease]);
 }
+
+#ifdef notyet
++ (ISArtistDetailsController*)songDetailsWithDelegate:(id)obj
+{
+    return ([[[ISArtistDetailsController alloc] initWithDelegate:obj withSongDetails:YES] autorelease]);
+}
+#endif
 
 - (void)setDetails:(NSMutableDictionary*)details
 {
@@ -141,7 +149,7 @@ static NSImage *artistImgPlaceholder = nil;
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[[detailsDrawer contentView] frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     if (0 == (style & NSHUDWindowMask))
-        [w setAlphaValue:.85];
+        [w setAlphaValue:IS_UTIL_WINDOW_ALPHA];
     
     [w setReleasedWhenClosed:NO];
     [w setContentView:[detailsDrawer contentView]];
@@ -659,6 +667,18 @@ static NSImage *artistImgPlaceholder = nil;
     [self loadDetails:artist];
     [self openDetails:nil];
 }
+
+#ifdef notyet
+- (void)setSong:(SongData*)song
+{
+    if ([[self window] isVisible] && song) {
+        
+        [self loadDetails:[song artist]];
+        [self openDetails:nil];
+    } else if (!song)
+        [self closeDetails:nil];
+}
+#endif
 
 - (void)handleSimilarDoubleClick:(NSTableView*)sender
 {

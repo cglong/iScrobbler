@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 3/5/06.
-//  Copyright 2006 Brian Bergstrand.
+//  Copyright 2006,2007 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -30,15 +30,21 @@
     int requestCacheSeconds;
     unsigned delayedLoadSeed;
     id delegate;
-    BOOL detailsOpen;
+    BOOL detailsOpen, songDetails;
 }
 
 + (ISArtistDetailsController*)artistDetailsWithDelegate:(id)obj;
+#ifdef notyet
++ (ISArtistDetailsController*)songDetailsWithDelegate:(id)obj;
+#endif
 
 - (IBAction)openDetails:(id)sender;
 - (IBAction)closeDetails:(id)sender;
 
 - (void)setArtist:(NSString*)artist;
+#ifdef notyet
+- (void)setSong:(SongData*)song;
+#endif
 
 @end
 
