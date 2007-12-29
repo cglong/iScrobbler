@@ -26,6 +26,11 @@
 - (NSInteger)integerValue; // this could be added at some point to 10.5.x or 10.6
 @end
 
+@interface NSWindow (ISAdditions)
+- (void)ISfadeOutAndClose;
+#define fadeOutAndClose ISfadeOutAndClose
+@end
+
 NS_INLINE NSString* ISCPUArchitectureString() {
 return (
 #ifdef __ppc__

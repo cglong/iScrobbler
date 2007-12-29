@@ -2383,6 +2383,29 @@ resolvePath:
 
 @end
 
+@implementation NSWindow (ISAdditions)
+- (void)ISFadeOut:(NSTimer*)timer
+{
+    CGFloat alpha = [self alphaValue];
+    if (alpha > 0.0) {
+        alpha -= 0.20;
+        [self setAlphaValue:alpha > 0.0 ? alpha : 0.0];
+    } else {
+        alpha = [[timer userInfo] doubleValue];
+        [timer invalidate];
+        [self close];
+        [self setAlphaValue:alpha]; // restore original alpha
+    }
+}
+
+- (void)fadeOutAndClose
+{
+    [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(ISFadeOut:)
+        userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES];
+}
+
+@end
+
 #if 0
 @implementation NSScriptCommand (ISExtensions)
 

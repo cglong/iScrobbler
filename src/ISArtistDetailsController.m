@@ -692,6 +692,12 @@ static NSImage *artistImgPlaceholder = nil;
     }
 }
 
+- (BOOL)windowShouldClose:(NSNotification*)note
+{
+    [[self window] fadeOutAndClose];
+    return (NO);
+}
+
 #ifdef obsolete
 - (BOOL)drawerShouldOpen:(NSDrawer*)sender
 {
