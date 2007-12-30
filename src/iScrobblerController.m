@@ -32,6 +32,7 @@
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
 #import "ISRadioController.h"
+#import "ISArtistDetailsController.h"
 #import "ISStatusItem.h"
 #import "ISPluginController.h"
 #import "Persistence.h"
@@ -57,6 +58,7 @@ static NSDistantObject<ISProxyProtocol> *sProxy = nil;
 #endif
 
 static NSString *playerLibUUID = nil;
+static ISArtistDetailsController *npDetails = nil;
 
 #import "NSWorkspace+ISAdditions.m"
 
@@ -437,6 +439,7 @@ if (currentSong) { \
         } else {
             isStopped = YES;
             ReleaseCurrentSong();
+            [npDetails setArtist:nil]; // clear data
         }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
@@ -593,6 +596,7 @@ if (currentSong) { \
         
         ReleaseCurrentSong();
         currentSong = song;
+        [npDetails setArtist:[currentSong artist]];
         song = nil; // Make sure it's not released
         
         [self updateMenu];
@@ -946,6 +950,14 @@ player_info_exit:
     [item release];
     
     [songActionMenu addItem:[NSMenuItem separatorItem]];
+    
+    item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Artist Details", "")
+        action:@selector(showTrackDetails:) keyEquivalent:@""];
+    [item setTarget:self];
+    [item setTag:MACTION_OPEN_TRACK_DETAILS];
+    [item setEnabled:YES];
+    [songActionMenu addItem:item];
+    [item release];
     
     item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Last.fm Artist Page", "")
         action:@selector(openTrackURL:) keyEquivalent:@""];
@@ -1619,6 +1631,20 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 }
 
 // Track menu actions
+- (IBAction)showTrackDetails:(id)sender
+{
+    SongData *song = [sender representedObject];
+    if (!song)
+        return;
+    
+    if (!npDetails) {
+        npDetails = [[ISArtistDetailsController artistDetailsWithDelegate:self] retain];
+    }
+   
+   [npDetails performSelector:@selector(showWindow:) withObject:sender];
+   [npDetails setArtist:[song artist]];
+}
+
 - (IBAction)openTrackURL:(id)sender
 {
     SongData *song = [sender representedObject];
@@ -1879,9 +1905,20 @@ exit:
     [request autorelease];
 }
 
+// Artist Details delegate
+- (NSString*)detailsFrameSaveName
+{
+    return (@"Now Playing Details");
+}
+
+- (NSString*)detailsWindowTitlePrefix
+{
+    return (NSLocalizedString(@"Now Playing", ""));
+}
+
 - (void)iPodSyncBegin:(NSNotification*)note
 {
-
+    
 }
 
 - (void)iPodSyncEnd:(NSNotification*)note
