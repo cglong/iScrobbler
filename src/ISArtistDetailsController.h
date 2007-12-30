@@ -50,6 +50,7 @@
 
 @interface ISArtistDetailsController (ISDetailsDelegate)
 
-- (NSWindow*)window; // must respond
+- (NSString*)detailsFrameSaveName; //must respond
+- (NSString*)detailsWindowTitlePrefix; // optional
 
 @end

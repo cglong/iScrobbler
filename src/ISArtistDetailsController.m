@@ -82,6 +82,14 @@ static NSImage *artistImgPlaceholder = nil;
 }
 #endif
 
+- (void)setWindowTitle:(NSString*)title
+{
+    if ([delegate respondsToSelector:@selector(detailsWindowTitlePrefix)])
+        title = [NSString stringWithFormat:@"%@: %@", [delegate detailsWindowTitlePrefix], title];
+
+    [[self window] setTitle:title];
+}
+
 - (void)setDetails:(NSMutableDictionary*)details
 {
     if (!details) {
@@ -105,6 +113,7 @@ static NSImage *artistImgPlaceholder = nil;
         if ([[similarArtistsController content] count])
             [similarArtistsController removeObjects:[similarArtistsController content]];
         [artistImage setImage:artistImgPlaceholder];
+        [self setWindowTitle:unk];
     }
     [artistController addObject:details];
 }
@@ -158,7 +167,7 @@ static NSImage *artistImgPlaceholder = nil;
     [self setWindow:w];
     [w setDelegate:self]; // setWindow: does not do this for us (why?)
     [w autorelease];
-    [self setWindowFrameAutosaveName:@"ArtistDetails"];
+    [self setWindowFrameAutosaveName:[delegate detailsFrameSaveName]];
     
     [self setViewTextAttributes:[detailsDrawer contentView]];
     
@@ -174,7 +183,7 @@ static NSImage *artistImgPlaceholder = nil;
     [[similarArtistsTable tableColumnWithIdentifier:@"Rank"] setDataCell:obj];
     [obj setEnabled:NO];
     [obj release];
-    [similarArtistsTable setAutosaveName:[[delegate windowFrameAutosaveName] stringByAppendingString:@"Artist Details"]];
+    [similarArtistsTable setAutosaveName:[[delegate detailsFrameSaveName] stringByAppendingString:@"Artist Details"]];
     
     LEOPARD_BEGIN
     [artistImage setWantsLayer:YES];
@@ -548,7 +557,7 @@ static NSImage *artistImgPlaceholder = nil;
     [self cancelDetails]; // increments delayedLoadSeed
     ScrobDebug(@"%@: load", artist);
     
-    [[self window] setTitle:artist];
+    [self setWindowTitle:artist];
     
     NSMutableParagraphStyle *style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
     [style setAlignment:NSCenterTextAlignment];
@@ -658,9 +667,7 @@ static NSImage *artistImgPlaceholder = nil;
         // Assume it's some kind of place holder indicating no selection, multiple selection, etc
         || NO == [[ProtocolManager sharedInstance] isNetworkAvailable]
         || NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Artist Detail"]) {
-        #ifdef obsolete
-        [self closeDetails:nil];
-        #endif
+        [self cancelDetails];
         return;
     }
     
