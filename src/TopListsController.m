@@ -958,6 +958,12 @@ exit:
     return (valid);
 }
 
+// Artist Details delegate
+- (NSString*)detailsFrameSaveName
+{
+    return (@"Top Lists Details");
+}
+
 @end
 
 #define PROFILE_DATE_FORMAT @"%Y-%m-%d %I:%M:%S %p"
