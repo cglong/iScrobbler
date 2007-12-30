@@ -69,6 +69,8 @@ static PlayHistoryController *sharedController = nil;
 
 - (IBAction)showWindow:(id)sender
 {
+    if (![[self window] isVisible])
+        [NSApp activateIgnoringOtherApps:YES];
     [super showWindow:nil];
 }
 

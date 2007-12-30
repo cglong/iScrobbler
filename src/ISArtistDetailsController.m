@@ -38,8 +38,10 @@ static NSImage *artistImgPlaceholder = nil;
 
 - (IBAction)showWindow:(id)sender
 {
-    if (![window isVisible])
+    if (![window isVisible]) {
+        [NSApp activateIgnoringOtherApps:YES];
         [window orderFront:sender];
+    }
 }
 
 - (void)setWindowFrameAutosaveName:(NSString*)string
