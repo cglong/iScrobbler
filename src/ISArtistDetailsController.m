@@ -154,9 +154,9 @@ static NSImage *artistImgPlaceholder = nil;
     // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
     LEOPARD_END
-    
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[[detailsDrawer contentView] frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
+    [w setLevel:NSNormalWindowLevel];
     if (0 == (style & NSHUDWindowMask))
         [w setAlphaValue:IS_UTIL_WINDOW_ALPHA];
     

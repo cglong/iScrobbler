@@ -40,6 +40,7 @@ static PlayHistoryController *sharedController = nil;
     LEOPARD_END
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
+    [w setLevel:NSNormalWindowLevel];
     if (0 == (style & NSHUDWindowMask))
         [w setAlphaValue:IS_UTIL_WINDOW_ALPHA];
     
