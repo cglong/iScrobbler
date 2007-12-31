@@ -12,10 +12,6 @@
 #import "ISThreadMessenger.h"
 #import "SongData.h"
 
-#ifdef ISDEBUG
-__private_extern__ NSThread *mainThread;
-#endif
-
 @interface PersistentProfile (Private)
 + (PersistentProfile*)sharedInstance;
 
@@ -209,22 +205,40 @@ __private_extern__ NSThread *mainThread;
 
 - (void)sessionManagerUpdate
 {
-    ISASSERT(mainThread && (mainThread != [NSThread currentThread]), "wrong thread!");
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread mainThread], "wrong thread!");
+    #endif
     [self performSelector:@selector(updateLastfmSession:) withObject:nil];
     [self performSelector:@selector(updateSessions:) withObject:nil];
 }
 
+// NOTE: For V2 this is only used once during migration from v1
 - (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc
 {
+#if IS_STORE_V2 || defined(ISDEBUG)
+    // for v2 we'll take this opportunity to reset the session count/time caches in case they are a little out of sync
+    NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+#endif
+
+#if IS_STORE_V2
+#ifdef ISDEBUG
+    ScrobLog(SCROB_LOG_TRACE, @"-session '%@'- play count: %@, cache count: %@", [session valueForKey:@"name"],
+        count, [session valueForKey:@"playCount"]);
+    ScrobLog(SCROB_LOG_TRACE, @"-session '%@'- play time: %@, cache time: %@", [session valueForKey:@"name"],
+        ptime, [session valueForKey:@"playTime"]);
+#endif
+    [session setValue:count forKey:@"playCount"];
+    [session setValue:ptime forKey:@"playTime"];
+#endif
+
 #ifdef ISDEBUG
     NSArray *refetchedSongs = [[PersistentProfile sharedInstance] songsForSession:session];
     ISASSERT([refetchedSongs count] == [songs count], "invalid session songs!");
     
-    NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
     NSNumber *rfcount = [refetchedSongs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
     ISASSERT([count unsignedIntValue] == [rfcount unsignedIntValue], "counts don't match!");
     
-    NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     NSNumber *rfptime = [refetchedSongs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     ISASSERT([ptime unsignedLongLongValue] == [rfptime unsignedLongLongValue], "times don't match!");
     
@@ -255,8 +269,12 @@ __private_extern__ NSThread *mainThread;
     en = [songs objectEnumerator];
     NSManagedObject *sessionSong;
     while ((sessionSong = [en nextObject])) {
-        rating = [self cacheForRating:[sessionSong valueForKeyPath:@"item.rating"] inSession:session moc:moc];
+        NSNumber *sr = [sessionSong valueForKeyPath:@"item.rating"];
+        rating = [self cacheForRating:sr inSession:session moc:moc];
         ISASSERT(rating != nil, "missing rating!");
+        #if IS_STORE_V2
+        [sessionSong setValue:sr forKey:@"rating"];
+        #endif
         [rating incrementPlayCount:[sessionSong valueForKey:@"playCount"]];
         [rating incrementPlayTime:[sessionSong valueForKey:@"playTime"]];
     }
@@ -408,7 +426,14 @@ __private_extern__ NSThread *mainThread;
             sAlbum = nil;
         
         // Caches
-        // XXX - don't update rating cache - see removeSongsBefore
+        #if IS_STORE_V2
+        mobj = [self cacheForRating:[sessionSong valueForKey:@"rating"] inSession:session moc:moc];
+        if (mobj) {
+            [mobj decrementPlayCount:playCount];
+            [mobj decrementPlayTime:playTime];
+        }
+        #endif
+        // XXX - don't update rating cache for v1 - see removeSongsBefore
     
         NSCalendarDate *submitted = [NSCalendarDate dateWithTimeIntervalSince1970:
             [[sessionSong valueForKey:@"submitted"] timeIntervalSince1970]];
@@ -437,6 +462,14 @@ __private_extern__ NSThread *mainThread;
     totalPlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     ISASSERT([totalPlayCount isEqualTo:[session valueForKey:@"playCount"]], "song play counts don't match session total!");
     ISASSERT([totalPlayTime isEqualTo:[session valueForKey:@"playTime"]], "song play times don't match session total!");
+    
+    #if IS_STORE_V2
+    songs = [[PersistentProfile sharedInstance] ratingsForSession:session];
+    totalPlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    totalPlayTime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    ISASSERT([totalPlayCount isEqualTo:[session valueForKey:@"playCount"]], "rating cache counts don't match session total!");
+    ISASSERT([totalPlayTime isEqualTo:[session valueForKey:@"playTime"]], "rating cache times don't match session total!");
+    #endif
     
     songs = [[PersistentProfile sharedInstance] hoursForSession:session];
     totalPlayCount = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
@@ -484,8 +517,11 @@ __private_extern__ NSThread *mainThread;
     
     if ([validSongs count] > [invalidSongs count]) {
         [self removeSongs:invalidSongs fromSession:session moc:moc];
+        #if 0 == IS_STORE_V2
         // the PSong rating can change at any time, so we have to regenerate the whole cache from the remaining valid songs
+        // for v2 each session song has its own rating, so this is not necessary
         [self recreateRatingsCacheForSession:session songs:validSongs moc:moc];
+        #endif
         ScrobLog(SCROB_LOG_TRACE, @"removed %lu songs from session %@", [invalidSongs count], sessionName);
     } else {
         // it's more efficient to destroy everything and add the valid songs back in
@@ -584,14 +620,39 @@ __private_extern__ NSThread *mainThread;
     return ([rem count] > 0);
 }
 
-- (void)scrub:(NSTimer*)t
+- (void)performScrub:(id)arg
 {
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(ISDEBUG)
+    if (!moc && [NSThread isMainThread])
+        moc = [[PersistentProfile sharedInstance] mainMOC];
+    #endif
     ISASSERT(moc != nil, "missing moc");
     
+    BOOL save;
+    @try {
+    save = [self mergeSongsInSession:[self sessionWithName:@"all" moc:moc] moc:moc];
+    // in the future we may decide to delete ancient archived sessions (> 1yr)
+    } @catch (NSException *e) {
+        save = NO;
+        [moc rollback];
+        ScrobLog(SCROB_LOG_ERR, @"exception while scrubbing: %@", e);
+    }
+    
+    if (save) {
+        (void)[[PersistentProfile sharedInstance] save:moc];
+        [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
+    }
+}
+
+- (void)scrub:(NSTimer*)t
+{
     NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
-    if (!lastScrub)
+    if (!lastScrub) {
+        NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+        ISASSERT(moc != nil, "missing moc");
         lastScrub = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
+    }
     
     #ifndef ISDEBUG
     NSCalendarDate *d = [NSCalendarDate date];
@@ -604,20 +665,7 @@ __private_extern__ NSThread *mainThread;
         target:self selector:@selector(scrub:) userInfo:nil repeats:NO];
     #endif
     
-    BOOL save;
-    @try {
-    save = [self mergeSongsInSession:[self sessionWithName:@"all" moc:moc] moc:moc];
-    // in the future we may decide to delete ancient archived sessions (> 1yr)
-    } @catch (NSException *e) {
-        save = NO;
-        [moc rollback];
-        ScrobLog(SCROB_LOG_ERR, @"exception while scrubbing:%@", e);
-    }
-    
-    if (save) {
-        (void)[[PersistentProfile sharedInstance] save:moc];
-        [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
-    }
+    [self performScrub:nil];
 }
 
 - (void)updateLastfmSession:(NSTimer*)t
@@ -737,7 +785,9 @@ __private_extern__ NSThread *mainThread;
 - (void)processSongPlays:(NSArray*)queue
 {
     NSManagedObjectContext *moc;
-    ISASSERT(mainThread && (mainThread != [NSThread currentThread]), "wrong thread!");
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread mainThread], "wrong thread!");
+    #endif
     
     moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing thread MOC!");
@@ -841,12 +891,16 @@ __private_extern__ NSThread *mainThread;
     
     [psong incrementPlayCount:count];
     [psong incrementPlayTime:secs];
-    [[psong valueForKey:@"artist"] incrementPlayCount:count];
-    [[psong valueForKey:@"artist"] incrementPlayTime:secs];
-    [[psong valueForKey:@"artist"] setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
-    if ([psong valueForKey:@"album"]) {
-        [[psong valueForKey:@"album"] incrementPlayCount:count];
-        [[psong valueForKey:@"album"] incrementPlayTime:secs];
+    NSManagedObject *mobj = [psong valueForKey:@"artist"];
+    [mobj incrementPlayCount:count];
+    [mobj incrementPlayTime:secs];
+    [mobj setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+    if ((mobj = [psong valueForKey:@"album"])) {
+        [mobj incrementPlayCount:count];
+        [mobj incrementPlayTime:secs];
+        #if IS_STORE_V2
+        [mobj setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+        #endif
     }
 }
 
@@ -858,14 +912,22 @@ __private_extern__ NSThread *mainThread;
     NSEntityDescription *entity;
     
     // Update the ratings cache
+    #if IS_STORE_V2
+    ratingsCache = [self cacheForRating:[sessionSong valueForKey:@"rating"] inSession:session moc:moc];
+    #else
     ratingsCache = [self cacheForRating:[sessionSong valueForKeyPath:@"item.rating"] inSession:session moc:moc];
+    #endif
     if (!ratingsCache) {
         entity = [NSEntityDescription entityForName:@"PRatingCache" inManagedObjectContext:moc];
         ratingsCache = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [ratingsCache setValue:ITEM_RATING_CCH forKey:@"itemType"];
         [ratingsCache setValue:session forKey:@"session"];
         [ratingsCache setValue:orphans forKey:@"item"];
+        #if IS_STORE_V2
+        [ratingsCache setValue:[sessionSong valueForKey:@"rating"] forKey:@"rating"];
+        #else
         [ratingsCache setValue:[sessionSong valueForKeyPath:@"item.rating"] forKey:@"rating"];
+        #endif
     }
     [ratingsCache incrementPlayCountWithObject:sessionSong];
     [ratingsCache incrementPlayTimeWithObject:sessionSong];
@@ -908,11 +970,11 @@ __private_extern__ NSThread *mainThread;
         return (NO);
     
     [sessionSong setValue:session forKey:@"session"];
+    
     NSString *sessionName = [session valueForKey:@"name"];
     NSManagedObject *artist, *album;
     NSEntityDescription *entity;
     NSSet *aliases;
-    
     // Update the Artist
     aliases = [sessionSong valueForKeyPath:@"item.artist.sessionAliases"];
     NSArray *result = [[aliases allObjects] filteredArrayUsingPredicate:
@@ -1034,6 +1096,9 @@ __private_extern__ NSThread *mainThread;
             [sessionSong setValue:ITEM_SONG forKey:@"itemType"];
             [sessionSong setValue:psong forKey:@"item"];
             [sessionSong setValue:[psong valueForKey:@"submitted"] forKey:@"submitted"];
+            #if IS_STORE_V2
+            [sessionSong setValue:[psong valueForKey:@"rating"] forKey:@"rating"];
+            #endif
             [sessionSong incrementPlayCount:pCount];
             [sessionSong incrementPlayTime:pTime];
             
@@ -1131,6 +1196,9 @@ __private_extern__ NSThread *mainThread;
         moArtist = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [moArtist setValue:ITEM_ARTIST forKey:@"itemType"];
         [moArtist setValue:[self artist] forKey:@"name"];
+        #if IS_STORE_V2
+        [moArtist setValue:myLastPlayed forKey:@"firstPlayed"];
+        #endif
     } else {
         ScrobLog(SCROB_LOG_CRIT, @"Multiple artists found in database! {{%@}}", result);
         ISASSERT(0, "multiple artists found in db!");
@@ -1156,6 +1224,9 @@ __private_extern__ NSThread *mainThread;
             [moAlbum setValue:ITEM_ALBUM forKey:@"itemType"];
             [moAlbum setValue:aTitle forKey:@"name"];
             [moAlbum setValue:moArtist forKey:@"artist"];
+            #if IS_STORE_V2
+            [moAlbum setValue:myLastPlayed forKey:@"firstPlayed"];
+            #endif
         } else {
             ScrobLog(SCROB_LOG_CRIT, @"Multiple artists found in database! {{%@}}", result);
             ISASSERT(0, "multiple albums found in db!");

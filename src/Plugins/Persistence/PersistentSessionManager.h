@@ -34,7 +34,7 @@
 @interface PersistentSessionManager (SongAdditions)
 - (NSManagedObject*)orphanedItems:(NSManagedObjectContext*)moc;;
 - (BOOL)addSessionSong:(NSManagedObject*)sessionSong toSession:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc;
-// used by interanlly and by importer
+// used by internally and by importer
 - (void)updateSongHistory:(NSManagedObject*)psong count:(NSNumber*)count time:(NSNumber*)time moc:(NSManagedObjectContext*)moc;
 - (void)incrementSessionCountsWithSong:(NSManagedObject*)sessionSong moc:(NSManagedObjectContext*)moc;
 - (NSManagedObject*)addSongPlay:(SongData*)song withImportedPlayCount:(NSNumber*)importCount moc:(NSManagedObjectContext*)moc;

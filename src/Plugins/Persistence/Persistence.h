@@ -18,6 +18,9 @@
 #define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
 #define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
 #define PersistentProfileImportProgress @"ISPersistentProfileImportProgress"
+#define PersistentProfileDidMigrateNotification @"PersistentProfileDidMigrateNotification"
+#define PersistentProfileWillMigrateNotification @"PersistentProfileWillMigrateNotification"
+#define PersistentProfileMigrateFailedNotification @"PersistentProfileMigrateFailedNotification"
 
 @interface PersistentProfile : NSObject <ISPlugin> {
     NSManagedObjectContext *mainMOC;
@@ -29,7 +32,8 @@
 - (PersistentSessionManager*)sessionManager;
 
 - (BOOL)importInProgress;
-- (BOOL)initDatabase;
+- (BOOL)initDatabase:(NSError**)failureReason;
+- (BOOL)isVersion2;
 
 // adds the song, and updates all sessions
 - (void)addSongPlay:(SongData*)song;
@@ -49,3 +53,11 @@
 // Private, exposed only for TopListsController
 #define PERSISTENT_STORE_DB \
 [@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+#define IS_CURRENT_STORE_VERSION @"2"
+#define IS_STORE_V2 1
+#else
+#define IS_CURRENT_STORE_VERSION @"1"
+#define IS_STORE_V2 0
+#endif

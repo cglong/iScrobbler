@@ -26,10 +26,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 (at the risk of data corruption if the machine crashes or loses power).
 **/
 
-#ifdef ISDEBUG
-__private_extern__ NSThread *mainThread = nil;
-#endif
-
 @interface NSManagedObject (ISProfileAdditions)
 - (void)refreshSelf;
 @end
@@ -42,6 +38,10 @@ __private_extern__ NSThread *mainThread = nil;
 }
 
 - (void)importiTunesDB:(id)obj;
+@end
+
+@interface PersistentSessionManager (Private)
+- (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;
 @end
 
 @interface PersistentProfile (SessionManagement)
@@ -318,6 +318,19 @@ __private_extern__ NSThread *mainThread = nil;
     [self addSongPlay:nil]; // process any queued songs
 }
 
+- (NSArray*)dataModelBundles
+{
+    return ([NSArray arrayWithObjects:[NSBundle bundleForClass:[self class]], nil]);
+}
+
+- (void)backupDatabase
+{
+    NSString *backup = [PERSISTENT_STORE_DB stringByAppendingString:@"-backup"];
+    (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
+    (void)[[NSFileManager defaultManager] movePath:backup toPath:[backup stringByAppendingString:@"-1"] handler:nil];
+    (void)[[NSFileManager defaultManager] copyPath:PERSISTENT_STORE_DB toPath:backup handler:nil];
+}
+
 - (void)createDatabase
 {
     NSDate *dbEpoch = [self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC];
@@ -368,33 +381,248 @@ __private_extern__ NSThread *mainThread = nil;
     [obj release];
 }
 
-- (void)backup
+- (void)databaseDidInitialize:(NSDictionary*)metadata
 {
-    NSString *backup = [PERSISTENT_STORE_DB stringByAppendingString:@"-backup"];
-    (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
-    (void)[[NSFileManager defaultManager] movePath:backup toPath:[backup stringByAppendingString:@"-1"] handler:nil];
-    (void)[[NSFileManager defaultManager] copyPath:PERSISTENT_STORE_DB toPath:backup handler:nil];
+    [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
+    
+    if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
+        PersistentProfileImport *import = [[PersistentProfileImport alloc] init];
+        [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:self];
+        [import release];
+    }
+    
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+        selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
 }
 
-#define CURRENT_STORE_VERSION @"1"
-- (BOOL)initDatabase
+- (void)databaseDidFailInitialize:(id)arg
+{
+    [mainMOC release];
+    mainMOC = nil;
+    sessionMgr = nil;
+}
+
+#if IS_STORE_V2
+- (void)migrateDatabase:(id)arg
+{
+    ISElapsedTimeInit();
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSManagedObjectContext *moc = nil;
+    
+    [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileWillMigrateNotification waitUntilDone:NO];
+    
+    [self setImportInProgress:YES];
+    
+    NSURL *dburl = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:NSSQLiteStoreType
+        URL:dburl error:nil];
+    NSDate *createDate = [metadata objectForKey:(NSString*)kMDItemContentCreationDate];
+    if (!createDate) {
+        ISASSERT(0, "missing creation date!");
+        createDate = [NSDate date];
+    }
+    ISASSERT(nil != [metadata objectForKey:@"ISDidImportiTunesLibrary"], "missing import state!");
+    
+    ScrobLog(SCROB_LOG_TRACE, @"Migrating Local Charts database version %@ to version %@.",
+            [metadata objectForKey:(NSString*)kMDItemVersion], IS_CURRENT_STORE_VERSION);
+    
+    NSError *error;
+    BOOL migrated = NO;
+    
+    NSAutoreleasePool *tempPool = [[NSAutoreleasePool alloc] init];
+    @try {
+    
+    NSArray *searchBundles = [self dataModelBundles];
+    NSManagedObjectModel *v1mom = [NSManagedObjectModel mergedModelFromBundles:searchBundles forStoreMetadata:metadata];
+    NSURL *tmpURL = [NSURL fileURLWithPath:[[searchBundles objectAtIndex:0]
+        pathForResource:@"iScrobblerV2" ofType:@"mom" inDirectory:@"iScrobbler.momd"]];
+    NSManagedObjectModel *v2mom = [[[NSManagedObjectModel alloc] initWithContentsOfURL:tmpURL] autorelease];
+    NSMappingModel *map = [NSMappingModel mappingModelFromBundles:searchBundles forSourceModel:v1mom destinationModel:v2mom];
+    NSMigrationManager *migm = [[[NSMigrationManager alloc] initWithSourceModel:v1mom destinationModel:v2mom] autorelease];
+    
+    if (migm) {
+        tmpURL = [NSURL fileURLWithPath:
+            [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"ISMIG_%d", getpid()]]];
+        ISStartTime();
+        migrated = [migm migrateStoreFromURL:dburl
+            type:NSSQLiteStoreType
+            options:nil
+            withMappingModel:map
+            toDestinationURL:tmpURL
+            destinationType:NSSQLiteStoreType
+            destinationOptions:nil
+            error:&error];
+        ISEndTime();
+        ScrobDebug(@"Migration finished in in %.4lf seconds", (abs2clockns / 1000000000.0));
+        if (migrated) {
+            // swap the files as [addPersistentStoreWithType:] would
+            migrated = NO;
+            NSFileManager *fm = [NSFileManager defaultManager];
+            NSString *dbpath = [dburl path];
+            NSString *tmppath = [tmpURL path];
+            NSString *backup = [[[dbpath stringByDeletingPathExtension] stringByAppendingString:@"~"]
+                stringByAppendingPathExtension:[dbpath pathExtension]];
+            if ([fm linkItemAtPath:dbpath toPath:backup error:&error]) {
+                if ([fm removeItemAtPath:dbpath error:&error]) {
+                    if ([fm copyItemAtPath:tmppath toPath:dbpath error:&error]) {
+                        migrated = YES;
+                    }
+                }
+            }
+            (void)[fm removeItemAtPath:tmppath error:&error];
+        }
+    }
+    
+    } @catch (NSException *e) {
+        migrated = NO;
+        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+            NSLocalizedString(@"An exception occurred during database migration.", ""),
+            NSLocalizedDescriptionKey,
+            nil]];
+        ScrobLog(SCROB_LOG_ERR, @"Migration: an exception occurred during database migration. (%@)", e);
+    }
+    [tempPool release];
+    tempPool = nil;
+    
+    NSPersistentStore *store;
+    NSPersistentStoreCoordinator *psc = nil;
+    if (migrated) {
+        psc = [mainMOC persistentStoreCoordinator];
+        store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:dburl options:nil error:&error];
+        moc = [[[NSManagedObjectContext alloc] init] autorelease];
+        [moc setPersistentStoreCoordinator:psc];
+        [moc setUndoManager:nil];
+        
+        if (![NSThread isMainThread])
+            [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
+    } else
+        migrated = NO;
+    
+    if (store) {
+        metadata = [NSDictionary dictionaryWithObjectsAndKeys:
+            IS_CURRENT_STORE_VERSION, (NSString*)kMDItemVersion,
+            createDate, (NSString*)kMDItemContentCreationDate, // epoch
+            [metadata objectForKey:@"ISDidImportiTunesLibrary"], @"ISDidImportiTunesLibrary",
+            // NSStoreTypeKey and NSStoreUUIDKey are always added
+            nil];
+        [psc setMetadata:metadata forPersistentStore:store];
+        
+        tempPool = [[NSAutoreleasePool alloc] init];
+        
+        // update session ratings
+        ISStartTime();
+        NSEnumerator *en = [[[sessionMgr activeSessionsWithMOC:moc] arrayByAddingObjectsFromArray:
+            [sessionMgr archivedSessionsWithMOC:moc weekLimit:0]] objectEnumerator];
+        NSManagedObject *mobj;
+        while ((mobj = [en nextObject])) {
+            @try {
+            [sessionMgr recreateRatingsCacheForSession:mobj songs:[self songsForSession:mobj] moc:moc];
+            [self save:moc withNotification:NO];
+            } @catch (NSException *e) {
+                ScrobLog(SCROB_LOG_ERR, @"Migration: exception updating ratings for %@. (%@)",
+                    [mobj valueForKey:@"name"], e);
+            }
+        }
+        ISEndTime();
+        ScrobDebug(@"Migration: ratings update in in %.4lf seconds", (abs2clockns / 1000000000.0));
+        
+        // force scrub the db
+        [sessionMgr performSelector:@selector(performScrub:) withObject:nil];
+        
+        [tempPool release];
+        tempPool = nil;
+        
+        NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+        NSEntityDescription *entity;
+        // set Artist firstPlayed times (non-import only)
+        @try {
+            ISStartTime();
+            entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+            [request setEntity:entity];
+            [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@)", ITEM_ARTIST]];
+            [request setReturnsObjectsAsFaults:NO];
+            [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"songs", nil]];
+            en = [[moc executeFetchRequest:request error:&error] objectEnumerator];
+            
+            tempPool = [[NSAutoreleasePool alloc] init];
+            while ((mobj = [en nextObject])) {
+                if ([[mobj valueForKeyPath:@"songs.importedPlayCount.@sum.unsignedIntValue"] unsignedIntValue] > 0)
+                    continue;
+                entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+                [request setEntity:entity];
+                [request setPredicate:[NSPredicate predicateWithFormat:
+                    @"(itemType == %@) && (firstPlayed != nil) && (artist == %@)", ITEM_SONG, mobj]];
+                NSArray *songs = [moc executeFetchRequest:request error:&error];
+                if ([songs count] > 0) {
+                    NSNumber *firstPlayed = [songs valueForKeyPath:@"firstPlayed.@min.timeIntervalSince1970"];
+                    if (firstPlayed) {
+                        [mobj setValue:[NSDate dateWithTimeIntervalSince1970:[firstPlayed doubleValue]]
+                            forKey:@"firstPlayed"];
+                    }
+                    [tempPool release];
+                    tempPool = [[NSAutoreleasePool alloc] init];
+                }
+            }
+            ISEndTime();
+            ScrobDebug(@"Migration: artist update in in %.4lf seconds", (abs2clockns / 1000000000.0));
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_ERR, @"Migration: exception updating artist play dates. (%@)", e);
+        }
+        
+        [tempPool release];
+        tempPool = nil;
+        [self save:moc withNotification:NO];
+    } else
+        migrated = NO;
+    [self setImportInProgress:NO];
+    
+    [moc reset];
+    
+    if (migrated) {
+        [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileDidMigrateNotification waitUntilDone:NO];
+        [self performSelectorOnMainThread:@selector(databaseDidInitialize:) withObject:metadata waitUntilDone:NO];
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"Migration failed with: %@", error ? error : @"unknown");
+        [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileMigrateFailedNotification waitUntilDone:NO];
+        [self performSelectorOnMainThread:@selector(databaseDidFailInitialize:) withObject:nil waitUntilDone:NO];
+    }
+    
+    [pool release];
+    if (![NSThread isMainThread])
+        [NSThread exit];
+}
+#endif
+
+- (BOOL)initDatabase:(NSError**)failureReason
 {
     NSError *error = nil;
-    id mainStore;
+    NSPersistentStore *mainStore;
     mainMOC = [[NSManagedObjectContext alloc] init];
     [mainMOC setUndoManager:nil];
     
+    *failureReason = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL
+        userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+            NSLocalizedString(@"The database could not be opened. An unknown error occurred.", ""),
+            NSLocalizedDescriptionKey,
+            nil]];
+    
     NSPersistentStoreCoordinator *psc;
     psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:
-        [NSManagedObjectModel mergedModelFromBundles:[NSArray arrayWithObjects:[NSBundle bundleForClass:[self class]], nil]]];
+        [NSManagedObjectModel mergedModelFromBundles:[self dataModelBundles]]];
     [mainMOC setPersistentStoreCoordinator:psc];
     [psc release];
+    // we don't allow the user to make changes and the session mgr background thread handles all internal changes
+    [mainMOC setMergePolicy:NSRollbackMergePolicy];
     
     sessionMgr = [PersistentSessionManager sharedInstance];
     
     NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
     // NSXMLStoreType is slow and keeps the whole object graph in mem, but great for looking at the DB internals (debugging)
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:NSSQLiteStoreType URL:url error:nil];
+    #else
     NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    #endif
     if (metadata && nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]) {
         // import was interrupted, reset everything
         ScrobLog(SCROB_LOG_ERR, @"The iTunes import failed, removing corrupt database.");
@@ -409,8 +637,8 @@ __private_extern__ NSThread *mainThread = nil;
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
         [psc setMetadata:
             [NSDictionary dictionaryWithObjectsAndKeys:
-                CURRENT_STORE_VERSION, kMDItemVersion,
-                now, kMDItemContentCreationDate, // epoch
+                IS_CURRENT_STORE_VERSION, (NSString*)kMDItemVersion,
+                now, (NSString*)kMDItemContentCreationDate, // epoch
                 [NSNumber numberWithBool:NO], @"ISDidImportiTunesLibrary",
                 // NSStoreTypeKey and NSStoreUUIDKey are always added
                 nil]
@@ -423,17 +651,40 @@ __private_extern__ NSThread *mainThread = nil;
         
         [mainMOC save:nil];
     } else {
-        if (![[metadata objectForKey:(NSString*)kMDItemVersion] isEqualTo:CURRENT_STORE_VERSION]) {
-            [mainMOC release];
-            return (NO);
-        #ifdef notyet
-            [psc migratePersistentStore:mainStore toURL:nil options:nil withType:NSSQLiteStoreType error:nil];
+        #if IS_STORE_V2
+        if (![[psc managedObjectModel] isConfiguration:nil compatibleWithStoreMetadata:metadata]) {
+        #else
+        if (![[metadata objectForKey:(NSString*)kMDItemVersion] isEqualTo:IS_CURRENT_STORE_VERSION]) {
         #endif
+            #if IS_STORE_V2
+            #if defined(ISDEBUG) || 1
+            [NSThread detachNewThreadSelector:@selector(migrateDatabase:) toTarget:self withObject:nil];
+            #else
+            [self migrateDatabase:nil];
+            #endif
+            return (YES);
+            #else
+            [self databaseDidFailInitialize:nil];
+            *failureReason = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL
+                userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                    NSLocalizedString(@"The database could not be opened because it was created with a different design model. You need to upgrade iScrobbler or Mac OS X.", ""),
+                    NSLocalizedDescriptionKey,
+                    nil]];
+            return (NO);
+            #endif
+        }
+        ScrobLog(SCROB_LOG_TRACE, @"Opened Local Charts database version %@. Current version is %@.",
+            [metadata objectForKey:(NSString*)kMDItemVersion], IS_CURRENT_STORE_VERSION);
+        
+        [self backupDatabase];
+        mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
+        if (!mainStore) {
+            [self databaseDidFailInitialize:nil];
+            *failureReason = error;
+            return (NO);
         }
         
-        [self backup];
-        mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
-        
+        #ifdef  obsolete
         // 2.0b3, session epoch to the epoch of the DB so the stats are accurately portrayed to the user
         @try {
         NSDate *dbEpoch = [[self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC] GMTDate];
@@ -452,23 +703,17 @@ __private_extern__ NSThread *mainThread = nil;
             [mainMOC rollback];
             ScrobLog(SCROB_LOG_ERR, @"init: exception while updating session epochs: %@", e);
         }
+        #endif
     }
-    
-    // we don't allow the user to make changes and the session mgr background thread handles all internal changes
-    [mainMOC setMergePolicy:NSRollbackMergePolicy];
 
-    [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
-    
-    if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
-        PersistentProfileImport *import = [[PersistentProfileImport alloc] init];
-        [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:self];
-        [import release];
-    }
-    
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
-        selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
-    
+    [self databaseDidInitialize:metadata];
+    *failureReason = nil;
     return (YES);
+}
+
+- (BOOL)isVersion2
+{
+    return (IS_STORE_V2);
 }
 
 // singleton support
@@ -530,7 +775,9 @@ static PersistentProfile *shared = nil;
 
 - (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object
 {
-    ISASSERT(mainThread && (mainThread == [NSThread currentThread]), "wrong thread!");
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread mainThread], "wrong thread!");
+    #endif
     
     if (![sessionMgr threadMessenger])
         return (NO);
@@ -543,9 +790,6 @@ static PersistentProfile *shared = nil;
 {
     static BOOL init = YES;
     if (init && ![self importInProgress]) {
-        #ifdef ISDEBUG
-        mainThread = [NSThread currentThread];
-        #endif
         init = NO;
         [NSThread detachNewThreadSelector:@selector(sessionManagerThread:) toTarget:sessionMgr withObject:self];
     } else if (![self importInProgress]) {

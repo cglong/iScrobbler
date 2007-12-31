@@ -174,6 +174,9 @@
         [mosSong setValue:moSong forKey:@"item"];
         [mosSong setValue:[moSong valueForKey:@"submitted"] forKey:@"submitted"];
         [mosSong setValue:moSession forKey:@"session"];
+        #if IS_STORE_V2
+        [mosSong setValue:[song rating] forKey:@"rating"];
+        #endif
         [mosSong incrementPlayCount:playCount];
         [mosSong incrementPlayTime:playTime];
     }
@@ -204,6 +207,11 @@
     moc = [[NSManagedObjectContext alloc] init];
     [moc setPersistentStoreCoordinator:[[profile valueForKey:@"mainMOC"] persistentStoreCoordinator]];
     [moc setUndoManager:nil];
+    LEOPARD_BEGIN
+    if (![NSThread isMainThread])
+        [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
+    LEOPARD_END
+    
     double pri = [NSThread threadPriority];
     [NSThread setThreadPriority:pri - (pri * 0.20)];
     

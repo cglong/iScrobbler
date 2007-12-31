@@ -264,6 +264,26 @@ static NSMutableArray *topHours = nil;
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Import Progress", "") message:msg];
 }
 
+- (void)persistentProfileDidMigrate:(NSNotification*)note
+{
+    [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update Successful", "")
+        message:NSLocalizedString(@"The Local Charts conversion succeeded.", "")];
+}
+
+- (void)persistentProfileWillMigrate:(NSNotification*)note
+{
+    [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update", "")
+        message:NSLocalizedString(@"The Local Charts database format has changed and is now being converted. This may take a few minutes.", "")];
+}
+
+- (void)persistentProfileMigrateFailed:(NSNotification*)note
+{
+    NSString *msg = [NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"The Local Charts conversion failed.", ""),
+        /*[[note userInfo] objectForKey:@"NSError"]*/
+        NSLocalizedString(@"Please see the log file for further information.", "")];
+    [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update Failed", "") message:msg];
+}
+
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
@@ -284,23 +304,40 @@ static NSMutableArray *topHours = nil;
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SeenTopListsUpdateAlert"];
         }
         
-        (void)[persistence initDatabase];
-
-        // Register for QM notes
-        [[NSNotificationCenter defaultCenter] addObserver:self
-            selector:@selector(songDidQueuedHandler:)
-            name:QM_NOTIFICATION_SONG_QUEUED
-            object:nil];
-        
+        // Persistence notes
         [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(persistentProfileImportProgress:)
             name:PersistentProfileImportProgress
             object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileDidMigrate:)
+            name:PersistentProfileDidMigrateNotification
+            object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileWillMigrate:)
+            name:PersistentProfileWillMigrateNotification
+            object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileMigrateFailed:)
+            name:PersistentProfileMigrateFailedNotification
+            object:nil];
+        
+        NSError *error;
+        if (NO == [persistence initDatabase:&error]) {
+            persistence = nil; // XXX: the plugin is still valid, we just lose our ref to it
+            [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to Open Local Charts Database", "")
+                message:[error localizedDescription]];
+        }
         
         if ([persistence importInProgress]) {
             [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"iTunes Import", "") message:
                 NSLocalizedString(@"Your iTunes library is now being imported into the new local charts. This can take several hours of intense CPU time and should not be interrupted.", "")];
         }
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(songDidQueuedHandler:)
+            name:QM_NOTIFICATION_SONG_QUEUED
+            object:nil];
     }
     return (self);
 }
@@ -370,6 +407,11 @@ static NSMutableArray *topHours = nil;
 
 - (IBAction)showWindow:(id)sender
 {
+    if (!persistence) {
+        NSBeep();
+        return;
+    }
+    
     windowIsVisisble = YES;
     (void)[super window];
     

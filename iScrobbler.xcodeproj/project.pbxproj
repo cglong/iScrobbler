@@ -68,7 +68,6 @@
 		D317913B0A6A9B5D00B0F081 /* BBNetUpdateConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */; };
 		D318A6DD0D1FC582003068D5 /* Persistence.m in Sources */ = {isa = PBXBuildFile; fileRef = D3760CC90CB4241900C04863 /* Persistence.m */; };
 		D318A6DE0D1FC583003068D5 /* PersistentSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */; };
-		D318A6E00D1FC587003068D5 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D318A70C0D1FC960003068D5 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		D3191CAA07E3A51700821D03 /* defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = EBBB2F1E03F7C3F2005DC01B /* defaults.plist */; };
 		D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */ = {isa = PBXBuildFile; fileRef = DC00A46205B21B9200674DB4 /* iscrobbler.icns */; };
@@ -88,6 +87,9 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
+		D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */; };
+		D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
+		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
 		D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
@@ -101,7 +103,6 @@
 		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
 		D38835990D200A5D005B6D1D /* Persistence.m in Sources */ = {isa = PBXBuildFile; fileRef = D3760CC90CB4241900C04863 /* Persistence.m */; };
 		D388359A0D200A5D005B6D1D /* PersistentSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */; };
-		D388359B0D200A5D005B6D1D /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D388359D0D200A5D005B6D1D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		D38835BC0D200AD6005B6D1D /* TigerPersistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */; };
 		D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */ = {isa = PBXBuildFile; fileRef = D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */; };
@@ -296,6 +297,8 @@
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoginItemsAE.c; sourceTree = "<group>"; };
 		D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginItemsAE.h; sourceTree = "<group>"; };
+		D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV2.xcdatamodel; sourceTree = "<group>"; };
+		D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcmappingmodel; path = iScrobblerV1toV2.xcmappingmodel; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D3712C490D1A3B810011F980 /* Persistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Persistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -598,7 +601,8 @@
 				D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */,
 				D3F4A4E60CC56EA9000DCBB6 /* PersistentSessionManager.h */,
 				D37619A10CBA576000C04863 /* iTunesImport.m */,
-				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
+				D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */,
+				D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */,
 				D318A6C30D1FC534003068D5 /* Persistence-Info.plist */,
 			);
 			name = Persistence;
@@ -1014,7 +1018,8 @@
 			files = (
 				D318A6DD0D1FC582003068D5 /* Persistence.m in Sources */,
 				D318A6DE0D1FC583003068D5 /* PersistentSessionManager.m in Sources */,
-				D318A6E00D1FC587003068D5 /* iScrobbler.xcdatamodel in Sources */,
+				D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */,
+				D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1032,7 +1037,7 @@
 			files = (
 				D38835990D200A5D005B6D1D /* Persistence.m in Sources */,
 				D388359A0D200A5D005B6D1D /* PersistentSessionManager.m in Sources */,
-				D388359B0D200A5D005B6D1D /* iScrobbler.xcdatamodel in Sources */,
+				D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1237,10 +1242,7 @@
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					"-DISDEBUG",
-				);
+				OTHER_CFLAGS = "$(inherited)";
 				PRODUCT_NAME = iScrobbler;
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1295,6 +1297,7 @@
 				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -1327,6 +1330,7 @@
 				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				OTHER_CFLAGS = "";
 				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -1358,6 +1362,7 @@
 				IBC_NOTICES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -1373,10 +1378,7 @@
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					"-DISDEBUG",
-				);
+				OTHER_CFLAGS = "$(inherited)";
 				PRODUCT_NAME = iScrobbler;
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1490,6 +1492,7 @@
 				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MAPC_NO_WARNINGS = YES;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -1790,6 +1793,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
+				D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */,
+			);
+			currentVersion = D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */;
+			path = iScrobbler.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
 }
