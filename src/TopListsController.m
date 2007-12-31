@@ -1174,10 +1174,14 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
     float secondaryBasePlayCount = basePlayCount / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
     float secondaryTotalPlayCount = [totalPlays floatValue] / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
+    BOOL newThisSession;
+    NSMutableArray *newArtists = [NSMutableArray array];
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
         timeStr = [entry objectForKey:@"Play Time"];
+        if ((newThisSession = [[entry objectForKey:@"New This Session"] boolValue]))
+            [newArtists addObject:artist];
         
         HAdd(d, (position & 0x0000001) ? TR : TRALT);
         
@@ -1205,6 +1209,37 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     }
     
     HAdd(d, TBLCLOSE @"</div>");
+    
+    if ([persistence isVersion2]) {
+        position = 1;
+        HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"newartists\">\n" TR);
+        HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"New Artists", ""))));
+        HAdd(d, TRCLOSE);
+        en = [[newArtists sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] objectEnumerator];
+        #if 0
+        // 1 artist per row
+        while ((entry = [en nextObject])) {
+            HAdd(d, (position & 0x0000001) ? TR : TRALT);
+            HAdd(d, TDEntry(@"<td class=\"title\">", entry));
+            HAdd(d, TRCLOSE);
+            ++position;
+        }
+        #endif
+        // 1 row with all artists
+        NSMutableString *s = [NSMutableString stringWithString:@""];
+        HAdd(d, TR);
+        while ((entry = [en nextObject])) {
+            [s appendFormat:@"%@, ", entry];
+        }
+        NSRange r;
+        r.location = [s length]-2;
+        r.length = 2;
+        [s deleteCharactersInRange:r];
+        HAdd(d, TDEntry(@"<td class=\"userinfo\">", s));
+        HAdd(d, TRCLOSE);
+        HAdd(d, TBLCLOSE @"</div>");
+    }
+    
     [pool release];
     
     pool = [[NSAutoreleasePool alloc] init];

@@ -109,6 +109,8 @@
     // Copy the dict data into text
     NSMutableString *textData = [NSMutableString string];
     
+    /* XXX: Internal knowledge of dict. */
+    NSSet *ignoredKeys = [NSSet setWithObjects:@"Play Time", @"objectID", @"New This Session", nil];
     row = [rows firstIndex];
     if (NSNotFound != row) {
         data = [objects objectAtIndex:row];
@@ -118,7 +120,7 @@
         count = [dataKeys count];
         for (i = 0; i < count; ++i) {
             key = [dataKeys objectAtIndex:i];
-            if (![key isEqualToString:@"Play Time"] && ![key isEqualToString:@"objectID"]) /* ACK! Internal knowledge of dict. */
+            if (![ignoredKeys containsObject:key])
                 [textData appendFormat:@"%@\t", key];
         }
         // Replace the last tab with a newline
@@ -132,7 +134,7 @@
         count = [dataKeys count];
         for (i = 0; i < count; ++i) {
             key = [dataKeys objectAtIndex:i];
-            if (![key isEqualToString:@"Play Time"] && ![key isEqualToString:@"objectID"]) { /* ACK! Internal knowledge of dict. */ 
+            if (![ignoredKeys containsObject:key]) {
                 value = [data objectForKey:[dataKeys objectAtIndex:i]];
                 [textData appendFormat:@"%@\t", [value description]];
             }

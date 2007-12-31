@@ -268,9 +268,14 @@ topHours = nil; \
         } @catch (NSException *ex) {}
     }
     
+    NSNumber *yes = [NSNumber numberWithBool:YES];
+    NSNumber *no = [NSNumber numberWithBool:NO];
+    
     NSManagedObject *session = [moc objectWithID:sessionID];
     ISASSERT(session != nil, "session not found!");
     ScrobDebug(@"%@", [session valueForKey:@"name"]);
+    NSDate *sessionEpoch = [[session valueForKey:@"epoch"] GMTDate];
+    BOOL isRollingSession = NO == [[session valueForKey:@"name"] isEqualToString:@"all"];
 
     NSError *error = nil;
     NSEntityDescription *entity;
@@ -299,6 +304,8 @@ topHours = nil; \
     NSAutoreleasePool *entryPool = [[NSAutoreleasePool alloc] init];
     NSMutableArray *chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK]; // alloc in loop pool!
     BOOL loadCanceled = NO;
+    BOOL isV2 = [persistence isVersion2];
+    NSDate *firstPlayed;
     while ((mobj = [en nextObject])) {
         OSMemoryBarrier();
         if ((loadCanceled = (cancelLoad > 0)))
@@ -308,10 +315,15 @@ topHours = nil; \
         ISDurationsFromTime64(secs, &days, &hours, &minutes, &seconds);
         playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                    [mobj valueForKeyPath:@"item.name"], @"Artist",
-                    [mobj valueForKey:@"playCount"], @"Play Count",
-                    [mobj valueForKey:@"playTime"], @"Total Duration",
-                    playTime, @"Play Time", nil];
+            [mobj valueForKeyPath:@"item.name"], @"Artist",
+            [mobj valueForKey:@"playCount"], @"Play Count",
+            [mobj valueForKey:@"playTime"], @"Total Duration",
+            playTime, @"Play Time", nil];
+        if (isV2 && isRollingSession && nil != (firstPlayed = [mobj valueForKeyPath:@"item.firstPlayed"])
+            && [[firstPlayed GMTDate] isGreaterThanOrEqualTo:sessionEpoch]) {
+            [entry setObject:yes forKey:@"New This Session"];
+        } else
+            [entry setObject:no forKey:@"New This Session"];
         [chartEntries addObject:entry];
         
         if (0 == (++i % IMPORT_CHUNK)) {
