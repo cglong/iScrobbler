@@ -1232,9 +1232,12 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
             [s appendFormat:@"%@, ", entry];
         }
         NSRange r;
-        r.location = [s length]-2;
-        r.length = 2;
-        [s deleteCharactersInRange:r];
+        r.location = [s length];
+        if (r.location > 0) {
+            r.location -= 2;
+            r.length = 2;
+            [s deleteCharactersInRange:r];
+        }
         HAdd(d, TDEntry(@"<td class=\"userinfo\">", s));
         HAdd(d, TRCLOSE);
         HAdd(d, TBLCLOSE @"</div>");
