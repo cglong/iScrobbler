@@ -450,8 +450,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     if (npInProgress) {
         [myData release];
         myData = nil;
-        [myConnection autorelease];
-        myConnection = nil;
+        [subConn autorelease];
+        subConn = nil;
         npInProgress = NO;
         ScrobLog(SCROB_LOG_VERBOSE, @"NP result: %@", result);
         return;
@@ -527,8 +527,8 @@ didFinishLoadingExit:
     [myData release];
     myData = nil;
     
-    [myConnection autorelease];
-    myConnection = nil;
+    [subConn autorelease];
+    subConn = nil;
     
     @try {
     if (0 != notify_post)
@@ -570,8 +570,8 @@ didFinishLoadingExit:
         return;
     }
     
-    [myConnection autorelease];
-    myConnection = nil;
+    [subConn autorelease];
+    subConn = nil;
     
     if (npInProgress) {
         npInProgress = NO;
@@ -625,9 +625,16 @@ didFinishLoadingExit:
 
 - (void)submit:(id)sender
 {	
-    if (inFlight || myConnection) {
-        ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission... (connection=%p, inFlight=%p)",
-            inFlight, myConnection);
+    if (inFlight || subConn) {
+        if ([[NSDate date] timeIntervalSince1970] > (subConnCreation + REQUEST_TIMEOUT*2.0)) {
+            [subConn cancel];
+            ScrobLog(SCROB_LOG_VERBOSE, @"Stuck submission connection detected, forcing timeout error.");
+            [self connection:subConn didFailWithError:
+                [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:nil]];
+        } else {
+            ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission... (connection=%p, inFlight=%p)",
+                inFlight, subConn);
+        }
         return;
     }
     
@@ -706,7 +713,8 @@ didFinishLoadingExit:
     [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
     
     ++submissionAttempts;
-    myConnection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+    subConn = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+    subConnCreation = [[NSDate date] timeIntervalSince1970];
     
     ScrobLog(SCROB_LOG_INFO, @"%lu song(s) submitted...\n", [inFlight count]);
     if (SCROB_LOG_TRACE == ScrobLogLevel())
@@ -810,7 +818,7 @@ static int npDelays = 0;
     if (!npSong || ![self isNetworkAvailable])
         return; // we missed it, oh well...
     
-    if (!myConnection) {
+    if (!subConn) {
         NSMutableURLRequest *request =
             [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self nowPlayingURL]]
                 cachePolicy:NSURLRequestReloadIgnoringCacheData
@@ -820,7 +828,7 @@ static int npDelays = 0;
         // Set the user-agent to something Mozilla-compatible
         [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
         
-        myConnection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+        subConn = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
         npInProgress = YES;
         npDelays = 0;
         

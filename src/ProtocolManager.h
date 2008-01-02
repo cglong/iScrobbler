@@ -35,7 +35,8 @@
     NSTimer *resubmitTimer;
     NSTimer *handshakeTimer;
     // The  object that will do the data transmission
-    NSURLConnection *myConnection;
+    NSURLConnection *subConn;
+    NSTimeInterval subConnCreation;
     // Received data
     NSMutableData *myData;
     NSFileHandle *subLog;
