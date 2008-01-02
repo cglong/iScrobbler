@@ -828,7 +828,7 @@ static int npDelays = 0;
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:UINT_MAX withTrackCount:1 withData:[request HTTPBody]];
     } else if (npDelays < 3) {
-        [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+1) * 1.0];
+        [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+=1) * 1.0];
     } else {
         npDelays = 0;
         ScrobLog(SCROB_LOG_WARN, @"Can't send NP notification as a connection to the server is already in progress.");
@@ -855,8 +855,7 @@ static int npDelays = 0;
     npSong = [s retain];
     
     // We must execute a server handshake before
-    // doing anything else. If we've already handshaked, then no
-    // worries.
+    // doing anything else. If we've already handshaked, then no worries.
     if (hs_valid != hsState) {
 		ScrobLog(SCROB_LOG_VERBOSE, @"NP: Need to handshake.\n");
         sendNP = YES;
