@@ -273,7 +273,7 @@ static NSMutableArray *topHours = nil;
 - (void)persistentProfileWillMigrate:(NSNotification*)note
 {
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update", "")
-        message:NSLocalizedString(@"The Local Charts database format has changed and is now being converted. This may take a few minutes.", "")];
+        message:NSLocalizedString(@"The Local Charts database format has changed and is now being converted. This may take a several minutes.", "")];
 }
 
 - (void)persistentProfileMigrateFailed:(NSNotification*)note
