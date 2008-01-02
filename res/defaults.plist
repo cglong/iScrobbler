@@ -27,6 +27,9 @@
     <key>CheckDefaultRadioPlayer</key>
     <true />
     
+    <key>DBNeedsScrub</key>
+    <false />
+    
 	<key>Number of Songs to Save</key>
 	<integer>5</integer>
     
