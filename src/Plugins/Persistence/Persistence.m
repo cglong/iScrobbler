@@ -508,13 +508,25 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         [psc setMetadata:metadata forPersistentStore:store];
         
         tempPool = [[NSAutoreleasePool alloc] init];
+        // force scrub the db -- this reduces the size of the dub
+        // it also fixes a cache bug in the 'all' session caused during a 2.0 import
+        ISStartTime();
+        [sessionMgr performSelector:@selector(performScrub:) withObject:nil];
+        ISEndTime();
+        ScrobDebug(@"Migration: scrubbed db in in %.4lf seconds", (abs2clockns / 1000000000.0));
+        [tempPool release];
         
         // update session ratings
+        tempPool = [[NSAutoreleasePool alloc] init];
         ISStartTime();
         NSEnumerator *en = [[[sessionMgr activeSessionsWithMOC:moc] arrayByAddingObjectsFromArray:
             [sessionMgr archivedSessionsWithMOC:moc weekLimit:0]] objectEnumerator];
         NSManagedObject *mobj;
         while ((mobj = [en nextObject])) {
+            #ifndef ISDEBUG
+            if ([@"all" isEqualToString:[mobj valueForKey:@"name"]])
+                continue; // this was performed in the db scrub
+            #endif
             @try {
             [sessionMgr recreateRatingsCacheForSession:mobj songs:[self songsForSession:mobj] moc:moc];
             [self save:moc withNotification:NO];
@@ -525,9 +537,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         }
         ISEndTime();
         ScrobDebug(@"Migration: ratings update in in %.4lf seconds", (abs2clockns / 1000000000.0));
-        
-        // force scrub the db
-        [sessionMgr performSelector:@selector(performScrub:) withObject:nil];
         
         [tempPool release];
         tempPool = nil;
@@ -566,7 +575,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             ISEndTime();
             ScrobDebug(@"Migration: artist update in in %.4lf seconds", (abs2clockns / 1000000000.0));
         } @catch (NSException *e) {
-            ScrobLog(SCROB_LOG_ERR, @"Migration: exception updating artist play dates. (%@)", e);
+            ScrobLog(SCROB_LOG_ERR, @"Migration: exception updating artists. (%@)", e);
         }
         
         [tempPool release];
@@ -716,6 +725,13 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     return (IS_STORE_V2);
 }
 
+#ifdef ISDEBUG
+- (void)log:(NSString*)msg
+{
+    [mLog writeData:[msg dataUsingEncoding:NSUTF8StringEncoding]];
+}
+#endif
+
 // singleton support
 static PersistentProfile *shared = nil;
 + (PersistentProfile*)sharedInstance
@@ -755,6 +771,10 @@ static PersistentProfile *shared = nil;
     ISASSERT(shared == nil, "double load!");
     shared = self;
     mProxy = proxy;
+
+#ifdef ISDEBUG
+    mLog = [ScrobLogCreate(@"ISPersistence.log", 0, 1) retain];
+#endif
     
     return (self);
 }
@@ -766,7 +786,11 @@ static PersistentProfile *shared = nil;
 
 - (void)applicationWillTerminate
 {
-
+#ifdef ISDEBUG
+    [mLog closeFile];
+    [mLog release];
+    mLog = nil;
+#endif
 }
 
 @end

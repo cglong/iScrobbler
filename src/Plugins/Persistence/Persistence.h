@@ -27,7 +27,14 @@
     PersistentSessionManager *sessionMgr;
     id mProxy;
     int importing;
+#ifdef ISDEBUG
+    NSFileHandle *mLog;
+#endif
 }
+
+#ifdef ISDEBUG
+- (void)log:(NSString*)msg;
+#endif
 
 - (PersistentSessionManager*)sessionManager;
 
