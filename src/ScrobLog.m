@@ -93,7 +93,7 @@ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
             NSInteger logMax = [[NSUserDefaults standardUserDefaults] integerForKey:@"Log Max"];
             if (logMax <= 0)
                 logMax = limit;
-            if (sb.st_size > maxSize) {
+            if (sb.st_size > logMax) {
                 [fh truncateFileAtOffset:UTF8_BOM_SIZE];
             }
         }
