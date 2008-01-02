@@ -49,7 +49,12 @@ static inline void CreateStringToLevelDict()
 
 #define UTF8_BOM_SIZE 3
 
-__private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
+#ifndef ISDEBUG
+__private_extern__
+#else
+ISEXPORT
+#endif
+NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
 {
     NSString *path, *parent;
     NSArray *results;

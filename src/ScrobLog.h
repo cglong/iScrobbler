@@ -45,5 +45,10 @@ extern void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
 
 // ScrobLogCreateFlags
 #define SCROB_LOG_OPT_SESSION_MARKER 0x00000001
-__private_extern__ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit);
+#ifndef ISDEBUG
+__private_extern__
+#else
+extern
+#endif
+NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit);
 __private_extern__ void ScrobLogTruncate(void);
