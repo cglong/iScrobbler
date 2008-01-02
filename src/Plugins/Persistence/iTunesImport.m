@@ -10,6 +10,7 @@
 
 #import "ISiTunesLibrary.h"
 
+
 @interface SongData (iTunesImport)
 - (SongData*)initWithiTunesXMLTrack:(NSDictionary*)track;
 @end
@@ -111,18 +112,9 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     [request setEntity:entity];
-    if ((aTitle = [song album]) && [aTitle length] > 0) {
-        predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
-            ITEM_SONG, [[song title] stringByEscapingNSPredicateReserves],
-            [[song artist] stringByEscapingNSPredicateReserves], [aTitle stringByEscapingNSPredicateReserves]];
-    } else {
-        aTitle = nil;
-        predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
-            ITEM_SONG, [[song title] stringByEscapingNSPredicateReserves],
-            [[song artist] stringByEscapingNSPredicateReserves]];
-    }
+    // XXX: matchingPredicate is declared in PersistentSessionManager.m
+    // it takes a (NString**) as an arg, so don't pass anything but nil
+    predicate = [song performSelector:@selector(matchingPredicate:) withObject:nil];
     [request setPredicate:predicate];
     
     NSNumber *playTime;
