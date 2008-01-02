@@ -132,7 +132,6 @@ static PlayHistoryController *sharedController = nil;
     
     [moc reset];
     
-    [historyController addObjects:content];
     [historyController rearrangeObjects];
     
     [progress stopAnimation:nil];
