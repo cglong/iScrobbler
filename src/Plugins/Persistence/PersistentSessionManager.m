@@ -12,6 +12,11 @@
 #import "ISThreadMessenger.h"
 #import "SongData.h"
 
+@interface SongData (PersistentAdditions)
+- (NSPredicate*)matchingPredicate:(NSString**)albumTitle;
+- (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc;
+@end
+
 @interface PersistentProfile (Private)
 + (PersistentProfile*)sharedInstance;
 
@@ -22,10 +27,6 @@
 - (NSManagedObjectContext*)mainMOC;
 - (void)addSongPlaysDidFinish:(id)obj;
 - (id)storeMetadataForKey:(NSString*)key moc:(NSManagedObjectContext*)moc;
-@end
-
-@interface SongData (PersistentAdditions)
-- (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc;
 @end
 
 @implementation PersistentSessionManager
@@ -215,24 +216,15 @@
 // NOTE: For V2 this is only used once during migration from v1
 - (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc
 {
-#if IS_STORE_V2 || defined(ISDEBUG)
+#ifdef ISDEBUG
     // for v2 we'll take this opportunity to reset the session count/time caches in case they are a little out of sync
     NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
     NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
-#endif
-
-#if IS_STORE_V2
-#ifdef ISDEBUG
     ScrobLog(SCROB_LOG_TRACE, @"-session '%@'- play count: %@, cache count: %@", [session valueForKey:@"name"],
         count, [session valueForKey:@"playCount"]);
     ScrobLog(SCROB_LOG_TRACE, @"-session '%@'- play time: %@, cache time: %@", [session valueForKey:@"name"],
         ptime, [session valueForKey:@"playTime"]);
-#endif
-    [session setValue:count forKey:@"playCount"];
-    [session setValue:ptime forKey:@"playTime"];
-#endif
-
-#ifdef ISDEBUG
+        
     NSArray *refetchedSongs = [[PersistentProfile sharedInstance] songsForSession:session];
     ISASSERT([refetchedSongs count] == [songs count], "invalid session songs!");
     
@@ -287,6 +279,41 @@
     ISASSERT([ptime isEqualTo:[session valueForKey:@"playTime"]], "rating cache times don't match session total!");
 #endif    
 }
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+- (void)recreateHourCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc
+{
+    NSEnumerator *en;
+    NSManagedObject *hourCache;
+    NSNumber *zero = [NSNumber numberWithInt:0];
+    // Zero our ratings
+    en = [[[PersistentProfile sharedInstance] hoursForSession:session] objectEnumerator];
+    while ((hourCache = [en nextObject])) {
+        [hourCache setValue:zero forKey:@"playCount"];
+        [hourCache setValue:zero forKey:@"playTime"];
+    }
+    
+    en = [songs objectEnumerator];
+    NSManagedObject *sessionSong;
+    while ((sessionSong = [en nextObject])) {
+        NSCalendarDate *submitted = [NSCalendarDate dateWithTimeIntervalSince1970:
+            [[sessionSong valueForKey:@"submitted"] timeIntervalSince1970]];
+        NSNumber *hour = [NSNumber numberWithShort:[submitted hourOfDay]];
+        hourCache = [self cacheForHour:hour inSession:session moc:moc];
+        ISASSERT(hourCache != nil, "missing hour!");    
+        [hourCache incrementPlayCount:[sessionSong valueForKey:@"playCount"]];
+        [hourCache incrementPlayTime:[sessionSong valueForKey:@"playTime"]];
+    }
+    
+#ifdef ISDEBUG
+    NSArray *hours = [[PersistentProfile sharedInstance] hoursForSession:session];
+    NSNumber *count = [hours valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    NSNumber *ptime = [hours valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    ISASSERT([count isEqualTo:[session valueForKey:@"playCount"]], "hour cache counts don't match session total!");
+    ISASSERT([ptime isEqualTo:[session valueForKey:@"playTime"]], "hour cache times don't match session total!");
+#endif
+}
+#endif
 
 - (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:newEpoch moc:(NSManagedObjectContext*)moc
 {
@@ -438,8 +465,7 @@
         NSCalendarDate *submitted = [NSCalendarDate dateWithTimeIntervalSince1970:
             [[sessionSong valueForKey:@"submitted"] timeIntervalSince1970]];
         NSNumber *hour = [NSNumber numberWithShort:[submitted hourOfDay]];
-        mobj = [self cacheForHour:hour inSession:session moc:moc];
-        if (mobj) {
+        if ((mobj = [self cacheForHour:hour inSession:session moc:moc])) {
             [mobj decrementPlayCount:playCount];
             [mobj decrementPlayTime:playTime];
         }
@@ -620,6 +646,121 @@
     return ([rem count] > 0);
 }
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+- (BOOL)recreateCaches:(NSManagedObjectContext*)moc
+{
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    NSEntityDescription *entity;
+    NSManagedObject *mobj;
+    NSEnumerator *en;
+    NSError *error;
+    NSNumber *count, *ptime;
+    
+    // 'all' session
+    // XXX: assumption that [mergeSongsInSession:] was used first
+    // this fixes a bug in the 2.0 iTunes importer that would not update the session alias counts when a duplicate song was found
+    NSManagedObject *session = [self sessionWithName:@"all" moc:moc];
+    entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+        ITEM_SONG, session]];
+    [request setReturnsObjectsAsFaults:NO];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", nil]];
+    NSArray *songs = [moc executeFetchRequest:request error:&error];
+    en = [songs objectEnumerator];
+    while ((mobj = [en nextObject])) {
+        count = [mobj valueForKeyPath:@"item.playCount"];
+        ptime = [mobj valueForKeyPath:@"item.playTime"];
+        
+        #ifdef ISDEBUG
+        if ([count isNotEqualTo:[mobj valueForKey:@"playCount"]]) {
+            ScrobLog(SCROB_LOG_TRACE, @"count mismatch for '%@': session: %@, actual: %@",
+                [mobj valueForKeyPath:@"item.name"], [mobj valueForKey:@"playCount"], count);
+        }
+        if ([ptime isNotEqualTo:[mobj valueForKey:@"playTime"]]) {
+            ScrobLog(SCROB_LOG_TRACE, @"time mismatch for '%@': session: %@, actual: %@",
+                [mobj valueForKeyPath:@"item.name"], [mobj valueForKey:@"playTime"], ptime);
+        }
+        #endif
+        
+        [mobj setValue:count forKey:@"playCount"];
+        [mobj setValue:ptime forKey:@"playTime"];
+    }
+    count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    [session setValue:count forKey:@"playCount"];
+    [session setValue:ptime forKey:@"playTime"];
+    
+    [self recreateRatingsCacheForSession:session songs:songs moc:moc];
+    [self recreateHourCacheForSession:session songs:songs moc:moc];
+    
+    // artists
+    entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@)", ITEM_ARTIST]];
+    [request setReturnsObjectsAsFaults:NO];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"songs", nil]];
+    NSArray *artists = [moc executeFetchRequest:request error:&error];
+    en = [artists objectEnumerator];
+    while ((mobj = [en nextObject])) {
+        count = [mobj valueForKeyPath:@"songs.@sum.playCount"];
+        ptime = [mobj valueForKeyPath:@"songs.@sum.playTime"];
+        [mobj setValue:count forKey:@"playCount"];
+        [mobj setValue:ptime forKey:@"playTime"];
+    }
+#ifdef ISDEBUG
+    count = [artists valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    ptime = [artists valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    ISASSERT([count isEqualTo:[session valueForKey:@"playCount"]], "artist counts don't match 'all' session total!");
+    ISASSERT([ptime isEqualTo:[session valueForKey:@"playTime"]], "artist counts don't match 'all' session total!");
+#endif
+    
+    // albums
+    entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@)", ITEM_ALBUM]];
+    [request setReturnsObjectsAsFaults:NO];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"songs", nil]];
+#if 0
+    [request setSortDescriptors:[NSArray arrayWithObjects:
+        [[[NSSortDescriptor alloc] initWithKey:@"artist.name" ascending:YES] autorelease],
+        [[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease],
+        nil]];
+#endif
+    NSArray *albums = [moc executeFetchRequest:request error:&error];
+    en = [albums objectEnumerator];
+    while ((mobj = [en nextObject])) {
+        count = [mobj valueForKeyPath:@"songs.@sum.playCount"];
+        ptime = [mobj valueForKeyPath:@"songs.@sum.playTime"];
+    #if 0
+        NSString *msg = [NSString stringWithFormat:@"%@ - %@ (%lu): cache: %@, actual: %@, %@\n",
+            [mobj valueForKeyPath:@"artist.name"], [mobj valueForKey:@"name"], [[mobj valueForKey:@"songs"] count],
+            [mobj valueForKey:@"playCount"], count,
+            ([[mobj valueForKey:@"playCount"] isEqualTo:count]) ? @"" : @"*****"];
+        [[PersistentProfile sharedInstance] log:msg];
+    #endif
+        [mobj setValue:count forKey:@"playCount"];
+        [mobj setValue:ptime forKey:@"playTime"];
+    }
+#ifdef ISDEBUG
+    u_int32_t cc = [[albums valueForKeyPath:@"playCount.@sum.unsignedIntValue"] unsignedIntValue];
+    u_int64_t tt = [[albums valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"] unsignedLongLongValue];
+    
+    entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (album == nil)", ITEM_SONG]];
+    [request setReturnsObjectsAsFaults:NO];
+    songs = [moc executeFetchRequest:request error:&error];
+    cc += [[songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"] unsignedIntValue];
+    tt += [[songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"] unsignedIntValue];
+    
+    ISASSERT(cc == [[session valueForKey:@"playCount"] unsignedIntValue], "album counts don't match 'all' session total!");
+    ISASSERT(tt == [[session valueForKey:@"playTime"] unsignedLongLongValue], "album counts don't match 'all' session total!");
+#endif
+    return (YES);
+}
+#endif
+
 - (void)performScrub:(id)arg
 {
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
@@ -632,16 +773,31 @@
     BOOL save;
     @try {
     save = [self mergeSongsInSession:[self sessionWithName:@"all" moc:moc] moc:moc];
-    // in the future we may decide to delete ancient archived sessions (> 1yr)
     } @catch (NSException *e) {
         save = NO;
         [moc rollback];
-        ScrobLog(SCROB_LOG_ERR, @"exception while scrubbing: %@", e);
+        ScrobLog(SCROB_LOG_ERR, @"scrub: exception while merging songs: %@", e);
     }
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    if (save)
+        (void)[[PersistentProfile sharedInstance] save:moc];
+    
+    @try {
+    save = [self recreateCaches:moc];
+    } @catch (NSException *e) {
+        save = NO;
+        [moc rollback];
+        ScrobLog(SCROB_LOG_ERR, @"scrub: exception while recreating caches: %@", e);
+    }
+    #endif
+    
+    // in the future we may decide to delete ancient archived sessions (> 1yr)
     
     if (save) {
         (void)[[PersistentProfile sharedInstance] save:moc];
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBNeedsScrub"];
     }
 }
 
@@ -657,7 +813,8 @@
     #ifndef ISDEBUG
     NSCalendarDate *d = [NSCalendarDate date];
     d = [d dateByAddingYears:0 months:-1 days:0 hours:-[d hourOfDay] minutes:-[d minuteOfHour] seconds:-[d secondOfMinute]];
-    if ([[lastScrub GMTDate] isGreaterThan:[d GMTDate]])
+    if ([[lastScrub GMTDate] isGreaterThan:[d GMTDate]]
+        || [[NSUserDefaults standardUserDefaults] boolForKey:@"DBNeedsScrub"])
         return;
     #else
     // stress testing 
@@ -800,7 +957,7 @@
     @try {
     
     en = [queue objectEnumerator];
-    id obj;
+    SongData *obj;
     while ((obj = [en nextObject])) {
         if ((moSong = [self addSongPlay:obj withImportedPlayCount:nil moc:moc]))
             [addedSongs addObject:moSong];
@@ -883,10 +1040,11 @@
 - (void)updateSongHistory:(NSManagedObject*)psong count:(NSNumber*)count time:(NSNumber*)secs moc:(NSManagedObjectContext*)moc
 {
     // Create a last played history item
+    NSDate *songLastPlayed = [psong valueForKey:@"lastPlayed"];
     NSManagedObject *lastPlayed;
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSongLastPlayed" inManagedObjectContext:moc];
     lastPlayed = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
-    [lastPlayed setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+    [lastPlayed setValue:songLastPlayed forKey:@"lastPlayed"];
     [lastPlayed setValue:psong forKey:@"song"];
     
     [psong incrementPlayCount:count];
@@ -894,12 +1052,14 @@
     NSManagedObject *mobj = [psong valueForKey:@"artist"];
     [mobj incrementPlayCount:count];
     [mobj incrementPlayTime:secs];
-    [mobj setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+    if ([[songLastPlayed GMTDate] isGreaterThan:[[mobj valueForKey:@"lastPlayed"] GMTDate]])
+        [mobj setValue:songLastPlayed forKey:@"lastPlayed"];
     if ((mobj = [psong valueForKey:@"album"])) {
         [mobj incrementPlayCount:count];
         [mobj incrementPlayTime:secs];
         #if IS_STORE_V2
-        [mobj setValue:[psong valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+        if ([[songLastPlayed GMTDate] isGreaterThan:[[mobj valueForKey:@"lastPlayed"] GMTDate]])
+            [mobj setValue:songLastPlayed forKey:@"lastPlayed"];
         #endif
     }
 }
@@ -1035,6 +1195,7 @@
         // Make sure our play count is in sync with the player's
         NSNumber *count = [song playCount];
         if ([count unsignedIntValue] > 0 && [[psong valueForKey:@"playCount"] isNotEqualTo:count]) {
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
             [psong setValue:count forKey:@"playCount"];
             NSNumber *pTime = [psong valueForKey:@"duration"];
             pTime = [NSNumber numberWithUnsignedLongLong:[pTime unsignedLongLongValue] * [count unsignedLongLongValue]];
@@ -1118,6 +1279,40 @@
 
 @implementation SongData (PersistentAdditions)
 
+- (NSPredicate*)matchingPredicate:(NSString**)albumTitle
+{
+    // tried optimizing this search by just searching for song titles and then limiting to artist/album in memory,
+    // but it made no difference in speed
+    NSPredicate *predicate;
+    NSString *aTitle;
+    if ((aTitle = [self album]) && [aTitle length] > 0) {
+        NSNumber *trackNo = [self trackNumber];
+        if ([trackNo unsignedIntValue] > 0) {
+            predicate = [NSPredicate predicateWithFormat:
+                @"(itemType == %@) AND (trackNumber == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
+                ITEM_SONG, trackNo,
+                [[self title] stringByEscapingNSPredicateReserves],
+                [[self artist] stringByEscapingNSPredicateReserves],
+                [aTitle stringByEscapingNSPredicateReserves]];
+        } else {
+            predicate = [NSPredicate predicateWithFormat:
+                @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
+                ITEM_SONG,
+                [[self title] stringByEscapingNSPredicateReserves],
+                [[self artist] stringByEscapingNSPredicateReserves],
+                [aTitle stringByEscapingNSPredicateReserves]];
+        }
+    } else {
+        aTitle = nil;
+        predicate = [NSPredicate predicateWithFormat:
+            @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
+            ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves], [[self artist] stringByEscapingNSPredicateReserves]];
+    }
+    if (albumTitle)
+        *albumTitle = aTitle;
+    return (predicate);
+}
+
 - (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc
 {
     NSError *error = nil;
@@ -1126,22 +1321,8 @@
     [request setEntity:entity];
     
     @try {
-    
-    // tried optimizing this search by just searching for song titles and then limiting to artist/album in memory,
-    // but it made no difference in speed
-    NSPredicate *predicate;
     NSString *aTitle;
-    if ((aTitle = [self album]) && [aTitle length] > 0) {
-        predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
-            ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves],
-            [[self artist] stringByEscapingNSPredicateReserves], [aTitle stringByEscapingNSPredicateReserves]];
-    } else {
-        aTitle = nil;
-        predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
-            ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves], [[self artist] stringByEscapingNSPredicateReserves]];
-    }
+    NSPredicate *predicate = [self matchingPredicate:&aTitle];
     [request setPredicate:predicate];
     
     NSCalendarDate *myLastPlayed = [NSCalendarDate dateWithTimeIntervalSince1970:
