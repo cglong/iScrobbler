@@ -134,13 +134,18 @@
         ScrobDebug(@"import: %@ already in database as (%@, %@, %@)", [song brief],
             [moSong valueForKey:@"name"], [[moSong valueForKey:@"album"] valueForKey:@"name"],
             [[moSong valueForKey:@"artist"] valueForKey:@"name"]);
+        NSDate *prevLastPlayed = [moSong valueForKey:@"lastPlayed"];
         [moSong setValue:[song lastPlayed] forKey:@"lastPlayed"];
         [sMgr updateSongHistory:moSong count:playCount time:playTime moc:moc];
+        if ([[[song lastPlayed] GMTDate] isLessThan:[prevLastPlayed GMTDate]])
+            [moSong setValue:prevLastPlayed forKey:@"lastPlayed"];
         
         // Get the session alias, there should only be one
         NSSet *aliases = [moSong valueForKey:@"sessionAliases"];
         ISASSERT([aliases count] > 0, "invalid state - missing session aliases!");
         mosSong = [aliases anyObject];
+        [mosSong incrementPlayCount:playCount];
+        [mosSong incrementPlayTime:playTime];
     } else {
         // Song not found
         ISASSERT(0 == [result count], "multiple songs found in db!");
