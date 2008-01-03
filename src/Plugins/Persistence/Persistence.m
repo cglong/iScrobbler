@@ -495,8 +495,10 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         
         if (![NSThread isMainThread])
             [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
-    } else
+    } else {
+        store = nil;
         migrated = NO;
+    }
     
     if (store) {
         metadata = [NSDictionary dictionaryWithObjectsAndKeys:
