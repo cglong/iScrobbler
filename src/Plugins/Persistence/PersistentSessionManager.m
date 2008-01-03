@@ -217,7 +217,6 @@
 - (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc
 {
 #ifdef ISDEBUG
-    // for v2 we'll take this opportunity to reset the session count/time caches in case they are a little out of sync
     NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
     NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     ScrobLog(SCROB_LOG_TRACE, @"-session '%@'- play count: %@, cache count: %@", [session valueForKey:@"name"],
@@ -1191,11 +1190,24 @@
 
 - (void)syncPersistentSong:(NSManagedObject*)psong withSong:(SongData*)song
 {
-    if (trackTypeFile == [song type] && [psong valueForKey:@"importedPlayCount"] > 0) {
+    if (trackTypeFile == [song type]) {
+        ISASSERT([song path], "no local path!");
         // Make sure our play count is in sync with the player's
         NSNumber *count = [song playCount];
         if ([count unsignedIntValue] > 0 && [[psong valueForKey:@"playCount"] isNotEqualTo:count]) {
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
+            #if IS_STORE_V2
+            NSNumber *nlCount = [psong valueForKey:@"nonLocalPlayCount"];
+            if (nlCount) {
+                u_int32_t adjCount = [count unsignedIntValue] + [nlCount unsignedIntValue];
+                if (adjCount >= [count unsignedIntValue])
+                    count = [NSNumber numberWithUnsignedInt:adjCount];
+                #ifdef ISDEBUG
+                else
+                    ISASSERT(0, "count overflow!");
+                #endif
+            }
+            #endif
             [psong setValue:count forKey:@"playCount"];
             NSNumber *pTime = [psong valueForKey:@"duration"];
             pTime = [NSNumber numberWithUnsignedLongLong:[pTime unsignedLongLongValue] * [count unsignedLongLongValue]];
@@ -1229,6 +1241,14 @@
             pTime = [psong valueForKey:@"duration"];
             
             [self syncPersistentSong:psong withSong:song];
+            #if IS_STORE_V2
+            if (trackTypeFile != [song type]) {
+                // XXX: must update after [syncPersistentSong:]
+                ISASSERT(nil == [song path], "has local path!");
+                u_int32_t nlCount = [[psong valueForKey:@"nonLocalPlayCount"] unsignedIntValue] + [pCount unsignedIntValue];
+                [psong setValue:[NSNumber numberWithUnsignedInt:nlCount] forKey:@"nonLocalPlayCount"];
+            }
+            #endif
         } else {
             pCount = importCount;
             pTime = [NSNumber numberWithUnsignedLongLong:
