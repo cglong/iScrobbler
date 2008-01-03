@@ -427,8 +427,16 @@
             goto exitHistory;
         }
         
-        if ([history count] >= count)
-            [history removeLastObject];
+        if ([history count] >= count) {
+            NSRange del;
+            del.length = [history count] - count;
+            if (0 == del.length)
+                [history removeLastObject];
+            else {
+                del.location = count;
+                [history removeObjectsInRange:del];
+            }
+        }
         
         // see if we already exist
         count = [history count];
@@ -508,7 +516,7 @@ exitHistory:
     // use the station info from last.fm if possible
     NSDictionary *d = [note userInfo];
     NSString *sname = [d objectForKey:@"stationname"];
-    NSString *surl = [d objectForKey:@"url"];
+    NSString *surl = [[d objectForKey:@"url"] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     if (sname && surl) {
         [stationBeingTuned release];
         stationBeingTuned = [[NSDictionary alloc] initWithObjectsAndKeys:surl, @"radioURL", sname, @"name", nil];
