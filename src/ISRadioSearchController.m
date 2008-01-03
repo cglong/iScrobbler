@@ -364,7 +364,10 @@
     SEL method = NSSelectorFromString([selection objectForKey:@"action"]);
     if (method)
         [self performSelector:method withObject:selection];
-    } @catch (id e) {
+    NSNumber *deselect = [selection objectForKey:@"deselect"];
+    if (deselect && [deselect boolValue])
+        [sourceList performSelector:@selector(deselectAll:) withObject:nil afterDelay:0.38];
+    } @catch (NSException *e) {
         ScrobDebug(@"%@", e);
     }
 }
@@ -380,8 +383,10 @@
     NSMutableDictionary *d;
     NSEnumerator *en = [h objectEnumerator];
     NSString *action = NSStringFromSelector(@selector(tuneHistory:));
+    NSNumber *yes = [NSNumber numberWithBool:YES];
     while ((d = [en nextObject])) {
         [d setObject:action forKey:@"action"];
+        [d setObject:yes forKey:@"deselect"];
     }
     
     [history setValue:h forKey:@"children"];
