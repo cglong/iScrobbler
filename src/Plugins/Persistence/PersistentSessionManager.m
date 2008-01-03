@@ -183,15 +183,19 @@
     thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
     
     lfmUpdateTimer = sUpdateTimer = nil;
+    @try {
     [self performSelector:@selector(updateLastfmSession:) withObject:nil];
     [self performSelector:@selector(updateSessions:) withObject:nil];
     [self performSelector:@selector(scrub:) withObject:nil];
+    } @catch (NSException *e) {}
     
     do {
         [pool release];
         pool = [[NSAutoreleasePool alloc] init];
         @try {
         [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+        
+        [self performSelector:@selector(scrub:) withObject:nil];
         } @catch (id e) {
             ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception: %@", e);
         }
@@ -780,7 +784,7 @@
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     if (save)
-        (void)[[PersistentProfile sharedInstance] save:moc];
+        (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
     
     @try {
     save = [self recreateCaches:moc];
@@ -796,32 +800,46 @@
     if (save) {
         (void)[[PersistentProfile sharedInstance] save:moc];
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
-        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBNeedsScrub"];
     }
+    
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBNeedsScrub"];
 }
 
 - (void)scrub:(NSTimer*)t
 {
-    NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
-    if (!lastScrub) {
-        NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
-        ISASSERT(moc != nil, "missing moc");
-        lastScrub = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
-    }
-    
+    NSManagedObjectContext *moc = nil;
     #ifndef ISDEBUG
-    NSCalendarDate *d = [NSCalendarDate date];
-    d = [d dateByAddingYears:0 months:-1 days:0 hours:-[d hourOfDay] minutes:-[d minuteOfHour] seconds:-[d secondOfMinute]];
-    if ([[lastScrub GMTDate] isGreaterThan:[d GMTDate]]
-        || [[NSUserDefaults standardUserDefaults] boolForKey:@"DBNeedsScrub"])
-        return;
+    BOOL forcedScrub;
+    if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"DBNeedsScrub"]) {
+        forcedScrub = NO;
+        NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
+        if (!lastScrub) {
+            moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+            ISASSERT(moc != nil, "missing moc");
+            lastScrub = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
+        }
+    
+        NSCalendarDate *d = [NSCalendarDate date];
+        d = [d dateByAddingYears:0 months:-1 days:0 hours:-[d hourOfDay] minutes:-[d minuteOfHour] seconds:-[d secondOfMinute]];
+        if ([[lastScrub GMTDate] isGreaterThan:[d GMTDate]])
+            return;
+    } else
+        forcedScrub = YES;
+    
+    ScrobLog(SCROB_LOG_TRACE, @"%@ db scrub", forcedScrub ? @"Forced" : @"Scheduled");
     #else
-    // stress testing 
-    (void)[NSTimer scheduledTimerWithTimeInterval:1800.0
-        target:self selector:@selector(scrub:) userInfo:nil repeats:NO];
+    // stress testing
+    static NSTimer *sched = nil;
+    if (t)
+        sched = nil;
+    if (!sched)
+        sched = [NSTimer scheduledTimerWithTimeInterval:3600.0 target:self selector:@selector(scrub:) userInfo:nil repeats:NO];
     #endif
     
     [self performScrub:nil];
+    if (!moc)
+        moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    [moc reset]; // we walked a majority of the db, free the mem
 }
 
 - (void)updateLastfmSession:(NSTimer*)t
@@ -1195,8 +1213,8 @@
         // Make sure our play count is in sync with the player's
         NSNumber *count = [song playCount];
         if ([count unsignedIntValue] > 0 && [[psong valueForKey:@"playCount"] isNotEqualTo:count]) {
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
             #if IS_STORE_V2
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
             NSNumber *nlCount = [psong valueForKey:@"nonLocalPlayCount"];
             if (nlCount) {
                 u_int32_t adjCount = [count unsignedIntValue] + [nlCount unsignedIntValue];
@@ -1212,7 +1230,6 @@
             NSNumber *pTime = [psong valueForKey:@"duration"];
             pTime = [NSNumber numberWithUnsignedLongLong:[pTime unsignedLongLongValue] * [count unsignedLongLongValue]];
             [psong setValue:pTime forKey:@"playTime"];
-            // Update album and artist with the delta as well?
         }
         
         count = [song rating]; // and the rating
