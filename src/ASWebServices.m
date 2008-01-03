@@ -150,11 +150,15 @@ static ASXMLFile *xspfReq = nil;
     
     NSString *path = [NSString stringWithFormat:@"http://%@/1.0/webclient/getresourceplaylist.php?sk=%@&url=%@&desktop=1",
         [sessionvars objectForKey:@"base_url"], sessionid, service];
+   NSURL *url;
     @try {
-    return (!needHandshake ? [NSURL URLWithString:path] : nil);
-    } @catch (id e) {}
+        url = [NSURL URLWithString:path];
+    } @catch (NSException *e) {
+        url = nil;
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating URL with service '%@': %@", service, e);
+    }
     
-    return (nil);
+    return (!needHandshake ? url : nil);
 }
 
 - (NSURL*)radioURLWithService:(NSString*)service
@@ -165,11 +169,15 @@ static ASXMLFile *xspfReq = nil;
     NSString *path = [NSString stringWithFormat:@"http://%@%@/adjust.php?session=%@&url=%@&lang=%@",
         [sessionvars objectForKey:@"base_url"], [sessionvars objectForKey:@"base_path"],
         sessionid, service, WS_LANG];
+    NSURL *url;
     @try {
-    return (!needHandshake ? [NSURL URLWithString:path] : nil);
-    } @catch (id e) {}
+        url = [NSURL URLWithString:path];
+    } @catch (NSException *e) {
+        url = nil;
+        ScrobLog(SCROB_LOG_ERR, @"Exception creating URL with service '%@': %@", service, e);
+    }
     
-    return (nil);
+    return (!needHandshake ? url : nil);
 }
 
 - (BOOL)isPlaylistService:(NSString*)service
