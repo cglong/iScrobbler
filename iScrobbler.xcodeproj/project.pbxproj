@@ -1472,6 +1472,7 @@
 				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MAPC_NO_WARNINGS = YES;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -1513,6 +1514,7 @@
 				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MAPC_NO_WARNINGS = YES;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
