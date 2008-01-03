@@ -1217,29 +1217,33 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         HAdd(d, TRCLOSE);
         en = [[newArtists sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] objectEnumerator];
         #if 0
-        // 1 artist per row
-        while ((entry = [en nextObject])) {
-            HAdd(d, (position & 0x0000001) ? TR : TRALT);
-            HAdd(d, TDEntry(@"<td class=\"title\">", entry));
-            HAdd(d, TRCLOSE);
-            ++position;
-        }
+        if (elapsedDays > 14.0) {
+            // 1 artist per row with date
+            while ((entry = [en nextObject])) {
+                HAdd(d, (position & 0x0000001) ? TR : TRALT);
+                HAdd(d, TDEntry(@"<td class=\"title\">", entry));
+                HAdd(d, TRCLOSE);
+                ++position;
+            }
+        } else
         #endif
-        // 1 row with all artists
-        NSMutableString *s = [NSMutableString stringWithString:@""];
-        HAdd(d, TR);
-        while ((entry = [en nextObject])) {
-            [s appendFormat:@"%@, ", entry];
+        {
+            // 1 row with all artists
+            NSMutableString *s = [NSMutableString stringWithString:@""];
+            HAdd(d, TR);
+            while ((entry = [en nextObject])) {
+                [s appendFormat:@"%@, ", entry];
+            }
+            NSRange r;
+            r.location = [s length];
+            if (r.location > 0) {
+                r.location -= 2;
+                r.length = 2;
+                [s deleteCharactersInRange:r];
+            }
+            HAdd(d, TDEntry(@"<td class=\"userinfo\">", s));
+            HAdd(d, TRCLOSE);
         }
-        NSRange r;
-        r.location = [s length];
-        if (r.location > 0) {
-            r.location -= 2;
-            r.length = 2;
-            [s deleteCharactersInRange:r];
-        }
-        HAdd(d, TDEntry(@"<td class=\"userinfo\">", s));
-        HAdd(d, TRCLOSE);
         HAdd(d, TBLCLOSE @"</div>");
     }
     
