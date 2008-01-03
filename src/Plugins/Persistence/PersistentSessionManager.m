@@ -834,6 +834,8 @@
         sched = nil;
     if (!sched)
         sched = [NSTimer scheduledTimerWithTimeInterval:3600.0 target:self selector:@selector(scrub:) userInfo:nil repeats:NO];
+    if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"DBNeedsScrub"] && !t)
+        return;
     #endif
     
     [self performScrub:nil];
@@ -1209,7 +1211,7 @@
 - (void)syncPersistentSong:(NSManagedObject*)psong withSong:(SongData*)song
 {
     if (trackTypeFile == [song type]) {
-        ISASSERT([song path], "no local path!");
+        ISASSERT([song path] && [[song path] length] > 0, "no local path!");
         // Make sure our play count is in sync with the player's
         NSNumber *count = [song playCount];
         if ([count unsignedIntValue] > 0 && [[psong valueForKey:@"playCount"] isNotEqualTo:count]) {
@@ -1261,7 +1263,7 @@
             #if IS_STORE_V2
             if (trackTypeFile != [song type]) {
                 // XXX: must update after [syncPersistentSong:]
-                ISASSERT(nil == [song path], "has local path!");
+                ISASSERT(nil == [song path] || 0 == [[song path] length], "has local path!");
                 u_int32_t nlCount = [[psong valueForKey:@"nonLocalPlayCount"] unsignedIntValue] + [pCount unsignedIntValue];
                 [psong setValue:[NSNumber numberWithUnsignedInt:nlCount] forKey:@"nonLocalPlayCount"];
             }
