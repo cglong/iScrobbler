@@ -465,7 +465,8 @@ if (currentSong) { \
         // player is PandoraBoy, etc
         [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
-        [song setType:trackTypeFile];
+        if (trackTypeUnknown == [song type])
+            [song setType:trackTypeShared];
     }
     
     if (didInfoUpdate) {
@@ -2136,8 +2137,10 @@ exit:
     }
     if (ialbum)
         [self setAlbum:ialbum];
-    if (location && [location isFileURL])
+    if (location && [location isFileURL]) {
         [self setPath:[location path]];
+        [self setType:trackTypeFile];
+    }
     if (irating)
         [self setRating:irating];
     if (igenre)
