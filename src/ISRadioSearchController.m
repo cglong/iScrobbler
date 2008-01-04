@@ -622,6 +622,39 @@
     [[NSUserDefaults standardUserDefaults] setObject:state forKey:@"RadioSourceListExpansionState"];
 }
 
+- (void)radioBusyStateDidChange:(BOOL)windowClosing
+{
+    NSView *cview = [[splitView subviews] objectAtIndex:1];
+    BOOL busy = [[ISRadioController sharedInstance] isBusy];
+    if (cview != busyView && busy && !windowClosing) {
+        [busyView setFrame:[cview frame]];
+        [splitView replaceSubview:cview with:busyView];
+        ISASSERT(activeViewBeforeBusy == nil, "stale view!");
+        activeViewBeforeBusy = [cview retain];
+        LEOPARD_BEGIN
+        [sourceList setEnabled:NO];
+        LEOPARD_END
+        [busyIndicator startAnimation:nil];
+    } else if (cview == busyView && (!busy || windowClosing)) {
+        ISASSERT(activeViewBeforeBusy != nil, "missing view!");
+        [activeViewBeforeBusy setFrame:[cview frame]];
+        [splitView replaceSubview:busyView with:activeViewBeforeBusy];
+        [activeViewBeforeBusy release];
+        activeViewBeforeBusy = nil;
+        [busyIndicator stopAnimation:nil];
+        LEOPARD_BEGIN
+        [sourceList setEnabled:YES];
+        LEOPARD_END
+    }
+}
+
+- (void)observeValueForKeyPath:(NSString *)key ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([key isEqualToString:@"isBusy"]) {
+        [self radioBusyStateDidChange:NO];
+    }
+}
+
 - (IBAction)showWindow:(id)sender
 {
     if (![[self window] isVisible]) {
@@ -634,6 +667,9 @@
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(radioHistoryDidUpdate:)
             name:ISRadioHistoryDidUpdateNotification object:nil];
+        
+        [self radioBusyStateDidChange:NO];
+        [[ISRadioController sharedInstance] addObserver:self forKeyPath:@"isBusy" options:0 context:nil];
     }
     [NSApp activateIgnoringOtherApps:YES];
     [super showWindow:sender];
@@ -649,6 +685,7 @@
     // retain our views so we don't lose them when they are replaced
     (void)[placeholderView retain];
     (void)[searchView retain];
+    (void)[busyView retain];
     [searchOption setHidden:YES];
     
     [[self window] setTitle:
@@ -656,7 +693,7 @@
     [splitView setDelegate:self];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(selectionDidChange:)
-            name:NSOutlineViewSelectionDidChangeNotification object:sourceList];
+        name:NSOutlineViewSelectionDidChangeNotification object:sourceList];
 }
 
 - (void)windowWillClose:(NSNotification*)note
@@ -664,6 +701,9 @@
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH];
     
     [[NSNotificationCenter defaultCenter] removeObserver:self name:ISRadioHistoryDidUpdateNotification object:nil];
+    
+    [[ISRadioController sharedInstance] removeObserver:self forKeyPath:@"isBusy"];
+    [self radioBusyStateDidChange:YES];
     
     [searchProgress stopAnimation:nil];
     
@@ -690,8 +730,8 @@
 {
     LEOPARD_BEGIN
     [sourceList setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
-    [sourceList setDelegate:self];
     LEOPARD_END
+    [sourceList setDelegate:self];
     [super setWindowFrameAutosaveName:@"RadioSearch"];
     if ([[sourceListController content] count])
         [sourceListController setContent:[NSMutableArray array]];
@@ -724,6 +764,14 @@
         [uc release];
     }
 }
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+- (BOOL)selectionShouldChangeInOutlineView:(NSOutlineView *)outlineView
+{
+    // Tiger table views don't disable/enable, so we have to block clicks
+    return (NO == [[ISRadioController sharedInstance] isBusy]);
+}
+#endif
 
 #define SearchPanelMaxRatio 0.80
 - (CGFloat)splitView:(NSSplitView *)sender constrainMaxCoordinate:(CGFloat)proposedMax ofSubviewAt:(NSInteger)offset

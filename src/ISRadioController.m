@@ -229,6 +229,8 @@
         return;
     }
     
+    [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
+    
     [self stop];
     [ws tuneStation:url];
 }
@@ -529,11 +531,14 @@ exitHistory:
         stationBeingTuned = nil;
     }
     
+    // don't clear the busy state as the playlist needs to update
     [asws updatePlaylist];
 }
 
 - (void)wsStationTuneFailure:(NSNotification*)note
 {
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+    
     [self setNowPlayingStation:nil];
     [stationBeingTuned release];
     stationBeingTuned = nil;
@@ -578,6 +583,8 @@ exitHistory:
 
 - (void)wsWillHandShake:(NSNotification*)note
 {
+    [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
+    
     [rootMenu setToolTip:[NSString stringWithFormat:@"%@%C",
         NSLocalizedString(@"Radio connecting", ""), 0x2026 /*...*/]];
     
@@ -636,6 +643,8 @@ exitHistory:
         // leave 'stationBeingTuned' in tact for NP/history updates
     }
     
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_FINDSTATIONS_WINDOW_AT_LAUNCH]) {
         [[ISRadioSearchController sharedController] showWindow:nil];
     }
@@ -643,6 +652,8 @@ exitHistory:
 
 - (void)wsFailedHandShake:(NSNotification*)note
 {
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+    
     [rootMenu setToolTip:NSLocalizedString(@"Radio not connected (failed)", "")];
     [[NSApp delegate] displayProtocolEvent:NSLocalizedString(@"Failed to connect to Last.fm Radio", "")];
 }
@@ -651,6 +662,7 @@ exitHistory:
 {
     NSArray *playlist = [[note userInfo] objectForKey:ISR_PLAYLIST];
     [self performSelector:@selector(addPlaylistTracksToiTunes:) withObject:playlist afterDelay:0.0];
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
 }
 
 - (void)wsNowPlayingFailed:(NSNotification*)note
@@ -658,6 +670,8 @@ exitHistory:
     ScrobLog(SCROB_LOG_ERR, @"Radio: Failed to get playlist data");
     if (0 == [activeRadioTracks count])
         [self wsStationTuneFailure:note];
+    else
+        [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
 }
 
 - (void)wsExecComplete:(NSNotification*)note
@@ -707,8 +721,10 @@ exitHistory:
         ISASSERT(currentTrackID && [self isActiveRadioSong:s], "current track is not in the active radio list!");
     }
     
-    if (radioPlaying && [activeRadioTracks count] <= 1)
+    if (radioPlaying && [activeRadioTracks count] <= 1) {
+        [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
         [asws updatePlaylist];
+    }
 }
 
 - (void)iTunesPlayerDialogHandler:(NSNotification*)note
@@ -907,6 +923,27 @@ exitHistory:
 }
 
 // End AppleScript
+
+- (BOOL)isBusy
+{
+    return (isBusy > 0);
+}
+
+- (void)setIsBusy:(BOOL)busy
+{
+    if (busy) {
+        if (0 == isBusy)
+            [rootMenu setEnabled:NO];
+        ++isBusy;
+    } else {
+        --isBusy;
+        if (0 == isBusy)
+            [rootMenu setEnabled:YES];
+    }
+    ISASSERT(isBusy >= 0, "isBusy went south");
+    if (isBusy < 0)
+        isBusy = 0;
+}
 
 - (void)applicationWillTerminate:(NSNotification*)note
 {

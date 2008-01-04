@@ -19,6 +19,7 @@
     NSAppleScript *stopScript, *radioScript;
     NSMutableDictionary *activeRadioTracks;
     NSString *currentTrackID;
+    int isBusy;
 }
 
 + (ISRadioController*)sharedInstance;
@@ -31,6 +32,9 @@
 
 - (BOOL)scrobbleRadioPlays;
 - (NSArray*)history;
+
+- (BOOL)isBusy;
+- (void)setIsBusy:(BOOL)busy;
 
 @end
 

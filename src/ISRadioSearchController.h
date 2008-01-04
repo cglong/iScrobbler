@@ -23,7 +23,10 @@
     IBOutlet NSButton *searchButton;
     IBOutlet NSProgressIndicator *searchProgress;
     IBOutlet NSButton *searchOption;
+    IBOutlet NSView *busyView;
+    IBOutlet NSProgressIndicator *busyIndicator;
     
+    NSView *activeViewBeforeBusy;
     NSMutableDictionary *search, *tags, *friends, *neighbors, *history;
     ASXMLFile *friendsConn, *neighborsConn, *tagsConn;
     id currentSearchType;
