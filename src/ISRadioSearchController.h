@@ -27,6 +27,8 @@
     IBOutlet NSProgressIndicator *busyIndicator;
     
     NSView *activeViewBeforeBusy;
+    NSDictionary *viewAnimations;
+    
     NSMutableDictionary *search, *tags, *friends, *neighbors, *history;
     ASXMLFile *friendsConn, *neighborsConn, *tagsConn;
     id currentSearchType;

@@ -7,6 +7,7 @@
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
+#import <QuartzCore/QuartzCore.h>
 
 #import "ISRadioSearchController.h"
 #import "ISRadioController.h"
@@ -96,7 +97,7 @@
     NSView *cview = [[splitView subviews] objectAtIndex:1];
     if (searchView != cview) {
         [searchView setFrame:[cview frame]];
-        [splitView replaceSubview:cview with:searchView];
+        [[splitView animator] replaceSubview:cview with:searchView];
     }
     
     currentSearchType = selection;
@@ -136,6 +137,10 @@
     [v setSelectable:YES];
     [v setSelectable:YES];
     [v setDelegate:self];
+    LEOPARD_BEGIN
+    [v setWantsLayer:YES];
+    [v setAnimations:viewAnimations];
+    LEOPARD_END
     
     NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
@@ -251,7 +256,7 @@
     [value appendAttributedString:newline];
     [value appendAttributedString:tmp];
     
-    [splitView replaceSubview:cview with:v];
+    [[splitView animator] replaceSubview:cview with:v];
     if ([v acceptsFirstResponder]) {
         (void)[[self window] makeFirstResponder:v];
     }
@@ -269,6 +274,10 @@
     [v setSelectable:YES];
     [v setSelectable:YES];
     [v setDelegate:self];
+    LEOPARD_BEGIN
+    [v setWantsLayer:YES];
+    [v setAnimations:viewAnimations];
+    LEOPARD_END
     
     NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
@@ -333,7 +342,7 @@
     [value appendAttributedString:newline];
     [value appendAttributedString:tmp];
     
-    [splitView replaceSubview:cview with:v];
+    [[splitView animator] replaceSubview:cview with:v];
     if ([v acceptsFirstResponder]) {
         (void)[[self window] makeFirstResponder:v];
     }
@@ -346,7 +355,7 @@
     NSView *cview = [[splitView subviews] objectAtIndex:1];
     if (cview != placeholderView) {
         [placeholderView setFrame:[cview frame]];
-        [splitView replaceSubview:cview with:placeholderView];
+        [[splitView animator] replaceSubview:cview with:placeholderView];
     }
     [self tuneStation:selection];
 }
@@ -628,7 +637,7 @@
     BOOL busy = [[ISRadioController sharedInstance] isBusy];
     if (cview != busyView && busy && !windowClosing) {
         [busyView setFrame:[cview frame]];
-        [splitView replaceSubview:cview with:busyView];
+        [[splitView animator] replaceSubview:cview with:busyView];
         ISASSERT(activeViewBeforeBusy == nil, "stale view!");
         activeViewBeforeBusy = [cview retain];
         LEOPARD_BEGIN
@@ -638,10 +647,10 @@
     } else if (cview == busyView && (!busy || windowClosing)) {
         ISASSERT(activeViewBeforeBusy != nil, "missing view!");
         [activeViewBeforeBusy setFrame:[cview frame]];
-        [splitView replaceSubview:busyView with:activeViewBeforeBusy];
+        [busyIndicator stopAnimation:nil];
+        [[splitView animator] replaceSubview:busyView with:activeViewBeforeBusy];
         [activeViewBeforeBusy release];
         activeViewBeforeBusy = nil;
-        [busyIndicator stopAnimation:nil];
         LEOPARD_BEGIN
         [sourceList setEnabled:YES];
         LEOPARD_END
@@ -694,6 +703,27 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(selectionDidChange:)
         name:NSOutlineViewSelectionDidChangeNotification object:sourceList];
+    
+    LEOPARD_BEGIN
+    CIFilter *filter = [CIFilter filterWithName:@"CIDissolveTransition"];
+    [filter setEnabled:YES];
+    CATransition *effect = [CATransition animation];
+    [effect setType:kCATransitionFade];
+    [effect setFillMode:kCAFillModeRemoved];
+    [effect setFilter:filter];
+    [effect setDuration:0.75];
+    [[[self window] contentView] setWantsLayer:YES];
+    viewAnimations = [[NSDictionary alloc] initWithObjectsAndKeys:
+        effect, NSAnimationTriggerOrderIn,
+        effect, NSAnimationTriggerOrderOut,
+        nil];
+    [placeholderView setWantsLayer:YES];
+    [placeholderView setAnimations:viewAnimations];
+    [searchView setWantsLayer:YES];
+    [searchView setAnimations:viewAnimations];
+    [busyView setWantsLayer:YES];
+    [busyView setAnimations:viewAnimations];
+    LEOPARD_END
 }
 
 - (void)windowWillClose:(NSNotification*)note
@@ -720,7 +750,7 @@
     NSView *cview = [[splitView subviews] objectAtIndex:1];
     if (cview != placeholderView) {
         [placeholderView setFrame:[cview frame]];
-        [splitView replaceSubview:cview with:placeholderView];
+        [[splitView animator] replaceSubview:cview with:placeholderView];
     }
     
     [self saveSourceListState];
@@ -765,7 +795,7 @@
     }
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
 - (BOOL)selectionShouldChangeInOutlineView:(NSOutlineView *)outlineView
 {
     // Tiger table views don't disable/enable, so we have to block clicks
