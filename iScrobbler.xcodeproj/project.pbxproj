@@ -90,6 +90,7 @@
 		D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */; };
 		D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
+		D33ED50B0D2E866100AE7771 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D33ED50A0D2E866100AE7771 /* QuartzCore.framework */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
 		D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
@@ -299,6 +300,7 @@
 		D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginItemsAE.h; sourceTree = "<group>"; };
 		D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV2.xcdatamodel; sourceTree = "<group>"; };
 		D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcmappingmodel; path = iScrobblerV1toV2.xcmappingmodel; sourceTree = "<group>"; };
+		D33ED50A0D2E866100AE7771 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D3712C490D1A3B810011F980 /* Persistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Persistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -420,6 +422,7 @@
 				D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */,
 				D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */,
 				D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */,
+				D33ED50B0D2E866100AE7771 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -483,6 +486,7 @@
 			isa = PBXGroup;
 			children = (
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				D33ED50A0D2E866100AE7771 /* QuartzCore.framework */,
 				D3D7BB1B0809AD09005EF5CA /* WebKit.framework */,
 				D3D4741F077407F50076AA7D /* SystemConfiguration.framework */,
 				EB5069B303FBC574005DC01B /* Carbon.framework */,
