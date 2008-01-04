@@ -590,12 +590,12 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [moc reset];
     
     if (migrated) {
+        [self performSelectorOnMainThread:@selector(databaseDidInitialize:) withObject:metadata waitUntilDone:YES];
         [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileDidMigrateNotification waitUntilDone:NO];
-        [self performSelectorOnMainThread:@selector(databaseDidInitialize:) withObject:metadata waitUntilDone:NO];
     } else {
         ScrobLog(SCROB_LOG_ERR, @"Migration failed with: %@", error ? error : @"unknown");
+        [self performSelectorOnMainThread:@selector(databaseDidFailInitialize:) withObject:nil waitUntilDone:YES];
         [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileMigrateFailedNotification waitUntilDone:NO];
-        [self performSelectorOnMainThread:@selector(databaseDidFailInitialize:) withObject:nil waitUntilDone:NO];
     }
     
     [pool release];
