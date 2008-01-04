@@ -268,12 +268,15 @@ static NSMutableArray *topHours = nil;
 {
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update Successful", "")
         message:NSLocalizedString(@"The Local Charts conversion succeeded.", "")];
+    // update our bindings
+    [self willChangeValueForKey:@"loading"];
+    [self didChangeValueForKey:@"loading"];
 }
 
 - (void)persistentProfileWillMigrate:(NSNotification*)note
 {
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update", "")
-        message:NSLocalizedString(@"The Local Charts database format has changed and is now being converted. This may take a several minutes.", "")];
+        message:NSLocalizedString(@"The Local Charts database format has changed and is now being converted. This may take several minutes.", "")];
 }
 
 - (void)persistentProfileMigrateFailed:(NSNotification*)note
@@ -282,6 +285,9 @@ static NSMutableArray *topHours = nil;
         /*[[note userInfo] objectForKey:@"NSError"]*/
         NSLocalizedString(@"Please see the log file for further information.", "")];
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update Failed", "") message:msg];
+    // update our bindings
+    [self willChangeValueForKey:@"loading"];
+    [self didChangeValueForKey:@"loading"];
 }
 
 - (id)initWithWindowNibName:(NSString *)windowNibName
