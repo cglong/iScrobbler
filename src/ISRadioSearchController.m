@@ -781,18 +781,18 @@
 
 // delegate methods
 - (BOOL)outlineView:(NSOutlineView *)sender isGroupItem:(id)item {
-	//ISASSERT([item isKindOfClass:[NSDictionary class]], "invalid item!");
     return ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue] ? YES : NO);
 }
 
 - (void)outlineView:(NSOutlineView *)sender willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
-    //ISASSERT([item isKindOfClass:[NSDictionary class]], "invalid item!");
+    LEOPARD_BEGIN
     if ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue]) {
         NSMutableAttributedString *uc = [[cell attributedStringValue] mutableCopy];
         [uc replaceCharactersInRange:NSMakeRange(0,[uc length]) withString:[[uc string] uppercaseString]];
         [cell setAttributedStringValue:uc];
         [uc release];
     }
+    LEOPARD_END
 }
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
