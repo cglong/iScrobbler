@@ -160,6 +160,10 @@ topHours = nil; \
             selector:@selector(persistentProfileWillReset:)
             name:PersistentProfileWillResetNotification
             object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileDidEditObject:)
+            name:PersistentProfileDidEditObject
+            object:nil];
         
         [self willChangeValueForKey:@"allSessions"];
         [self didChangeValueForKey:@"allSessions"];
@@ -170,6 +174,12 @@ topHours = nil; \
     // big deal, but why do an extra load if we don't have to
     if (![self loading])
         [self performSelector:@selector(sessionDidChange:) withObject:nil afterDelay:0.0];
+}
+
+- (void)persistentProfileDidEditObject:(NSNotification*)note
+{
+    NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
+    [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(objectDidChange:) withObject:oid];
 }
 
 - (void)sessionWillLoad:(id)arg
@@ -247,6 +257,18 @@ topHours = nil; \
 }
 
 // methods that run on the background thread
+- (void)objectDidChange:(NSManagedObjectID*)oid
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing thread moc!");
+    
+    NSManagedObject *obj = [moc objectRegisteredForID:oid];
+    if (obj) {
+        [obj refreshSelf];
+        [self performSelectorOnMainThread:@selector(persistentProfileDidUpdate:) withObject:nil waitUntilDone:NO]; 
+    }
+}
+
 - (void)loadInitialSessionData:(NSManagedObjectID*)sessionID
 {
     if ([persistence importInProgress])
