@@ -21,14 +21,11 @@ Important CoreData behaviors:
 http://www.cocoadev.com/index.pl?CoreDataInheritanceIssues
 http://www.cocoadev.com/index.pl?CoreDataQuestions
 
+Tiger note:
 Performance of the SQL store can be SEVERLY impacted by a slow hard disk (e.g. 4200RPM laptop drive)
 On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should help a lot
 (at the risk of data corruption if the machine crashes or loses power).
 **/
-
-@interface NSManagedObject (ISProfileAdditions)
-- (void)refreshSelf;
-@end
 
 @interface PersistentProfileImport : NSObject {
     PersistentProfile *profile;
@@ -45,11 +42,22 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 @end
 
 @interface PersistentProfile (SessionManagement)
+- (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object;
 - (void)pingSessionManager;
 - (BOOL)addSongPlaysToAllSessions:(NSArray*)queue;
 @end
 
 @implementation PersistentProfile
+
+- (void)postNoteWithArgs:(NSDictionary*)args
+{
+    @try {
+    [[NSNotificationCenter defaultCenter] postNotificationName:[args objectForKey:@"name"] object:self
+        userInfo:[args objectForKey:@"info"]];
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_ERR, @"exception while posting notification '%@': %@", [args objectForKey:@"name"], e);
+    }
+}
 
 - (void)postNote:(NSString*)name
 {
@@ -172,6 +180,17 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         if ([self addSongPlaysToAllSessions:queue])
             [queue removeAllObjects];
     }
+}
+
+- (void)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle
+{
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+        moid, @"oid",
+        NSStringFromSelector(@selector(renameSong:to:)), @"method",
+        [NSArray arrayWithObjects:moid, newTitle, nil], @"args",
+        nil];
+
+    [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
 }
 
 - (NSArray*)allSessions
@@ -313,6 +332,20 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [self performSelector:@selector(addSongPlay:) withObject:nil afterDelay:0.10]; // process any queued songs
 }
 
+- (void)persistentProfileDidEditObject:(NSNotification*)note
+{
+    ISASSERT(mainMOC != nil, "missing thread moc!");
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread isMainThread], "!mainThread!");
+    #endif
+    
+    NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
+    NSManagedObject *obj = [mainMOC objectRegisteredForID:oid];
+    if (obj) {
+        [obj refreshSelf];
+    }
+}
+
 - (void)addSongPlaysDidFinish:(id)obj
 {
     [self addSongPlay:nil]; // process any queued songs
@@ -383,6 +416,15 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 - (void)databaseDidInitialize:(NSDictionary*)metadata
 {
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread isMainThread], "!mainThread!");
+    #endif
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(persistentProfileDidEditObject:)
+        name:PersistentProfileDidEditObject
+        object:nil];
+    
     [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
@@ -397,6 +439,10 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 - (void)databaseDidFailInitialize:(id)arg
 {
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread isMainThread], "!mainThread!");
+    #endif
+    
     [mainMOC release];
     mainMOC = nil;
     sessionMgr = nil;
@@ -404,7 +450,11 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 #if IS_STORE_V2
 - (void)migrationDidComplete:(NSDictionary*)metadata
-{
+{   
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread isMainThread], "!mainThread!");
+    #endif
+    
     [self databaseDidInitialize:metadata];
     [self postNote:PersistentProfileDidMigrateNotification];
     [self profileDidChange];

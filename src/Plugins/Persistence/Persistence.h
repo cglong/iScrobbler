@@ -14,14 +14,6 @@
 @class SongData;
 @class PersistentSessionManager;
 
-#define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
-#define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
-#define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
-#define PersistentProfileImportProgress @"ISPersistentProfileImportProgress"
-#define PersistentProfileDidMigrateNotification @"PersistentProfileDidMigrateNotification"
-#define PersistentProfileWillMigrateNotification @"PersistentProfileWillMigrateNotification"
-#define PersistentProfileMigrateFailedNotification @"PersistentProfileMigrateFailedNotification"
-
 @interface PersistentProfile : NSObject <ISPlugin> {
     NSManagedObjectContext *mainMOC;
     PersistentSessionManager *sessionMgr;
@@ -42,14 +34,30 @@
 - (BOOL)initDatabase:(NSError**)failureReason;
 - (BOOL)isVersion2;
 
+// write
 // adds the song, and updates all sessions
 - (void)addSongPlay:(SongData*)song;
+- (void)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle;
+
+// read
 - (NSArray*)allSessions;
 - (NSArray*)songsForSession:(id)session;
 - (NSArray*)ratingsForSession:(id)session;
 - (NSArray*)hoursForSession:(id)session;
 
 @end
+
+#define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
+#define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
+#define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
+#define PersistentProfileImportProgress @"ISPersistentProfileImportProgress"
+#define PersistentProfileDidMigrateNotification @"PersistentProfileDidMigrateNotification"
+#define PersistentProfileWillMigrateNotification @"PersistentProfileWillMigrateNotification"
+#define PersistentProfileMigrateFailedNotification @"PersistentProfileMigrateFailedNotification"
+
+#define PersistentProfileWillEditObject @"PersistentProfileWillEditObject"
+#define PersistentProfileDidEditObject @"PersistentProfileDidEditObject"
+#define PersistentProfileFailedEditObject @"PersistentProfileFailedEditObject"
 
 @interface NSString (ISNSPredicateEscape)
 

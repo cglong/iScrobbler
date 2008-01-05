@@ -1316,6 +1316,105 @@
 
 @end
 
+@implementation PersistentSessionManager (Editors)
+
+- (void)editObject:(NSDictionary*)args
+{
+    NSError *err = nil;
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+    NSMutableDictionary *noteInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+        [args objectForKey:@"oid"], @"oid", nil];
+    NSMutableDictionary *noteArgs = [NSMutableDictionary dictionary];
+    @try {
+    
+    SEL selector = NSSelectorFromString([args objectForKey:@"method"]);
+    NSMethodSignature *sig = [self methodSignatureForSelector:selector];
+    if (!sig)
+        @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"method not found" userInfo:nil];
+    NSInvocation *call = [NSInvocation invocationWithMethodSignature:sig];
+    [call setTarget:self]; // arg 0
+    [call setSelector:selector]; // arg 1
+    
+    NSUInteger i = 0;
+    NSArray *callArgs = [args objectForKey:@"args"];
+    NSUInteger argCount = [callArgs count];
+    id argStore[argCount];
+    for (; i < argCount; ++i) {
+        argStore[i] = [callArgs objectAtIndex:i];
+        [call setArgument:&argStore[i] atIndex:i+2];
+    }
+    
+    [noteArgs setObject:PersistentProfileWillEditObject forKey:@"name"];
+    [noteArgs setObject:noteInfo forKey:@"info"];
+    [profile performSelectorOnMainThread:@selector(postNoteWithArgs:) withObject:noteArgs waitUntilDone:NO];
+    
+    [call invoke];
+    [call getReturnValue:&err];
+    
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"peristence: editing exception while executing '%@' (%@)", args, e);
+        err = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil];
+    }
+    
+    [noteArgs setObject:noteInfo forKey:@"info"];
+    if (!err) {
+        [noteArgs setObject:PersistentProfileDidEditObject forKey:@"name"];
+        [profile performSelectorOnMainThread:@selector(postNoteWithArgs:) withObject:noteArgs waitUntilDone:NO];
+    } else {
+        [noteArgs setObject:PersistentProfileFailedEditObject forKey:@"name"];
+        [noteInfo setObject:err forKey:NSUnderlyingErrorKey];
+        [profile performSelectorOnMainThread:@selector(postNoteWithArgs:) withObject:noteArgs waitUntilDone:NO];
+    }
+}
+
+- (NSError*)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle
+{
+    ScrobDebug(@"");
+    
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    NSManagedObject *sobj = [moc objectWithID:moid];
+    NSError *err = nil;
+    
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+    [profile setImportInProgress:YES]; // lock the database from addtions by external clients
+    
+    @try {
+    
+    SongData *song = [[[SongData alloc] init] autorelease];
+    [song setTitle:newTitle];
+    [song setTrackNumber:[sobj valueForKey:@"trackNumber"]];
+    [song setArtist:[sobj valueForKeyPath:@"artist.name"]];
+    [song setAlbum:[sobj valueForKeyPath:@"album.name"]];
+    
+    NSPredicate *predicate = [song matchingPredicate:nil];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    [request setPredicate:predicate];
+    NSArray *result = [moc executeFetchRequest:request error:&err];
+    if (0 == [result count]) {
+        [sobj setValue:newTitle forKey:@"name"];
+        [profile save:moc withNotification:NO];
+        [sobj refreshSelf];
+    } else {
+        err = [NSError errorWithDomain:@"iScrobbler Persistence" code:EINVAL userInfo:
+            [NSDictionary dictionaryWithObjectsAndKeys:
+                NSLocalizedString(@"Can't rename. A song with the same title already exists.", ""), NSLocalizedDescriptionKey,
+                nil]];
+    }
+    
+    } @catch (NSException *e) {
+        [profile setImportInProgress:NO];
+        @throw e;
+    }
+    
+    [profile setImportInProgress:NO];
+    return (err);
+}
+
+@end
+
 @implementation SongData (PersistentAdditions)
 
 - (NSPredicate*)matchingPredicate:(NSString**)albumTitle

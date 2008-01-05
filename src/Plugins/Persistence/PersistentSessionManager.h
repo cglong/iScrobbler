@@ -40,6 +40,13 @@
 - (NSManagedObject*)addSongPlay:(SongData*)song withImportedPlayCount:(NSNumber*)importCount moc:(NSManagedObjectContext*)moc;
 @end
 
+@interface PersistentSessionManager (Editors)
+// generic interface to execute an edit
+- (void)editObject:(NSDictionary*)args;
+// specfic editors
+- (NSError*)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle;
+@end
+
 @interface NSManagedObject (PItemMathAdditions)
 - (void)incrementPlayCount:(NSNumber*)count;
 - (void)incrementPlayTime:(NSNumber*)count;
@@ -48,6 +55,11 @@
 
 - (void)decrementPlayCount:(NSNumber*)count;
 - (void)decrementPlayTime:(NSNumber*)count;
+@end
+
+// implemented in Persistence.m
+@interface NSManagedObject (ISProfileAdditions)
+- (void)refreshSelf;
 @end
 
 #define ITEM_UNKNOWN @"u"
