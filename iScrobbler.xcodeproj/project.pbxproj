@@ -1425,6 +1425,7 @@
 		D37005BC0D2002B40057EFBD /* Debug-Internal */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
 				PRODUCT_NAME = "Copy Core Plugins";
 			};
 			name = "Debug-Internal";
@@ -1432,7 +1433,7 @@
 		D37005BD0D2002B40057EFBD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = "Copy Core Plugins";
