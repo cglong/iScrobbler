@@ -191,34 +191,23 @@ topHours = nil; \
     ClearExtendedData();
 }
 
-- (void)rearrangeEntries:(NSTimer*)t
-{
-    [rearrangeTimer autorelease];
-    rearrangeTimer = nil;
-    [[t userInfo] rearrangeObjects];
-}
-
 - (void)displayEntries:(NSArray*)entries withController:(id)controller
 {
     if (![controller isSearchInProgress]) {
-        [controller addObjects:entries];
-        // The load thread can send us thousands of entries and bog the main thread down
-        // with the controller resorting to often
-        if ([entries count] < IMPORT_CHUNK) {
-            [rearrangeTimer invalidate];
-            [rearrangeTimer release];
-            rearrangeTimer = nil;
+        if ([entries count]) {
+            [controller addObjects:entries];
+        } else {
+            // load finished
+            // The load thread can send us thousands of entries and bog the main thread down
+            // with the controller re-sorting to often
             [controller rearrangeObjects]; 
-        } else if (!rearrangeTimer) {
-            rearrangeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.30 target:self
-                selector:@selector(rearrangeEntries:) userInfo:controller repeats:NO] retain];
         }
     } else {
          // Can't alter the arrangedObjects array when a search is active
         // So manually enter the item in the content array
         NSMutableArray *contents = [controller content];
         [contents addObjectsFromArray:entries];
-        [controller setContent:contents];
+        //[controller setContent:contents];
     }
 }
 
@@ -358,6 +347,9 @@ topHours = nil; \
     }
     if (!loadCanceled && [chartEntries count] > 0)
         [self performSelectorOnMainThread:@selector(displayArtistEntries:) withObject:chartEntries waitUntilDone:NO];
+    
+    // send empty set to signal we are done
+    [self performSelectorOnMainThread:@selector(displayArtistEntries:) withObject:[NSArray array] waitUntilDone:NO];
     [entryPool release];
     if (loadCanceled)
         goto loadExit;
@@ -432,6 +424,9 @@ topHours = nil; \
     
     if (!loadCanceled && [chartEntries count] > 0)
         [self performSelectorOnMainThread:@selector(displayTrackEntries:) withObject:chartEntries waitUntilDone:NO];
+    
+    // send empty set to signal we are done
+    [self performSelectorOnMainThread:@selector(displayTrackEntries:) withObject:[NSArray array] waitUntilDone:NO];
     [entryPool release];
     
 loadExit:

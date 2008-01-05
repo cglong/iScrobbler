@@ -28,7 +28,6 @@
     // Persistence support
     PersistentProfile *persistence;
     ISThreadMessenger *persistenceTh;
-    NSTimer *rearrangeTimer;
     int sessionLoads, cancelLoad, wantLoad, loadIssued;
     BOOL windowIsVisisble;
 }
