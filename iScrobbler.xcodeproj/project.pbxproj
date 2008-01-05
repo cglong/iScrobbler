@@ -91,6 +91,8 @@
 		D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
 		D33ED50B0D2E866100AE7771 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D33ED50A0D2E866100AE7771 /* QuartzCore.framework */; };
+		D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */ = {isa = PBXBuildFile; fileRef = D33ED7540D2FAD3100AE7771 /* DBEditController.m */; };
+		D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
 		D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
@@ -301,6 +303,9 @@
 		D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV2.xcdatamodel; sourceTree = "<group>"; };
 		D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcmappingmodel; path = iScrobblerV1toV2.xcmappingmodel; sourceTree = "<group>"; };
 		D33ED50A0D2E866100AE7771 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
+		D33ED7530D2FAD3100AE7771 /* DBEditController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DBEditController.h; path = src/DBEditController.h; sourceTree = "<group>"; };
+		D33ED7540D2FAD3100AE7771 /* DBEditController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DBEditController.m; path = src/DBEditController.m; sourceTree = "<group>"; };
+		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBEdit.xib; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D3712C490D1A3B810011F980 /* Persistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Persistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -552,6 +557,7 @@
 				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */,
+				D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */,
 				D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */,
 				D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */,
 				D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */,
@@ -676,6 +682,8 @@
 		D3712B910D19D3E60011F980 /* Local Lists */ = {
 			isa = PBXGroup;
 			children = (
+				D33ED7540D2FAD3100AE7771 /* DBEditController.m */,
+				D33ED7530D2FAD3100AE7771 /* DBEditController.h */,
 				D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */,
 				D3D7BB040809AC26005EF5CA /* ISProfileDocumentController.h */,
 				D3EFA9B007A9B1FA00CF9B46 /* ISSearchArrayController.m */,
@@ -945,6 +953,7 @@
 				D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */,
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
 				D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */,
+				D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1013,6 +1022,7 @@
 				D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */,
 				D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */,
 				D3CA42640D23FDB4006CB485 /* PlayHistoryController.m in Sources */,
+				D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1144,6 +1154,14 @@
 				D31791230A6A9B5C00B0F081 /* English */,
 			);
 			name = BBNetUpdateVersionCheck.nib;
+			sourceTree = "<group>";
+		};
+		D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D33ED7AF0D2FB5BF00AE7771 /* English */,
+			);
+			name = DBEdit.xib;
 			sourceTree = "<group>";
 		};
 		D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */ = {
