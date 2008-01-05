@@ -810,8 +810,17 @@
     NSManagedObjectContext *moc = nil;
     #ifndef ISDEBUG
     BOOL forcedScrub;
-    if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"DBNeedsScrub"]) {
-        forcedScrub = NO;
+    static NSTimeInterval nextScrub = 0.0;
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    if (YES == (forcedScrub = [[NSUserDefaults standardUserDefaults] boolForKey:@"DBNeedsScrub"])) {
+        if (now < nextScrub)
+            return;
+        
+        nextScrub = now + 900.0;
+    } else {
+        if (now >= nextScrub)
+            nextScrub = now + 900.0;
+        
         NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
         if (!lastScrub) {
             moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
@@ -823,8 +832,7 @@
         d = [d dateByAddingYears:0 months:-1 days:0 hours:-[d hourOfDay] minutes:-[d minuteOfHour] seconds:-[d secondOfMinute]];
         if ([[lastScrub GMTDate] isGreaterThan:[d GMTDate]])
             return;
-    } else
-        forcedScrub = YES;
+    }
     
     ScrobLog(SCROB_LOG_TRACE, @"%@ db scrub", forcedScrub ? @"Forced" : @"Scheduled");
     #else
@@ -842,6 +850,11 @@
     if (!moc)
         moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     [moc reset]; // we walked a majority of the db, free the mem
+}
+
+- (void)setNeedsScrub:(BOOL)needsScrub // XXX: ignored
+{
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
 }
 
 - (void)updateLastfmSession:(NSTimer*)t
@@ -1216,7 +1229,7 @@
         NSNumber *count = [song playCount];
         if ([count unsignedIntValue] > 0 && [[psong valueForKey:@"playCount"] isNotEqualTo:count]) {
             #if IS_STORE_V2
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
+            [self setNeedsScrub:YES];
             NSNumber *nlCount = [psong valueForKey:@"nonLocalPlayCount"];
             if (nlCount) {
                 u_int32_t adjCount = [count unsignedIntValue] + [nlCount unsignedIntValue];
