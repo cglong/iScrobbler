@@ -12,9 +12,6 @@
 #import "TopListsController.h"
 #import "Persistence.h"
 
-#define TABLE_ID 9999
-#define OKBUTTON_ID 10000
-
 static PlayHistoryController *sharedController = nil;
 
 @implementation PlayHistoryController
