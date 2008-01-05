@@ -403,11 +403,21 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 }
 
 #if IS_STORE_V2
+- (void)migrationDidComplete:(NSDictionary*)metadata
+{
+    [self databaseDidInitialize:metadata];
+    [self postNote:PersistentProfileDidMigrateNotification];
+    [self profileDidChange];
+    [self performSelector:@selector(addSongPlay:) withObject:nil afterDelay:0.10]; // process any queued songs
+}
+
 - (void)migrateDatabase:(id)arg
 {
     ISElapsedTimeInit();
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSManagedObjectContext *moc = nil;
+    NSError *error = nil;
+    BOOL migrated = NO;
     
     [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileWillMigrateNotification waitUntilDone:NO];
     
@@ -425,9 +435,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     
     ScrobLog(SCROB_LOG_TRACE, @"Migrating Local Charts database version %@ to version %@.",
             [metadata objectForKey:(NSString*)kMDItemVersion], IS_CURRENT_STORE_VERSION);
-    
-    NSError *error;
-    BOOL migrated = NO;
     
     NSAutoreleasePool *tempPool = [[NSAutoreleasePool alloc] init];
     @try {
@@ -469,7 +476,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                     }
                 }
             }
-            (void)[fm removeItemAtPath:tmppath error:&error];
+            (void)[fm removeItemAtPath:tmppath error:nil];
         }
     }
     
@@ -590,8 +597,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [moc reset];
     
     if (migrated) {
-        [self performSelectorOnMainThread:@selector(databaseDidInitialize:) withObject:metadata waitUntilDone:YES];
-        [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileDidMigrateNotification waitUntilDone:NO];
+        [self performSelectorOnMainThread:@selector(migrationDidComplete:) withObject:metadata waitUntilDone:NO];
     } else {
         ScrobLog(SCROB_LOG_ERR, @"Migration failed with: %@", error ? error : @"unknown");
         [self performSelectorOnMainThread:@selector(databaseDidFailInitialize:) withObject:nil waitUntilDone:YES];

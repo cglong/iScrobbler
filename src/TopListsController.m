@@ -268,9 +268,6 @@ static NSMutableArray *topHours = nil;
 {
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Update Successful", "")
         message:NSLocalizedString(@"The Local Charts conversion succeeded.", "")];
-    // update our bindings
-    [self willChangeValueForKey:@"loading"];
-    [self didChangeValueForKey:@"loading"];
 }
 
 - (void)persistentProfileWillMigrate:(NSNotification*)note
