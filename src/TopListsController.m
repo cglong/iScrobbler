@@ -24,6 +24,7 @@
 #import "ISTagController.h"
 #import "ISLoveBanListController.h"
 #import "PlayHistoryController.h"
+#import "DBEditController.h"
 #import "ISThreadMessenger.h"
 #import "ISPluginController.h"
 
@@ -487,6 +488,20 @@ static NSMutableArray *topHours = nil;
     }
 }
 
+- (void)handleTrackDoubleClick:(NSTableView*)sender
+{
+    NSArray *selection;
+    NSUInteger keymods = NSCommandKeyMask;
+    if (keymods != ([[NSApp currentEvent] modifierFlags] & keymods)) {
+        [self handleDoubleClick:sender];
+    } else if ((selection = [topTracksController selectedObjects]) && [selection count] == 1) {
+        DBEditController *ec = [[DBEditController alloc] init];
+        [ec setTrack:[selection objectAtIndex:0]];
+        [ec showRenameWindow:nil];
+    } else
+        NSBeep();
+}
+
 - (void)awakeFromNib
 {    
     [super setWindowFrameAutosaveName:@"Top Lists"];
@@ -521,7 +536,7 @@ static NSMutableArray *topHours = nil;
     [topArtistsTable setTarget:self];
     [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
     [topTracksTable setTarget:self];
-    [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
+    [topTracksTable setDoubleAction:@selector(handleTrackDoubleClick:)];
     
     [self hideDetails:nil];
     
