@@ -48,7 +48,7 @@ static SCNetworkReachabilityRef g_networkReachRef = nil;
 static void NetworkReachabilityCallback (SCNetworkReachabilityRef target, 
     SCNetworkConnectionFlags flags, void *info);
 
-#define NETWORK_UNAVAILABLE_MSG @"Network is not available, submissions are being queued.\n"
+#define NETWORK_UNAVAILABLE_MSG @"Network is not available, submissions are being queued."
 
 #define PM_VERSION [[ProtocolManager sharedInstance] protocolVersion]
 
@@ -208,7 +208,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)handshake
 {
     if (!isNetworkAvailable) {
-        ScrobLog(SCROB_LOG_VERBOSE, NETWORK_UNAVAILABLE_MSG);
+        ScrobLog(SCROB_LOG_VERBOSE, @"%@ (%lu)", NETWORK_UNAVAILABLE_MSG, [[QueueManager sharedInstance] count]);
         return;
     }
     
@@ -639,7 +639,7 @@ didFinishLoadingExit:
     }
     
     if (!isNetworkAvailable) {
-        ScrobLog(SCROB_LOG_VERBOSE, NETWORK_UNAVAILABLE_MSG);
+        ScrobLog(SCROB_LOG_VERBOSE, @"%@ (%lu)", NETWORK_UNAVAILABLE_MSG, [[QueueManager sharedInstance] count]);
         return;
     }
     
@@ -735,14 +735,11 @@ didFinishLoadingExit:
 - (NSString*)netDiagnostic
 {
     NSString *msg = nil;
-    #pragma weak CFNetDiagnosticCreateWithURL
-    if (CFNetDiagnosticCreateWithURL) { // 10.4 only
-        CFNetDiagnosticRef diag = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault,
-            (CFURLRef)[NSURL URLWithString:[self handshakeURL]]);
-        if (diag) {
-            (void)CFNetDiagnosticCopyNetworkStatusPassively(diag, (CFStringRef*)&msg);
-            CFRelease(diag);
-        }
+    CFNetDiagnosticRef diag = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault,
+        (CFURLRef)[NSURL URLWithString:[self handshakeURL]]);
+    if (diag) {
+        (void)CFNetDiagnosticCopyNetworkStatusPassively(diag, (CFStringRef*)&msg);
+        CFRelease(diag);
     }
     
     if (msg)
@@ -903,8 +900,7 @@ static int npDelays = 0;
             [[[NSURL URLWithString:[self handshakeURL]] host] cStringUsingEncoding:NSASCIIStringEncoding]);
         // Get the current state
         SCNetworkConnectionFlags connectionFlags;
-        if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
-             IsNetworkUp(connectionFlags)) {
+        if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) && IsNetworkUp(connectionFlags)) {
             [self setIsNetworkAvailable:YES];
         } else {
             // XXX isNetworkAvailable is initialized to false during alloc, set it to true
