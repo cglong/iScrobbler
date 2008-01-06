@@ -257,8 +257,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     } else {
         [self displayProtocolEvent:NSLocalizedString(@"Submission failed", "")];
         msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %lu)",
-            NSLocalizedString(@"Tracks Queued", ""),
-            [[QueueManager sharedInstance] count]];;
+            NSLocalizedString(@"Tracks Queued", ""), [[QueueManager sharedInstance] count]];
     }
     [statusItem updateStatus:status withOperation:NO withMsg:msg];
 }
@@ -288,6 +287,8 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
             NSString *msg = [[obj userInfo] objectForKey:PM_NOTIFICATION_NETWORK_MSG_KEY];
             if (!msg || 0 == [msg length])
                 msg = NSLocalizedString(@"Network is not available.", "");
+            msg = [msg stringByAppendingFormat:@" (%@: %lu)", NSLocalizedString(@"Tracks Queued", ""),
+                [[QueueManager sharedInstance] count]];
             [statusItem updateStatusWithColor:[NSColor orangeColor] withMsg:msg];
             isOrange = YES;
         } else if (isOrange) {
