@@ -449,7 +449,8 @@ static NSMutableArray *topHours = nil;
 - (void)handleDoubleClick:(NSTableView*)sender
 {
     NSArray *selection;
-    if (NSCommandKeyMask == ([[NSApp currentEvent] modifierFlags] & NSCommandKeyMask)) {
+    // Command and Shift are used for multiple selection, so we can't use those
+    if (NSAlternateKeyMask == ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask)) {
         if ((selection = [[sender dataSource] selectedObjects]) && [selection count] == 1) {
             DBEditController *ec = [[DBEditController alloc] init];
             [ec setObject:[selection objectAtIndex:0]];
