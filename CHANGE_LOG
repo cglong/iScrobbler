@@ -1,6 +1,5 @@
 KNOWN ISSUES:
 
-- Radio Applescript support is broken in 10.5.x - may be an Apple bug.
 - If you are burning a CD or editing a song's information or your computer is very busy, then iTunes may not be able to process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
 - The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
 - There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu items may be unusable.
@@ -13,6 +12,17 @@ CHANGE HISTORY:
 (ECS is Eric Seidel)
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
+
+v2.1 (BDB)
+- Leopard only: New local charts database that allows a new stat in the Profile report - per-session new artists.
+- The complete play history (since iScrobbler started tracking plays) can be viewed for tracks in the Local Charts.
+- The Statistics window is gone. Everything it did was available elsewhere with the exception of the Artist Details for the current track; that is now available via the song sub-menu.
+- Artist Details are now displayed in separate windows instead of drawers.
+- Radio controls are disabled when waiting for a response from Last.fm.
+- Bug Fix: AppleScript 'radio controller' properties work on Leopard.
+- Bug Fix: Bug in Local Charts iTunes import that would result in incorrect totals for the Overall session if iTunes contained duplicate songs.
+- Bug Fix: Radio stations that contained spaces failed to tune when selected from the Radio history.
+- Bug Fix: Regression - The log files were not being truncated when they got too big.
 
 v2.0 (BDB)
 - Full Radio support (played through iTunes).

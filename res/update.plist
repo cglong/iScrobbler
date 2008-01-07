@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.0.0</string>
+        <string>2.1.0b1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.0.0.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.0b1.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -18,13 +18,12 @@
         <key>Notes</key>
         <dict>
 			<key>English</key>
-			<string>- Full Radio support (played through iTunes).
-- Multiple iPod play count support.
-- Brand new local charts, with multiple separate charts (including your complete iTunes history).
-- Leopard specific enhancements, including Front Row support and a native 64-bit Intel binary.
-- Basic Applescript support.
-- Expanded use of Growl.
-- Many other minor features and bug fixes.
+			<string> - Leopard only: new Profile stat - per-session new artists.
+- The complete play history can be viewed for tracks in the Local Charts.
+- The Statistics window is gone. Everything it did was available elsewhere.
+- Artist Details are now displayed in separate windows instead of drawers.
+- Radio controls are disabled when waiting for a response from Last.fm.
+- Bug Fixes for ApplesScript on Leopard, Radio, and iTunes import.
 		</string>
         </dict>
 </dict>
