@@ -99,7 +99,7 @@
     
     [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
     PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
-    [persistence renameSong:moid to:newTitle];
+    [persistence rename:moid to:newTitle];
 }
 
 - (BOOL)windowShouldClose:(NSNotification*)note
@@ -122,16 +122,26 @@
     [self autorelease];
 }
 
-- (void)setTrack:(NSDictionary*)trackInfo
+- (void)setRenameTitle:(NSString*)newTitle
 {
-    [[self window] setTitle:[NSString stringWithFormat:@"%@ - %@",
-        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"]]];
-    
-    moid = [trackInfo objectForKey:@"objectID"];
+    [[self window] setTitle:[NSLocalizedString(@"Rename", "") stringByAppendingFormat:@": %@", newTitle]];
+}
+
+- (void)setObject:(NSDictionary*)objectInfo
+{
+    moid = [objectInfo objectForKey:@"objectID"];
     if (!moid) {
         NSBeep();
         return;
     }
+    
+    NSString *title = [objectInfo objectForKey:@"Track"];
+    if (title)
+        title = [NSString stringWithFormat:@"%@ - %@", [objectInfo objectForKey:@"Artist"], title];
+    else
+        title = [objectInfo objectForKey:@"Artist"];
+
+    [self setRenameTitle:title];
 }
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
@@ -145,9 +155,27 @@
         return;
     
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+    
+    @try {
+    
     NSManagedObject *obj = [moc objectWithID:oid];
-    [[self window] setTitle:[NSString stringWithFormat:@"%@ - %@",
-        [obj valueForKeyPath:@"artist.name"], [obj valueForKey:@"name"]]];
+    NSString *title;
+    NSString *type = [obj valueForKey:@"type"];
+    if ([ITEM_SONG isEqualTo:type]) {
+        title = [NSString stringWithFormat:@"%@ - %@", [obj valueForKeyPath:@"artist.name"], [obj valueForKey:@"name"]];
+    } else if ([ITEM_ARTIST isEqualTo:type]) {
+        title = [obj valueForKey:@"name"];
+    } else {
+        title = @"!!INVALID TYPE!!";
+    #if ISDEBUG
+        ISASSERT(0, "invalid object type!");
+    #endif
+    }
+    [self setRenameTitle:title];
+    
+    } @catch (NSException *e) {
+        ScrobTrace(@"exception: %@", e);
+    }
 }
 
 - (void)persistentProfileFailedEditObject:(NSNotification*)note

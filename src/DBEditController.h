@@ -20,7 +20,7 @@
     BOOL isBusy;
 }
 
-- (void)setTrack:(NSDictionary*)trackInfo;
+- (void)setObject:(NSDictionary*)objectInfo;
 
 - (IBAction)showRenameWindow:(id)sender;
 

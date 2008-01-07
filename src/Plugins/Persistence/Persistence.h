@@ -37,7 +37,7 @@
 // write
 // adds the song, and updates all sessions
 - (void)addSongPlay:(SongData*)song;
-- (void)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle;
+- (void)rename:(NSManagedObjectID*)moid to:(NSString*)newTitle;
 
 // read
 - (NSArray*)allSessions;
@@ -64,6 +64,14 @@
 - (NSString*)stringByEscapingNSPredicateReserves;
 
 @end
+
+#define ITEM_UNKNOWN @"u"
+#define ITEM_SONG @"so"
+#define ITEM_ARTIST @"a"
+#define ITEM_ALBUM @"al"
+#define ITEM_SESSION @"s"
+#define ITEM_RATING_CCH @"r"
+#define ITEM_HOUR_CCH @"h"
 
 // Private, exposed only for TopListsController
 #define PERSISTENT_STORE_DB \

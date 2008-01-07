@@ -1343,7 +1343,7 @@
     SEL selector = NSSelectorFromString([args objectForKey:@"method"]);
     NSMethodSignature *sig = [self methodSignatureForSelector:selector];
     if (!sig)
-        @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"method not found" userInfo:nil];
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"method not found" userInfo:args]);
     NSInvocation *call = [NSInvocation invocationWithMethodSignature:sig];
     [call setTarget:self]; // arg 0
     [call setSelector:selector]; // arg 1
@@ -1366,7 +1366,8 @@
     
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"peristence: editing exception while executing '%@' (%@)", args, e);
-        err = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil];
+        err = [NSError errorWithDomain:@"iScrobbler Persistence" code:EINVAL userInfo:
+            [NSDictionary dictionaryWithObjectsAndKeys:[e reason], NSLocalizedDescriptionKey, nil]];
     }
     
     [noteArgs setObject:noteInfo forKey:@"info"];
@@ -1380,46 +1381,62 @@
     }
 }
 
-- (NSError*)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle
+- (NSError*)rename:(NSManagedObjectID*)moid to:(NSString*)newName
 {
     ScrobDebug(@"");
     
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing moc");
-    NSManagedObject *sobj = [moc objectWithID:moid];
+    NSManagedObject *mobj = [moc objectWithID:moid];
     NSError *err = nil;
     
     PersistentProfile *profile = [PersistentProfile sharedInstance];
-    [profile setImportInProgress:YES]; // lock the database from addtions by external clients
+    [profile setImportInProgress:YES]; // lock the database from additions by external clients
     
     @try {
     
-    SongData *song = [[[SongData alloc] init] autorelease];
-    [song setTitle:newTitle];
-    [song setTrackNumber:[sobj valueForKey:@"trackNumber"]];
-    [song setArtist:[sobj valueForKeyPath:@"artist.name"]];
-    [song setAlbum:[sobj valueForKeyPath:@"album.name"]];
+    NSPredicate *predicate;
+    NSEntityDescription *entity;
+    NSString *type = [mobj valueForKey:@"itemType"];
+    if ([ITEM_SONG isEqualTo:type]) {
+        SongData *song = [[[SongData alloc] init] autorelease];
+        [song setTitle:newName];
+        [song setTrackNumber:[mobj valueForKey:@"trackNumber"]];
+        [song setArtist:[mobj valueForKeyPath:@"artist.name"]];
+        [song setAlbum:[mobj valueForKeyPath:@"album.name"]];
+        predicate = [song matchingPredicate:nil];
+        entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+    } else if ([ITEM_ARTIST isEqualTo:type]) {
+        predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (name LIKE[cd] %@)",
+            ITEM_ARTIST, [newName stringByEscapingNSPredicateReserves]];
+        entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+    } else if ([ITEM_ALBUM isEqualTo:type]) {
+        predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
+                ITEM_ALBUM, [newName stringByEscapingNSPredicateReserves],
+                [[mobj valueForKeyPath:@"artist.name"] stringByEscapingNSPredicateReserves]];
+        entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
+    } else {
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"object rename: invalid type" userInfo:nil]);
+    }
     
-    NSPredicate *predicate = [song matchingPredicate:nil];
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     [request setPredicate:predicate];
     NSArray *result = [moc executeFetchRequest:request error:&err];
     if (0 == [result count]) {
-        [sobj setValue:newTitle forKey:@"name"];
+        [mobj setValue:newName forKey:@"name"];
         [profile save:moc withNotification:NO];
-        [sobj refreshSelf];
+        [mobj refreshSelf];
     } else {
         err = [NSError errorWithDomain:@"iScrobbler Persistence" code:EINVAL userInfo:
             [NSDictionary dictionaryWithObjectsAndKeys:
-                NSLocalizedString(@"Can't rename. A song with the same title already exists.", ""), NSLocalizedDescriptionKey,
+                NSLocalizedString(@"Can't rename. An object with the same name already exists.", ""), NSLocalizedDescriptionKey,
                 nil]];
     }
     
     } @catch (NSException *e) {
         [profile setImportInProgress:NO];
-        @throw e;
+        @throw (e);
     }
     
     [profile setImportInProgress:NO];

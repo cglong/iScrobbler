@@ -448,12 +448,18 @@ static NSMutableArray *topHours = nil;
 
 - (void)handleDoubleClick:(NSTableView*)sender
 {
-    NSIndexSet *indices;
-    if ([sender respondsToSelector:@selector(selectedRowIndexes)])
-        indices = [sender selectedRowIndexes];
-    else
+    NSArray *selection;
+    if (NSCommandKeyMask == ([[NSApp currentEvent] modifierFlags] & NSCommandKeyMask)) {
+        if ((selection = [[sender dataSource] selectedObjects]) && [selection count] == 1) {
+            DBEditController *ec = [[DBEditController alloc] init];
+            [ec setObject:[selection objectAtIndex:0]];
+            [ec showRenameWindow:nil];
+        } else
+            NSBeep();
         return;
-    
+    }
+
+    NSIndexSet *indices = [sender selectedRowIndexes];
     if (indices) {
         NSArray *data;
         
@@ -486,20 +492,6 @@ static NSMutableArray *topHours = nil;
             [[NSWorkspace sharedWorkspace] openURL:url];
         }
     }
-}
-
-- (void)handleTrackDoubleClick:(NSTableView*)sender
-{
-    NSArray *selection;
-    NSUInteger keymods = NSCommandKeyMask;
-    if (keymods != ([[NSApp currentEvent] modifierFlags] & keymods)) {
-        [self handleDoubleClick:sender];
-    } else if ((selection = [topTracksController selectedObjects]) && [selection count] == 1) {
-        DBEditController *ec = [[DBEditController alloc] init];
-        [ec setTrack:[selection objectAtIndex:0]];
-        [ec showRenameWindow:nil];
-    } else
-        NSBeep();
 }
 
 - (void)awakeFromNib
@@ -536,7 +528,7 @@ static NSMutableArray *topHours = nil;
     [topArtistsTable setTarget:self];
     [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
     [topTracksTable setTarget:self];
-    [topTracksTable setDoubleAction:@selector(handleTrackDoubleClick:)];
+    [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
     
     [self hideDetails:nil];
     

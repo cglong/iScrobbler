@@ -44,7 +44,7 @@
 // generic interface to execute an edit
 - (void)editObject:(NSDictionary*)args;
 // specfic editors
-- (NSError*)renameSong:(NSManagedObjectID*)moid to:(NSString*)newTitle;
+- (NSError*)rename:(NSManagedObjectID*)moid to:(NSString*)newName;
 @end
 
 @interface NSManagedObject (PItemMathAdditions)
@@ -61,11 +61,3 @@
 @interface NSManagedObject (ISProfileAdditions)
 - (void)refreshSelf;
 @end
-
-#define ITEM_UNKNOWN @"u"
-#define ITEM_SONG @"so"
-#define ITEM_ARTIST @"a"
-#define ITEM_ALBUM @"al"
-#define ITEM_SESSION @"s"
-#define ITEM_RATING_CCH @"r"
-#define ITEM_HOUR_CCH @"h"

@@ -329,7 +329,10 @@ topHours = nil; \
             [mobj valueForKeyPath:@"item.name"], @"Artist",
             [mobj valueForKey:@"playCount"], @"Play Count",
             [mobj valueForKey:@"playTime"], @"Total Duration",
-            playTime, @"Play Time", nil];
+            playTime, @"Play Time",
+            // this can be used to get further info, or to edit the object
+            [[mobj valueForKey:@"item"] objectID], @"objectID",
+            nil];
         if (isV2 && isRollingSession && nil != (firstPlayed = [mobj valueForKeyPath:@"item.firstPlayed"])
             && [[firstPlayed GMTDate] isGreaterThanOrEqualTo:sessionEpoch]) {
             [entry setObject:yes forKey:@"New This Session"];
