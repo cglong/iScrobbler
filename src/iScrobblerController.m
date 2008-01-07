@@ -2439,7 +2439,7 @@ resolvePath:
 
 - (void)fadeOutAndClose
 {
-    [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(ISFadeOut:)
+    [NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
         userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES];
 }
 
