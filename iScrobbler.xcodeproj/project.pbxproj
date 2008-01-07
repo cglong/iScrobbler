@@ -1597,7 +1597,7 @@
 				);
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1618,7 +1618,7 @@
 				ARCHS = i386;
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1642,7 +1642,7 @@
 				);
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
