@@ -51,7 +51,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 - (void)postNoteWithArgs:(NSDictionary*)args
 {
-    ScrobTrace(@"%@", [args objectForKey:@"name"]);
     @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:[args objectForKey:@"name"] object:self
         userInfo:[args objectForKey:@"info"]];

@@ -1337,7 +1337,7 @@
     PersistentProfile *profile = [PersistentProfile sharedInstance];
     NSMutableDictionary *noteInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
         [args objectForKey:@"oid"], @"oid", nil];
-    NSMutableDictionary *noteArgs = [NSMutableDictionary dictionary];
+    NSMutableDictionary *noteArgs;
     @try {
     
     SEL selector = NSSelectorFromString([args objectForKey:@"method"]);
@@ -1357,8 +1357,9 @@
         [call setArgument:&argStore[i] atIndex:i+2];
     }
     
+    noteArgs = [NSMutableDictionary dictionary];
     [noteArgs setObject:PersistentProfileWillEditObject forKey:@"name"];
-    [noteArgs setObject:noteInfo forKey:@"info"];
+    [noteArgs setObject:[[noteInfo copy] autorelease] forKey:@"info"];
     [profile performSelectorOnMainThread:@selector(postNoteWithArgs:) withObject:noteArgs waitUntilDone:NO];
     
     [call invoke];
@@ -1370,6 +1371,8 @@
             [NSDictionary dictionaryWithObjectsAndKeys:[e reason], NSLocalizedDescriptionKey, nil]];
     }
     
+    noteArgs = [NSMutableDictionary dictionary];
+    noteInfo = [[noteInfo mutableCopy] autorelease];
     [noteArgs setObject:noteInfo forKey:@"info"];
     if (!err) {
         [noteArgs setObject:PersistentProfileDidEditObject forKey:@"name"];
