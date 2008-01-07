@@ -4,7 +4,7 @@
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
 //  Copyright (c) 2003 Sam Ley. All rights reserved.
-//  Copyright 2004-2007 Brian Bergstrand.
+//  Copyright 2004-2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -24,6 +24,7 @@ static __inline__ BOOL IsTrackTypeValid (TrackType_t myType)
     return ( trackTypeFile == myType || trackTypeShared == myType );
 }
 
+ISEXPORT_CLASS
 @interface SongData : NSObject <NSCopying> {
     unsigned int songID; // Internal id #
     u_int64_t iTunesDatabaseID; // iTunes track id

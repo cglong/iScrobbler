@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 9/21/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -56,6 +56,13 @@ return (
 #endif
 
 #define IS_UTIL_WINDOW_ALPHA 0.85
+
+#if defined(__LP64__)
+// OBJC 2.0 can hide class symbols
+#define ISEXPORT_CLASS __attribute__((visibility("default")))
+#else
+#define ISEXPORT_CLASS
+#endif
 
 #endif // OBJC
 
