@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/27/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -33,17 +33,17 @@
 }
 
 #ifdef notyet
-- (NSDate*)creationDate
+- (NSDictionary*)fileAttributes
 {
     NSString *path = [self pathToXMLFile];
     NSDictionary *attrs;
-    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    if (NO == [[NSFileManager defaultManager] respondsToSelector:@selector(attributesOfItemAtPath:error:)])
-        attrs = [[NSFileManager defaultManager] fileAttributesAtPath:path traverseLink:YES];
-    else
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
+    #else
+    attrs = [[NSFileManager defaultManager] fileAttributesAtPath:path traverseLink:YES];
     #endif
-        attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
-    return ([attrs objectForKey:NSFileCreationDate]);
+        
+    return (attrs);
 }
 #endif
 
@@ -55,6 +55,7 @@
 
 - (NSDictionary*)loadFromPath:(NSString*)path
 {
+    ScrobLog(SCROB_LOG_TRACE, @"loading iTunes XML from: %@", path);
     return ([NSDictionary dictionaryWithContentsOfFile:path]);
 }
 
@@ -108,8 +109,7 @@
     NSString *libPath = [self pathToXMLFile];
     (void)[[NSFileManager defaultManager] removeFileAtPath:dest handler:nil];
     if ([[NSFileManager defaultManager] copyPath:libPath toPath:dest handler:nil])
-        ScrobLog(SCROB_LOG_TRACE, @"Copied iTunes library.");
-    
+        ScrobLog(SCROB_LOG_TRACE, @"Copied iTunes library from '%@' to '%@'.", libPath, dest);
 }
 
 - (void)readiTunesLib:(NSArray*)args

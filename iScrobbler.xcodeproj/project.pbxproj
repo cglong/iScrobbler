@@ -1260,7 +1260,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1279,7 +1279,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1396,7 +1396,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "${SRCROOT}";
 				GCC_MODEL_CPU = "";
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GENERATE_PKGINFO_FILE = NO;
 				INFOPLIST_FILE = "res/Info-iScrobbler.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1597,7 +1597,7 @@
 				);
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1618,7 +1618,7 @@
 				ARCHS = i386;
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1642,7 +1642,7 @@
 				);
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "/Users/brian/Projects/iscrobbler21/src/Plugins/Persistence/Persistence-Info.plist";
+				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
@@ -1665,7 +1665,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = stabs;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1691,7 +1691,7 @@
 				ARCHS = i386;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = stabs;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";

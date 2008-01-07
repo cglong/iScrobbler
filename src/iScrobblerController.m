@@ -257,8 +257,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     } else {
         [self displayProtocolEvent:NSLocalizedString(@"Submission failed", "")];
         msg = [[pm lastSubmissionMessage] stringByAppendingFormat:@" (%@: %lu)",
-            NSLocalizedString(@"Tracks Queued", ""),
-            [[QueueManager sharedInstance] count]];;
+            NSLocalizedString(@"Tracks Queued", ""), [[QueueManager sharedInstance] count]];
     }
     [statusItem updateStatus:status withOperation:NO withMsg:msg];
 }
@@ -2440,7 +2439,7 @@ resolvePath:
 
 - (void)fadeOutAndClose
 {
-    [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(ISFadeOut:)
+    [NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
         userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES];
 }
 

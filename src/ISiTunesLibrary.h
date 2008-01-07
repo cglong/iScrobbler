@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/27/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -12,6 +12,7 @@
 
 @class ISThreadMessenger;
 
+ISEXPORT_CLASS
 @interface ISiTunesLibrary : NSObject {
     ISThreadMessenger *thMsgr;
 }
