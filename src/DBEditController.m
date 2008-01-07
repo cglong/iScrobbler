@@ -113,12 +113,14 @@
 
 - (void)windowWillClose:(NSNotification*)note
 {
-    [moc release];
-    moc = nil;
-    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:PersistentProfileDidEditObject object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:PersistentProfileFailedEditObject object:nil];
     
+    [moc release];
+    moc = nil;
+    
+    [moid release];
+    moid = nil;
     [self autorelease];
 }
 
@@ -129,7 +131,8 @@
 
 - (void)setObject:(NSDictionary*)objectInfo
 {
-    moid = [objectInfo objectForKey:@"objectID"];
+    ISASSERT(moid == nil, "calling set twice!");
+    moid = [[objectInfo objectForKey:@"objectID"] retain];
     if (!moid) {
         NSBeep();
         return;
