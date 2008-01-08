@@ -353,9 +353,9 @@ static NSMutableArray *topHours = nil;
     NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
     [artistDetails setArtist:artist];
     
-    if ([[[tabView selectedTabViewItem] identifier] isEqualToString:@"Tracks"])
-        [[PlayHistoryController sharedController] loadHistoryForTrack:
-            [[topTracksController selectedObjects] objectAtIndex:0]];
+    NSArray *selection = [topTracksController selectedObjects];
+    if ([selection count] > 0 && [[[tabView selectedTabViewItem] identifier] isEqualToString:@"Tracks"])
+        [[PlayHistoryController sharedController] loadHistoryForTrack:[selection objectAtIndex:0]];
     } @catch (id e) {}
 }
 
