@@ -372,6 +372,7 @@ topHours = nil; \
     sessionSongs = [moc executeFetchRequest:request error:&error];
     [request setSortDescriptors:nil];
     
+    NSManagedObject *entryObj;
     NSMutableArray *allSongPlays = [NSMutableArray array]; // alloc outside of loop pool!
     // tracks however, have a session entry for each play and the GUI displays all track plays merged as one
     // so we have to do a little extra work;
@@ -384,20 +385,21 @@ topHours = nil; \
         OSMemoryBarrier();
         if ((loadCanceled = (cancelLoad > 0)))
             break;
-            
-        if ([[mobj valueForKey:@"item"] isEqualTo:[[allSongPlays objectAtIndex:0] valueForKey:@"item"]]) {
+        
+        entryObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
+        if ([[mobj valueForKey:@"item"] isEqualTo:entryObj]) {
             [allSongPlays addObject:mobj];
             continue;
         }
         
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            [[allSongPlays objectAtIndex:0] valueForKeyPath:@"item.artist.name"], @"Artist",
+            [entryObj valueForKeyPath:@"artist.name"], @"Artist",
             [allSongPlays valueForKeyPath:@"playCount.@sum.unsignedIntValue"], @"Play Count",
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
-            [[allSongPlays objectAtIndex:0] valueForKeyPath:@"item.name"], @"Track",
-            [[allSongPlays objectAtIndex:0] valueForKeyPath:@"item.lastPlayed"], @"Last Played",
+            [entryObj valueForKey:@"name"], @"Track",
+            [entryObj valueForKey:@"lastPlayed"], @"Last Played",
             // this can be used to get further info, such as the complete play time history
-            [[[allSongPlays objectAtIndex:0] valueForKey:@"item"] objectID], @"objectID",
+            [entryObj objectID], @"objectID",
             nil];
         [chartEntries addObject:entry];
         
@@ -413,14 +415,15 @@ topHours = nil; \
         }
     }
     if ([allSongPlays count] > 0) {
+        entryObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            [[allSongPlays objectAtIndex:0] valueForKeyPath:@"item.artist.name"], @"Artist",
+            [entryObj valueForKeyPath:@"artist.name"], @"Artist",
             [allSongPlays valueForKeyPath:@"playCount.@sum.unsignedIntValue"], @"Play Count",
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
-            [[allSongPlays objectAtIndex:0] valueForKeyPath:@"item.name"], @"Track",
-            [[allSongPlays objectAtIndex:0] valueForKeyPath:@"item.lastPlayed"], @"Last Played",
+            [entryObj valueForKey:@"name"], @"Track",
+            [entryObj valueForKey:@"lastPlayed"], @"Last Played",
             // this can be used to get further info, such as the complete play time history
-            [[[allSongPlays objectAtIndex:0] valueForKey:@"item"] objectID], @"objectID",
+            [entryObj objectID], @"objectID",
             nil];
         [chartEntries addObject:entry];
     }
