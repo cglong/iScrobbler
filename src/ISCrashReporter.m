@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 11/17/07.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -152,7 +152,7 @@
     
     NSString *path;
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    if (floor(NSFoundationVersionNumber) < NSFoundationVersionNumber10_4_11) {
+    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_4) {
         path = [[@"~/Library/Logs/CrashReporter/" stringByExpandingTildeInPath]
             stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.crash.log", bundleName]];
     } else {
