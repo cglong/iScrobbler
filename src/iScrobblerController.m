@@ -2071,6 +2071,13 @@ exit:
                     [[NSApp delegate] performSelector:@selector(banTrack:) withObject:item afterDelay:0.0];
             }
         break;
+        case (FourCharCode)'SkpS': // skip currently playing song
+            item = [[[NSApp delegate] valueForKey:@"theMenu"] itemAtIndex:0];
+            if ([item hasSubmenu]) {
+                if ((item = [[item submenu] itemWithTag:MACTION_SKIP]))
+                    [[NSApp delegate] performSelector:@selector(skipTrack:) withObject:item afterDelay:0.0];
+            }
+        break;
         default:
             ScrobLog(SCROB_LOG_TRACE, @"ISAppScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
         break;

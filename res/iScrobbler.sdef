@@ -46,6 +46,9 @@
 			<responds-to name="tag current track">
 				<cocoa method=""/>
 			</responds-to>
+			<responds-to name="skip current track">
+				<cocoa method=""/>
+			</responds-to>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
 			<cocoa class="ISRadioController"/>
@@ -109,6 +112,9 @@
 			<cocoa class="ISAppScriptCommand"/>
 		</command>
 		<command name="ban current track" code="iSCbBanS" description="Ban the currently playing track.">
+			<cocoa class="ISAppScriptCommand"/>
+		</command>
+		<command name="skip current track" code="iSCbSkpS" description="Skip the currently playing track.">
 			<cocoa class="ISAppScriptCommand"/>
 		</command>
 	</suite>
