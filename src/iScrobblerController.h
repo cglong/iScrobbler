@@ -4,6 +4,7 @@
 //
 //  Created by Sam Ley on Feb 14, 2003.
 //
+//  Copyright 2005-2008 Brian Bergstrand.
 //  Released under the GPL, license details available in res/gpl.txt
 //
 
@@ -14,9 +15,7 @@
 @class SongData;
 @class ISStatusItem;
 
-@interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate>
-{
-
+@interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate> {
     //the status item that will be added to the system status bar
     ISStatusItem *statusItem;
 
@@ -46,17 +45,12 @@
     // GetTrackInfo error timer
     NSTimer *getTrackInfoTimer;
     
-    // iPod sync management
-    NSString *iPodMountPath;
-    NSMutableDictionary *iPodMounts;
-    NSImage *iPodIcon;
     NSDate *iTunesLastPlayedTime;
-    int iPodMountCount;
-    NSArray *iTunesPlaylists;
     
     BOOL badAuthAlertIsOpen;
     // Temporarily disable submissions
     BOOL submissionsDisabled;
+    
     BOOL frontRowActive;
 }
 
@@ -68,6 +62,8 @@
 
 //clears songs from theMenu and songList
 -(IBAction)clearMenu:(id)sender;
+
+-(IBAction)syncIPod:(id)sender;
 
 //opens the preferences window
 -(IBAction)openPrefs:(id)sender;
@@ -86,7 +82,7 @@
 
 // Info
 -(SongData*)nowPlaying;
-- (BOOL)queueSongsForLaterSubmission;
+-(BOOL)queueSongsForLaterSubmission;
 
 // Player control
 - (void)playerStop;
@@ -94,13 +90,17 @@
 - (NSString*)playerLibraryUUID;
 
 // Services
--(IBAction)loveTrack:(id)sender;
--(IBAction)banTrack:(id)sender;
+- (IBAction)loveTrack:(id)sender;
+- (IBAction)banTrack:(id)sender;
 
 -(NSString *)md5hash:(id)input;
 
--(NSString*)stringByEncodingURIChars:(NSString*)str;
--(NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
+- (id)runScript:(NSURL*)url handler:(NSString*)method parameters:(NSArray*)params;
+- (id)runCompiledScript:(NSAppleScript*)script handler:(NSString*)method parameters:(NSArray*)params;
+
+- (NSString*)stringByEncodingURIChars:(NSString*)str;
+
+- (NSURL*)audioScrobblerURLWithArtist:(NSString*)artist trackTitle:(NSString*)title;
 
 - (void)showApplicationIsDamagedDialog;
 - (void)showBadCredentialsDialog;
@@ -156,13 +156,5 @@ enum {
 
 
 #define IS_GROWL_NOTIFICATION_ALERTS @"Alerts"
-
-#define IPOD_SYNC_BEGIN @"org.bergstrand.iscrobbler.ipod.sync.begin"
-#define IPOD_SYNC_END @"org.bergstrand.iscrobbler.ipod.sync.end"
-#define IPOD_SYNC_KEY_PATH @"Path"
-#define IPOD_SYNC_KEY_ICON @"Icon"
-#define IPOD_ICON_NAME @"iPod Icon"
-#define IPOD_SYNC_KEY_TRACK_COUNT @"Track Count"
-#define IPOD_SYNC_KEY_SCRIPT_MSG @"Script Msg"
 
 #define RESET_PROFILE @"org.bergstrand.iscrobbler.resetProfile"

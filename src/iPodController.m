@@ -1,99 +1,110 @@
 //
-//  Created by Brian Bergstrand on 4/4/2005.
-//  Copyright 2005-2007 Brian Bergstrand.
+//  iPodController.m
+//  iScrobbler
+//
+//  Created by Brian Bergstrand on 1/8/08.
+//  Copyright 2004-2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
 
-@interface SongData (iScrobblerControllerPrivateAdditions)
-    - (SongData*)initWithiPodUpdateArray:(NSArray*)data;
+#import <IOKit/IOMessage.h>
+#import <IOKit/storage/IOMedia.h>
+
+#import "iPodController.h"
+#import "iScrobblerController.h"
+#import "SongData.h"
+#import "QueueManager.h"
+#import "ProtocolManager.h"
+#import "ISiTunesLibrary.h"
+
+static iPodController *sharedController = nil;
+
+// this is used to trigger a copy of the iTunes library
+#define ISCOPY_OF_ITUNES_LIB [@"~/Library/Caches/org.bergstrand.iscrobbler.iTunesLibCopy.xml" stringByExpandingTildeInPath]
+static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
+
+@interface iPodController (Private)
+- (void)volumeDidMount:(NSNotification*)notification;
+- (void)volumeDidUnmount:(NSNotification*)notification;
 @end
 
-@implementation iScrobblerController (iScrobblerControllerPrivate)
+@interface SongData (iScrobblerControllerPrivateAdditions)
+- (SongData*)initWithiPodUpdateArray:(NSArray*)data;
+@end
 
-- (void)iTunesPlaylistUpdate:(NSTimer*)timer
+@implementation iPodController
+
++ (iPodController*)sharedInstance
 {
-    static NSAppleScript *iTunesPlaylistScript = nil;
-    
-    if (!iTunesPlaylistScript) {
-        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
-                    stringByAppendingPathComponent:@"Scripts/iTunesGetPlaylists.scpt"]];
-        iTunesPlaylistScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
-        if (!iTunesPlaylistScript) {
-            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetPlaylists.scpt!\n");
-            [self showApplicationIsDamagedDialog];
-            return;
-        }
-    }
-    
-    NSDictionary *errInfo = nil;
-    NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:&errInfo];
-    if (executionResult) {
-        NSArray *parsedResult;
-        NSEnumerator *en;
-        
-        @try {
-            parsedResult = [executionResult objCObjectValue];
-            en = [parsedResult objectEnumerator];
-        } @catch (NSException *exception) {
-            ScrobLog(SCROB_LOG_ERR, @"GetPlaylists script invalid result: parsing exception %@\n.", exception);
-            [self setValue:[NSArray arrayWithObject:@"Recently Played"] forKey:@"iTunesPlaylists"];
-            return;
-        }
-        
-        NSString *playlist;
-        NSMutableArray *names = [NSMutableArray arrayWithCapacity:[parsedResult count]];
-        while ((playlist = [en nextObject])) {
-            if ([playlist length] > 0)
-                [names addObject:playlist];
-        }
-        
-        if ([names count]) {
-            [self setValue:[names sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)]
-                forKey:@"iTunesPlaylists"];
-        }
-    }
+    return (sharedController ? sharedController : (sharedController = [[iPodController alloc] init]));
 }
 
-// =========== NSAppleEventDescriptor Image conversion handler ===========
-
-- (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc
+- (IBAction)synciPod:(id)sender
 {
-    NSImage *image = [[NSImage alloc] initWithData:[aeDesc data]];
-    return ([image autorelease]);
+    NSString *path = [self valueForKey:@"iPodMountPath"];
+    ISASSERT(path != nil, "bad iPod path!");
+    
+    ScrobLog(SCROB_LOG_TRACE, @"User initiated iPod sync for: %@", path);
+    
+    // Fake an unmount event for the current mount path. When the volume is actually unmounted,
+    // volumeDidUnmount: won't find it in the iPodMounts dict anymore and we won't try to sync again.
+    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
+    NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidUnmountNotification
+        object:[NSWorkspace sharedWorkspace] userInfo:d];
+    [self volumeDidUnmount:note];
 }
 
-// =========== iPod Support ============
+- (BOOL)isiPodMounted
+{
+    return (iPodMountCount > 0);
+}
+
+// Private
+
+- (id)init
+{
+    self = [super init];
+    
+    // Register for mounts and unmounts
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+        selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+        selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+    
+    // this is used to trigger copying of the iTunes library for multiple iPod play detection
+    static BOOL registeredForIOMediaEvents = NO;
+    if (0 == registeredForIOMediaEvents) {
+        IONotificationPortRef portRef = IONotificationPortCreate(kIOMasterPortDefault);
+        CFRunLoopSourceRef source;
+        io_iterator_t medidAddedNotification;
+        // Add matching for iPhone/Touch (IOUSBDevice) ?
+        kern_return_t kr = IOServiceAddMatchingNotification (portRef, kIOMatchedNotification,
+            IOServiceMatching(kIOMediaClass), IOMediaAddedCallback, NULL, &medidAddedNotification);
+        if (0 == kr && 0 != medidAddedNotification) {
+            registeredForIOMediaEvents = YES;
+            source = IONotificationPortGetRunLoopSource(portRef);
+            CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
+            // prime the queue, necessary to arm the notification
+            io_object_t iomedia;
+            while ((iomedia = IOIteratorNext(medidAddedNotification)))
+                IOObjectRelease(iomedia);
+        } else
+            ScrobLog(SCROB_LOG_ERR, @"Failed to register for system media addition events.");
+    }
+    
+    return (self);
+}
+
+- (void)dealloc
+{
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+    [super dealloc];
+}
+
+// =========== iPod Core ============
 
 #define IPOD_SYNC_VALUE_COUNT 16
-
-#define ONE_DAY 86400.0
-#define ONE_WEEK (ONE_DAY * 7.0)
-- (void) restoreITunesLastPlayedTime
-{
-    NSTimeInterval ti = [[prefs stringForKey:@"iTunesLastPlayedTime"] doubleValue];
-    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
-    NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
-
-    if (!ti || ti > (now + [SongData songTimeFudge]) || ti < (now - (ONE_WEEK * 2))) {
-        ScrobLog(SCROB_LOG_WARN, @"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
-            ti, now);
-        tr = [NSDate date];
-    }
-    
-    [self setITunesLastPlayedTime:tr];
-}
-
-- (void) setITunesLastPlayedTime:(NSDate*)date
-{
-    [date retain];
-    [iTunesLastPlayedTime release];
-    iTunesLastPlayedTime = date;
-    // Update prefs
-    [prefs setObject:[NSString stringWithFormat:@"%.2lf", [iTunesLastPlayedTime timeIntervalSince1970]]
-        forKey:@"iTunesLastPlayedTime"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
 
 - (BOOL)setSongPlayTimes:(SongData*)song findingTimeinGaps:(NSMutableArray*)playGaps
 {
@@ -334,24 +345,9 @@ validate:
     return ([sorted autorelease]);
 }
 
-- (IBAction)syncIPod:(id)sender
-{
-    NSString *path = [self valueForKey:@"iPodMountPath"];
-    ISASSERT(path != nil, "bad iPod path!");
-    
-    ScrobLog(SCROB_LOG_TRACE, @"User initiated iPod sync for: %@", path);
-    
-    // Fake an unmount event for the current mount path. When the volume is actually unmounted,
-    // volumeDidUnmount: won't find it in the iPodMounts dict anymore and we won't try to sync again.
-    NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
-    NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidUnmountNotification
-        object:[NSWorkspace sharedWorkspace] userInfo:d];
-    [self volumeDidUnmount:note];
-}
-
 - (void)beginiPodSync:(id)sender
 {
-    if ([prefs boolForKey:@"Sync iPod"] && !submissionsDisabled) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Sync iPod"] && ![[[NSApp delegate] valueForKey:@"submissionsDisabled"] boolValue]) {
         NSString *path = [self valueForKey:@"iPodMountPath"];
         ISASSERT(path != nil, "bad iPod path!");
         
@@ -372,7 +368,7 @@ validate:
 #ifndef IS_SCRIPT_PROXY
     static NSAppleScript *iPodUpdateScript = nil;
 #endif
-    ScrobTrace (@"synciPod: using playlist %@", [prefs stringForKey:@"iPod Submission Playlist"]);
+    ScrobTrace (@"synciPod: using playlist %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"iPod Submission Playlist"]);
     
     NSAutoreleasePool *workPool = nil;
     NSDictionary *iTunesLib = [arg objectForKey:@"iTunesLib"];
@@ -397,7 +393,7 @@ validate:
         // Get our iPod update script
         if (!iPodUpdateScript) {
             NSURL *url = [NSURL fileURLWithPath:
-                [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"]];
+                [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"]];
             iPodUpdateScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:nil];
             if (!iPodUpdateScript) {
                 ScrobLog(SCROB_LOG_CRIT, @"Failed to load iPodUpdateScript!");
@@ -406,7 +402,7 @@ validate:
         }
 #endif
         
-        if (!(playlist = [prefs stringForKey:@"iPod Submission Playlist"]) || ![playlist length]) {
+        if (!(playlist = [[NSUserDefaults standardUserDefaults] stringForKey:@"iPod Submission Playlist"]) || ![playlist length]) {
             @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"iPod playlist not set, aborting sync." userInfo:nil]);
         }
         
@@ -416,12 +412,12 @@ validate:
                 iPodIcon, IPOD_SYNC_KEY_ICON, nil]];
         
         // Just a little extra fudge time
-        fudge = [iTunesLastPlayedTime timeIntervalSince1970]+[SongData songTimeFudge];
+        fudge = [[[NSApp delegate] valueForKey:@"iTunesLastPlayedTime"] timeIntervalSince1970] + [SongData songTimeFudge];
         now = [[NSDate date] timeIntervalSince1970];
         if (now > fudge) {
-            [self setITunesLastPlayedTime:[NSDate dateWithTimeIntervalSince1970:fudge]];
+            [[NSApp delegate] setValue:[NSDate dateWithTimeIntervalSince1970:fudge] forKey:@"iTunesLastPlayedTime"];
         } else {
-            [self setITunesLastPlayedTime:[NSDate date]];
+            [[NSApp delegate] setValue:[NSDate date] forKey:@"iTunesLastPlayedTime"];
         }
         
         SongData *lastSubmission;
@@ -450,7 +446,7 @@ validate:
             requestDate = [NSDate dateWithTimeIntervalSince1970:
                 [requestDate timeIntervalSince1970] + [SongData songTimeFudge]];
         } else
-            requestDate = iTunesLastPlayedTime;
+            requestDate = [[NSApp delegate] valueForKey:@"iTunesLastPlayedTime"];
         
         NSDate *requestDateGMT= [requestDate GMTDate];
         
@@ -458,16 +454,16 @@ validate:
             requestDate);
         // Run script
         @try {
+            NSArray *args = [NSArray arrayWithObjects:playlist, requestDate, nil];
 #ifdef IS_SCRIPT_PROXY
             NSURL *surl = [NSURL fileURLWithPath:
                 [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Scripts/iPodUpdate.scpt"]];
-            NSArray *args = [NSArray arrayWithObjects:playlist, requestDate, nil];
             NSDictionary *result;
-            result = [sProxy runScriptWithURL:surl handler:@"UpdateiPod" args:args];
+            result = [[NSApp delegate] runScript:surl handler:@"UpdateiPod" parameters:args];
             if (!(trackList = [result objectForKey:@"result"]))
                 errInfo = [result objectForKey:@"error"];
 #else
-            trackList = [iPodUpdateScript executeHandler:@"UpdateiPod" withParameters:playlist, requestDate, nil];
+            trackList = [[NSApp delegate] runCompiledScript:iPodUpdateScript handler:@"UpdateiPod" parameters:args];
 #endif
         } @catch (NSException *exception) {
             trackList = nil;
@@ -617,7 +613,7 @@ validate_song_queue:
                     goto validate_song_queue;
                 }
                 
-                [self setITunesLastPlayedTime:[NSDate date]];
+                [[NSApp delegate] setValue:[NSDate date] forKey:@"iTunesLastPlayedTime"];
                 if (added > 0) {
                     // we have to delay this, so the plays are submitted AFTER the we finish
                     // otherwise, the queue won't submit because it thinks an iPod is still mounted
@@ -681,9 +677,9 @@ sync_exit_with_note:
                 [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
             [iPodIcon setName:IPOD_ICON_NAME];
         }
-        [self willChangeValueForKey:@"isIPodMounted"]; // update our binding
+        [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
         ++iPodMountCount;
-        [self didChangeValueForKey:@"isIPodMounted"];
+        [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
@@ -713,9 +709,9 @@ sync_exit_with_note:
         
         [self setValue:curPath forKey:@"iPodMountPath"];
         
-        [self willChangeValueForKey:@"isIPodMounted"]; // update our binding
+        [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
         --iPodMountCount;
-        [self didChangeValueForKey:@"isIPodMounted"];
+        [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [iPodMounts removeObjectForKey:mountPath];
         
@@ -723,6 +719,23 @@ sync_exit_with_note:
         // add a "fake" count while we wait for the lib to load so plays are still queued until we are done.
         // This is done outside of a binding update so the GUI does not notice it.
         ++iPodMountCount;
+    }
+}
+
+// =========== iPod Core ============
+
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
+    if (!iPodMountPath) {
+        // Simulate mount events for current mounts so that any mounted iPod is found
+        NSEnumerator *en = [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
+        NSString *path;
+        while ((path = [en nextObject])) {
+            NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
+            NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidMountNotification
+                object:[NSWorkspace sharedWorkspace] userInfo:dict];
+            [self volumeDidMount:note];
+        }
     }
 }
 
@@ -779,18 +792,22 @@ bad_song_data:
 
 @end
 
-@implementation iScrobblerController (GrowlAdditions)
-
-- (NSDictionary *) registrationDictionaryForGrowl
+// iTunes sends com.apple.iTunes.sourceSaved when it saves the XML - should we watch for that instead
+static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
 {
-    NSArray *notifications = [NSArray arrayWithObjects:
-        IS_GROWL_NOTIFICATION_TRACK_CHANGE, IS_GROWL_NOTIFICATION_IPOD_DID_SYNC,
-        IS_GROWL_NOTIFICATION_PROTOCOL, IS_GROWL_NOTIFICATION_ALERTS,
-        nil];
-    return ( [NSDictionary dictionaryWithObjectsAndKeys:
-        notifications, GROWL_NOTIFICATIONS_ALL,
-        notifications, GROWL_NOTIFICATIONS_DEFAULT,
-        nil] );
+    io_service_t iomedia;
+    CFMutableDictionaryRef properties;
+    kern_return_t kr;
+    while ((iomedia = IOIteratorNext(iter))) {
+        kr = IORegistryEntryCreateCFProperties(iomedia, &properties, kCFAllocatorDefault, 0);
+        if (kr == 0 && [[(NSDictionary*)properties objectForKey:@kIOMediaWholeKey] boolValue]) {
+            // We could get fancy and make sure the media is an iPod, but for now we'll just copy blindly.
+            // XXX - This means that multiple plays won't work with the "Fake iPod" method to sync to Touch/iPhones
+            // since the image is mounted after the library is updated.
+            ScrobDebug(@"");
+            [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
+        }
+        CFRelease(properties);
+        IOObjectRelease(iomedia);
+    }
 }
-
-@end

@@ -4,14 +4,13 @@
 //
 //  Created by Sam Ley on Feb 14, 2003.
 //  Completely re-written by Brian Bergstrand sometime in Feb 2005.
-//  Copyright 2005-2007 Brian Bergstrand.
+//  Copyright 2005-2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 
 #import <CommonCrypto/CommonDigest.h>
 #import <IOKit/IOMessage.h>
 #import <IOKit/pwr_mgt/IOPMLib.h>
-#import <IOKit/storage/IOMedia.h>
 #import <Carbon/Carbon.h>
 
 #import "iScrobblerController.h"
@@ -34,6 +33,7 @@
 #import "ISRadioController.h"
 #import "ISArtistDetailsController.h"
 #import "ISStatusItem.h"
+#import "iPodController.h"
 #import "ISPluginController.h"
 #import "Persistence.h"
 #import "ISiTunesLibrary.h"
@@ -70,10 +70,6 @@ static ISArtistDetailsController *npDetails = nil;
 static io_connect_t powerPort = (io_connect_t)0;
 static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
-// this is used to trigger a copy of the iTunes library
-#define ISCOPY_OF_ITUNES_LIB [@"~/Library/Caches/org.bergstrand.iscrobbler.iTunesLibCopy.xml" stringByExpandingTildeInPath]
-static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
-
 #if 0
 @interface NSScriptCommand (ISExtensions)
 
@@ -82,39 +78,29 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 @end
 #endif
 
-@interface iScrobblerController (iScrobblerControllerPrivate)
-
-- (IBAction)syncIPod:(id)sender;
-- (void)restoreITunesLastPlayedTime;
-- (void)setITunesLastPlayedTime:(NSDate*)date;
-
-- (void)volumeDidMount:(NSNotification*)notification;
-- (void)volumeDidUnmount:(NSNotification*)notification;
-
-- (void)iTunesPlaylistUpdate:(NSTimer*)timer;
-
-- (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc;
-
-@end
-
 @interface iScrobblerController (Private)
 - (void)retryInfoHandler:(NSTimer*)timer;
+- (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc;
 - (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector;
+// iPod
+- (void)restoreITunesLastPlayedTime;
+- (void)setiTunesLastPlayedTime:(NSDate*)date;
+- (void)iTunesPlaylistUpdate:(NSTimer*)timer;
 @end
 
 // See iTunesPlayerInfoHandler: for why this is needed
 @interface ProtocolManager (NoCompilerWarnings)
-    - (float)minTimePlayed;
+- (float)minTimePlayed;
 @end
 
 #define SUBMIT_IPOD_MENUITEM_TAG    4
 #define RADIO_MENUITEM_TAG 5
 
 @interface SongData (iScrobblerControllerAdditions)
-    - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
-    - (void)updateUsingSong:(SongData*)song;
-    - (NSString*)growlDescription;
-    - (NSString*)growlTitle;
+- (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
+- (void)updateUsingSong:(SongData*)song;
+- (NSString*)growlDescription;
+- (NSString*)growlTitle;
 @end
 
 #define isTopListsActive (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"Disable Local Lists"] \
@@ -379,7 +365,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 - (BOOL)queueSongsForLaterSubmission
 {
     return ([[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"] ||
-        ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && iPodMountCount > 0));
+        ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"] && [[iPodController sharedInstance] isiPodMounted]));
 }
 
 - (void)queueSong:(SongData*)song playerStopped:(BOOL)stopped
@@ -615,7 +601,7 @@ player_info_exit:
         object:(isiTunesPlaying ? currentSong : nil) userInfo:userInfo];
     
     if (isiTunesPlaying || wasiTunesPlaying != isiTunesPlaying)
-        [self setITunesLastPlayedTime:[NSDate date]];
+        [self setiTunesLastPlayedTime:[NSDate date]];
     ScrobLog(SCROB_LOG_TRACE, @"iTunesLastPlayedTime == %@\n", iTunesLastPlayedTime);
     
     if (isStopped) {
@@ -742,11 +728,7 @@ player_info_exit:
                 name:IPOD_SYNC_END
                 object:nil];
         
-        // Register for mounts and unmounts (iPod support)
-        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
-            selector:@selector(volumeDidMount:) name:NSWorkspaceDidMountNotification object:nil];
-        [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
-            selector:@selector(volumeDidUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+        (void)[iPodController sharedInstance];
         
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(applicationWillTerminate:) name:NSWorkspaceWillPowerOffNotification object:nil];
@@ -762,22 +744,6 @@ player_info_exit:
             CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
         } else
             ScrobLog(SCROB_LOG_ERR, @"Failed to register for system power events.");
-        
-        // this is used to trigger copying of the iTunes library for multiple iPod play detection
-        portRef = IONotificationPortCreate(kIOMasterPortDefault);
-        io_iterator_t medidAddedNotification;
-        // Add matching for iPhone/Touch (IOUSBDevice) ?
-        kern_return_t kr = IOServiceAddMatchingNotification (portRef, kIOMatchedNotification,
-            IOServiceMatching(kIOMediaClass), IOMediaAddedCallback, NULL, &medidAddedNotification);
-        if (0 == kr && 0 != medidAddedNotification) {
-            source = IONotificationPortGetRunLoopSource(portRef);
-            CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
-            // prime the queue, necessary to arm the notification
-            io_object_t iomedia;
-            while ((iomedia = IOIteratorNext(medidAddedNotification)))
-                IOObjectRelease(iomedia);
-        } else
-            ScrobLog(SCROB_LOG_ERR, @"Failed to register for system media addition events.");
 
         // Register with Growl
         [GrowlApplicationBridge setGrowlDelegate:self];
@@ -1098,17 +1064,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
         [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.1];
     }
     
-    if (!iPodMountPath) {
-        // Simulate mount events for current mounts so that any mounted iPod is found
-        NSEnumerator *en = [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
-        NSString *path;
-        while ((path = [en nextObject])) {
-            NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:path, @"NSDevicePath", nil];
-            NSNotification *note = [NSNotification notificationWithName:NSWorkspaceDidMountNotification
-                object:[NSWorkspace sharedWorkspace] userInfo:dict];
-            [self volumeDidMount:note];
-        }
-    }
+    [[iPodController sharedInstance] performSelector:@selector(applicationDidFinishLaunching:) withObject:aNotification];
     
     // warn user if Growl is not installed
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DontShowGrowlMissingWarning"]
@@ -1409,6 +1365,12 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 }
 #endif
 
+- (SongData*)nowPlaying
+{
+    return (!currentSongPaused ? currentSong : nil);
+}
+
+// App services
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 #define IS_CC_MD5 CC_MD5
 #else
@@ -1441,9 +1403,22 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     return (hashString);
 }
 
-- (SongData*)nowPlaying
+#ifdef IS_SCRIPT_PROXY
+- (id)runScript:(NSURL*)url handler:(NSString*)method parameters:(NSArray*)params
+{ 
+    return ([sProxy runScriptWithURL:url handler:method args:params]);
+}
+#else
+- (id)runScript:(NSURL*)url handler:(NSString*)method parameters:(NSArray*)params
 {
-    return (!currentSongPaused ? currentSong : nil);
+    ISASSERT(0, "not implemented!");
+    return (nil);
+}
+#endif
+
+- (id)runCompiledScript:(NSAppleScript*)script handler:(NSString*)method parameters:(NSArray*)params
+{
+    return ([script executeHandler:method withParametersFromArray:params]);
 }
 
 #define URI_RESERVED_CHARS_TO_ESCAPE CFSTR(";/+?:@&=$,")
@@ -1916,6 +1891,12 @@ exit:
     return (NSLocalizedString(@"Now Playing", ""));
 }
 
+// iPod support
+- (IBAction)syncIPod:(id)sender
+{
+    [[iPodController sharedInstance] synciPod:sender];
+}
+
 - (void)iPodSyncBegin:(NSNotification*)note
 {
     
@@ -1936,11 +1917,83 @@ exit:
         clickContext:nil];
 }
 
-// Bindings
+#define ONE_DAY 86400.0
+#define ONE_WEEK (ONE_DAY * 7.0)
+- (void)restoreITunesLastPlayedTime
+{
+    NSTimeInterval ti = [[prefs stringForKey:@"iTunesLastPlayedTime"] doubleValue];
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    NSDate *tr = [NSDate dateWithTimeIntervalSince1970:ti];
+
+    if (!ti || ti > (now + [SongData songTimeFudge]) || ti < (now - (ONE_WEEK * 2))) {
+        ScrobLog(SCROB_LOG_WARN, @"Discarding invalid iTunesLastPlayedTime value (ti=%.0lf, now=%.0lf).\n",
+            ti, now);
+        tr = [NSDate date];
+    }
+    
+    [self setiTunesLastPlayedTime:tr];
+}
+
+- (void)setiTunesLastPlayedTime:(NSDate*)date
+{
+    [date retain];
+    [iTunesLastPlayedTime release];
+    iTunesLastPlayedTime = date;
+    // Update prefs
+    [prefs setObject:[NSString stringWithFormat:@"%.2lf", [iTunesLastPlayedTime timeIntervalSince1970]]
+        forKey:@"iTunesLastPlayedTime"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (void)iTunesPlaylistUpdate:(NSTimer*)timer
+{
+    static NSAppleScript *iTunesPlaylistScript = nil;
+    
+    if (!iTunesPlaylistScript) {
+        NSURL *file = [NSURL fileURLWithPath:[[[NSBundle mainBundle] resourcePath]
+                    stringByAppendingPathComponent:@"Scripts/iTunesGetPlaylists.scpt"]];
+        iTunesPlaylistScript = [[NSAppleScript alloc] initWithContentsOfURL:file error:nil];
+        if (!iTunesPlaylistScript) {
+            ScrobLog(SCROB_LOG_CRIT, @"Could not load iTunesGetPlaylists.scpt!\n");
+            [self showApplicationIsDamagedDialog];
+            return;
+        }
+    }
+    
+    NSDictionary *errInfo = nil;
+    NSAppleEventDescriptor *executionResult = [iTunesPlaylistScript executeAndReturnError:&errInfo];
+    if (executionResult) {
+        NSArray *parsedResult;
+        NSEnumerator *en;
+        
+        @try {
+            parsedResult = [executionResult objCObjectValue];
+            en = [parsedResult objectEnumerator];
+        } @catch (NSException *exception) {
+            ScrobLog(SCROB_LOG_ERR, @"GetPlaylists script invalid result: parsing exception %@\n.", exception);
+            [self setValue:[NSArray arrayWithObject:@"Recently Played"] forKey:@"iTunesPlaylists"];
+            return;
+        }
+        
+        NSString *playlist;
+        NSMutableArray *names = [NSMutableArray arrayWithCapacity:[parsedResult count]];
+        while ((playlist = [en nextObject])) {
+            if ([playlist length] > 0)
+                [names addObject:playlist];
+        }
+        
+        if ([names count]) {
+            [self setValue:[names sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)]
+                forKey:@"iTunesPlaylists"];
+        }
+    }
+}
+
+// iPod Bindings
 
 - (BOOL)isIPodMounted
 {
-    return ((BOOL)(iPodMountCount > 0));
+    return ([[iPodController sharedInstance] isiPodMounted]);
 }
 
 - (void)setIsIPodMounted:(BOOL)val
@@ -1948,10 +2001,30 @@ exit:
     // just here, so KVO notifications work
 }
 
+// Other helpers
+
 - (void)growlNotificationWasClicked:(id)context
 {
     ISASSERT([context isKindOfClass:[NSString class]], @"click context is not a string!");
     [[NSNotificationCenter defaultCenter] postNotificationName:context object:nil];
+}
+
+- (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc
+{
+    NSImage *image = [[NSImage alloc] initWithData:[aeDesc data]];
+    return ([image autorelease]);
+}
+
+- (NSDictionary*)registrationDictionaryForGrowl
+{
+    NSArray *notifications = [NSArray arrayWithObjects:
+        IS_GROWL_NOTIFICATION_TRACK_CHANGE, IS_GROWL_NOTIFICATION_IPOD_DID_SYNC,
+        IS_GROWL_NOTIFICATION_PROTOCOL, IS_GROWL_NOTIFICATION_ALERTS,
+        nil];
+    return ( [NSDictionary dictionaryWithObjectsAndKeys:
+        notifications, GROWL_NOTIFICATIONS_ALL,
+        notifications, GROWL_NOTIFICATIONS_DEFAULT,
+        nil] );
 }
 
 // AppleScript support
@@ -2488,8 +2561,6 @@ void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsi
     *seconds = (unsigned int)((tSeconds % 86400U) % 3600U) % 60U;
 }
 
-#include "iScrobblerController+Private.m"
-
 static void iokpm_callback (void *myData, io_service_t service, natural_t message, void *arg)
 {
     ScrobDebug(@"power event - code = %x", err_get_code(message));
@@ -2514,24 +2585,4 @@ static void iokpm_callback (void *myData, io_service_t service, natural_t messag
         default:
         break;
     };
-}
-
-// iTunes sends com.apple.iTunes.sourceSaved when it saves the XML - should we watch for that instead
-static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
-{
-    io_service_t iomedia;
-    CFMutableDictionaryRef properties;
-    kern_return_t kr;
-    while ((iomedia = IOIteratorNext(iter))) {
-        kr = IORegistryEntryCreateCFProperties(iomedia, &properties, kCFAllocatorDefault, 0);
-        if (kr == 0 && [[(NSDictionary*)properties objectForKey:@kIOMediaWholeKey] boolValue]) {
-            // We could get fancy and make sure the media is an iPod, but for now we'll just copy blindly.
-            // XXX - This means that multiple plays won't work with the "Fake iPod" method to sync to Touch/iPhones
-            // since the image is mounted after the library is updated.
-            ScrobDebug(@"");
-            [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
-        }
-        CFRelease(properties);
-        IOObjectRelease(iomedia);
-    }
 }
