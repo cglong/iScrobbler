@@ -161,12 +161,12 @@
     
     @try {
     
+    PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
     NSManagedObject *obj = [moc objectWithID:oid];
     NSString *title;
-    NSString *type = [obj valueForKey:@"type"];
-    if ([ITEM_SONG isEqualTo:type]) {
+    if ([persistence isSong:obj]) {
         title = [NSString stringWithFormat:@"%@ - %@", [obj valueForKeyPath:@"artist.name"], [obj valueForKey:@"name"]];
-    } else if ([ITEM_ARTIST isEqualTo:type]) {
+    } else if ([persistence isArtist:obj]) {
         title = [obj valueForKey:@"name"];
     } else {
         title = @"!!INVALID TYPE!!";

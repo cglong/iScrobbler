@@ -887,6 +887,25 @@ static PersistentProfile *shared = nil;
 
 @end
 
+@implementation PersistentProfile (PItemAdditions)
+
+- (BOOL)isSong:(NSManagedObject*)item
+{
+    return ([ITEM_SONG isEqualTo:[item valueForKey:@"itemType"]]);
+}
+
+- (BOOL)isArtist:(NSManagedObject*)item
+{
+    return ([ITEM_ARTIST isEqualTo:[item valueForKey:@"itemType"]]);
+}
+
+- (BOOL)isAlbum:(NSManagedObject*)item
+{
+    return ([ITEM_ALBUM isEqualTo:[item valueForKey:@"itemType"]]);
+}
+
+@end
+
 @implementation NSManagedObject (ISProfileAdditions)
 
 - (void)refreshSelf

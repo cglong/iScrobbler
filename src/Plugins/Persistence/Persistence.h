@@ -47,6 +47,12 @@
 
 @end
 
+@interface PersistentProfile (PItemAdditions)
+- (BOOL)isSong:(NSManagedObject*)item;
+- (BOOL)isArtist:(NSManagedObject*)item;
+- (BOOL)isAlbum:(NSManagedObject*)item;
+@end
+
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
 #define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
 #define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
@@ -60,18 +66,8 @@
 #define PersistentProfileFailedEditObject @"PersistentProfileFailedEditObject"
 
 @interface NSString (ISNSPredicateEscape)
-
 - (NSString*)stringByEscapingNSPredicateReserves;
-
 @end
-
-#define ITEM_UNKNOWN @"u"
-#define ITEM_SONG @"so"
-#define ITEM_ARTIST @"a"
-#define ITEM_ALBUM @"al"
-#define ITEM_SESSION @"s"
-#define ITEM_RATING_CCH @"r"
-#define ITEM_HOUR_CCH @"h"
 
 // Private, exposed only for TopListsController
 #define PERSISTENT_STORE_DB \
