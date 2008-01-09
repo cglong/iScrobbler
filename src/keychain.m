@@ -118,8 +118,10 @@ static KeyChain* defaultKeyChain = nil;
         SecKeychainItemFreeContent(NULL, passwordData);
     }
     #ifdef ScrobLog
-    ScrobLog(SCROB_LOG_ERR, @"error retrieving password from keychain: '%@' (%d)",
-        [(NSString*)SecCopyErrorMessageString(ret, NULL) autorelease], ret);
+    else {
+        ScrobLog(SCROB_LOG_ERR, @"error retrieving password from keychain: '%@' (%d)",
+            [(NSString*)SecCopyErrorMessageString(ret, NULL) autorelease], ret);
+    }
     #endif
     return (string);
 }
