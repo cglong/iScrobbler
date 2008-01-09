@@ -13,9 +13,6 @@
 #import <Security/SecKeychainItem.h>
 #import "keychain.h"
 
-// Not in SecKeychain header
-extern CFStringRef SecCopyErrorMessageString(OSStatus, void*);
-
 static KeyChain* defaultKeyChain = nil;
 
 @interface KeyChain (KeyChainPrivate)
@@ -120,6 +117,10 @@ static KeyChain* defaultKeyChain = nil;
         string = [[[NSString alloc] initWithBytes:passwordData length:passwordLen encoding:NSUTF8StringEncoding] autorelease];
         SecKeychainItemFreeContent(NULL, passwordData);
     }
+    #ifdef ScrobLog
+    ScrobLog(SCROB_LOG_ERR, @"error retrieving password from keychain: '%@' (%d)",
+        [(NSString*)SecCopyErrorMessageString(ret, NULL) autorelease], ret);
+    #endif
     return (string);
 }
 
@@ -142,8 +143,13 @@ static KeyChain* defaultKeyChain = nil;
     const char *kcAccount = [account UTF8String];
     OSStatus ret = SecKeychainFindGenericPassword(NULL, (UInt32)strlen(kcService), kcService,
         (UInt32)strlen(kcAccount), kcAccount, NULL, NULL, &itemref);
-    if (noErr != ret)
+    if (noErr != ret) {
         itemref = NULL;
+        #ifdef ScrobLog
+        ScrobLog(SCROB_LOG_ERR, @"error retrieving item from keychain: '%@' (%d)",
+            [(NSString*)SecCopyErrorMessageString(ret, NULL) autorelease], ret);
+        #endif
+    }
     return (itemref);
 }
 @end
