@@ -54,9 +54,15 @@
 {
     NSString *oldUserName = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
     
-    [(NSUserDefaultsController*)[NSUserDefaultsController sharedUserDefaultsController] save:self];
+    [[self preferencesWindow] endEditingFor:nil];
+    NSUserDefaultsController *udc = (NSUserDefaultsController*)[NSUserDefaultsController sharedUserDefaultsController];
+    [udc save:self];
 	
+    #ifdef bug
+    // why doesn't [NSUserDefaultsController save:] apply immediately to the defaults? 
 	NSString *username = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
+    #endif
+    NSString *username = [[udc values] valueForKey:@"username"];
     
     if (![oldUserName isEqualToString:username])
         [[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:oldUserName];
