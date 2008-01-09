@@ -46,6 +46,7 @@
     NSTimer *getTrackInfoTimer;
     
     NSDate *iTunesLastPlayedTime;
+    NSArray *iTunesPlaylists;
     
     BOOL badAuthAlertIsOpen;
     // Temporarily disable submissions

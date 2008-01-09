@@ -16,7 +16,6 @@ ISEXPORT_CLASS
     NSMutableDictionary *iPodMounts;
     NSImage *iPodIcon;
     int iPodMountCount;
-    NSArray *iTunesPlaylists;
 }
 
 + (iPodController*)sharedInstance;
