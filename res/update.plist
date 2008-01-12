@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.1.0b2</string>
+        <string>2.1.0b3</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.0b2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.0b3.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
