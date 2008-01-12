@@ -39,9 +39,6 @@
 #import "ISiTunesLibrary.h"
 #import "ISCrashReporter.h"
 
-#ifdef __LP64__
-#define IS_SCRIPT_PROXY 1
-#endif
 #ifdef IS_SCRIPT_PROXY
 #import "ISProxyProtocol.h"
 static NSDistantObject<ISProxyProtocol> *sProxy = nil;

@@ -78,6 +78,10 @@ return (
 #error unknown arch
 #endif
 
+#ifdef __LP64__
+#define IS_SCRIPT_PROXY 1
+#endif
+
 #ifdef ISDEBUG
 
 #define ISASSERT(condition,msg) do { \
@@ -118,4 +122,4 @@ mach_timebase_info_data_t info; \
 #define ISElapsedMilliSeconds() 0
 #define ISElapsedSeconds() 0
 
-#endif
+#endif // ISDEBUG
