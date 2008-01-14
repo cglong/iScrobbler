@@ -758,6 +758,12 @@ player_info_exit:
             selector:@selector(frontRowDidHide:) name:@"com.apple.FrontRow.FrontRowDidHide"
             object:nil];
         
+        // "Play" - http://sbooth.org/Play/
+        
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.sbooth.Play.playerState"
+            object:nil];
+        
         #ifdef notyet
         // Doesn't work yet, as "Total Time" is not included in the note
         // Register for PandoraBoy track change notifications
