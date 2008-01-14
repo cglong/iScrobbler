@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2007 Brian Bergstrand.
+//  Copyright 2004-2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -946,7 +946,6 @@ static int npDelays = 0;
         @"No data sent yet.", HS_RESPONSE_KEY_RESULT_MSG,
         nil]];
     
-    myKeyChain = [[KeyChain defaultKeyChain] retain];
     maxTracksPerSub = DEFAULT_MAX_TRACKS_PER_SUB;
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -959,12 +958,10 @@ static int npDelays = 0;
 - (void)dealloc
 {
     [prefs release];
-    [myKeyChain release];
     [inFlight release];
     [lastSongSubmitted release];
     [hsResult release];
     [submitResult release];
-    [myKeyChain release];
     [super dealloc];
 }
 

@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/04.
-//  Copyright 2004-2007 Brian Bergstrand.
+//  Copyright 2004-2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -12,14 +12,12 @@
 
 #import "SongData.h"
 
-@class KeyChain;
 @protocol ProtocolManagerDelgate;
 
 // This is an abstract class cluster
 
 @interface ProtocolManager : NSObject {
     NSUserDefaults *prefs;
-    KeyChain *myKeyChain;
 
 @private
     // Songs that have been submitted
