@@ -759,7 +759,6 @@ player_info_exit:
             object:nil];
         
         // "Play" - http://sbooth.org/Play/
-        
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
             selector:@selector(iTunesPlayerInfoHandler:) name:@"org.sbooth.Play.playerState"
             object:nil];
@@ -771,11 +770,6 @@ player_info_exit:
             selector:@selector(iTunesPlayerInfoHandler:) name:@"net.frozensilicon.pandoraBoy.playerInfo"
             object:nil];
         #endif
-        
-        // Internal last.fm stream now playing info
-        [nc addObserver:self
-            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.bergstrand.iscrobbler.lasfm.playerInfo"
-            object:nil];
         
         // Create protocol mgr -- register the up/down notification before, because
         // PM init can send it
