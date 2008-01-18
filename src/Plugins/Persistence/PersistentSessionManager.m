@@ -27,6 +27,11 @@
 - (NSManagedObjectContext*)mainMOC;
 - (void)addSongPlaysDidFinish:(id)obj;
 - (id)storeMetadataForKey:(NSString*)key moc:(NSManagedObjectContext*)moc;
+- (void)setStoreMetadata:(id)object forKey:(NSString*)key moc:(NSManagedObjectContext*)moc;
+@end
+
+@interface PersistentSessionManager (Private)
+- (void)recreateHourCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;
 @end
 
 @implementation PersistentSessionManager
@@ -184,10 +189,36 @@
     
     lfmUpdateTimer = sUpdateTimer = nil;
     @try {
+    
+    // The hour caches are based on local time, if the TZ changes, they have to be recalculated so that
+    // removeal of sessions songs updates the correct hour cache. Since archives won't have any songs removed, we ignore them.
+    PersistentProfile *pp = [PersistentProfile sharedInstance];
+    NSNumber *lastTZOffset = [pp storeMetadataForKey:@"ISTZOffset" moc:moc];
+    NSInteger tzOffset = [[NSTimeZone defaultTimeZone] secondsFromGMT];
+    if (!lastTZOffset || (tzOffset != (NSInteger)[lastTZOffset longLongValue])) {
+        ScrobLog(SCROB_LOG_TRACE, @"TZ has changed, updating caches");
+        NSArray *sessions = [self activeSessionsWithMOC:moc];
+        NSEnumerator *en = [sessions objectEnumerator];
+        NSManagedObject *s;
+        while ((s = [en nextObject])) {
+            [self recreateHourCacheForSession:s songs:[pp songsForSession:s] moc:moc];
+        }
+        
+        [pp setStoreMetadata:[NSNumber numberWithLongLong:tzOffset] forKey:@"ISTZOffset" moc:moc];
+        [pp save:moc withNotification:NO];
+    }
+    
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception during TZ change handler: %@", e);
+    }
+    
+    @try {
     [self performSelector:@selector(updateLastfmSession:) withObject:nil];
     [self performSelector:@selector(updateSessions:) withObject:nil];
     [self performSelector:@selector(scrub:) withObject:nil];
-    } @catch (NSException *e) {}
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception during init: %@", e);
+    }
     
     do {
         [pool release];
@@ -283,7 +314,6 @@
 #endif    
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 - (void)recreateHourCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc
 {
     NSEnumerator *en;
@@ -316,7 +346,6 @@
     ISASSERT([ptime isEqualTo:[session valueForKey:@"playTime"]], "hour cache times don't match session total!");
 #endif
 }
-#endif
 
 - (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:newEpoch moc:(NSManagedObjectContext*)moc
 {
@@ -1637,7 +1666,6 @@
 {
     u_int32_t playCount = [[self valueForKey:@"playCount"] unsignedIntValue] + [count unsignedIntValue];
     [self setValue:[NSNumber numberWithUnsignedInt:playCount] forKey:@"playCount"];
-    
 }
 
 - (void)incrementPlayTime:(NSNumber*)count
