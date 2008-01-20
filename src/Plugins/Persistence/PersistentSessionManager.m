@@ -173,25 +173,13 @@
     return (nil);
 }
 
-- (void)sessionManagerThread:(id)mainProfile
+- (void)updateDBTimeZone:(id)arg
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    NSManagedObjectContext *moc = [[NSManagedObjectContext alloc] init];
-    [moc setUndoManager:nil];
-    [moc setPersistentStoreCoordinator:[[mainProfile mainMOC] persistentStoreCoordinator]];
-    double pri = [NSThread threadPriority];
-    [NSThread setThreadPriority:pri - (pri * 0.20)];
-    
-    [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
-    
-    thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
-    
-    lfmUpdateTimer = sUpdateTimer = nil;
     @try {
     
     // The hour caches are based on local time, if the TZ changes, they have to be recalculated so that
     // removeal of sessions songs updates the correct hour cache. Since archives won't have any songs removed, we ignore them.
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     PersistentProfile *pp = [PersistentProfile sharedInstance];
     NSNumber *lastTZOffset = [pp storeMetadataForKey:@"ISTZOffset" moc:moc];
     NSInteger tzOffset = [[NSTimeZone defaultTimeZone] secondsFromGMT];
@@ -211,7 +199,39 @@
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception during TZ change handler: %@", e);
     }
+}
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+- (void)timeZoneDidChange:(NSNotification*)note
+{
+    ScrobDebug(@"mainThread: %d", [NSThread isMainThread]);
+    [ISThreadMessenger makeTarget:[self threadMessenger] performSelector:@selector(updateDBTimeZone:) withObject:nil];
+}
+#endif
+
+- (void)sessionManagerThread:(id)mainProfile
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
+    NSManagedObjectContext *moc = [[NSManagedObjectContext alloc] init];
+    [moc setUndoManager:nil];
+    [moc setPersistentStoreCoordinator:[[mainProfile mainMOC] persistentStoreCoordinator]];
+    double pri = [NSThread threadPriority];
+    [NSThread setThreadPriority:pri - (pri * 0.20)];
+    
+    [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
+    
+    thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
+    
+    [self updateDBTimeZone:nil];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    // XXX: NSSystemTimeZoneDidChangeNotification is supposed to be sent, but it does not seem to work
+    // with the app or distributed center
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(timeZoneDidChange:)
+        name:@"NSSystemTimeZoneDidChangeDistributedNotification" object:nil];
+    #endif
+    
+    lfmUpdateTimer = sUpdateTimer = nil;
     @try {
     [self performSelector:@selector(updateLastfmSession:) withObject:nil];
     [self performSelector:@selector(updateSessions:) withObject:nil];
