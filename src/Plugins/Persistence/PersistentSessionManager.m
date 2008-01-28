@@ -227,7 +227,7 @@
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     // XXX: NSSystemTimeZoneDidChangeNotification is supposed to be sent, but it does not seem to work
     // with the app or distributed center
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(timeZoneDidChange:)
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(timeZoneDidChange:)
         name:@"NSSystemTimeZoneDidChangeDistributedNotification" object:nil];
     #endif
     
