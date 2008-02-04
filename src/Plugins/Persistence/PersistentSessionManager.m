@@ -31,6 +31,7 @@
 @end
 
 @interface PersistentSessionManager (Private)
+- (BOOL)removeSongsBefore:(NSDate*)epoch inSession:(NSString*)sessionName moc:(NSManagedObjectContext*)moc;
 - (void)recreateHourCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;
 @end
 
@@ -241,15 +242,15 @@
     }
     
     do {
-        [pool release];
-        pool = [[NSAutoreleasePool alloc] init];
         @try {
         [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
         
         [self performSelector:@selector(scrub:) withObject:nil];
-        } @catch (id e) {
+        } @catch (NSException *e) {
             ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception: %@", e);
         }
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
     } while (1);
     
     ISASSERT(0, "sessionManager run loop exited!");
@@ -367,7 +368,81 @@
 #endif
 }
 
-- (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:newEpoch moc:(NSManagedObjectContext*)moc
+- (BOOL)archiveDailySessionWithEpoch:(NSCalendarDate*)newEpoch moc:(NSManagedObjectContext*)moc
+{
+    BOOL updated = NO;;
+    
+    @try {
+    
+    NSCalendarDate *yesterday = [newEpoch dateByAddingYears:0 months:0 days:0 hours:-24 minutes:0 seconds:0];
+    NSManagedObject *sYesterday = [self sessionWithName:@"yesterday" moc:moc];
+    NSManagedObject *sToday = [self sessionWithName:@"pastday" moc:moc];
+    NSEntityDescription *entity;
+    if (!sYesterday) {
+        entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
+        sYesterday = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+        [sYesterday setValue:ITEM_SESSION forKey:@"itemType"];
+        [sYesterday setValue:@"yesterday" forKey:@"name"];
+        [sYesterday setValue:NSLocalizedString(@"Yesterday", "") forKey:@"localizedName"];
+        [sYesterday setValue:yesterday forKey:@"epoch"];
+    } else {
+        updated = [self removeSongsBefore:yesterday inSession:@"yesterday" moc:moc];
+    }
+    
+    NSDate *term = [NSCalendarDate dateWithTimeIntervalSince1970:[newEpoch timeIntervalSince1970]-1.0];
+    [sYesterday setValue:term forKey:@"term"];
+    
+    entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    [request setPredicate:
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (submitted >= %@) AND (submitted <= %@)",
+            ITEM_SONG, sToday, [yesterday GMTDate], [[sYesterday valueForKey:@"term"] GMTDate]]];
+    NSError *error = nil;
+    NSArray *songsToArchive = [moc executeFetchRequest:request error:&error];
+    
+    NSManagedObject *song, *newSong;
+    NSEnumerator *en = [songsToArchive objectEnumerator];
+    while ((song = [en nextObject])) {
+        newSong = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+        [newSong setValue:ITEM_SONG forKey:@"itemType"];
+        [newSong setValue:[song valueForKey:@"playCount"] forKey:@"playCount"];
+        [newSong setValue:[song valueForKey:@"playTime"] forKey:@"playTime"];
+        [newSong setValue:[song valueForKey:@"item"] forKey:@"item"];
+        #if IS_STORE_V2
+        [newSong setValue:[song valueForKey:@"rating"] forKey:@"rating"];
+        #endif
+        [newSong setValue:[song valueForKey:@"submitted"] forKey:@"submitted"];
+        [self addSessionSong:newSong toSession:sYesterday moc:moc];
+    }
+    if (!updated)
+        updated = [songsToArchive count] > 0;
+    
+    #ifdef ISDEBUG
+    @try {
+    
+    entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+    request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    [request setPredicate:
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (submitted > %@)",
+            ITEM_SONG, sYesterday, [[sYesterday valueForKey:@"term"] GMTDate]]];
+    ISASSERT([[moc executeFetchRequest:request error:&error] count] == 0, "invalid session songs!");
+    
+    } @catch (NSException *de) {}
+    
+    #endif
+    
+    } @catch (NSException *e) {
+        ScrobTrace(@"exception: %@", e);
+        updated = NO;
+        [moc rollback];
+    }
+    
+    return (updated);
+}
+
+- (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:(NSDate*)newEpoch moc:(NSManagedObjectContext*)moc
 {
     NSString *sessionName = [[[session valueForKey:@"name"] retain] autorelease];
     if (archive) {
@@ -577,8 +652,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (submitted < %@)",
-            ITEM_SONG, sessionName, gmtEpoch]];
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (submitted < %@)",
+            ITEM_SONG, session, gmtEpoch]];
     NSArray *invalidSongs = [moc executeFetchRequest:request error:&error];
     
     if (0 == [invalidSongs count]) {
@@ -589,8 +664,8 @@
     
     // count valid songs
     [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (submitted >= %@)",
-            ITEM_SONG, sessionName, gmtEpoch]];
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (submitted >= %@)",
+            ITEM_SONG, session, gmtEpoch]];
     NSArray *validSongs = [moc executeFetchRequest:request error:&error];
     
     if ([validSongs count] > [invalidSongs count]) {
@@ -972,11 +1047,14 @@
     NSCalendarDate *now = [NSCalendarDate calendarDate];
     NSCalendarDate *midnight = [now dateByAddingYears:0 months:0 days:0
 #ifndef REAP_DEBUG
-            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
 #else
 #warning "REAP_DEBUG set"
-/*1 hour*/  hours:0 minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        hours:0 minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
 #endif
+    if ([self archiveDailySessionWithEpoch:midnight moc:moc])
+        didRemove = YES;
+    
     if ([self removeSongsBefore:midnight inSession:@"pastday" moc:moc])
         didRemove = YES;
     
