@@ -519,6 +519,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             NSString *tmppath = [tmpURL path];
             NSString *backup = [[[dbpath stringByDeletingPathExtension] stringByAppendingString:@"~"]
                 stringByAppendingPathExtension:[dbpath pathExtension]];
+            (void)[fm removeItemAtPath:backup error:nil];
             if ([fm linkItemAtPath:dbpath toPath:backup error:&error]) {
                 if ([fm removeItemAtPath:dbpath error:&error]) {
                     if ([fm copyItemAtPath:tmppath toPath:dbpath error:&error]) {
