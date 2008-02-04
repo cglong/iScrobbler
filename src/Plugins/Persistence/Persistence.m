@@ -510,7 +510,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             destinationOptions:nil
             error:&error];
         ISEndTime();
-        ScrobDebug(@"Migration finished in in %.4lf seconds", (abs2clockns / 1000000000.0));
+        ScrobDebug(@"Migration finished in %.4lf seconds", (abs2clockns / 1000000000.0));
         if (migrated) {
             // swap the files as [addPersistentStoreWithType:] would
             migrated = NO;
@@ -538,8 +538,10 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             nil]];
         ScrobLog(SCROB_LOG_ERR, @"Migration: an exception occurred during database migration. (%@)", e);
     }
+    (void)[error retain];
     [tempPool release];
     tempPool = nil;
+    (void)[error autorelease];
     
     NSPersistentStore *store;
     NSPersistentStoreCoordinator *psc = nil;
@@ -627,6 +629,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                         [mobj setValue:[NSDate dateWithTimeIntervalSince1970:[firstPlayed doubleValue]]
                             forKey:@"firstPlayed"];
                     }
+                    error = nil;
                     [tempPool release];
                     tempPool = [[NSAutoreleasePool alloc] init];
                 }
@@ -637,6 +640,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             ScrobLog(SCROB_LOG_ERR, @"Migration: exception updating artists. (%@)", e);
         }
         
+        error = nil;
         [tempPool release];
         tempPool = nil;
         [self save:moc withNotification:NO];
