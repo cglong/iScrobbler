@@ -840,6 +840,7 @@ static int npDelays = 0;
         [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
         
         subConn = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+        subConnCreation = [[NSDate date] timeIntervalSince1970];
         npInProgress = YES;
         npDelays = 0;
         
