@@ -712,6 +712,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                 IS_CURRENT_STORE_VERSION, (NSString*)kMDItemVersion,
                 now, (NSString*)kMDItemContentCreationDate, // epoch
                 [NSNumber numberWithBool:NO], @"ISDidImportiTunesLibrary",
+                [NSNumber numberWithLongLong:[[NSTimeZone defaultTimeZone] secondsFromGMT]], @"ISTZOffset",
                 // NSStoreTypeKey and NSStoreUUIDKey are always added
                 nil]
             forPersistentStore:mainStore];
