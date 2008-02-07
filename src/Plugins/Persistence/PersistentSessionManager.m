@@ -174,13 +174,13 @@
     return (nil);
 }
 
-- (void)updateDBTimeZone:(id)arg
+- (void)updateDBTimeZone:(NSNumber*)updateSessions
 {
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     @try {
     
     // The hour caches are based on local time, if the TZ changes, they have to be recalculated so that
-    // removeal of sessions songs updates the correct hour cache. Since archives won't have any songs removed, we ignore them.
-    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    // removal of session songs updates the correct hour cache. Since archives won't have any songs removed, we ignore them.
     PersistentProfile *pp = [PersistentProfile sharedInstance];
     NSNumber *lastTZOffset = [pp storeMetadataForKey:@"ISTZOffset" moc:moc];
     NSInteger tzOffset = [[NSTimeZone defaultTimeZone] secondsFromGMT];
@@ -195,9 +195,13 @@
         
         [pp setStoreMetadata:[NSNumber numberWithLongLong:tzOffset] forKey:@"ISTZOffset" moc:moc];
         [pp save:moc withNotification:NO];
+        
+        if (updateSessions && [updateSessions intValue] > 0)
+            [self performSelector:@selector(updateSessions:) withObject:nil];
     }
     
     } @catch (NSException *e) {
+        [moc rollback];
         ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception during TZ change handler: %@", e);
     }
 }
@@ -206,7 +210,8 @@
 - (void)timeZoneDidChange:(NSNotification*)note
 {
     ScrobDebug(@"mainThread: %d", [NSThread isMainThread]);
-    [ISThreadMessenger makeTarget:[self threadMessenger] performSelector:@selector(updateDBTimeZone:) withObject:nil];
+    [ISThreadMessenger makeTarget:[self threadMessenger] performSelector:@selector(updateDBTimeZone:)
+        withObject:[NSNumber numberWithBool:YES]];
 }
 #endif
 
