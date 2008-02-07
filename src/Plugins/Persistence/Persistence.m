@@ -730,7 +730,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         if (![[metadata objectForKey:(NSString*)kMDItemVersion] isEqualTo:IS_CURRENT_STORE_VERSION]) {
         #endif
             #if IS_STORE_V2
-            #if defined(ISDEBUG) || 1
+            #if !defined(ISDEBUG) || 1
             [NSThread detachNewThreadSelector:@selector(migrateDatabase:) toTarget:self withObject:nil];
             #else
             [self migrateDatabase:nil];
@@ -756,27 +756,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             *failureReason = error;
             return (NO);
         }
-        
-        #ifdef  obsolete
-        // 2.0b3, session epoch to the epoch of the DB so the stats are accurately portrayed to the user
-        @try {
-        NSDate *dbEpoch = [[self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC] GMTDate];
-        NSEnumerator *en = [[self allSessions] objectEnumerator];
-        NSManagedObject *s;
-        while ((s = [en nextObject])) {
-            if ([[s valueForKey:@"name"] isEqualTo:@"all"])
-                continue;
-            if ([[[s valueForKey:@"epoch"] GMTDate] isLessThan:dbEpoch]) {
-                [s setValue:dbEpoch forKey:@"epoch"];
-            }
-        }
-        if ([mainMOC hasChanges])
-            [mainMOC save:nil];
-        } @catch (NSException *e) {
-            [mainMOC rollback];
-            ScrobLog(SCROB_LOG_ERR, @"init: exception while updating session epochs: %@", e);
-        }
-        #endif
     }
 
     [self databaseDidInitialize:metadata];
