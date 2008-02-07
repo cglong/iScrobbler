@@ -347,14 +347,24 @@
         [hourCache setValue:zero forKey:@"playTime"];
     }
     
+    NSManagedObject *orphans = [self orphanedItems:moc];
     en = [songs objectEnumerator];
     NSManagedObject *sessionSong;
     while ((sessionSong = [en nextObject])) {
         NSCalendarDate *submitted = [NSCalendarDate dateWithTimeIntervalSince1970:
             [[sessionSong valueForKey:@"submitted"] timeIntervalSince1970]];
         NSNumber *hour = [NSNumber numberWithShort:[submitted hourOfDay]];
-        hourCache = [self cacheForHour:hour inSession:session moc:moc];
-        ISASSERT(hourCache != nil, "missing hour!");    
+        if (!(hourCache = [self cacheForHour:hour inSession:session moc:moc])) {
+            // this should only occur when switching time zones
+            NSEntityDescription *entity = [NSEntityDescription entityForName:@"PHourCache" inManagedObjectContext:moc];
+            hourCache = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+            [hourCache setValue:ITEM_HOUR_CCH forKey:@"itemType"];
+            [hourCache setValue:session forKey:@"session"];
+            [hourCache setValue:hour forKey:@"hour"];
+            // this is a required value; since it has no meaning for the caches we just set it to the orphan session
+            [hourCache setValue:orphans forKey:@"item"];
+        }
+        
         [hourCache incrementPlayCount:[sessionSong valueForKey:@"playCount"]];
         [hourCache incrementPlayTime:[sessionSong valueForKey:@"playTime"]];
     }
@@ -586,6 +596,10 @@
             [mobj decrementPlayCount:playCount];
             [mobj decrementPlayTime:playTime];
         }
+        #ifdef DEBUG
+        else
+            ISASSERT(0, "missing ratings cache!");
+        #endif
         #endif
         // XXX - don't update rating cache for v1 - see removeSongsBefore
     
@@ -596,6 +610,10 @@
             [mobj decrementPlayCount:playCount];
             [mobj decrementPlayTime:playTime];
         }
+        #ifdef DEBUG
+        else
+            ISASSERT(0, "missing hour cache!");
+        #endif
         
         [moc deleteObject:sessionSong];
         if (sAlbum && 0 == [[sAlbum valueForKey:@"playCount"] unsignedIntValue])
@@ -1241,12 +1259,13 @@
         ratingsCache = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [ratingsCache setValue:ITEM_RATING_CCH forKey:@"itemType"];
         [ratingsCache setValue:session forKey:@"session"];
-        [ratingsCache setValue:orphans forKey:@"item"];
         #if IS_STORE_V2
         [ratingsCache setValue:[sessionSong valueForKey:@"rating"] forKey:@"rating"];
         #else
         [ratingsCache setValue:[sessionSong valueForKeyPath:@"item.rating"] forKey:@"rating"];
         #endif
+        // this is a required value; since it has no meaning for the caches we just set it to the orphan session
+        [ratingsCache setValue:orphans forKey:@"item"];
     }
     [ratingsCache incrementPlayCountWithObject:sessionSong];
     [ratingsCache incrementPlayTimeWithObject:sessionSong];
@@ -1261,8 +1280,9 @@
         hoursCache = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [hoursCache setValue:ITEM_HOUR_CCH forKey:@"itemType"];
         [hoursCache setValue:session forKey:@"session"];
-        [hoursCache setValue:orphans forKey:@"item"];
         [hoursCache setValue:hour forKey:@"hour"];
+        // this is a required value; since it has no meaning for the caches we just set it to the orphan session
+        [hoursCache setValue:orphans forKey:@"item"];
     }
     [hoursCache incrementPlayCountWithObject:sessionSong];
     [hoursCache incrementPlayTimeWithObject:sessionSong];
