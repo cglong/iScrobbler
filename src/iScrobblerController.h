@@ -14,6 +14,7 @@
 @class PreferenceController;
 @class SongData;
 @class ISStatusItem;
+@class ISMsgWindow;
 
 @interface iScrobblerController : NSObject <GrowlApplicationBridgeDelegate> {
     //the status item that will be added to the system status bar
@@ -47,6 +48,9 @@
     
     NSDate *iTunesLastPlayedTime;
     NSArray *iTunesPlaylists;
+    
+    // Growl replacement
+    ISMsgWindow *msgWindowPlugin;
     
     BOOL badAuthAlertIsOpen;
     // Temporarily disable submissions

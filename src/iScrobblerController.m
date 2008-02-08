@@ -37,6 +37,7 @@
 #import "ISPluginController.h"
 #import "Persistence.h"
 #import "ISiTunesLibrary.h"
+#import "MsgWindow.h"
 #import "ISCrashReporter.h"
 
 #ifdef IS_SCRIPT_PROXY
@@ -108,14 +109,18 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 - (void)displayProtocolEvent:(NSString *)msg
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlLastFMCommunications"]) {
-        [GrowlApplicationBridge
-            notifyWithTitle:msg
-            description:@""
-            notificationName:IS_GROWL_NOTIFICATION_PROTOCOL
-            iconData:nil
-            priority:0
-            isSticky:NO
-            clickContext:nil];
+        if ([GrowlApplicationBridge isGrowlRunning]) {
+            [GrowlApplicationBridge
+                notifyWithTitle:msg
+                description:@""
+                notificationName:IS_GROWL_NOTIFICATION_PROTOCOL
+                iconData:nil
+                priority:0
+                isSticky:NO
+                clickContext:nil];
+        } else {
+            [msgWindowPlugin message:@"" withTitle:msg withImage:nil];
+        }
     }
 }
 
@@ -125,7 +130,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     NSData *artwork = nil;
     NSString *npInfo = nil, *title = nil;
 
-    if ((s = [self nowPlaying]) && [GrowlApplicationBridge isGrowlRunning]) {
+    if ((s = [self nowPlaying])) {
         @try {
         artwork = [[s artwork] TIFFRepresentation];
         } @catch (NSException* e) {}
@@ -141,15 +146,19 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     if (npInfo)
         msg = msg ? [npInfo stringByAppendingFormat:@"\n%@", msg] : npInfo;
     
-    [GrowlApplicationBridge
-        notifyWithTitle:title
-        description:msg
-        notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
-        iconData:artwork
-        priority:0
-        isSticky:NO
-        clickContext:nil
-        identifier:@"iscrobbler.play"];
+    if ([GrowlApplicationBridge isGrowlRunning]) {
+        [GrowlApplicationBridge
+            notifyWithTitle:title
+            description:msg
+            notificationName:IS_GROWL_NOTIFICATION_TRACK_CHANGE
+            iconData:artwork
+            priority:0
+            isSticky:NO
+            clickContext:nil
+            identifier:@"iscrobbler.play"];
+    } else {
+        [msgWindowPlugin message:msg withTitle:title withImage:[s artwork]];
+    }
 }
 
 - (void)displayNowPlaying
@@ -162,7 +171,8 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
 {
-    [GrowlApplicationBridge
+    if ([GrowlApplicationBridge isGrowlRunning]) {
+        [GrowlApplicationBridge
             notifyWithTitle:title
             description:msg
             notificationName:IS_GROWL_NOTIFICATION_ALERTS
@@ -170,11 +180,15 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
             priority:0
             isSticky:YES
             clickContext:nil];
+    } else {
+        [msgWindowPlugin message:msg withTitle:title withImage:nil sticky:YES];
+    }
 }
 
 - (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
 {
-    [GrowlApplicationBridge
+    if ([GrowlApplicationBridge isGrowlRunning]) {
+        [GrowlApplicationBridge
             notifyWithTitle:title
             description:msg
             notificationName:IS_GROWL_NOTIFICATION_ALERTS
@@ -182,6 +196,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
             priority:0
             isSticky:NO
             clickContext:nil];
+    } else {
+        [msgWindowPlugin message:msg withTitle:title withImage:nil];
+    }
 }
 
 // QM/PM notifications
@@ -1039,6 +1056,9 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
         forEventClass:kInternetEventClass andEventID:kAEGetURL];
     
     (void)[ISPluginController sharedInstance]; // load plugins
+    
+    if (NO == [GrowlApplicationBridge isGrowlRunning])
+        msgWindowPlugin = (ISMsgWindow*)[[ISPluginController sharedInstance] loadCorePlugin:@"MsgWindow"];
     
     #ifdef IS_SCRIPT_PROXY
     [self launchProxy];
@@ -2270,7 +2290,7 @@ exit:
 
 - (NSString*)growlDescriptionWithFormat:(NSString*)format
 {
-    NSMutableString *fmt = [format mutableCopy];
+    NSMutableString *fmt = [[format mutableCopy] autorelease];
     @try {
         NSRange r = [fmt rangeOfString:@"%t"];
         if (NSNotFound != r.location)
@@ -2320,13 +2340,12 @@ exit:
         if ([fmt hasSuffix:@"\n"])
             [fmt deleteCharactersInRange:NSMakeRange([fmt length]-1, 1)];
         
-        return ([fmt autorelease]);
+        return (fmt);
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"%s: -Exception- %@ while processing %@\n", __FUNCTION__, e,
             [[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayFormat"]);
     }
     
-    [fmt release];
     return (@"");
 }
 
@@ -2340,7 +2359,6 @@ exit:
 
 - (NSString*)growlTitle
 {
-    
     return ([self growlDescriptionWithFormat:[[NSUserDefaults standardUserDefaults] stringForKey:@"GrowlPlayTitle"]]);
 }
 
