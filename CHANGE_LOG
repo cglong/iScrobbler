@@ -16,11 +16,15 @@ CHANGE HISTORY:
 v2.1 (BDB)
 - Leopard only: New local charts database that allows a new stat in the Profile report - per-session new artists.
 - The complete play history (since iScrobbler started tracking plays) can be viewed for tracks in the Local Charts.
+- New Local Charts session: Yesterday
 - The Statistics window is gone. Everything it did was available elsewhere with the exception of the Artist Details for the current track; that is now available via the song sub-menu.
 - Artist Details are now displayed in separate windows instead of drawers.
 - Radio controls are disabled while waiting for a response from Last.fm.
 - Added 'skip current track' Applescript command.
+- iScrobbler now supports the Play media player (http://sbooth.org/Play/).
+- Very basic message window replacement for those that don't wish to install Growl.
 - Bug Fix: AppleScript 'radio controller' properties work on Leopard.
+- Bug Fix: Incorrect 'Top Hours' data in the Profile report when switching time zones.
 - Bug Fix: Bug in Local Charts iTunes import that would result in incorrect totals for the Overall session if iTunes contained duplicate songs.
 - Bug Fix: Radio stations that contained spaces failed to tune when selected from the Radio history.
 - Bug Fix: The iScrobbler keychain entry was not updated properly if the user name was changed.
