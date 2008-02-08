@@ -785,7 +785,10 @@ exitHistory:
 
 - (void)registerAsDefaultLastFMRadioPlayer:(id)context
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:context object:nil];
+    if (context)
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:context object:nil];
+    
+    [NSApp activateIgnoringOtherApps:YES];
     
     NSAlert *a = [NSAlert alertWithMessageText:NSLocalizedString(@"Default Last.fm Radio Player", "")
         defaultButton:NSLocalizedString(@"Make Default", "")
@@ -824,6 +827,8 @@ exitHistory:
                 priority:0
                 isSticky:YES
                 clickContext:context];
+        } else {
+            [self registerAsDefaultLastFMRadioPlayer:nil];
         }
     }
 }
