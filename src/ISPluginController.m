@@ -23,7 +23,7 @@ static NSMutableArray *allPlugins = nil;
 
 - (void)pluginsDidLoad:(NSMutableArray*)plugs
 {
-    [allPlugins addObjectsFromArray:[plugs retain]];
+    [allPlugins addObjectsFromArray:plugs];
 }
 
 - (id)loadPlugin:(NSString*)path
@@ -72,7 +72,7 @@ static NSMutableArray *allPlugins = nil;
         }
     }
     
-    [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:plugs waitUntilDone:NO];
+    [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:plugs waitUntilDone:YES];
 #ifdef THREADED_LOAD
     [NSThread exit];
 #endif
@@ -105,9 +105,9 @@ static NSMutableArray *allPlugins = nil;
     
     id plug;
     if ((plug = [self loadPlugin:name])) {
-        [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:[NSArray arrayWithObject:plug] waitUntilDone:NO];
+        [self performSelectorOnMainThread:@selector(pluginsDidLoad:) withObject:[NSArray arrayWithObject:plug] waitUntilDone:YES];
     }
-    return ([plug autorelease]);
+    return (plug);
 }
 
 // ISPluginProxy protocol
