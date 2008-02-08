@@ -1089,7 +1089,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
         NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
         [NSDictionary dictionaryWithObjectsAndKeys:
             NSLocalizedString(@"Growl Is Not Available", nil), NSLocalizedFailureReasonErrorKey,
-            NSLocalizedString(@"iScrobbler uses Growl for 99%% of its notification dialogs. To get the most out of iScrobbler please install or activate Growl.", nil),
+            NSLocalizedString(@"To get the most out of iScrobbler please install or activate Growl.", nil),
                 NSLocalizedDescriptionKey,
             NSLocalizedString(@"OK", nil), @"defaultButton",
             NSLocalizedString(@"Open Growl Home Page", nil), @"alternateButton",
