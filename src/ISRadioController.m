@@ -535,20 +535,14 @@ exitHistory:
     [asws updatePlaylist];
 }
 
-- (void)wsStationTuneFailure:(NSNotification*)note
+- (NSString*)wsErrorMessageFromNotification:(NSNotification*)note
 {
-    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
-    
-    [self setNowPlayingStation:nil];
-    [stationBeingTuned release];
-    stationBeingTuned = nil;
-    
     int err = [note userInfo] ? [[[note userInfo] objectForKey:@"error"] intValue] : 0;
     NSString *msg = @"";
     switch (err) {
         case 0:
             msg = NSLocalizedString(@"A network error occurred.", "");
-            break;
+        break;
         case 1:
             msg = NSLocalizedString(@"There is not enough content to play the station. Due to restrictions imposed by the music labels, a radio station must have more than 15 tracks; each by different artists.", "");
         break;
@@ -578,7 +572,19 @@ exitHistory:
             msg = NSLocalizedString(@"An unknown error occurred.", "");
         break;
     }
-    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to Tune Station", "") message:msg];
+    return (msg);
+}
+
+- (void)wsStationTuneFailure:(NSNotification*)note
+{
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+    
+    [self setNowPlayingStation:nil];
+    [stationBeingTuned release];
+    stationBeingTuned = nil;
+    
+    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to Tune Station", "")
+        message:[self wsErrorMessageFromNotification:note]];
 }
 
 - (void)wsWillHandShake:(NSNotification*)note
@@ -670,8 +676,11 @@ exitHistory:
     ScrobLog(SCROB_LOG_ERR, @"Radio: Failed to get playlist data");
     if (0 == [activeRadioTracks count])
         [self wsStationTuneFailure:note];
-    else
+    else {
         [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+        [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to Retrieve Additional Station Content", "")
+            message:[self wsErrorMessageFromNotification:note]];
+    }
 }
 
 - (void)wsExecComplete:(NSNotification*)note
@@ -776,7 +785,10 @@ exitHistory:
 
 - (void)registerAsDefaultLastFMRadioPlayer:(id)context
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:context object:nil];
+    if (context)
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:context object:nil];
+    
+    [NSApp activateIgnoringOtherApps:YES];
     
     NSAlert *a = [NSAlert alertWithMessageText:NSLocalizedString(@"Default Last.fm Radio Player", "")
         defaultButton:NSLocalizedString(@"Make Default", "")
@@ -815,6 +827,8 @@ exitHistory:
                 priority:0
                 isSticky:YES
                 clickContext:context];
+        } else {
+            [self registerAsDefaultLastFMRadioPlayer:nil];
         }
     }
 }

@@ -17,6 +17,7 @@
 				D31E803B0D20072E00D47F2B /* PBXTargetDependency */,
 				D31E803D0D20073400D47F2B /* PBXTargetDependency */,
 				D38835C10D200AE0005B6D1D /* PBXTargetDependency */,
+				D39902370D5B44690050C17C /* PBXTargetDependency */,
 			);
 			name = "Copy Core Plugins";
 			productName = "Copy Core Plugins";
@@ -28,7 +29,6 @@
 			);
 			dependencies = (
 				D37005D00D2003230057EFBD /* PBXTargetDependency */,
-				D37005D20D2003260057EFBD /* PBXTargetDependency */,
 				D37005D40D20032B0057EFBD /* PBXTargetDependency */,
 			);
 			name = "Build All";
@@ -127,6 +127,11 @@
 		D398FB4E0CDE016A008CB4C8 /* TopLists.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB450CDE016A008CB4C8 /* TopLists.xib */; };
 		D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */; };
 		D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB520CDE01E5008CB4C8 /* Tag.xib */; };
+		D399020A0D5B43760050C17C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		D39902380D5B446F0050C17C /* MsgWindow.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D399020F0D5B43760050C17C /* MsgWindow.plugin */; };
+		D39902390D5B449F0050C17C /* MsgWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D39902010D5B43660050C17C /* MsgWindow.m */; };
+		D39902600D5B463B0050C17C /* MsgWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = D399025F0D5B463B0050C17C /* MsgWindowController.m */; };
+		D39903770D5B9A7A0050C17C /* MsgWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = D39902630D5B527A0050C17C /* MsgWindow.xib */; };
 		D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */ = {isa = PBXBuildFile; fileRef = D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */; };
 		D3B19F470B517381008F54BF /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -194,13 +199,6 @@
 			remoteGlobalIDString = D3191C9707E3A51700821D03;
 			remoteInfo = iScrobbler;
 		};
-		D37005D10D2003260057EFBD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D3712C480D1A3B810011F980;
-			remoteInfo = Persistence;
-		};
 		D37005D30D20032B0057EFBD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -229,6 +227,20 @@
 			remoteGlobalIDString = D398023F0CE0FE41008CB4C8;
 			remoteInfo = iScrobblerProxy;
 		};
+		D39902040D5B43760050C17C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3191C9707E3A51700821D03;
+			remoteInfo = iScrobbler;
+		};
+		D39902360D5B44690050C17C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D39902020D5B43760050C17C;
+			remoteInfo = MsgWindow;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -238,8 +250,9 @@
 			dstPath = "iScrobbler.app/Contents/Core Plugins";
 			dstSubfolderSpec = 16;
 			files = (
-				D38835BC0D200AD6005B6D1D /* TigerPersistence.plugin in CopyFiles */,
 				D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */,
+				D38835BC0D200AD6005B6D1D /* TigerPersistence.plugin in CopyFiles */,
+				D39902380D5B446F0050C17C /* MsgWindow.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +364,13 @@
 		D398FB460CDE016A008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/TopLists.xib; sourceTree = "<group>"; };
 		D398FB500CDE01C0008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/LoveBanList.xib; sourceTree = "<group>"; };
 		D398FB530CDE01E5008CB4C8 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Tag.xib; sourceTree = "<group>"; };
+		D39901FF0D5B43660050C17C /* MsgWindow-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "MsgWindow-Info.plist"; sourceTree = "<group>"; };
+		D39902000D5B43660050C17C /* MsgWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MsgWindow.h; sourceTree = "<group>"; };
+		D39902010D5B43660050C17C /* MsgWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MsgWindow.m; sourceTree = "<group>"; };
+		D399020F0D5B43760050C17C /* MsgWindow.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MsgWindow.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		D399025E0D5B463B0050C17C /* MsgWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MsgWindowController.h; sourceTree = "<group>"; };
+		D399025F0D5B463B0050C17C /* MsgWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MsgWindowController.m; sourceTree = "<group>"; };
+		D39902630D5B527A0050C17C /* MsgWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MsgWindow.xib; sourceTree = "<group>"; };
 		D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ProtocolManager_v12.m; path = src/ProtocolManager_v12.m; sourceTree = "<group>"; };
 		D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProtocolManager_v12.h; path = src/ProtocolManager_v12.h; sourceTree = "<group>"; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
@@ -468,6 +488,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D39902090D5B43760050C17C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D399020A0D5B43760050C17C /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -517,6 +545,7 @@
 				D39802400CE0FE41008CB4C8 /* iScrobblerProxy */,
 				D3712C490D1A3B810011F980 /* Persistence.plugin */,
 				D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */,
+				D399020F0D5B43760050C17C /* MsgWindow.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -732,6 +761,7 @@
 		D3712C410D1A3B0A0011F980 /* Core Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				D39901FE0D5B43660050C17C /* MsgWindow */,
 				D318A6C20D1FC534003068D5 /* Persistence */,
 			);
 			name = "Core Plugins";
@@ -764,6 +794,20 @@
 				D39802610CE100AC008CB4C8 /* ISProxyProtocol.h */,
 			);
 			name = iScrobblerProxy;
+			sourceTree = "<group>";
+		};
+		D39901FE0D5B43660050C17C /* MsgWindow */ = {
+			isa = PBXGroup;
+			children = (
+				D39902010D5B43660050C17C /* MsgWindow.m */,
+				D39902000D5B43660050C17C /* MsgWindow.h */,
+				D399025F0D5B463B0050C17C /* MsgWindowController.m */,
+				D399025E0D5B463B0050C17C /* MsgWindowController.h */,
+				D39902630D5B527A0050C17C /* MsgWindow.xib */,
+				D39901FF0D5B43660050C17C /* MsgWindow-Info.plist */,
+			);
+			name = MsgWindow;
+			path = src/Plugins/MsgWindow;
 			sourceTree = "<group>";
 		};
 		D3B19CB00B4F3049008F54BF /* Scripts */ = {
@@ -897,6 +941,24 @@
 			productReference = D39802400CE0FE41008CB4C8 /* iScrobblerProxy */;
 			productType = "com.apple.product-type.tool";
 		};
+		D39902020D5B43760050C17C /* MsgWindow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D399020B0D5B43760050C17C /* Build configuration list for PBXNativeTarget "MsgWindow" */;
+			buildPhases = (
+				D399037F0D5B9A8C0050C17C /* Resources */,
+				D39902050D5B43760050C17C /* Sources */,
+				D39902090D5B43760050C17C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D39902030D5B43760050C17C /* PBXTargetDependency */,
+			);
+			name = MsgWindow;
+			productName = iPod;
+			productReference = D399020F0D5B43760050C17C /* MsgWindow.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -925,6 +987,7 @@
 				D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */,
 				D3712C480D1A3B810011F980 /* Persistence */,
 				D38835950D200A5D005B6D1D /* TigerPersistence */,
+				D39902020D5B43760050C17C /* MsgWindow */,
 				D37005BA0D2002B40057EFBD /* Copy Core Plugins */,
 				D37606390CB230A900C04863 /* ChatStatus */,
 			);
@@ -968,6 +1031,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D399037F0D5B9A8C0050C17C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D39903770D5B9A7A0050C17C /* MsgWindow.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1073,6 +1144,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D39902050D5B43760050C17C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D39902390D5B449F0050C17C /* MsgWindow.m in Sources */,
+				D39902600D5B463B0050C17C /* MsgWindowController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1096,11 +1176,6 @@
 			target = D3191C9707E3A51700821D03 /* iScrobbler */;
 			targetProxy = D37005CF0D2003230057EFBD /* PBXContainerItemProxy */;
 		};
-		D37005D20D2003260057EFBD /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D3712C480D1A3B810011F980 /* Persistence */;
-			targetProxy = D37005D10D2003260057EFBD /* PBXContainerItemProxy */;
-		};
 		D37005D40D20032B0057EFBD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D37005BA0D2002B40057EFBD /* Copy Core Plugins */;
@@ -1120,6 +1195,16 @@
 			isa = PBXTargetDependency;
 			target = D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */;
 			targetProxy = D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */;
+		};
+		D39902030D5B43760050C17C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3191C9707E3A51700821D03 /* iScrobbler */;
+			targetProxy = D39902040D5B43760050C17C /* PBXContainerItemProxy */;
+		};
+		D39902370D5B44690050C17C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D39902020D5B43760050C17C /* MsgWindow */;
+			targetProxy = D39902360D5B44690050C17C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1742,6 +1827,66 @@
 			};
 			name = Release;
 		};
+		D399020C0D5B43760050C17C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/MsgWindow/MsgWindow-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = MsgWindow;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Debug;
+		};
+		D399020D0D5B43760050C17C /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/MsgWindow/MsgWindow-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = MsgWindow;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = "Debug-Internal";
+		};
+		D399020E0D5B43760050C17C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/MsgWindow/MsgWindow-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = MsgWindow;
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1821,6 +1966,16 @@
 				D39802420CE0FE42008CB4C8 /* Debug */,
 				D39802430CE0FE42008CB4C8 /* Debug-Internal */,
 				D39802440CE0FE42008CB4C8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D399020B0D5B43760050C17C /* Build configuration list for PBXNativeTarget "MsgWindow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D399020C0D5B43760050C17C /* Debug */,
+				D399020D0D5B43760050C17C /* Debug-Internal */,
+				D399020E0D5B43760050C17C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -39,7 +39,7 @@
 - (void)setIsNetworkAvailable:(BOOL)available;
 - (NSString*)protocolVersion;
 - (void)sendNowPlaying;
-
+- (void)checkNetReach:(BOOL)force;
 @end
 
 static ProtocolManager *g_PM = nil;
@@ -209,6 +209,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 {
     if (!isNetworkAvailable) {
         ScrobLog(SCROB_LOG_VERBOSE, @"%@ (%lu)", NETWORK_UNAVAILABLE_MSG, [[QueueManager sharedInstance] count]);
+        [self checkNetReach:NO];
         return;
     }
     
@@ -640,6 +641,7 @@ didFinishLoadingExit:
     
     if (!isNetworkAvailable) {
         ScrobLog(SCROB_LOG_VERBOSE, @"%@ (%lu)", NETWORK_UNAVAILABLE_MSG, [[QueueManager sharedInstance] count]);
+        [self checkNetReach:NO];
         return;
     }
     
@@ -757,6 +759,8 @@ didFinishLoadingExit:
 - (void)setIsNetworkAvailable:(BOOL)available
 {
     if (isNetworkAvailable != available) {
+        lastNetCheck = 0;
+        
         NSString *msg = @"", *logmsg = @"";
         if ((isNetworkAvailable = available))
             handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
@@ -784,6 +788,22 @@ didFinishLoadingExit:
 ( ((flags) & kSCNetworkFlagsReachable) && (0 == ((flags) & kSCNetworkFlagsConnectionRequired) || \
   ((flags) & kSCNetworkFlagsConnectionAutomatic)) )
 
+- (void)checkNetReach:(BOOL)force
+{
+    NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+    if (now < (lastNetCheck+3600.0) && !force)
+        return;
+    lastNetCheck = now;
+    
+    SCNetworkConnectionFlags connectionFlags;
+    if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
+         IsNetworkUp(connectionFlags)) {
+        [self setIsNetworkAvailable:YES];
+    } else {
+        [self setIsNetworkAvailable:NO];
+    }
+}
+
 - (void)didWake:(NSNotification*)note
 {
     static BOOL fire = NO;
@@ -797,13 +817,7 @@ didFinishLoadingExit:
     }
     fire = NO;
     
-    SCNetworkConnectionFlags connectionFlags;
-    if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
-         IsNetworkUp(connectionFlags)) {
-        [self setIsNetworkAvailable:YES];
-    } else {
-        [self setIsNetworkAvailable:NO];
-    }
+    [self checkNetReach:YES];
 }
 
 static SongData *npSong = nil;
@@ -826,6 +840,7 @@ static int npDelays = 0;
         [request setValue:[self userAgent] forHTTPHeaderField:@"User-Agent"];
         
         subConn = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+        subConnCreation = [[NSDate date] timeIntervalSince1970];
         npInProgress = YES;
         npDelays = 0;
         

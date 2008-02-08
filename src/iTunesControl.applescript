@@ -17,12 +17,14 @@ on PlayerLibraryUUID()
 	end tell
 	
 	if itunesActive is true then
-		tell application "iTunes"
-			set mainLib to the first item in (get every source whose kind is library)
-			tell mainLib
-				return persistent ID
+		with timeout of 3 seconds
+			tell application "iTunes"
+				set mainLib to the first item in (get every source whose kind is library)
+				tell mainLib
+					return persistent ID
+				end tell
 			end tell
-		end tell
+		end timeout
 	else
 		return ""
 	end if

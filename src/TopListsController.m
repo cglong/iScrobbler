@@ -191,7 +191,7 @@ static NSMutableArray *topHours = nil;
         return ([NSMutableArray array]);
         
     NSMutableArray *arrangedSessions = [NSMutableArray arrayWithObjects:
-        @"lastfm", @"pastday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
+        @"lastfm", @"pastday", @"yesterday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
     NSEnumerator *en = [[persistence allSessions] objectEnumerator];
     id s;
     NSUInteger i;
@@ -199,7 +199,7 @@ static NSMutableArray *topHours = nil;
     while ((s = [en nextObject])) {
         if (NSNotFound != (i = [arrangedSessions indexOfObject:[s valueForKey:@"name"]]))
             [arrangedSessions replaceObjectAtIndex:i withObject:s];
-        else if (nil!= [s valueForKey:@"archive"])
+        else if (nil != [s valueForKey:@"archive"])
             [archivedSessions addObject:s];
     }
     

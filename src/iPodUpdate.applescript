@@ -14,7 +14,7 @@ on UpdateiPod(thePlaylistName, theDate)
 		set out to {}
 		set errMsg to {iTunesError, "No Matching Source" as Unicode text, 0}
 		tell application "iTunes"
-			with timeout of 600 seconds
+			with timeout of 60 seconds
 				set iTunesVer to version as string
 				-- try the iTunes library first, if that fails we'll fall back to the iPod (for manual users)
 				set allSources to (get every source whose kind is library) & (get every source whose kind is iPod)
@@ -52,7 +52,7 @@ on UpdateiPod(thePlaylistName, theDate)
 						
 						repeat with theTrack in mytracks
 							set trackID to database ID of theTrack
-							set playlistID to index of the container of theTrack
+							set playlistid to index of the container of theTrack
 							set songTitle to name of theTrack as Unicode text
 							-- iTunes 7 changed the song duration to a real number which broke all iPod submissions
 							-- on eariler versions we'll be converting to a real and rounding just to get back to an integer
@@ -109,7 +109,7 @@ on UpdateiPod(thePlaylistName, theDate)
 							end try
 							
 							-- if you add/remove members, make sure to update IPOD_SYNC_VALUE_COUNT in iScrobblerController+Private.m
-							set trackInfo to {trackID, playlistID, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast, trackComment, trackNumber, trackPlayCount, trackPersistentID}
+							set trackInfo to {trackID, playlistid, songTitle, songLength, songPosition, songArtist, songLocation, songAlbum, songLastPlayed, songRating, songGenre, trackPodcast, trackComment, trackNumber, trackPlayCount, trackPersistentID}
 							set out to out & {trackInfo}
 						end repeat
 						
@@ -135,6 +135,6 @@ end UpdateiPod
 
 -- for testing in ScriptEditor
 on run
-	set when to date "Wednesday, December 5, 2007 9:40:00 PM"
+	set when to date "Wednesday, December 5, 2007 9:40:00 PM GMT+02:00"
 	UpdateiPod("Recentl Played" as Unicode text, when)
 end run

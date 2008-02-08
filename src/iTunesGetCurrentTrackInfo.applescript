@@ -35,7 +35,8 @@ tell application "iTunes"
 				set trackType to trackTypeShared
 			else
 				if trackClass is URL track then
-					set trackType to trackTypeRadio
+					--set trackType to trackTypeRadio
+					set trackType to trackTypeShared
 				end if
 			end if
 		end if

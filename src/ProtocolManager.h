@@ -35,6 +35,7 @@
     // The  object that will do the data transmission
     NSURLConnection *subConn;
     NSTimeInterval subConnCreation;
+    NSTimeInterval lastNetCheck;
     // Received data
     NSMutableData *myData;
     NSFileHandle *subLog;

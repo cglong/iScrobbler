@@ -510,7 +510,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             destinationOptions:nil
             error:&error];
         ISEndTime();
-        ScrobDebug(@"Migration finished in in %.4lf seconds", (abs2clockns / 1000000000.0));
+        ScrobDebug(@"Migration finished in %.4lf seconds", (abs2clockns / 1000000000.0));
         if (migrated) {
             // swap the files as [addPersistentStoreWithType:] would
             migrated = NO;
@@ -519,6 +519,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             NSString *tmppath = [tmpURL path];
             NSString *backup = [[[dbpath stringByDeletingPathExtension] stringByAppendingString:@"~"]
                 stringByAppendingPathExtension:[dbpath pathExtension]];
+            (void)[fm removeItemAtPath:backup error:nil];
             if ([fm linkItemAtPath:dbpath toPath:backup error:&error]) {
                 if ([fm removeItemAtPath:dbpath error:&error]) {
                     if ([fm copyItemAtPath:tmppath toPath:dbpath error:&error]) {
@@ -538,8 +539,10 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             nil]];
         ScrobLog(SCROB_LOG_ERR, @"Migration: an exception occurred during database migration. (%@)", e);
     }
+    (void)[error retain];
     [tempPool release];
     tempPool = nil;
+    (void)[error autorelease];
     
     NSPersistentStore *store;
     NSPersistentStoreCoordinator *psc = nil;
@@ -627,6 +630,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                         [mobj setValue:[NSDate dateWithTimeIntervalSince1970:[firstPlayed doubleValue]]
                             forKey:@"firstPlayed"];
                     }
+                    error = nil;
                     [tempPool release];
                     tempPool = [[NSAutoreleasePool alloc] init];
                 }
@@ -637,6 +641,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             ScrobLog(SCROB_LOG_ERR, @"Migration: exception updating artists. (%@)", e);
         }
         
+        error = nil;
         [tempPool release];
         tempPool = nil;
         [self save:moc withNotification:NO];
@@ -707,6 +712,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                 IS_CURRENT_STORE_VERSION, (NSString*)kMDItemVersion,
                 now, (NSString*)kMDItemContentCreationDate, // epoch
                 [NSNumber numberWithBool:NO], @"ISDidImportiTunesLibrary",
+                [NSNumber numberWithLongLong:[[NSTimeZone defaultTimeZone] secondsFromGMT]], @"ISTZOffset",
                 // NSStoreTypeKey and NSStoreUUIDKey are always added
                 nil]
             forPersistentStore:mainStore];
@@ -724,7 +730,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         if (![[metadata objectForKey:(NSString*)kMDItemVersion] isEqualTo:IS_CURRENT_STORE_VERSION]) {
         #endif
             #if IS_STORE_V2
-            #if defined(ISDEBUG) || 1
+            #if !defined(ISDEBUG) || 1
             [NSThread detachNewThreadSelector:@selector(migrateDatabase:) toTarget:self withObject:nil];
             #else
             [self migrateDatabase:nil];
@@ -750,27 +756,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             *failureReason = error;
             return (NO);
         }
-        
-        #ifdef  obsolete
-        // 2.0b3, session epoch to the epoch of the DB so the stats are accurately portrayed to the user
-        @try {
-        NSDate *dbEpoch = [[self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:mainMOC] GMTDate];
-        NSEnumerator *en = [[self allSessions] objectEnumerator];
-        NSManagedObject *s;
-        while ((s = [en nextObject])) {
-            if ([[s valueForKey:@"name"] isEqualTo:@"all"])
-                continue;
-            if ([[[s valueForKey:@"epoch"] GMTDate] isLessThan:dbEpoch]) {
-                [s setValue:dbEpoch forKey:@"epoch"];
-            }
-        }
-        if ([mainMOC hasChanges])
-            [mainMOC save:nil];
-        } @catch (NSException *e) {
-            [mainMOC rollback];
-            ScrobLog(SCROB_LOG_ERR, @"init: exception while updating session epochs: %@", e);
-        }
-        #endif
     }
 
     [self databaseDidInitialize:metadata];
