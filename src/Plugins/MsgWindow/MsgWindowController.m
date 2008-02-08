@@ -136,7 +136,7 @@ static NSPoint mwLastWhere = {0.0,0.0};
     #endif
     // window may not be set when the binding calls us
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-    return ([NSColor grayColor]);
+    return ([NSColor whiteColor]);
     #else
     return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor whiteColor] : [NSColor blackColor]);
     #endif
