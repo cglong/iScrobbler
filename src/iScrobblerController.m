@@ -46,8 +46,6 @@ static NSDistantObject<ISProxyProtocol> *sProxy = nil;
 
 @interface iScrobblerController (ProxySupport)
 
-- (void)launchProxy;
-- (void)connectionDied:(NSNotification*)note;
 - (void)killProxy;
 - (void)loadProxy;
 
@@ -1061,7 +1059,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
         msgWindowPlugin = (ISMsgWindow*)[[ISPluginController sharedInstance] loadCorePlugin:@"MsgWindow"];
     
     #ifdef IS_SCRIPT_PROXY
-    [self launchProxy];
+    [self loadProxy];
     #endif
 }
 
@@ -1583,6 +1581,32 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 		[self openScrobblerHomepage:self];
 	
 	[NSApp terminate:self];
+}
+
+- (void)quitProcess:(ProcessSerialNumber*)psn
+{
+    NSAppleEventDescriptor *event, *targetAddress;
+
+    pid_t pid = -1;
+    (void)GetProcessPID(psn, &pid);
+    
+    targetAddress = [NSAppleEventDescriptor descriptorWithDescriptorType:typeProcessSerialNumber
+        bytes:&pid length:sizeof(pid)];
+    event = [[NSAppleEventDescriptor alloc] initWithEventClass:kCoreEventClass
+        eventID:kAEQuitApplication
+        targetDescriptor:targetAddress
+        returnID:kAutoGenerateReturnID
+        transactionID:kAnyTransactionID];
+    
+    AEDesc reply;
+    if (event && 0 == AESendMessage([event aeDesc], &reply, kAENoReply, 0)) {
+        usleep(320000);
+    } else
+        ScrobLog(SCROB_LOG_TRACE, @"AE 'quit' failed, falling back to kill().");
+    [event release];
+    
+    // if the send fails...
+    (void)kill(pid, SIGTERM);
 }
 
 // Player control
@@ -2366,11 +2390,12 @@ exit:
 
 #ifdef IS_SCRIPT_PROXY
 
+#define IS_PROXY_APP @"iScrobblerProxy"
 @implementation iScrobblerController (ProxySupport)
 
 - (void)launchProxy
 {
-    NSString *path = [[NSBundle mainBundle] pathForAuxiliaryExecutable:@"iScrobblerProxy"];
+    NSString *path = [[NSBundle mainBundle] pathForAuxiliaryExecutable:IS_PROXY_APP];
     // [[NSWorkspace sharedWorkspace] launchApplication:showIcon:autolaunch:] fails for non-bundled apps
     OSStatus err;
     LSApplicationParameters params;
@@ -2381,7 +2406,7 @@ exit:
     params.application = &app;
     
     if (0 == (err = LSOpenApplication(&params, NULL)))
-        [self performSelector:@selector(loadProxy) withObject:nil afterDelay:.50];
+        [self performSelector:@selector(loadProxy) withObject:nil afterDelay:0.5];
     else
         ScrobLog(SCROB_LOG_CRIT, @"Failed to launch proxy (%d)", err);
 }
@@ -2396,7 +2421,7 @@ exit:
     } @catch (NSException *exception) { }
     sProxy = nil;
     
-    [self launchProxy];
+    [self performSelector:@selector(launchProxy) withObject:nil afterDelay:0.2];
 }
 
 - (void)killProxy
@@ -2413,6 +2438,23 @@ exit:
     }
 }
 
+- (void)killExistingProxy
+{
+    ProcessSerialNumber psn = { kNoProcess, kNoProcess };
+
+    while (GetNextProcess(&psn) == noErr) {
+        CFDictionaryRef infoDict = ProcessInformationCopyDictionary(&psn, kProcessDictionaryIncludeAllInformationMask);
+        if (!infoDict)
+            continue;
+        
+        NSString *name = [(NSString*)CFDictionaryGetValue(infoDict, kCFBundleExecutableKey) lastPathComponent];
+        if (name && [IS_PROXY_APP isEqualToString:name]) {
+            [[NSApp delegate] quitProcess:&psn];
+        }
+        CFRelease(infoDict);
+    }
+}
+
 - (void)loadProxy
 {
     static BOOL setup = YES;
@@ -2421,7 +2463,10 @@ exit:
         // If running a script via the proxy takes longer than this timeout then the script will fail
         [[NSConnection defaultConnection] setReplyTimeout:ISPROXY_TIMEOUT];
         [[NSConnection defaultConnection] setRequestTimeout:ISPROXY_TIMEOUT];
+        [self killExistingProxy];
+        [self launchProxy];
         setup = NO;
+        return;
     }
     
     if (!sProxy) {
