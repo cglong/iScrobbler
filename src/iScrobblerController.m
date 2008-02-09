@@ -1590,7 +1590,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     pid_t pid = -1;
     (void)GetProcessPID(psn, &pid);
     
-    targetAddress = [NSAppleEventDescriptor descriptorWithDescriptorType:typeProcessSerialNumber
+    targetAddress = [NSAppleEventDescriptor descriptorWithDescriptorType:typeKernelProcessID
         bytes:&pid length:sizeof(pid)];
     event = [[NSAppleEventDescriptor alloc] initWithEventClass:kCoreEventClass
         eventID:kAEQuitApplication
