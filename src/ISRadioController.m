@@ -828,7 +828,7 @@ exitHistory:
                 isSticky:YES
                 clickContext:context];
         } else {
-            [self registerAsDefaultLastFMRadioPlayer:nil];
+            [self performSelector:@selector(registerAsDefaultLastFMRadioPlayer:) withObject:nil afterDelay:0.3];
         }
     }
 }
