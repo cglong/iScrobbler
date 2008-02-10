@@ -12,7 +12,6 @@
 #import <Cocoa/Cocoa.h>
 #import "ScrobLog.h"
 
-// implemented in PersistentSessionManager.m since that was the first to use it
 @interface NSDate (ISDateConversion)
 - (NSCalendarDate*)GMTDate;
 @end
@@ -58,7 +57,7 @@ return (
 #define IS_UTIL_WINDOW_ALPHA 0.85
 
 #if defined(__LP64__)
-// OBJC 2.0 can hide class symbols
+// The OBJC 2.0 64bit ABI can hide class symbols
 #define ISEXPORT_CLASS __attribute__((visibility("default")))
 #else
 #define ISEXPORT_CLASS

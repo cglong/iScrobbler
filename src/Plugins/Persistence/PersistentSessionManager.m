@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/17/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -1774,13 +1774,6 @@
     return (nil);
 }
 
-@end
-
-@implementation NSDate (ISDateConversion)
-- (NSCalendarDate*)GMTDate
-{
-   return ([self dateWithCalendarFormat:nil timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]]);
-}
 @end
 
 @implementation NSManagedObject (PItemMathAdditions)

@@ -2490,6 +2490,13 @@ exit:
 
 #endif // IS_SCRIPT_PROXY
 
+@implementation NSDate (ISDateConversion)
+- (NSCalendarDate*)GMTDate
+{
+   return ([self dateWithCalendarFormat:nil timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]]);
+}
+@end
+
 @implementation NSFileManager (ISAliasExtensions)
 
 - (NSString*)destinationOfAliasAtPath:(NSString*)path error:(NSError**)error
