@@ -40,7 +40,7 @@
 
 - (NSString*)description
 {
-    return (NSLocalizedString(@"MsgWindow Plugin", ""));
+    return (NSLocalizedString(@"Message Window Plugin", ""));
 }
 
 - (void)applicationWillTerminate
