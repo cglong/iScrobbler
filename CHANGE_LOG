@@ -23,12 +23,14 @@ v2.1 (BDB)
 - Added 'skip current track' Applescript command.
 - iScrobbler now supports the Play media player (http://sbooth.org/Play/).
 - Very basic message window replacement for those that don't wish to install Growl.
+- 512x512 app icon for Leopard.
 - Bug Fix: AppleScript 'radio controller' properties work on Leopard.
 - Bug Fix: Incorrect 'Top Hours' data in the Profile report when switching time zones.
 - Bug Fix: Bug in Local Charts iTunes import that would result in incorrect totals for the Overall session if iTunes contained duplicate songs.
 - Bug Fix: Radio stations that contained spaces failed to tune when selected from the Radio history.
 - Bug Fix: The iScrobbler keychain entry was not updated properly if the user name was changed.
 - Bug Fix: Regression - The log files were not being truncated when they got too big.
+- Bug Fix: Possible crash in the Growl framework.
 
 v2.0 (BDB)
 - Full Radio support (played through iTunes).
