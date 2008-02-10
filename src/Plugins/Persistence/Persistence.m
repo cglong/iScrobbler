@@ -490,13 +490,23 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     @try {
     
     NSArray *searchBundles = [self dataModelBundles];
-    NSManagedObjectModel *v1mom = [NSManagedObjectModel mergedModelFromBundles:searchBundles forStoreMetadata:metadata];
     NSURL *tmpURL = [NSURL fileURLWithPath:[[searchBundles objectAtIndex:0]
+        pathForResource:@"iScrobbler" ofType:@"mom" inDirectory:@"iScrobbler.momd"]];
+    NSManagedObjectModel *v1mom = [[[NSManagedObjectModel alloc] initWithContentsOfURL:tmpURL] autorelease];
+    if (!v1mom)
+        ScrobLog(SCROB_LOG_ERR, @"Migration: Failed to load v1 mom from: %@", [tmpURL path]);
+    
+    tmpURL = [NSURL fileURLWithPath:[[searchBundles objectAtIndex:0]
         pathForResource:@"iScrobblerV2" ofType:@"mom" inDirectory:@"iScrobbler.momd"]];
     NSManagedObjectModel *v2mom = [[[NSManagedObjectModel alloc] initWithContentsOfURL:tmpURL] autorelease];
-    NSMappingModel *map = [NSMappingModel mappingModelFromBundles:searchBundles forSourceModel:v1mom destinationModel:v2mom];
-    NSMigrationManager *migm = [[[NSMigrationManager alloc] initWithSourceModel:v1mom destinationModel:v2mom] autorelease];
+    if (!v2mom)
+        ScrobLog(SCROB_LOG_ERR, @"Migration: Failed to load v2 mom from: %@", [tmpURL path]);
     
+    NSMappingModel *map = [NSMappingModel mappingModelFromBundles:searchBundles forSourceModel:v1mom destinationModel:v2mom];
+    if (!map)
+        ScrobLog(SCROB_LOG_ERR, @"Migration: Failed to create mapping model");
+    
+    NSMigrationManager *migm = [[[NSMigrationManager alloc] initWithSourceModel:v1mom destinationModel:v2mom] autorelease];
     if (migm) {
         tmpURL = [NSURL fileURLWithPath:
             [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"ISMIG_%d", getpid()]]];
@@ -529,7 +539,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             }
             (void)[fm removeItemAtPath:tmppath error:nil];
         }
-    }
+    } else
+        ScrobLog(SCROB_LOG_ERR, @"Migration: Failed to create migration manager");
     
     } @catch (NSException *e) {
         migrated = NO;
