@@ -2579,8 +2579,10 @@ resolvePath:
     } else {
         alpha = [[timer userInfo] doubleValue];
         [timer invalidate];
+        BOOL willBeReleased = [self isReleasedWhenClosed];
         [self close];
-        [self setAlphaValue:alpha]; // restore original alpha
+        if (!willBeReleased)
+            [self setAlphaValue:alpha]; // restore original alpha
     }
 }
 
