@@ -1604,31 +1604,29 @@
 
 - (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum
 {
-    // tried optimizing this search by just searching for song titles and then limiting to artist/album in memory,
-    // but it made no difference in speed
     NSPredicate *predicate;
     NSString *aTitle;
     if ((aTitle = [self album]) && [aTitle length] > 0) {
         NSNumber *trackNo = [self trackNumber];
         if ([trackNo unsignedIntValue] > 0 && includeTrackNum) {
             predicate = [NSPredicate predicateWithFormat:
-                @"(itemType == %@) AND (trackNumber == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
+                @"(itemType == %@) AND (trackNumber == %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
                 ITEM_SONG, trackNo,
-                [[self title] stringByEscapingNSPredicateReserves],
                 [[self artist] stringByEscapingNSPredicateReserves],
-                [aTitle stringByEscapingNSPredicateReserves]];
+                [aTitle stringByEscapingNSPredicateReserves],
+                [[self title] stringByEscapingNSPredicateReserves]];
         } else {
             predicate = [NSPredicate predicateWithFormat:
-                @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
+                @"(itemType == %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
                 ITEM_SONG,
-                [[self title] stringByEscapingNSPredicateReserves],
                 [[self artist] stringByEscapingNSPredicateReserves],
-                [aTitle stringByEscapingNSPredicateReserves]];
+                [aTitle stringByEscapingNSPredicateReserves],
+                [[self title] stringByEscapingNSPredicateReserves]];
         }
     } else {
         predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
-            ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves], [[self artist] stringByEscapingNSPredicateReserves]];
+            @"(itemType == %@) AND (artist.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
+            ITEM_SONG, [[self artist] stringByEscapingNSPredicateReserves], [[self title] stringByEscapingNSPredicateReserves]];
     }
     return (predicate);
 }
