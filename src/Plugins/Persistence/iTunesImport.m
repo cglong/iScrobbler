@@ -15,6 +15,11 @@
 - (SongData*)initWithiTunesXMLTrack:(NSDictionary*)track;
 @end
 
+// in PersistentSessionManager.m
+@interface SongData (PersistentAdditions)
+- (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum;
+@end
+
 @implementation PersistentProfileImport
 
 - (void)killCachedObjects
@@ -112,9 +117,9 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     [request setEntity:entity];
-    // XXX: matchingPredicate is declared in PersistentSessionManager.m
-    // it takes a (NString**) as an arg, so don't pass anything but nil
-    predicate = [song performSelector:@selector(matchingPredicate:) withObject:nil];
+    // Matching on track number may give us duplicates in our db if the user is sloppy about meta-data.
+    // However, there are several albums that contain different tracks musically but with the same title.
+    predicate = [song matchingPredicateWithTrackNum:YES];
     [request setPredicate:predicate];
     
     NSNumber *playTime;

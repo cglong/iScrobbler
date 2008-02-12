@@ -13,8 +13,8 @@
 #import "SongData.h"
 
 @interface SongData (PersistentAdditions)
-- (NSPredicate*)matchingPredicate:(NSString**)albumTitle;
-- (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc;
+- (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum;
+- (NSManagedObject*)createPersistentSongWithContext:(NSManagedObjectContext*)moc;
 @end
 
 @interface PersistentProfile (Private)
@@ -1411,9 +1411,9 @@
     ISElapsedTimeInit();
     
     ISStartTime();
-    NSManagedObject *psong = [song persistentSongWithContext:moc];
+    NSManagedObject *psong = [song createPersistentSongWithContext:moc];
     ISEndTime();
-    ScrobDebug(@"[persistentSongWithContext:] returned in %.4f us", ISElapsedMicroSeconds());
+    ScrobDebug(@"[createPersistentSongWithContext:] returned in %.4f us", ISElapsedMicroSeconds());
     
     if (psong) {
         NSEntityDescription *entity;
@@ -1559,7 +1559,7 @@
         [song setTrackNumber:[mobj valueForKey:@"trackNumber"]];
         [song setArtist:[mobj valueForKeyPath:@"artist.name"]];
         [song setAlbum:[mobj valueForKeyPath:@"album.name"]];
-        predicate = [song matchingPredicate:nil];
+        predicate = [song matchingPredicateWithTrackNum:YES];
         entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     } else if ([ITEM_ARTIST isEqualTo:type]) {
         predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (name LIKE[cd] %@)",
@@ -1602,7 +1602,7 @@
 
 @implementation SongData (PersistentAdditions)
 
-- (NSPredicate*)matchingPredicate:(NSString**)albumTitle
+- (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum
 {
     // tried optimizing this search by just searching for song titles and then limiting to artist/album in memory,
     // but it made no difference in speed
@@ -1610,7 +1610,7 @@
     NSString *aTitle;
     if ((aTitle = [self album]) && [aTitle length] > 0) {
         NSNumber *trackNo = [self trackNumber];
-        if ([trackNo unsignedIntValue] > 0) {
+        if ([trackNo unsignedIntValue] > 0 && includeTrackNum) {
             predicate = [NSPredicate predicateWithFormat:
                 @"(itemType == %@) AND (trackNumber == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@)",
                 ITEM_SONG, trackNo,
@@ -1626,13 +1626,10 @@
                 [aTitle stringByEscapingNSPredicateReserves]];
         }
     } else {
-        aTitle = nil;
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (name LIKE[cd] %@) AND (artist.name LIKE[cd] %@)",
             ITEM_SONG, [[self title] stringByEscapingNSPredicateReserves], [[self artist] stringByEscapingNSPredicateReserves]];
     }
-    if (albumTitle)
-        *albumTitle = aTitle;
     return (predicate);
 }
 
@@ -1643,14 +1640,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     
-    @try {
-    NSString *aTitle;
-    NSPredicate *predicate = [self matchingPredicate:&aTitle];
+    NSPredicate *predicate = [self matchingPredicateWithTrackNum:YES];
     [request setPredicate:predicate];
-    
-    NSCalendarDate *myLastPlayed = [NSCalendarDate dateWithTimeIntervalSince1970:
-        [[self postDate] timeIntervalSince1970] + [[self duration] unsignedIntValue]];
-    NSManagedObject *moSong;
     
     NSArray *result = [moc executeFetchRequest:request error:&error];
     if ([result count] > 1) {
@@ -1663,15 +1654,65 @@
         result = [NSArray arrayWithObject:[result objectAtIndex:0]];
     }
     if (1 == [result count]) {
-         // Update song values
-        moSong = [result objectAtIndex:0];
+       return ([result objectAtIndex:0]);
+    }
+    
+    // XXX: This is a spurious (and much more expensive w/o the track num condition) search
+    // for a track that does not exist in the db yet.
+    unsigned tno = [[self trackNumber] unsignedIntValue];
+    if (tno > 0) {        
+        predicate = [self matchingPredicateWithTrackNum:NO];
+        [request setPredicate:predicate];
+        result = [moc executeFetchRequest:request error:&error];
+        if ([result count] > 1) {
+            #ifdef ISINTERNAL
+            ISASSERT(0 == [result count], "multiple songs found in db!");
+            #endif
+            (void)[result valueForKeyPath:@"name"]; // make sure they are faulted in for logging
+            ScrobLog(SCROB_LOG_ERR, @"Multiple songs found in database! {{%@}}", result);
+            ScrobLog(SCROB_LOG_WARN, @"Using first song found.");
+            result = [NSArray arrayWithObject:[result objectAtIndex:0]];
+        }
+        
+        if (1 == [result count]) {
+            NSManagedObject *so = [result objectAtIndex:0];
+            if ([[so valueForKey:@"trackNumber"] unsignedIntValue] == 0) {
+                // XXX: we assume this is the same song in the music player DB, and the user just set the track number
+                [so setValue:[self trackNumber] forKey:@"trackNumber"];
+                return (so);
+            } /* else
+            The found track could be different.
+            There are several albums that contain different tracks musically but with the same title.
+            */
+        }
+    }
+    
+    return (nil);
+}
+
+- (NSManagedObject*)createPersistentSongWithContext:(NSManagedObjectContext*)moc
+{
+    @try {
+    NSCalendarDate *myLastPlayed = [NSCalendarDate dateWithTimeIntervalSince1970:
+        [[self postDate] timeIntervalSince1970] + [[self duration] unsignedIntValue]];
+    
+    NSManagedObject *moSong = [self persistentSongWithContext:moc];
+    if (moSong) {
         [moSong setValue:[self postDate] forKey:@"submitted"];
         [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
-         
         return (moSong);
     }
     
     // Song not found
+    NSString *aTitle = [self album];
+    if (aTitle && 0 == [aTitle length])
+        aTitle = nil;
+    
+    NSError *error = nil;
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    
     NSManagedObject *moArtist, *moAlbum;
     moSong = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
     [moSong setValue:ITEM_SONG forKey:@"itemType"];
@@ -1693,7 +1734,7 @@
         [NSPredicate predicateWithFormat:@"(itemType == %@) AND (name LIKE[cd] %@)",
             ITEM_ARTIST, [[self artist] stringByEscapingNSPredicateReserves]]];
     
-    result = [moc executeFetchRequest:request error:&error];
+    NSArray *result = [moc executeFetchRequest:request error:&error];
     if (1 == [result count]) {
         moArtist = [result objectAtIndex:0];
     } else if (0 == [result count]) {
