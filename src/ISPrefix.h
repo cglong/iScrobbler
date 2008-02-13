@@ -54,7 +54,8 @@ return (
 #define LEOPARD_END }
 #endif
 
-#define IS_UTIL_WINDOW_ALPHA 0.85
+extern CGFloat isUtilityWindowAlpha;
+#define IS_UTIL_WINDOW_ALPHA isUtilityWindowAlpha
 
 #if defined(__LP64__)
 // The OBJC 2.0 64bit ABI can hide class symbols

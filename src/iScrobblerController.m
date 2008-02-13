@@ -56,6 +56,8 @@ static NSDistantObject<ISProxyProtocol> *sProxy = nil;
 static NSString *playerLibUUID = nil;
 static ISArtistDetailsController *npDetails = nil;
 
+ISEXPORT CGFloat isUtilityWindowAlpha = 0.94;
+
 #import "NSWorkspace+ISAdditions.m"
 
 #define IS_GROWL_NOTIFICATION_TRACK_CHANGE @"Track Change"
@@ -680,6 +682,10 @@ player_info_exit:
     // we just force the version # from the defaults into the personal prefs.
     // This came in very handy above -- what foresight!
     [prefs setObject:[defaultPrefs objectForKey:@"version"] forKey:@"version"];
+    
+    CGFloat utilAlpha = [prefs doubleForKey:@"UtilityWindowAlpha"];
+    if (utilAlpha >= 0.5 && utilAlpha <= 1.0)
+        isUtilityWindowAlpha = utilAlpha;
     
     [SongData setSongTimeFudge:5.0f];
 	
