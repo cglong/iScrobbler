@@ -12,6 +12,7 @@
 
 @interface PlayHistoryController : NSWindowController {
     IBOutlet NSView *contentView;
+    IBOutlet NSTextField *totalPlayCount;
     IBOutlet NSArrayController *historyController;
     IBOutlet NSProgressIndicator *progress;
     

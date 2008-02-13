@@ -99,6 +99,7 @@ static PlayHistoryController *sharedController = nil;
     
     NSMutableArray *content = [NSMutableArray array];
     [historyController setContent:content];
+    [totalPlayCount setStringValue:@""];
     
     NSManagedObjectID *mid = [trackInfo objectForKey:@"objectID"];
     if (!mid) {
@@ -108,7 +109,8 @@ static PlayHistoryController *sharedController = nil;
     
     [progress startAnimation:nil];
     
-    NSSet *history = [[moc objectWithID:mid] valueForKey:@"playHistory"];
+    NSManagedObject *song = [moc objectWithID:mid];
+    NSSet *history = [song valueForKey:@"playHistory"];
     
     // batch load the history
     NSError *error = nil;
@@ -127,11 +129,26 @@ static PlayHistoryController *sharedController = nil;
         [content addObject:entry];
     }
     
+    [totalPlayCount setStringValue:[NSString stringWithFormat:@"%@", [song valueForKey:@"playCount"]]];
+    
     [moc reset];
     
     [historyController rearrangeObjects];
     
     [progress stopAnimation:nil];
+}
+
+- (NSColor*)textFieldColor
+{
+    #if 0
+    return (([[self window] styleMask] & NSHUDWindowMask) ? [NSColor lightGrayColor] : [NSColor blackColor]);
+    #endif
+    // window may not be set when the binding calls us
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    return ([NSColor lightGrayColor]);
+    #else
+    return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor lightGrayColor] : [NSColor blackColor]);
+    #endif
 }
 
 @end
