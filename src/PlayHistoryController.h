@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 12/28/07.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -17,6 +17,7 @@
     IBOutlet NSProgressIndicator *progress;
     
     NSManagedObjectContext *moc;
+    NSDictionary *npTrackInfo;
 }
 
 + (PlayHistoryController*)sharedController;

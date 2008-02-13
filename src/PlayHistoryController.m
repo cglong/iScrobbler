@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 12/28/07.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -12,7 +12,15 @@
 #import "TopListsController.h"
 #import "Persistence.h"
 
+#import "iScrobblerController.h"
+#import "SongData.h"
+
 static PlayHistoryController *sharedController = nil;
+
+// in PersistentSessionManager.m
+@interface SongData (PersistentAdditions)
+- (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc;
+@end
 
 @implementation PlayHistoryController
 
@@ -66,8 +74,18 @@ static PlayHistoryController *sharedController = nil;
 
 - (IBAction)showWindow:(id)sender
 {
-    if (![[self window] isVisible])
+    if (![[self window] isVisible]) {
         [NSApp activateIgnoringOtherApps:YES];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(nowPlaying:)
+            name:@"Now Playing" object:nil];
+        
+        id obj = [[NSApp delegate] nowPlaying];
+        if (obj) {
+            NSNotification *note = [NSNotification notificationWithName:@"Now Playing" object:obj];
+            [self performSelector:@selector(nowPlaying:) withObject:note afterDelay:0.2];
+        }
+    }
     [super showWindow:nil];
 }
 
@@ -84,16 +102,54 @@ static PlayHistoryController *sharedController = nil;
 
 - (void)windowWillClose:(NSNotification*)note
 {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    
     [moc release];
     moc = nil;
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"Now Playing" object:nil];
+    [npTrackInfo release];
     
     ISASSERT(sharedController == self, "sharedController does not match!");
     sharedController = nil;
     [self autorelease];
 }
 
+- (void)nowPlaying:(NSNotification*)note
+{
+    SongData *song = [note object];
+    
+    [npTrackInfo release];
+    npTrackInfo = nil;
+    
+    NSManagedObjectID *mid = nil;
+    @try {
+        mid = [[song persistentSongWithContext:moc] objectID];
+    } @catch (NSException *e) {
+        NSBeep();
+        ScrobLog(SCROB_LOG_ERR, @"History: exception getting persistent object for: %@", [song brief]);
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        return;
+    }
+    
+    if (!mid) {
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        return;
+    }
+    
+    npTrackInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
+        [song artist], @"Artist",
+        [song title], @"Track",
+        mid, @"objectID",
+        nil];
+    
+    [self loadHistoryForTrack:npTrackInfo];
+}
+
 - (void)loadHistoryForTrack:(NSDictionary*)trackInfo
 {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    
     [[self window] setTitle:[NSString stringWithFormat:@"%@ - %@ %@",
         [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")]];
     
@@ -136,6 +192,11 @@ static PlayHistoryController *sharedController = nil;
     [historyController rearrangeObjects];
     
     [progress stopAnimation:nil];
+    
+    // restore the NP info after a short period
+    if (npTrackInfo && npTrackInfo != trackInfo) {
+        [self performSelector:@selector(loadHistoryForTrack:) withObject:npTrackInfo afterDelay:60.0];
+    }
 }
 
 - (NSColor*)textFieldColor
