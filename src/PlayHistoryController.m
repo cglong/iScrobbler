@@ -195,7 +195,7 @@ static PlayHistoryController *sharedController = nil;
     
     // restore the NP info after a short period
     if (npTrackInfo && npTrackInfo != trackInfo) {
-        [self performSelector:@selector(loadHistoryForTrack:) withObject:npTrackInfo afterDelay:60.0];
+        [self performSelector:@selector(loadHistoryForTrack:) withObject:npTrackInfo afterDelay:30.0];
     }
 }
 
