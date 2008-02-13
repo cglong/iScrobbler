@@ -1072,6 +1072,55 @@ exit:
         [self generateProfileReport];
 }
 
+#define TOP_ARTISTS_TITLE NSLocalizedString(@"Top Artists", "")
+#define NEW_ARTISTS_TITLE NSLocalizedString(@"New Artists", "")
+#define TOP_TRACKS_TITLE NSLocalizedString(@"Top Tracks", "")
+#define TOP_ALBUMS_TITLE NSLocalizedString(@"Top Albums", "")
+#define TOP_RATINGS_TITLE NSLocalizedString(@"Top Ratings", "")
+#define TOP_HOURS_TITLE NSLocalizedString(@"Top Hours", "")
+
+- (NSString*) tableTitleWithString:(NSString*)tt
+{
+    static NSDictionary *bclinks = nil;
+    static NSArray *bctitles = nil;
+    if (!bclinks) {
+        bctitles = [NSArray arrayWithObjects:
+            TOP_ARTISTS_TITLE,
+            NEW_ARTISTS_TITLE,
+            TOP_TRACKS_TITLE,
+            TOP_ALBUMS_TITLE,
+            TOP_RATINGS_TITLE,
+            TOP_HOURS_TITLE,
+            nil];
+        bclinks = [[NSDictionary alloc] initWithObjectsAndKeys:
+            @"ta", TOP_ARTISTS_TITLE,
+            @"na", NEW_ARTISTS_TITLE,
+            @"tt", TOP_TRACKS_TITLE,
+            @"tal", TOP_ALBUMS_TITLE,
+            @"tr", TOP_RATINGS_TITLE,
+            @"th", TOP_HOURS_TITLE,
+            nil];
+    }
+    
+    NSString *myname = [bclinks objectForKey:tt];
+    if (myname) {
+        NSMutableString *breadcrumb = [NSMutableString string];
+        NSEnumerator *en = [bctitles objectEnumerator];
+        NSString *s;
+        while ((s = [en nextObject])) {
+            if (NSOrderedSame == [s localizedCaseInsensitiveCompare:tt])
+                continue;
+            
+            [breadcrumb appendFormat:@"<a href=\"#%@\">%@</a>&nbsp;", [bclinks objectForKey:s], s];
+        }
+        
+        return ([NSString stringWithFormat:@"<a name=\"%@\"><h4>%@</h4></a> <div class=\"breadcrumbs\">%@</div>\n",
+            myname, tt, breadcrumb]);
+    }
+    
+    return ([NSString stringWithFormat:@"<h4>%@</h4>\n",tt]);
+}
+
 #define HEAD @"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n" \
 @"\t\t\"http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd\">" \
 @"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">" \
@@ -1081,7 +1130,7 @@ exit:
 #define BODY @"<body><div class=\"content\">\n"
 #define DOCCLOSE @"</div></body></html>"
 #define TBLCLOSE @"</table>\n"
-#define TBLTITLE(t) [NSString stringWithFormat:@"<h4>%@</h4>\n", (t)]
+#define TBLTITLE(t) [self tableTitleWithString:t]
 #define TR @"<tr>\n"
 #define TRALT @"<tr class=\"alt\">"
 #define TRCLOSE @"</tr>\n"
@@ -1091,22 +1140,22 @@ exit:
 #define TDPOS @"<td class=\"position\">"
 #define TDCLOSE @"</td>\n"
 
-static inline NSString* TH(int span, NSString *title)
+NS_INLINE NSString* TH(int span, NSString *title)
 {
     return ( [NSString stringWithFormat:@"<th colspan=\"%d\" align=\"left\">%@</th>\n", span, title] );
 }
 
-static inline void HAdd(NSMutableData *d, NSString *str)
+NS_INLINE void HAdd(NSMutableData *d, NSString *str)
 {
     [d appendData:[str dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
-static inline NSString* TDEntry(NSString *type, id obj)
+NS_INLINE NSString* TDEntry(NSString *type, id obj)
 {
     return ( [NSString stringWithFormat:@"%@%@%@", type, obj, TDCLOSE] );
 }
 
-static inline NSString* DIVEntry(NSString *type, float width, NSString *title, id obj)
+NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id obj)
 {
     return ( [NSString stringWithFormat:@"<div class=\"%@\" %@style=\"width:%u%%;\">%@</div>",
        type,  (title ? [NSString stringWithFormat:@"title=\"%@\" ", title] : @""),
@@ -1173,7 +1222,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topartists\">\n" TR);
-    HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Artists", ""))));
+    HAdd(d, TH(2, TBLTITLE(TOP_ARTISTS_TITLE)));
     HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
     if (elapsedDays > 14.0) {
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Week", ""))));
@@ -1231,7 +1280,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     if ([persistence isVersion2]) {
         position = 1;
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"newartists\">\n" TR);
-        HAdd(d, TH(4, TBLTITLE(NSLocalizedString(@"New Artists", ""))));
+        HAdd(d, TH(4, TBLTITLE(NEW_ARTISTS_TITLE)));
         HAdd(d, TRCLOSE);
         en = [[newArtists sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] objectEnumerator];
         #if 0
@@ -1269,7 +1318,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
     
     pool = [[NSAutoreleasePool alloc] init];
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"toptracks\">\n" TR);
-    HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Tracks", ""))));
+    HAdd(d, TH(2, TBLTITLE(TOP_TRACKS_TITLE)));
     HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Last Played", ""))));
     HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
     HAdd(d, TRCLOSE);
@@ -1309,7 +1358,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
-        HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Top Albums", ""))));
+        HAdd(d, TH(2, TBLTITLE(TOP_ALBUMS_TITLE)));
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
         HAdd(d, TRCLOSE);
@@ -1366,7 +1415,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         pool = [[NSAutoreleasePool alloc] init];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topratings\">\n" TR);
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Top Ratings", ""))));
+        HAdd(d, TH(1, TBLTITLE(TOP_RATINGS_TITLE)));
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
         HAdd(d, TRCLOSE);
         
@@ -1407,7 +1456,7 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
         pool = [[NSAutoreleasePool alloc] init];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Top Hours", ""))));
+        HAdd(d, TH(1, TBLTITLE(TOP_HOURS_TITLE)));
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
         HAdd(d, TRCLOSE);
