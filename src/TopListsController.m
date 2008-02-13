@@ -62,6 +62,10 @@ static NSMutableArray *topHours = nil;
 - (NSComparisonResult)sortByDuration:(NSDictionary*)entry;
 @end
 
+@interface NSString (ISTopListsAdditions)
+- (NSComparisonResult)caseInsensitiveNumericCompare:(NSString *)string;
+@end
+
 @interface TopListsController (PersistenceAdaptor)
 - (void)sessionDidChange:(id)arg;
 - (void)resetPersistenceManager;
@@ -511,13 +515,16 @@ static NSMutableArray *topHours = nil;
         
     // Setup our sort descriptors
     NSSortDescriptor *playCountSort = [[NSSortDescriptor alloc] initWithKey:@"Play Count" ascending:NO];
-    NSSortDescriptor *artistSort = [[NSSortDescriptor alloc] initWithKey:@"Artist" ascending:YES];
-    NSSortDescriptor *playTimeSort = [[NSSortDescriptor alloc] initWithKey:@"Play Time" ascending:YES];
+    NSSortDescriptor *artistSort = [[NSSortDescriptor alloc] initWithKey:@"Artist" ascending:YES
+        selector:@selector(caseInsensitiveNumericCompare:)];
+    NSSortDescriptor *playTimeSort = [[NSSortDescriptor alloc] initWithKey:@"Play Time" ascending:YES
+        selector:@selector(caseInsensitiveNumericCompare:)];
     NSArray *sorters = [NSArray arrayWithObjects:playCountSort, artistSort, playTimeSort, nil];
     
     [topArtistsController setSortDescriptors:sorters];
     
-    NSSortDescriptor *trackSort = [[NSSortDescriptor alloc] initWithKey:@"Track" ascending:YES];
+    NSSortDescriptor *trackSort = [[NSSortDescriptor alloc] initWithKey:@"Track" ascending:YES
+        selector:@selector(caseInsensitiveNumericCompare:)];
     sorters = [NSArray arrayWithObjects:playCountSort, artistSort, trackSort, nil];
     [topTracksController setSortDescriptors:sorters];
     
@@ -1521,6 +1528,15 @@ static inline NSString* DIVEntry(NSString *type, float width, NSString *title, i
 - (NSComparisonResult)sortByDuration:(NSDictionary*)entry
 {
     return ( [(NSNumber*)[self objectForKey:@"Total Duration"] compare:(NSNumber*)[entry objectForKey:@"Total Duration"]] );
+}
+
+@end
+
+@implementation NSString (ISTopListsAdditions)
+
+- (NSComparisonResult)caseInsensitiveNumericCompare:(NSString *)string
+{
+    return ([self compare:string options:NSCaseInsensitiveSearch|NSNumericSearch|NSDiacriticInsensitiveSearch]);
 }
 
 @end
