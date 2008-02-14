@@ -970,12 +970,24 @@ player_info_exit:
     #endif
 }
 
+- (void)createTopListsController
+{
+    TopListsController *tlc = [TopListsController sharedInstance];
+    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Track History", "")
+        action:@selector(showTrackHistory:) keyEquivalent:@""];
+    [item setTarget:tlc];
+    [item setTag:MACTION_OPEN_TRACK_HIST];
+    [item setEnabled:YES];
+    [songActionMenu insertItem:item atIndex:[songActionMenu indexOfItemWithTag:MACTION_OPEN_TRACK_DETAILS]];
+    [item release];
+}
+
 - (NSApplicationTerminateReply)applicationShouldTerminate:(id /*NSApplication**/)sender
 {
     if (isTopListsActive && [TopListsController isActive] && [[[TopListsController sharedInstance] persistence] importInProgress]) {
         #ifdef notyet
         if ([NSWorkspace sharedWorkspace] == sender) {
-            // documented as not implemented, and it's not (as of 10.4.10
+            // documented as not implemented, and it's not (as of 10.4.10)
             NSInteger given = [[NSWorkspace sharedWorkspace] extendPowerOffBy:NSIntegerMax];
             ScrobDebug(@"given %ld ms of delayed log out", given);
         }
@@ -1052,7 +1064,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
             
             [self presentError:error withDidEndHandler:@selector(enableLocalChartsDidEnd:returnCode:contextInfo:)];
         } else
-            (void)[TopListsController sharedInstance];
+            [self createTopListsController];
     }
             
     // Register to handle URLs
@@ -1115,7 +1127,6 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     }
 }
 
-
 - (void)getUrl:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 {
 	NSString *url = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
@@ -1149,7 +1160,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 - (void)enableLocalChartsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
     if (NSAlertDefaultReturn == returnCode) {
-        (void)[TopListsController sharedInstance];
+        [self createTopListsController];
     } else if (NSAlertAlternateReturn == returnCode) {
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Disable Local Lists"];
     }
