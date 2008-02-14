@@ -757,8 +757,9 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             return (NO);
             #endif
         }
-        ScrobLog(SCROB_LOG_TRACE, @"Opened Local Charts database version %@. Current version is %@.",
+        ScrobLog(SCROB_LOG_TRACE, @"Opened Local Charts database version %@. Internal version is %@.",
             [metadata objectForKey:(NSString*)kMDItemVersion], IS_CURRENT_STORE_VERSION);
+        ScrobLog(SCROB_LOG_TRACE, @"Local Charts epoch is '%@'", [metadata objectForKey:(NSString*)kMDItemContentCreationDate]);
         
         [self backupDatabase];
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
