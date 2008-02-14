@@ -76,3 +76,6 @@
 #define ISR_TRACK_LFMAUTH @"lfmTrackAuth"
 #define ISR_TRACK_LFMALBUMID @"lfmAlbumID"
 #define ISR_TRACK_LFMARTISTID @"lfmArtistID"
+
+// [[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode]
+#define WS_LANG @"en"

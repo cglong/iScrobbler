@@ -734,6 +734,8 @@ static NSMutableArray *topHours = nil;
         
         ASXMLRPC *req = [[ASXMLRPC alloc] init];
         NSMutableArray *p = [req standardParams];
+        
+        [req setMethod:@"recommendItem"];
         switch ([rc type]) {
             case rt_track: {
                 NSString *title = [song objectForKey:@"Track"];
@@ -741,14 +743,15 @@ static NSMutableArray *topHours = nil;
                     [req release];
                     goto exit;
                 }
-                [req setMethod:@"recommendTrack"];
                 [p addObject:artist];
                 [p addObject:title];
+                [p addObject:@"track"]; // type
             } break;
             
             case rt_artist:
-                [req setMethod:@"recommendArtist"];
                 [p addObject:artist];
+                [p addObject:@""]; // title, must be an empty string
+                [p addObject:@"artist"]; // type
             break;
             
             case rt_album:
@@ -757,8 +760,9 @@ static NSMutableArray *topHours = nil;
                 goto exit;
             break;
         }
-        [p addObject:[rc who]];
-        [p addObject:[rc message]];
+        [p addObject:[rc who]]; // reciever
+        [p addObject:[rc message]]; // message
+        [p addObject:WS_LANG]; // language - only english for now
         
         [req setParameters:p];
         [req setDelegate:self];

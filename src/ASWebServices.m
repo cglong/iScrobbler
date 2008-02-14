@@ -32,9 +32,6 @@ static ASXMLFile *xspfReq = nil;
 #define WS_VERSION [[NSUserDefaults standardUserDefaults] stringForKey:@"version"]
 #define WS_PLATFORM [[NSUserDefaults standardUserDefaults] stringForKey:@"clientid"]
 #endif
-// XXX "jp" somehow indicates the radio is hidden?
-// [[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode]
-#define WS_LANG @"en"
 
 @implementation ASWebServices : NSObject
 

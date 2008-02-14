@@ -1761,22 +1761,25 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         ASXMLRPC *req = [[ASXMLRPC alloc] init];
         NSMutableArray *p = [req standardParams];
         SongData *song = [rc representedObject];
+        
+        [req setMethod:@"recommendItem"];
         switch ([rc type]) {
             case rt_track:
-                [req setMethod:@"recommendTrack"];
                 [p addObject:[song artist]];
                 [p addObject:[song title]];
+                [p addObject:@"track"]; // type
             break;
             
             case rt_artist:
-                [req setMethod:@"recommendArtist"];
                 [p addObject:[song artist]];
+                [p addObject:@""]; // title, must be an empty string
+                [p addObject:@"artist"]; // type
             break;
             
             case rt_album:
-                [req setMethod:@"recommendAlbum"];
                 [p addObject:[song artist]];
                 [p addObject:[song album]];
+                [p addObject:@"album"]; // type
             break;
             
             default:
@@ -1784,8 +1787,9 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
                 goto exit;
             break;
         }
-        [p addObject:[rc who]];
-        [p addObject:[rc message]];
+        [p addObject:[rc who]]; // reciever
+        [p addObject:[rc message]]; // message
+        [p addObject:WS_LANG]; // language - only english for now
         
         [req setParameters:p];
         [req setDelegate:self];
