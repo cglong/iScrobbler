@@ -2585,10 +2585,13 @@ resolvePath:
     } else {
         alpha = [[timer userInfo] doubleValue];
         [timer invalidate];
+        
         BOOL willBeReleased = [self isReleasedWhenClosed];
+        (void)[self retain];
         [self close];
         if (!willBeReleased)
             [self setAlphaValue:alpha]; // restore original alpha
+        [self autorelease];
     }
 }
 
