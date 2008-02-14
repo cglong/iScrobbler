@@ -413,6 +413,7 @@ static NSMutableArray *topHours = nil;
     }
 }
 
+#define OPEN_HIST_WINDOW_AT_LAUNCH @"History Window Open"
 - (IBAction)showWindow:(id)sender
 {
     if (!persistence) {
@@ -437,6 +438,10 @@ static NSMutableArray *topHours = nil;
     
     if (!artistDetails)
         [self loadDetails];
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_HIST_WINDOW_AT_LAUNCH]) {
+        [self performSelector:@selector(showTrackHistory:) withObject:nil afterDelay:0.1];
+    }
 }
 
 - (void)windowWillClose:(NSNotification *)aNotification
@@ -447,7 +452,6 @@ static NSMutableArray *topHours = nil;
     //[rpcreqs removeAll];
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     [self hideDetails:nil];
-    [[PlayHistoryController sharedController] performClose:nil];
 }
 
 - (void)handleDoubleClick:(NSTableView*)sender
