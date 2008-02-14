@@ -122,6 +122,11 @@ static PlayHistoryController *sharedController = nil;
     [npTrackInfo release];
     npTrackInfo = nil;
     
+    if (!song) {
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        return;
+    }
+    
     NSManagedObjectID *mid = nil;
     @try {
         mid = [[song persistentSongWithContext:moc] objectID];
@@ -132,15 +137,10 @@ static PlayHistoryController *sharedController = nil;
         return;
     }
     
-    if (!mid) {
-        [NSObject cancelPreviousPerformRequestsWithTarget:self];
-        return;
-    }
-    
     npTrackInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
         [song artist], @"Artist",
         [song title], @"Track",
-        mid, @"objectID",
+        mid, @"objectID", // this must be last as songs not yet in the db will have a nil id
         nil];
     
     [self loadHistoryForTrack:npTrackInfo];
@@ -150,16 +150,18 @@ static PlayHistoryController *sharedController = nil;
 {
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
-    [[self window] setTitle:[NSString stringWithFormat:@"%@ - %@ %@",
+    [[self window] setTitle:[NSString stringWithFormat:@"\"%@ - %@\" %@",
         [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")]];
     
     NSMutableArray *content = [NSMutableArray array];
     [historyController setContent:content];
-    [totalPlayCount setStringValue:@""];
+    [totalPlayCount setStringValue:@"0"];
     
     NSManagedObjectID *mid = [trackInfo objectForKey:@"objectID"];
     if (!mid) {
-        NSBeep();
+        [historyController rearrangeObjects];
+        ScrobLog(SCROB_LOG_TRACE, @"History: persistent id for '%@ - %@' is missing.",
+            [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"]);
         return;
     }
     
