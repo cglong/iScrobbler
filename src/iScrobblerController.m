@@ -56,7 +56,7 @@ static NSDistantObject<ISProxyProtocol> *sProxy = nil;
 static NSString *playerLibUUID = nil;
 static ISArtistDetailsController *npDetails = nil;
 
-ISEXPORT CGFloat isUtilityWindowAlpha = 0.96;
+ISEXPORT CGFloat isUtilityWindowAlpha = 0.95;
 
 #import "NSWorkspace+ISAdditions.m"
 
