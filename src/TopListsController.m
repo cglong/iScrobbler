@@ -392,12 +392,18 @@ static NSMutableArray *topHours = nil;
 - (IBAction)showArtistDetails:(id)sender
 {
     [artistDetails performSelector:@selector(showWindow:) withObject:sender];
+    
+    NSTabViewItem *activeTab = [tabView selectedTabViewItem];
+    NSArrayController *data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
     NSArray *selection;
-    if ((selection = [topTracksController selectedObjects]) && [selection count] > 0) {
-        NSTabViewItem *activeTab = [tabView selectedTabViewItem];
-        NSArrayController *data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
-        [artistDetails setArtist:[data valueForKeyPath:@"selection.Artist"]];
+    if (NO == ((selection = [topTracksController selectedObjects]) && [selection count] > 0)) {
+        if ([[data arrangedObjects] count] > 0)
+            [data setSelectionIndex:0];
+        else
+            return;
     }
+    
+    [artistDetails setArtist:[data valueForKeyPath:@"selection.Artist"]];
 }
 
 - (void)loadDetails
