@@ -2599,14 +2599,14 @@ resolvePath:
         [self setAlphaValue:alpha > 0.0 ? alpha : 0.0];
     } else {
         alpha = [[timer userInfo] doubleValue];
+        (void)[[timer retain] autorelease];
         [timer invalidate];
         
         BOOL willBeReleased = [self isReleasedWhenClosed];
-        (void)[self retain];
+        (void)[[self retain] autorelease];
         [self close];
         if (!willBeReleased)
             [self setAlphaValue:alpha]; // restore original alpha
-        [self autorelease];
     }
 }
 
