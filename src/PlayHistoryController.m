@@ -119,11 +119,16 @@ static PlayHistoryController *sharedController = nil;
 {
     SongData *song = [note object];
     
-    [npTrackInfo release];
+    NSDictionary *prevTrackInfo = [npTrackInfo autorelease];
     npTrackInfo = nil;
     
     if (!song) {
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        
+        if ([[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
+            // update the previous track to reflect any changes
+            [self performSelector:@selector(loadHistoryForTrack:) withObject:prevTrackInfo afterDelay:1.5];
+        }
         return;
     }
     
