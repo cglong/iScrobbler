@@ -770,19 +770,20 @@
 		D37606320CB2307F00C04863 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
-				D37606330CB2307F00C04863 /* ChatStatus */,
+				D37606330CB2307F00C04863 /* ChatStatus (obsolete) */,
 			);
 			name = Plugins;
 			path = src/Plugins;
 			sourceTree = "<group>";
 		};
-		D37606330CB2307F00C04863 /* ChatStatus */ = {
+		D37606330CB2307F00C04863 /* ChatStatus (obsolete) */ = {
 			isa = PBXGroup;
 			children = (
 				D37606340CB2307F00C04863 /* ChatStatus.m */,
 				D376063B0CB230A900C04863 /* ChatStatus-Info.plist */,
 				D37606AC0CB236CD00C04863 /* InstantMessage.framework */,
 			);
+			name = "ChatStatus (obsolete)";
 			path = ChatStatus;
 			sourceTree = "<group>";
 		};
@@ -891,9 +892,9 @@
 			productReference = D3712C490D1A3B810011F980 /* Persistence.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		D37606390CB230A900C04863 /* ChatStatus */ = {
+		D37606390CB230A900C04863 /* ChatStatus (obsolete) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */;
+			buildConfigurationList = D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus (obsolete)" */;
 			buildPhases = (
 				D37606360CB230A900C04863 /* Resources */,
 				D37606370CB230A900C04863 /* Sources */,
@@ -903,7 +904,7 @@
 			);
 			dependencies = (
 			);
-			name = ChatStatus;
+			name = "ChatStatus (obsolete)";
 			productName = iChatStatus;
 			productReference = D376063A0CB230A900C04863 /* ChatStatus.plugin */;
 			productType = "com.apple.product-type.bundle";
@@ -989,7 +990,7 @@
 				D38835950D200A5D005B6D1D /* TigerPersistence */,
 				D39902020D5B43760050C17C /* MsgWindow */,
 				D37005BA0D2002B40057EFBD /* Copy Core Plugins */,
-				D37606390CB230A900C04863 /* ChatStatus */,
+				D37606390CB230A900C04863 /* ChatStatus (obsolete) */,
 			);
 		};
 /* End PBXProject section */
@@ -1940,7 +1941,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus" */ = {
+		D376063C0CB230AA00C04863 /* Build configuration list for PBXNativeTarget "ChatStatus (obsolete)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D376063D0CB230AA00C04863 /* Debug */,
