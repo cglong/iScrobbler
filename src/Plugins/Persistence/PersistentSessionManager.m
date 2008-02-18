@@ -1702,7 +1702,7 @@
     if (song) {
         @synchronized(self) {
             if (!persistentID)
-                persistentID = [song objectID];
+                persistentID = [[song objectID] retain];
             #ifdef ISDEBUG
             else
                 ISASSERT([persistentID isEqualTo:[song objectID]], "db object id's don't match!");
