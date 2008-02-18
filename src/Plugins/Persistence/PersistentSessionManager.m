@@ -1633,6 +1633,20 @@
 
 - (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc
 {
+    #ifndef ISDEBUG
+    NSManagedObjectID *soid;
+    @synchronized(self) {
+        // this should be retain retained, but it's not used outside of this method, so we are OK
+        // XXX: if merging is ever implemented, then this needs to be updated for the deleted object
+        soid = persistentID;
+    }
+    if (soid) {
+        ScrobLog(SCROB_LOG_TRACE, @"[persistentSongWithContext:] OID cache hit");
+        return ([moc objectWithID:soid]);
+    }
+    #endif
+    
+    NSManagedObject *song = nil;
     NSError *error = nil;
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
@@ -1652,13 +1666,13 @@
         result = [NSArray arrayWithObject:[result objectAtIndex:0]];
     }
     if (1 == [result count]) {
-       return ([result objectAtIndex:0]);
+       song = [result objectAtIndex:0];
     }
     
     // XXX: This is a spurious (and much more expensive w/o the track num condition) search
     // for a track that does not exist in the db yet.
-    unsigned tno = [[self trackNumber] unsignedIntValue];
-    if (tno > 0) {        
+    unsigned tno;
+    if (!song && (tno = [[self trackNumber] unsignedIntValue]) > 0) {        
         predicate = [self matchingPredicateWithTrackNum:NO];
         [request setPredicate:predicate];
         result = [moc executeFetchRequest:request error:&error];
@@ -1673,19 +1687,30 @@
         }
         
         if (1 == [result count]) {
-            NSManagedObject *so = [result objectAtIndex:0];
-            if ([[so valueForKey:@"trackNumber"] unsignedIntValue] == 0) {
+            song = [result objectAtIndex:0];
+            if ([[song valueForKey:@"trackNumber"] unsignedIntValue] == 0) {
                 // XXX: we assume this is the same song in the music player DB, and the user just set the track number
-                [so setValue:[self trackNumber] forKey:@"trackNumber"];
-                return (so);
-            } /* else
-            The found track could be different.
-            There are several albums that contain different tracks musically but with the same title.
-            */
+                [song setValue:[self trackNumber] forKey:@"trackNumber"];
+            } else {
+                /* The found track could be different.
+                There are several albums that contain different tracks musically but with the same title. */
+                song = nil;
+            }
         }
     }
     
-    return (nil);
+    if (song) {
+        @synchronized(self) {
+            if (!persistentID)
+                persistentID = [song objectID];
+            #ifdef ISDEBUG
+            else
+                ISASSERT([persistentID isEqualTo:[song objectID]], "db object id's don't match!");
+            #endif
+        }
+    }
+    
+    return (song);
 }
 
 - (NSManagedObject*)createPersistentSongWithContext:(NSManagedObjectContext*)moc

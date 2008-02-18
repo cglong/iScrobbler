@@ -4,7 +4,7 @@
 //
 //  Created by Sam Ley on Thu Mar 20 2003.
 //  Major re-write in 2005 by Brian Bergstrand.
-//  Copyright (c) 2005-2007 Brian Bergstrand. All rights reserved.
+//  Copyright (c) 2005-2008 Brian Bergstrand. All rights reserved.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -97,7 +97,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 // Override copyWithZone so we can return copies of the object.
 - (id)copyWithZone: (NSZone *)zone
 {
-    SongData *copy = [[[self class] alloc] init];
+    SongData *copy = [[[self class] allocWithZone:zone] init];
 
     [copy setType:[self type]];
     [copy setiTunesDatabaseID:[self iTunesDatabaseID]];
@@ -118,6 +118,8 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [copy setPlayCount:[self playCount]];
     [copy setPlayerUUID:[self playerUUID]];
     [copy setLastFmAuthCode:[self lastFmAuthCode]];
+    
+    copy->persistentID = [persistentID retain];
     
     copy->iTunes = self->iTunes;
     copy->isLastFmRadio = self->isLastFmRadio;
@@ -1147,6 +1149,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [playCount release];
     [playerUUID release];
     [lastFmAuthCode release];
+    [persistentID release];
     [super dealloc];
 }    
 

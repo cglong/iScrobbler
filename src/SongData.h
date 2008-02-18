@@ -28,16 +28,16 @@ ISEXPORT_CLASS
 @interface SongData : NSObject <NSCopying> {
     unsigned int songID; // Internal id #
     u_int64_t iTunesDatabaseID; // iTunes track id
-    NSString * title;
-    NSNumber * duration;
-    NSNumber * position;
-    NSString * artist;
-    NSString * album;
-    NSString * path;
-    NSDate * startTime;
-    NSNumber * pausedTime;
-    NSDate * postDate;
-    NSDate * lastPlayed;
+    NSString *title;
+    NSNumber *duration;
+    NSNumber *position;
+    NSString *artist;
+    NSString *album;
+    NSString *path;
+    NSDate *startTime;
+    NSNumber *pausedTime;
+    NSDate *postDate;
+    NSDate *lastPlayed;
     NSNumber *rating;
     NSNumber *playlistID;
     NSString *sourceName;
@@ -49,6 +49,7 @@ ISEXPORT_CLASS
     NSMutableData *albumArtData;
     NSString *lastFmAuthCode;
     NSURLConnection *conn;
+    NSManagedObjectID *persistentID;
     TrackType_t trackType;
     unsigned trackNumber;
     unsigned isPodcast : 1;
