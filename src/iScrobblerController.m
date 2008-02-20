@@ -437,20 +437,17 @@ if (currentSong) { \
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
         } else {
             isStopped = YES;
-            ReleaseCurrentSong();
-            [npDetails setArtist:nil]; // clear data
         }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
-    if (!song) {
+    if (!song || (submissionsDisabled && ![song isLastFmRadio])) {
         isiTunesPlaying = NO;
-        [self updateMenu];
-        goto player_info_exit;
-    } else if (submissionsDisabled && ![song isLastFmRadio]) {
         [song release];
         song = nil;
         ReleaseCurrentSong();
+        [npDetails setArtist:nil]; // clear data
+        [self updateMenu];
         goto player_info_exit;
     }
     
