@@ -246,6 +246,8 @@
         ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception during init: %@", e);
     }
     
+    [pool release];
+    pool = [[NSAutoreleasePool alloc] init];
     do {
         @try {
         [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
