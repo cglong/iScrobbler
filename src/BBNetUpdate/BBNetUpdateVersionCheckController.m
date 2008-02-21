@@ -157,6 +157,10 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
     [request setValue:[BBNetUpdateVersionCheckController userAgent] forHTTPHeaderField:@"User-Agent"];
     NSDate *last = [BBNetUpdateVersionCheckController lastCheck];
+    if (last && [last isGreaterThan:[NSDate date]]) {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+        last = nil;
+    }
     if (!_interact && last) {
         NSString *since = [last descriptionWithCalendarFormat:HTTP_DATE_FMT_RAW
             timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
