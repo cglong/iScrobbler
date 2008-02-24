@@ -1200,8 +1200,12 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         hours, minutes, seconds];
     
     NSDate *startDate = [[self selectedSession] valueForKey:@"epoch"];
+    NSDate *endDate;
+    NSManagedObject *session = [self currentSession];
+    if (!(endDate = [session valueForKey:@"term"]))
+        endDate = [NSDate date];
     
-    NSTimeInterval elapsedSeconds =  [[NSDate date] timeIntervalSince1970] - [startDate timeIntervalSince1970];
+    NSTimeInterval elapsedSeconds =  [endDate timeIntervalSince1970] - [startDate timeIntervalSince1970];
     ISDurationsFromTime64(elapsedSeconds, &days, &hours, &minutes, &seconds);
     NSString *elapsedTime = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
