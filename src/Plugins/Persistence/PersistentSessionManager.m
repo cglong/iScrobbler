@@ -33,6 +33,7 @@
 @interface PersistentSessionManager (Private)
 - (BOOL)removeSongsBefore:(NSDate*)epoch inSession:(NSString*)sessionName moc:(NSManagedObjectContext*)moc;
 - (void)recreateHourCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;
+- (void)setNeedsScrub:(BOOL)needsScrub;
 @end
 
 @implementation PersistentSessionManager
