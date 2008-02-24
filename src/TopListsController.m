@@ -1093,12 +1093,12 @@ exit:
 #define TOP_RATINGS_TITLE NSLocalizedString(@"Top Ratings", "")
 #define TOP_HOURS_TITLE NSLocalizedString(@"Top Hours", "")
 
-- (NSString*) tableTitleWithString:(NSString*)tt
+- (NSString*)tableTitleWithString:(NSString*)tt
 {
     static NSDictionary *bclinks = nil;
     static NSArray *bctitles = nil;
     if (!bclinks) {
-        bctitles = [NSArray arrayWithObjects:
+        bctitles = [[NSArray alloc] initWithObjects:
             TOP_ARTISTS_TITLE,
             NEW_ARTISTS_TITLE,
             TOP_TRACKS_TITLE,
