@@ -140,7 +140,7 @@
     return (nil);
 }
 
-+ (void)crashReporter
++ (BOOL)crashReporter
 {
     NSString *bundleName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 #ifdef notyet
@@ -148,7 +148,7 @@
         bundleName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleExecutable"];
 #endif        
     if (!bundleName)
-        return;
+        return (NO);
     
     NSString *path;
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
@@ -180,14 +180,14 @@
     if (!path) {
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"CRLastCheck"];
         [[NSUserDefaults standardUserDefaults] synchronize];
-        return;
+        return (NO);
     }
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     }
     #endif
     
-    (void)[[ISCrashReporter alloc] initWithReportPath:path];
+    return ([[ISCrashReporter alloc] initWithReportPath:path] != nil);
 }
 
 @end
