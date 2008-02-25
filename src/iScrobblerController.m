@@ -1043,7 +1043,8 @@ player_info_exit:
 NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil)
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
-    [ISCrashReporter crashReporter];
+    if ([ISCrashReporter crashReporter])
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
     
     if (isTopListsActive) {
         if ([TopListsController willCreateNewProfile]) {
