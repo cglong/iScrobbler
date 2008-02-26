@@ -479,8 +479,6 @@
         [moc rollback];
     }
     
-    [moc reset]; // Free mem
-    
     ISEndTime();
     ScrobDebug(@"Synced %u tracks (of %u) in %.4lf seconds", importedTracks, totalTracks, (abs2clockns / 1000000000.0));
     
