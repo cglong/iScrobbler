@@ -1173,9 +1173,15 @@
 
 - (void)synchronizeDatabaseWithiTunes
 {
-    [[PersistentProfile sharedInstance] setImportInProgress:YES];
+    PersistentProfile *pp = [PersistentProfile sharedInstance];
+    if ([pp importInProgress]) {
+        ScrobLog(SCROB_LOG_WARN, @"synchronizeWithiTunes: The database is busy");
+        return;
+    }
+    
+    [pp setImportInProgress:YES];
     [[[[PersistentProfileImport alloc] init] autorelease] syncWithiTunes];
-    [[PersistentProfile sharedInstance] setImportInProgress:NO];
+    [pp setImportInProgress:NO];
     [self setNeedsScrub:YES];
     [self scrub:nil];
 }
