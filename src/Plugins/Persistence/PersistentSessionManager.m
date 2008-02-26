@@ -1173,6 +1173,8 @@
 
 - (void)synchronizeDatabaseWithiTunes
 {
+    // We require the extended scrubbing of the 10.5 plugin
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     PersistentProfile *pp = [PersistentProfile sharedInstance];
     if ([pp importInProgress]) {
         ScrobLog(SCROB_LOG_WARN, @"synchronizeWithiTunes: The database is busy");
@@ -1184,6 +1186,9 @@
     [pp setImportInProgress:NO];
     [self setNeedsScrub:YES];
     [self scrub:nil];
+    #else
+    ScrobLog(SCROB_LOG_WARN, @"synchronizeWithiTunes: not supported with this OS version");
+    #endif
 }
 
 // singleton support
