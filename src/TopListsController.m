@@ -263,8 +263,11 @@ static NSMutableArray *topHours = nil;
         [self didChangeValueForKey:@"loading"];
     } else if ([imported unsignedIntValue] > 0)
         msg = [NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "import progress"), imported, total];
-    else
+    else {
         msg = NSLocalizedString(@"Reading iTunes library.", "");
+        [self willChangeValueForKey:@"loading"];
+        [self didChangeValueForKey:@"loading"];
+    }
     
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Import Progress", "") message:msg];
 }
@@ -1518,6 +1521,35 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, DOCCLOSE);
     
     return (d);
+}
+
+@end
+
+@interface PersistentProfile (SessionManagement)
+- (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object;
+@end
+
+@interface ISChartsScriptCommand : NSScriptCommand {
+}
+@end
+
+@implementation ISChartsScriptCommand
+
+- (id)performDefaultImplementation
+{
+    switch ([[self commandDescription] appleEventCode]) {
+        case (FourCharCode)'SylC': // synchronize local charts
+            if ([TopListsController isActive]) {
+                PersistentProfile *profile = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+                [profile performSelectorOnSessionMgrThread:@selector(synchronizeDatabaseWithiTunes) withObject:nil];
+                //[profile performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
+            }
+        break;
+        default:
+            ScrobLog(SCROB_LOG_TRACE, @"ISChartsScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
+        break;
+    }
+    return (nil);
 }
 
 @end

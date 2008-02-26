@@ -29,6 +29,8 @@
 - (NSArray*)artistsForSession:(id)session moc:(NSManagedObjectContext*)moc;
 - (NSArray*)albumsForSession:(id)session moc:(NSManagedObjectContext*)moc;
 
+- (void)synchronizeDatabaseWithiTunes;
+
 @end
 
 @interface PersistentSessionManager (SongAdditions)

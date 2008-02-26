@@ -49,6 +49,9 @@
 			<responds-to name="skip current track">
 				<cocoa method=""/>
 			</responds-to>
+			<responds-to name="synchronize local charts with itunes">
+				<cocoa method=""/>
+			</responds-to>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
 			<cocoa class="ISRadioController"/>
@@ -116,6 +119,9 @@
 		</command>
 		<command name="skip current track" code="iSCbSkpS" description="Skip the currently playing track.">
 			<cocoa class="ISAppScriptCommand"/>
+		</command>
+		<command name="synchronize local charts with itunes" code="iSCbSylC" description="Synchronize the play counts of the tracks in the local charts database with those in iTunes.">
+			<cocoa class="ISChartsScriptCommand"/>
 		</command>
 	</suite>
 </dictionary>

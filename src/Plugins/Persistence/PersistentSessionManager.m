@@ -9,6 +9,7 @@
 //
 #import "PersistentSessionManager.h"
 #import "Persistence.h"
+#import "PersistenceImport.h"
 #import "ISThreadMessenger.h"
 #import "SongData.h"
 
@@ -1170,6 +1171,15 @@
     return (thMsgr);
 }
 
+- (void)synchronizeDatabaseWithiTunes
+{
+    [[PersistentProfile sharedInstance] setImportInProgress:YES];
+    [[[[PersistentProfileImport alloc] init] autorelease] syncWithiTunes];
+    [[PersistentProfile sharedInstance] setImportInProgress:NO];
+    [self setNeedsScrub:YES];
+    [self scrub:nil];
+}
+
 // singleton support
 + (PersistentSessionManager*)sharedInstance
 {
@@ -1448,8 +1458,8 @@
         NSManagedObject *sessionSong, *session;
         NSArray *sessions = [[self activeSessionsWithMOC:moc] arrayByAddingObjectsFromArray:
             // we get archives in case the user played songs from an iPod and an older session needs to be updated
-            // limiting to 5 will get us the past 5 weeks of the last.fm weeklies (which are currently the only sessions archived)
-            [self archivedSessionsWithMOC:moc weekLimit:5]];
+            // limiting to 6 will get us the past 6 weeks of the last.fm weeklies (which are currently the only sessions archived)
+            [self archivedSessionsWithMOC:moc weekLimit:6]];
         NSEnumerator *en = [sessions objectEnumerator];
         entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
         NSString *sessionName;
@@ -1610,14 +1620,23 @@
     NSPredicate *predicate;
     NSString *aTitle;
     if ((aTitle = [self album]) && [aTitle length] > 0) {
-        NSNumber *trackNo = [self trackNumber];
-        if ([trackNo unsignedIntValue] > 0 && includeTrackNum) {
-            predicate = [NSPredicate predicateWithFormat:
-                @"(itemType == %@) AND (trackNumber == %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
-                ITEM_SONG, trackNo,
-                [[self artist] stringByEscapingNSPredicateReserves],
-                [aTitle stringByEscapingNSPredicateReserves],
-                [[self title] stringByEscapingNSPredicateReserves]];
+        if (includeTrackNum) {
+            NSNumber *trackNo = [self trackNumber];
+            if ([trackNo unsignedIntValue] > 0) {
+                predicate = [NSPredicate predicateWithFormat:
+                    @"(itemType == %@) AND (trackNumber == %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
+                    ITEM_SONG, trackNo,
+                    [[self artist] stringByEscapingNSPredicateReserves],
+                    [aTitle stringByEscapingNSPredicateReserves],
+                    [[self title] stringByEscapingNSPredicateReserves]];
+            } else {
+                predicate = [NSPredicate predicateWithFormat:
+                    @"(itemType == %@) AND ((trackNumber == NULL) OR (trackNumber == 0)) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
+                    ITEM_SONG,
+                    [[self artist] stringByEscapingNSPredicateReserves],
+                    [aTitle stringByEscapingNSPredicateReserves],
+                    [[self title] stringByEscapingNSPredicateReserves]];
+            }
         } else {
             predicate = [NSPredicate predicateWithFormat:
                 @"(itemType == %@) AND (artist.name LIKE[cd] %@) AND (album.name LIKE[cd] %@) AND (name LIKE[cd] %@)",
@@ -1678,13 +1697,14 @@
     if (!song && (tno = [[self trackNumber] unsignedIntValue]) > 0) {        
         predicate = [self matchingPredicateWithTrackNum:NO];
         [request setPredicate:predicate];
+        // w/o the track num condition, we could get multiples - sort them so those w/o a track num are first
+        [request setSortDescriptors:[NSArray arrayWithObject:
+            [[[NSSortDescriptor alloc] initWithKey:@"trackNumber" ascending:NO] autorelease]]];
+        
         result = [moc executeFetchRequest:request error:&error];
         if ([result count] > 1) {
-            #ifdef ISINTERNAL
-            ISASSERT(0 == [result count], "multiple songs found in db!");
-            #endif
             (void)[result valueForKeyPath:@"name"]; // make sure they are faulted in for logging
-            ScrobLog(SCROB_LOG_ERR, @"Multiple songs found in database! {{%@}}", result);
+            ScrobLog(SCROB_LOG_WARN, @"Multiple songs found in database! {{%@}}", result);
             ScrobLog(SCROB_LOG_WARN, @"Using first song found.");
             result = [NSArray arrayWithObject:[result objectAtIndex:0]];
         }

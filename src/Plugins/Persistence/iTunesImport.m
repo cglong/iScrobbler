@@ -10,7 +10,6 @@
 
 #import "ISiTunesLibrary.h"
 
-
 @interface SongData (iTunesImport)
 - (SongData*)initWithiTunesXMLTrack:(NSDictionary*)track;
 @end
@@ -18,6 +17,7 @@
 // in PersistentSessionManager.m
 @interface SongData (PersistentAdditions)
 - (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum;
+- (NSManagedObject*)persistentSongWithContext:(NSManagedObjectContext*)moc;
 @end
 
 @implementation PersistentProfileImport
@@ -234,7 +234,7 @@
         @throw ([NSException exceptionWithName:NSGenericException reason:@"iTunes XML Library not found" userInfo:nil]);
     }
     
-    // Sorting the array allows us to optimze the import by eliminating the need to search for existing artist/albums
+    // Sorting the array allows us to optimze the import by eliminating the need to search for existing artist/albums in our nacent db
     NSArray *allTracks = [[[iTunesLib objectForKey:@"Tracks"] allValues]
         sortedArrayUsingDescriptors:[NSArray arrayWithObjects:
         [[[NSSortDescriptor alloc] initWithKey:@"Artist" ascending:YES selector:@selector(caseInsensitiveCompare:)] autorelease],
@@ -338,6 +338,153 @@
     [pool release];
     
     [NSThread exit];
+}
+
+- (void)syncWithiTunes
+{
+    u_int32_t totalTracks = 0;
+    u_int32_t importedTracks = 0;
+    ISElapsedTimeInit();
+
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    ISASSERT(moc == nil, "existing MOC!");
+    moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing thread MOC!");
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+
+    @try {
+    
+    // begin import note
+    NSNotification *note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
+            [NSNumber numberWithUnsignedInt:0], @"imported", nil]];
+    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+    
+    ISStartTime();
+    
+    NSDictionary *iTunesLib;
+    if (!(iTunesLib = [[ISiTunesLibrary sharedInstance] load])) {
+        @throw ([NSException exceptionWithName:NSGenericException reason:@"iTunes XML Library not found" userInfo:nil]);
+    }
+    
+    NSArray *allTracks = [[[iTunesLib objectForKey:@"Tracks"] allValues] retain];
+    NSString *uuid = [[iTunesLib objectForKey:@"Library Persistent ID"] retain];
+    iTunesLib = nil;
+    
+    [pool release];
+    pool = [[NSAutoreleasePool alloc] init];
+    (void)[allTracks autorelease];
+    (void)[uuid autorelease];
+    
+    ISEndTime();
+    ScrobDebug(@"Opened iTunes Library in %.4lf seconds", (abs2clockns / 1000000000.0));
+    ISStartTime();
+    
+    totalTracks = (typeof(totalTracks))[allTracks count];
+    
+    BOOL skipDisabled = [[NSUserDefaults standardUserDefaults] boolForKey:@"iTunesImportSkipDisabledTrack"];
+    NSDictionary *track;
+    NSEnumerator *en = [allTracks objectEnumerator];
+    SongData *song;
+    NSMutableSet *processedSongs = [NSMutableSet set];
+    PersistentSessionManager *psm = [[PersistentProfile sharedInstance] sessionManager];
+    
+    NSAutoreleasePool *trackPool = [[NSAutoreleasePool alloc] init];
+    while ((track = [en nextObject])) {
+        @try {
+            song = [[[SongData alloc] initWithiTunesXMLTrack:track] autorelease];
+        } @catch (id e) {
+            song = nil;
+            ScrobLog(SCROB_LOG_WARN, @"exception while creating iTunes track %@ (%@)",
+                [NSString stringWithFormat:@"'%@ by %@'", [track objectForKey:@"Name"],
+                    [track objectForKey:@"Artist"]],
+                e);
+        }
+        
+        BOOL disabled = [track objectForKey:@"Disabled"] ? [[track objectForKey:@"Disabled"] boolValue] : NO;
+        if (!song || [song ignore] || (skipDisabled && disabled))
+            continue;
+        
+        NSManagedObject *psong = [song persistentSongWithContext:moc];
+        if (psong) {
+            NSNumber *playCount;
+            #if IS_STORE_V2
+            playCount = [NSNumber numberWithUnsignedLongLong:
+                [[track objectForKey:@"Play Count"] unsignedIntValue] + [[psong valueForKey:@"nonLocalPlayCount"] unsignedIntValue]];
+            #else
+            playCount = [track objectForKey:@"Play Count"];
+            #endif
+            NSNumber *playTime = [NSNumber numberWithUnsignedLongLong:
+                (u_int64_t)[playCount unsignedIntValue] * (u_int64_t)[[psong valueForKey:@"duration"] unsignedIntValue]];
+            
+            BOOL dupe = [processedSongs containsObject:psong];
+            if ([playCount isNotEqualTo:[psong valueForKey:@"playCount"]]
+                || [playTime isNotEqualTo:[psong valueForKey:@"playTime"]] || dupe) {
+                ScrobLog(SCROB_LOG_TRACE, @"%@ counts don't match: iTunes count=%@, DB count=%@, iTunes time=%@, DB time=%@",
+                    [song brief], playCount, [psong valueForKey:@"playCount"], playTime, [psong valueForKey:@"playTime"]);
+                
+                if ([[[song lastPlayed] GMTDate] isGreaterThan:[[psong valueForKey:@"lastPlayed"] GMTDate]])
+                    [psong setValue:[song lastPlayed] forKey:@"lastPlayed"];
+                
+                if (NO == dupe) {
+                    [psong setValue:playCount forKey:@"playCount"];
+                    [psong setValue:playTime forKey:@"playTime"];
+                    [processedSongs addObject:psong];
+                } else {
+                    ScrobLog(SCROB_LOG_TRACE, @"duplicate song: %@", [song brief]);
+                    [psong incrementPlayCount:playCount];
+                    [psong incrementPlayTime:playTime];
+                }   
+            } else
+                [psong refreshSelf]; // release mem
+            
+            ++importedTracks;
+        } else {
+            [psm addSongPlay:song withImportedPlayCount:[track objectForKey:@"Play Count"] moc:moc];
+            ScrobLog(SCROB_LOG_TRACE, @"iTunes sync: added song %@", [song brief]);
+        }
+        
+        if (0 == (importedTracks % 100)) {
+            [trackPool release];
+            trackPool = [[NSAutoreleasePool alloc] init];
+            
+            note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+                [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
+                    [NSNumber numberWithUnsignedInt:importedTracks], @"imported", nil]];
+            [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+#ifdef ISDEBUG
+            ISEndTime();
+            ScrobDebug(@"Synchronized %u tracks (of %u) in %.4lf seconds", importedTracks, totalTracks, (abs2clockns / 1000000000.0));
+#endif
+        }
+    }
+    
+    // end import note
+    note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+        [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInt:totalTracks] forKey:@"total"]];
+    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+
+    [trackPool release];
+    trackPool = nil;
+    
+    if (uuid && [uuid length] > 0) {
+        [[[PersistentProfile sharedInstance] playerWithName:@"iTunes" moc:moc] setValue:uuid forKey:@"libraryUUID"];
+    }
+    
+    [moc save:nil];
+        
+    } @catch (id e) {
+        ScrobLog(SCROB_LOG_ERR, @"exception while syncing iTunes library (%@)", e);
+        [moc rollback];
+    }
+    
+    [moc reset]; // Free mem
+    
+    ISEndTime();
+    ScrobDebug(@"Synced %u tracks (of %u) in %.4lf seconds", importedTracks, totalTracks, (abs2clockns / 1000000000.0));
+    
+    [pool release];
 }
 
 @end
