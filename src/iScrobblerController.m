@@ -1348,8 +1348,15 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 
 - (IBAction)openUserHomepage:(id)sender
 {
-    NSString *prefix = @"http://www.last.fm/user/";
-    NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
+    NSString *prefix = [[NSUserDefaults standardUserDefaults] stringForKey:@"LastFM User URL"];
+    NSURL *url;
+    @try {
+        url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
+    } @catch (NSException *e) {
+        NSBeep();
+        return;
+    }
+    
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
