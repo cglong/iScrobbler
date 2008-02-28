@@ -43,7 +43,7 @@
 @end
 
 static ProtocolManager *g_PM = nil;
-static SCNetworkReachabilityRef g_networkReachRef = nil;
+static SCNetworkReachabilityRef netReachRef = nil;
 
 static void NetworkReachabilityCallback (SCNetworkReachabilityRef target, 
     SCNetworkConnectionFlags flags, void *info);
@@ -759,12 +759,17 @@ didFinishLoadingExit:
 - (void)setIsNetworkAvailable:(BOOL)available
 {
     if (isNetworkAvailable != available) {
-        lastNetCheck = 0;
+        lastNetCheck = 0.0;
         
         NSString *msg = @"", *logmsg = @"";
-        if ((isNetworkAvailable = available))
+        if ((isNetworkAvailable = available)) {
             handshakeDelay = nextResubmission = HANDSHAKE_DEFAULT_DELAY;
-        else {
+            // XXX: if g_PM is nil, then we are being called from [init].
+            // As the QM has probably not been created yet, this will cause an infite recursion
+            // of new instances of us and the QM.
+            if (g_PM && [[QueueManager sharedInstance] count])
+                [self submit:nil];
+        } else {
             msg = [self netDiagnostic];
             logmsg = [NSString stringWithFormat:@" (%@)", msg];
         }
@@ -788,19 +793,67 @@ didFinishLoadingExit:
 ( ((flags) & kSCNetworkFlagsReachable) && (0 == ((flags) & kSCNetworkFlagsConnectionRequired) || \
   ((flags) & kSCNetworkFlagsConnectionAutomatic)) )
 
+- (BOOL)registerNetMonitor
+{
+    SCNetworkReachabilityContext reachContext = {0,};
+    
+    if (netReachRef) {
+        ScrobLog(SCROB_LOG_TRACE, @"Rescheduling network monitor.");
+        (void)SCNetworkReachabilitySetCallback(netReachRef, NULL, &reachContext);
+        (void)SCNetworkReachabilityUnscheduleFromRunLoop(netReachRef,
+            [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopCommonModes);
+        CFRelease(netReachRef);
+        netReachRef = NULL;
+    }
+
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
+        netReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
+            [[[NSURL URLWithString:[self handshakeURL]] host] cStringUsingEncoding:NSASCIIStringEncoding]);
+        
+        if (netReachRef)
+            [self checkNetReach:YES]; // Get the current state
+        
+        // Install a callback to get notified of iface up/down events
+        reachContext.info = self;
+        if (netReachRef && SCNetworkReachabilitySetCallback(netReachRef, NetworkReachabilityCallback, &reachContext)
+            && SCNetworkReachabilityScheduleWithRunLoop(netReachRef,
+                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopCommonModes)) {
+            return (YES);
+        } else {
+            ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor - assuming network is always available.");
+            if (netReachRef) {
+                reachContext.info = NULL;
+                (void)SCNetworkReachabilitySetCallback(netReachRef, NULL, &reachContext);
+                CFRelease(netReachRef);
+                netReachRef = NULL;
+            }
+        }
+    } else { // @"IgnoreNetworkMonitor"
+        ScrobLog(SCROB_LOG_INFO, @"Ignoring network status monitor - assuming network is always available.");
+    }
+    
+    isNetworkAvailable = NO;
+    [self setIsNetworkAvailable:YES];
+    return (NO);
+}
+
 - (void)checkNetReach:(BOOL)force
 {
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-    if (now < (lastNetCheck+3600.0) && !force)
+    if (!force && now < (lastNetCheck+3600.0))
         return;
     lastNetCheck = now;
     
     SCNetworkConnectionFlags connectionFlags;
-    if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) &&
-         IsNetworkUp(connectionFlags)) {
+    Boolean flagsOK;
+    if ((flagsOK = SCNetworkReachabilityGetFlags(netReachRef, &connectionFlags)) && IsNetworkUp(connectionFlags)) {
         [self setIsNetworkAvailable:YES];
     } else {
         [self setIsNetworkAvailable:NO];
+        if (!flagsOK) {
+            // avoid recursion
+            [self performSelector:@selector(registerNetMonitor) withObject:nil afterDelay:1.0];
+        }
     }
 }
 
@@ -910,36 +963,9 @@ static int npDelays = 0;
         [song release];
     }
     
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
-        g_networkReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
-            [[[NSURL URLWithString:[self handshakeURL]] host] cStringUsingEncoding:NSASCIIStringEncoding]);
-        // Get the current state
-        SCNetworkConnectionFlags connectionFlags;
-        if (SCNetworkReachabilityGetFlags(g_networkReachRef, &connectionFlags) && IsNetworkUp(connectionFlags)) {
-            [self setIsNetworkAvailable:YES];
-        } else {
-            // XXX isNetworkAvailable is initialized to false during alloc, set it to true
-            // so [self setIsNetworkAvailable:] sends the notification that the network is down
-            isNetworkAvailable = YES;
-            [self setIsNetworkAvailable:NO];
-        }
-        // Install a callback to get notified of iface up/down events
-        SCNetworkReachabilityContext reachContext = {0};
-        reachContext.info = self;
-        if (!SCNetworkReachabilitySetCallback(g_networkReachRef, NetworkReachabilityCallback, &reachContext) ||
-             !SCNetworkReachabilityScheduleWithRunLoop(g_networkReachRef,
-                [[NSRunLoop currentRunLoop] getCFRunLoop], kCFRunLoopCommonModes))
-        {
-            ScrobLog(SCROB_LOG_WARN, @"Could not create network status monitor - assuming network is always available.\n");
-            isNetworkAvailable = YES;
-        }
-        
-        // There's some bug in Tiger that causes notification events to not be sent (sometimes) on wake.
+    if ([self registerNetMonitor]) {
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
-    } else { // @"IgnoreNetworkMonitor"
-        ScrobLog(SCROB_LOG_INFO, @"Ignoring network status monitor - assuming network is always available.\n");
-        isNetworkAvailable = YES;
     }
     
     // Indicate that we have not yet handshaked
@@ -1037,11 +1063,9 @@ static int npDelays = 0;
 static void NetworkReachabilityCallback (SCNetworkReachabilityRef target, 
     SCNetworkConnectionFlags flags, void *info)
 {
-    ProtocolManager *pm = (ProtocolManager*)info;
     BOOL up = IsNetworkUp(flags);
-    
     ScrobTrace(@"Connection flags: %x.\n", flags);
+    
+    ProtocolManager *pm = (ProtocolManager*)info;
     [pm setIsNetworkAvailable:up];
-    if (up && [[QueueManager sharedInstance] count])
-        [pm submit:nil];
 }

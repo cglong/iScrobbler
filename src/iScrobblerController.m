@@ -437,20 +437,17 @@ if (currentSong) { \
                 ScrobLog(SCROB_LOG_ERR, @"Error creating track with info: %@\n", info);
         } else {
             isStopped = YES;
-            ReleaseCurrentSong();
-            [npDetails setArtist:nil]; // clear data
         }
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_ERR, @"Exception creating track (%@): %@\n", info, exception);
     }
-    if (!song) {
+    if (!song || (submissionsDisabled && ![song isLastFmRadio])) {
         isiTunesPlaying = NO;
-        [self updateMenu];
-        goto player_info_exit;
-    } else if (submissionsDisabled && ![song isLastFmRadio]) {
         [song release];
         song = nil;
         ReleaseCurrentSong();
+        [npDetails setArtist:nil]; // clear data
+        [self updateMenu];
         goto player_info_exit;
     }
     
@@ -1046,7 +1043,8 @@ player_info_exit:
 NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil)
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
-    [ISCrashReporter crashReporter];
+    if ([ISCrashReporter crashReporter])
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
     
     if (isTopListsActive) {
         if ([TopListsController willCreateNewProfile]) {
@@ -1350,8 +1348,15 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 
 - (IBAction)openUserHomepage:(id)sender
 {
-    NSString *prefix = @"http://www.last.fm/user/";
-    NSURL *url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
+    NSString *prefix = [[NSUserDefaults standardUserDefaults] stringForKey:@"LastFM User URL"];
+    NSURL *url;
+    @try {
+        url = [NSURL URLWithString:[prefix stringByAppendingString:[prefs stringForKey:@"username"]]];
+    } @catch (NSException *e) {
+        NSBeep();
+        return;
+    }
+    
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 

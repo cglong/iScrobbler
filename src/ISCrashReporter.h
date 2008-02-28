@@ -14,6 +14,6 @@
 
 }
 
-+ (void)crashReporter;
++ (BOOL)crashReporter;
 
 @end

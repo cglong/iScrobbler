@@ -78,7 +78,7 @@
     
     NSString *preamble = [@"\n" stringByAppendingFormat:@"%@ %@", bundleName,
         // XXX: iScrobbler specific
-        NSLocalizedString(@"appears to have crashed the last time you used it. Please copy the following text and report this in the iScrobbler support forum at http://www.last.fm/group/iScrobbler/forum. If possible, please also describe what you were doing when the crash occurred.\n\n", "")];
+        NSLocalizedString(@"appears to have crashed the last time you used it. Check that you are using the very latest version, and if so please copy the following text and report this in the iScrobbler support forum at http://www.last.fm/group/iScrobbler/forum. If possible, please also describe what you were doing when the crash occurred.\n\n", "")];
     NSAttributedString *s = [[[NSMutableAttributedString alloc] initWithString:preamble] autorelease];
     r = [preamble rangeOfString:@"http://www.last.fm/group/iScrobbler/forum"];
     [(NSMutableAttributedString*)s setAttributes:
@@ -140,7 +140,7 @@
     return (nil);
 }
 
-+ (void)crashReporter
++ (BOOL)crashReporter
 {
     NSString *bundleName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 #ifdef notyet
@@ -148,7 +148,7 @@
         bundleName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleExecutable"];
 #endif        
     if (!bundleName)
-        return;
+        return (NO);
     
     NSString *path;
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
@@ -180,14 +180,14 @@
     if (!path) {
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"CRLastCheck"];
         [[NSUserDefaults standardUserDefaults] synchronize];
-        return;
+        return (NO);
     }
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     }
     #endif
     
-    (void)[[ISCrashReporter alloc] initWithReportPath:path];
+    return ([[ISCrashReporter alloc] initWithReportPath:path] != nil);
 }
 
 @end

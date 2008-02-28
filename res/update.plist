@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.1.0b5</string>
+        <string>2.1.0</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.0b5.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.0.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -19,14 +19,17 @@
         <dict>
 			<key>English</key>
 			<string>- Leopard only: new Profile stat - per-session new artists.
-- New Local Charts session: Yesterday
 - The complete play history can be viewed for tracks in the Local Charts.
+- New Local Charts session: Yesterday
+- The Profile Report now contains breadcrumb navigation links to jump to specific sections in the report.
+- Leopard only: Added 'synchronize local charts with itunes' Applescript command.
 - The Statistics window is gone. Everything it did was available elsewhere.
 - Artist Details are now displayed in separate windows instead of drawers.
 - Radio controls are disabled while waiting for a response from Last.fm.
 - Added 'skip current track' Applescript command.
 - iScrobbler now supports the Play media player.
-- Bug Fixes for ApplesScript on Leopard, Radio, and iTunes import.
+- Very basic message window replacement for those who don't wish to install Growl.
+- Bug Fixes for ApplesScript on Leopard, Radio, iTunes import, and more.
 		</string>
         </dict>
 </dict>

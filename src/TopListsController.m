@@ -263,8 +263,11 @@ static NSMutableArray *topHours = nil;
         [self didChangeValueForKey:@"loading"];
     } else if ([imported unsignedIntValue] > 0)
         msg = [NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "import progress"), imported, total];
-    else
+    else {
         msg = NSLocalizedString(@"Reading iTunes library.", "");
+        [self willChangeValueForKey:@"loading"];
+        [self didChangeValueForKey:@"loading"];
+    }
     
     [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Import Progress", "") message:msg];
 }
@@ -1093,12 +1096,12 @@ exit:
 #define TOP_RATINGS_TITLE NSLocalizedString(@"Top Ratings", "")
 #define TOP_HOURS_TITLE NSLocalizedString(@"Top Hours", "")
 
-- (NSString*) tableTitleWithString:(NSString*)tt
+- (NSString*)tableTitleWithString:(NSString*)tt
 {
     static NSDictionary *bclinks = nil;
     static NSArray *bctitles = nil;
     if (!bclinks) {
-        bctitles = [NSArray arrayWithObjects:
+        bctitles = [[NSArray alloc] initWithObjects:
             TOP_ARTISTS_TITLE,
             NEW_ARTISTS_TITLE,
             TOP_TRACKS_TITLE,
@@ -1200,8 +1203,12 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         hours, minutes, seconds];
     
     NSDate *startDate = [[self selectedSession] valueForKey:@"epoch"];
+    NSDate *endDate;
+    NSManagedObject *session = [self currentSession];
+    if (!(endDate = [session valueForKey:@"term"]))
+        endDate = [NSDate date];
     
-    NSTimeInterval elapsedSeconds =  [[NSDate date] timeIntervalSince1970] - [startDate timeIntervalSince1970];
+    NSTimeInterval elapsedSeconds =  [endDate timeIntervalSince1970] - [startDate timeIntervalSince1970];
     ISDurationsFromTime64(elapsedSeconds, &days, &hours, &minutes, &seconds);
     NSString *elapsedTime = [NSString stringWithFormat:@"%u %@, %u:%02u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
@@ -1514,6 +1521,35 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, DOCCLOSE);
     
     return (d);
+}
+
+@end
+
+@interface PersistentProfile (SessionManagement)
+- (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object;
+@end
+
+@interface ISChartsScriptCommand : NSScriptCommand {
+}
+@end
+
+@implementation ISChartsScriptCommand
+
+- (id)performDefaultImplementation
+{
+    switch ([[self commandDescription] appleEventCode]) {
+        case (FourCharCode)'SylC': // synchronize local charts
+            if ([TopListsController isActive]) {
+                PersistentProfile *profile = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+                [profile performSelectorOnSessionMgrThread:@selector(synchronizeDatabaseWithiTunes) withObject:nil];
+                //[profile performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
+            }
+        break;
+        default:
+            ScrobLog(SCROB_LOG_TRACE, @"ISChartsScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
+        break;
+    }
+    return (nil);
 }
 
 @end

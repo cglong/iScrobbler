@@ -12,6 +12,7 @@
 
 #import "Persistence.h"
 #import "PersistentSessionManager.h"
+#import "PersistenceImport.h"
 #import "SongData.h"
 #import "ISThreadMessenger.h"
 
@@ -26,16 +27,6 @@ Performance of the SQL store can be SEVERLY impacted by a slow hard disk (e.g. 4
 On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should help a lot
 (at the risk of data corruption if the machine crashes or loses power).
 **/
-
-@interface PersistentProfileImport : NSObject {
-    PersistentProfile *profile;
-    NSString *currentArtist, *currentAlbum;
-    NSManagedObjectContext *moc;
-    NSManagedObject *moArtist, *moAlbum, *moSession, *mosArtist, *mosAlbum, *moPlayer;
-}
-
-- (void)importiTunesDB:(id)obj;
-@end
 
 @interface PersistentSessionManager (Private)
 - (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;

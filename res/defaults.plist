@@ -66,6 +66,9 @@
     <key>iTunesImportSkipDisabledTrack</key>
     <false />
     
+    <key>LastFM User URL</key>
+    <string>http://www.last.fm/user/</string>
+    
     <key>LocalChartsSessionName</key>
     <string>lastfm</string>
     

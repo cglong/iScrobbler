@@ -15,18 +15,24 @@ CHANGE HISTORY:
 
 v2.1 (BDB)
 - Leopard only: New local charts database that allows a new stat in the Profile report - per-session new artists.
-- The complete play history (since iScrobbler started tracking plays) can be viewed for tracks in the Local Charts.
+- The complete play history (since iScrobbler started tracking plays) can be viewed for the currently playing track and tracks in the Local Charts.
 - New Local Charts session: Yesterday
+- The Profile Report now contains breadcrumb navigation links to jump to specific sections in the report.
+- Leopard only: Added 'synchronize local charts with itunes' Applescript command. This verifies play count/time in the local charts database with those in the iTunes database.
 - The Statistics window is gone. Everything it did was available elsewhere with the exception of the Artist Details for the current track; that is now available via the song sub-menu.
 - Artist Details are now displayed in separate windows instead of drawers.
 - Radio controls are disabled while waiting for a response from Last.fm.
 - Added 'skip current track' Applescript command.
 - iScrobbler now supports the Play media player (http://sbooth.org/Play/).
-- Very basic message window replacement for those that don't wish to install Growl.
+- Very basic message window replacement for those who don't wish to install Growl.
 - 512x512 app icon for Leopard.
-- Bug Fix: AppleScript 'radio controller' properties work on Leopard.
-- Bug Fix: Incorrect 'Top Hours' data in the Profile report when switching time zones.
+- Bug Fix; Workaround for a possible system bug that caused the network monitor to stop working.
+- Bug Fix: Regression - Recommending a track/artist/album works once more. (Thanks last.fm for silently changing the protocol!)
+- Bug Fix: When sorting the Local Charts artists by "Play Time", 10 m/h/d will be greater than 2 m/h/d.
+- Bug Fix: Incorrect elapsed time in the Profile Report for a chart that was limited to a finite period (archives).
+- Bug Fix: Incorrect 'Top Hours' data in the Profile Report when switching time zones.
 - Bug Fix: Bug in Local Charts iTunes import that would result in incorrect totals for the Overall session if iTunes contained duplicate songs.
+- Bug Fix: AppleScript 'radio controller' properties work on Leopard.
 - Bug Fix: Radio stations that contained spaces failed to tune when selected from the Radio history.
 - Bug Fix: The iScrobbler keychain entry was not updated properly if the user name was changed.
 - Bug Fix: Regression - The log files were not being truncated when they got too big.

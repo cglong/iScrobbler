@@ -389,6 +389,7 @@
 		D3C3FBA60C9D95A3001AEFEA /* ASWebServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASWebServices.m; path = src/ASWebServices.m; sourceTree = "<group>"; };
 		D3C3FBB40C9DACA6001AEFEA /* ISRadioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISRadioController.h; path = src/ISRadioController.h; sourceTree = "<group>"; };
 		D3C3FBB50C9DACA6001AEFEA /* ISRadioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISRadioController.m; path = src/ISRadioController.m; sourceTree = "<group>"; };
+		D3C65F1F0D72D32900E4DFC5 /* PersistenceImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PersistenceImport.h; sourceTree = "<group>"; };
 		D3CA425E0D23FD71006CB485 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/PlayHistory.xib; sourceTree = "<group>"; };
 		D3CA42620D23FDB4006CB485 /* PlayHistoryController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayHistoryController.h; path = src/PlayHistoryController.h; sourceTree = "<group>"; };
 		D3CA42630D23FDB4006CB485 /* PlayHistoryController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayHistoryController.m; path = src/PlayHistoryController.m; sourceTree = "<group>"; };
@@ -645,6 +646,7 @@
 				D3760C640CB421A400C04863 /* Persistence.h */,
 				D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */,
 				D3F4A4E60CC56EA9000DCBB6 /* PersistentSessionManager.h */,
+				D3C65F1F0D72D32900E4DFC5 /* PersistenceImport.h */,
 				D37619A10CBA576000C04863 /* iTunesImport.m */,
 				D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */,
 				D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */,
