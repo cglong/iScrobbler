@@ -407,8 +407,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)writeSubLogEntry:(unsigned)sid withTrackCount:(NSUInteger)count withData:(NSData*)data
 {
     @try {
-    [subLog writeData:[[NSString stringWithFormat:@"[id=%u,ct=%lu,sz=%lu]\n", sid, count, [data length]]
-        dataUsingEncoding:NSUTF8StringEncoding]];
+    NSString *timestamp = [[NSDate date] descriptionWithCalendarFormat:@"%Y/%m/%e %H:%M:%S GMT"
+        timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
+    [subLog writeData:[[NSString stringWithFormat:@"[%@, attempt=%u, track count=%lu, size=%lu]\n",
+        timestamp, sid, count, [data length]] dataUsingEncoding:NSUTF8StringEncoding]];
     [subLog writeData:data];
     [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
     } @catch(id e) {}
@@ -899,7 +901,7 @@ static int npDelays = 0;
         
         ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
         if (SCROB_LOG_TRACE == ScrobLogLevel())
-            [self writeSubLogEntry:UINT_MAX withTrackCount:1 withData:[request HTTPBody]];
+            [self writeSubLogEntry:0 withTrackCount:1 withData:[request HTTPBody]];
     } else if (npDelays < 3) {
         [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+=1) * 1.0];
     } else {
