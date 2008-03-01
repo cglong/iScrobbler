@@ -5,6 +5,7 @@
 //  Created by Sam Ley on Feb 14, 2003.
 //  Re-written in late 2004 by Eric Seidel.
 //  Copyright 2004 Eric Seidel.
+//  Copyright 2008 Brian Bergstrand
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -66,6 +67,8 @@
     
     if (![oldUserName isEqualToString:username])
         [[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:oldUserName];
+    else
+        oldUserName = nil;
     
     NSString *newPasswd = [passwordField stringValue];
 	if(![newPasswd isEqualToString:@""]) {
@@ -75,6 +78,7 @@
             @try {
                 [[KeyChain defaultKeyChain] setGenericPassword:newPasswd forService:@"iScrobbler"
                     account:username];
+                [[NSNotificationCenter defaultCenter] postNotificationName:iScrobblerAuthenticationDidChange object:self];
                 #if 0
                 // A few users have complained that this is a security hole -- even though it's only at TRACE level.
                 ScrobTrace(@"password stored as: %@", [[KeyChain defaultKeyChain]

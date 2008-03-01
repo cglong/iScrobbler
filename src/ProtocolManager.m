@@ -18,6 +18,7 @@
 #import "QueueManager.h"
 #import "SongData.h"
 #import "iScrobblerController.h"
+#import "PreferenceController.h"
 
 #define REQUEST_TIMEOUT 60.0
 #define HANDSHAKE_DEFAULT_DELAY 60.0f
@@ -941,6 +942,12 @@ static int npDelays = 0;
     [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:1.0];
 }
 
+- (void)authDidChange:(NSNotification*)note
+{
+    ScrobLog(SCROB_LOG_TRACE, @"Authentication credentials changed, need to handshake");
+    hsState = hs_needed;
+}
+
 - (id)init
 {
     self = [super init];
@@ -969,6 +976,9 @@ static int npDelays = 0;
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(authDidChange:) name:iScrobblerAuthenticationDidChange object:nil];
     
     // Indicate that we have not yet handshaked
     hsState = hs_needed;
