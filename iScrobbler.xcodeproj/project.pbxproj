@@ -152,7 +152,6 @@
 		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
-		D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */ = {isa = PBXBuildFile; fileRef = D3EE90A20A093FF80024A013 /* checkmark.tif */; };
 		D3EE9CC70A144A470024A013 /* MBID.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EE9CC50A144A470024A013 /* MBID.c */; };
 		D3F4A4350CC4FF4B000DCBB6 /* ISThreadMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4340CC4FF4B000DCBB6 /* ISThreadMessenger.m */; };
 		D3F71FA80D33E42500C0E22F /* iPodController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F71FA70D33E42500C0E22F /* iPodController.m */; };
@@ -411,7 +410,6 @@
 		D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KFAppleScriptHandlerAdditionsCore.m; sourceTree = "<group>"; };
 		D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "KFASHandlerAdditions-TypeTranslation.h"; sourceTree = "<group>"; };
 		D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "KFASHandlerAdditions-TypeTranslation.m"; sourceTree = "<group>"; };
-		D3EE90A20A093FF80024A013 /* checkmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = checkmark.tif; sourceTree = "<group>"; };
 		D3EE9CC50A144A470024A013 /* MBID.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = MBID.c; path = src/MBID.c; sourceTree = "<group>"; };
 		D3EE9CC60A144A470024A013 /* MBID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBID.h; path = src/MBID.h; sourceTree = "<group>"; };
 		D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ISSearchArrayController.h; path = src/ISSearchArrayController.h; sourceTree = "<group>"; };
@@ -608,7 +606,6 @@
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
 				D306FC7909EF550C0011CEE1 /* no_album.tiff */,
-				D3EE90A20A093FF80024A013 /* checkmark.tif */,
 			);
 			name = Resources;
 			path = res;
@@ -1009,7 +1006,6 @@
 				D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */,
 				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
 				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
-				D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */,
 				D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */,
 				D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */,
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
