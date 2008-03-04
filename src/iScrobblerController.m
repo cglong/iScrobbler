@@ -661,6 +661,8 @@ player_info_exit:
 
 - (id)init
 {
+    srandomdev();
+    
     // Read in a defaults.plist preferences file
     NSString * file = [[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"];
     NSDictionary * defaultPrefs = [NSDictionary dictionaryWithContentsOfFile:file];
