@@ -429,6 +429,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
     if (hs_inprogress == hsState) {
+        ISASSERT(subConn == nil, "subConn active!");
         [self completeHandshake:myData];
         [myData release];
         myData = nil;
@@ -567,6 +568,7 @@ didFinishLoadingExit:
     }
     
     if (hs_inprogress == hsState) {
+        ISASSERT(subConn == nil, "subConn active!");
         // Emulate a server error
         NSData *response = [[@"FAILED Connection failed - " stringByAppendingString:why]
             dataUsingEncoding:NSUTF8StringEncoding];
@@ -637,7 +639,7 @@ didFinishLoadingExit:
                 [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:nil]];
         } else {
             ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission... (connection=%p, inFlight=%p)",
-                inFlight, subConn);
+                subConn, inFlight);
         }
         return;
     }
