@@ -735,6 +735,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             forPersistentStore:mainStore];
         
         [self createDatabase];
+        
         NSManagedObject *allSession = [sessionMgr sessionWithName:@"all" moc:mainMOC];
         ISASSERT(allSession != nil, "missing all session!");
         [allSession setValue:now forKey:@"epoch"];
@@ -771,6 +772,24 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             *failureReason = error;
             return (NO);
         }
+    }
+    
+    const char *appSig = [[[mProxy applicationBundle] objectForInfoDictionaryKey:@"CFBundleSignature"]
+        cStringUsingEncoding:NSASCIIStringEncoding];
+    if (appSig && strlen(appSig) >= 4) {
+        OSType ccode = appSig[0] << 24 | appSig[1] << 16 | appSig[2] << 8 | appSig[3];
+        NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithUnsignedInt:ccode], NSFileHFSCreatorCode,
+            nil];
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+        if (0 == [[[[NSFileManager defaultManager] attributesOfItemAtPath:[url path] error:nil] objectForKey:NSFileHFSCreatorCode] intValue]) {
+            (void)[[NSFileManager defaultManager] setAttributes:attrs ofItemAtPath:[url path] error:nil];
+        }
+        #else
+        if (0 == [[[[NSFileManager defaultManager] fileAttributesAtPath:[url path] traverseLink:YES] objectForKey:NSFileHFSCreatorCode] intValue]) {
+            (void)[[NSFileManager defaultManager] changeFileAttributes:attrs atPath:[url path]];
+        }
+        #endif
     }
 
     [self databaseDidInitialize:metadata];
