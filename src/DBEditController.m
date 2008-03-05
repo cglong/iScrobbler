@@ -12,6 +12,7 @@
 #import "DBEditController.h"
 #import "TopListsController.h"
 #import "Persistence.h"
+#import "PersistentSessionManager.h"
 
 @implementation DBEditController
 
@@ -163,6 +164,8 @@
     
     PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
     NSManagedObject *obj = [moc objectWithID:oid];
+    [obj refreshSelf]; // make sure we don't have any cached values
+    
     NSString *title;
     if ([persistence isSong:obj]) {
         title = [NSString stringWithFormat:@"%@ - %@", [obj valueForKeyPath:@"artist.name"], [obj valueForKey:@"name"]];
