@@ -166,9 +166,6 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
 	} else {
         if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
-            // If this occurs during a handshake, the user name is invalid.
-            // If it occurs during a sub, the user name is valid, but the password is not.
-            //hsState = hs_needed;
             ++hsBadAuth;
             if (hsBadAuth >= BADAUTH_WARN) {
                 @try {
@@ -183,7 +180,6 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
             }
         } else {
             hsBadAuth = 0;
-            //hsState = hs_delay;
             handshakeDelay *= 2.0f;
             if (handshakeDelay > [self handshakeMaxDelay])
                 handshakeDelay = [self handshakeMaxDelay];
@@ -946,8 +942,21 @@ static int npDelays = 0;
 
 - (void)authDidChange:(NSNotification*)note
 {
-    ScrobLog(SCROB_LOG_TRACE, @"Authentication credentials changed, need to handshake");
+    if (subConn) {
+        ScrobLog(SCROB_LOG_TRACE, @"Authentication credentials have changed during an active network connection, delaying state change...");
+        // We don't want to reset the handshake state while a sub is in progress; otherwise,
+        // an error will occur in [connectionDidFinishLoading:] 
+        [self performSelector:@selector(authDidChange:) withObject:note afterDelay:1.0];
+        return;
+    }
+    ScrobLog(SCROB_LOG_VERBOSE, @"Authentication credentials changed, need to handshake");
     hsState = hs_needed;
+    
+    if ([[QueueManager sharedInstance] count] > 0) {
+        // This is a really a warning, but errors require the user to close the window manually
+        [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Credentials Changed", "")
+            message:NSLocalizedString(@"The Last.fm credentials have changed and there are songs queued for submission. The queued songs will be submitted to the current last.fm account even if they were played while a different account was active.", "")];
+    }
 }
 
 - (id)init
