@@ -17,7 +17,7 @@
 #import "ScrobLog.h"
 
 @interface PreferenceController (PrivateMethods)
-- (void)savePrefs;
+- (BOOL)savePrefs;
 @end
 
 @implementation PreferenceController
@@ -51,7 +51,7 @@
     [[self preferencesWindow] makeKeyAndOrderFront:self];
 }
 	
-- (void)savePrefs
+- (BOOL)savePrefs
 {
     NSString *oldUserName = [[NSUserDefaults standardUserDefaults] stringForKey:@"username"];
     
@@ -65,19 +65,23 @@
     #endif
     NSString *username = [[udc values] valueForKey:@"username"];
     
-    if (![oldUserName isEqualToString:username])
+    if (!username || 0 == [username length]) {
+        NSBeginAlertSheet(NSLocalizedString(@"Invalid Username", ""), @"OK", nil, nil, [self preferencesWindow],
+            nil, nil, nil, nil, NSLocalizedString(@"The username cannot be empty.", ""));
+        return (NO);
+    }
+    
+    if (oldUserName && ![oldUserName isEqualToString:username])
         [[KeyChain defaultKeyChain] removeGenericPasswordForService:@"iScrobbler" account:oldUserName];
     else
         oldUserName = nil;
     
     NSString *newPasswd = [passwordField stringValue];
-	if(![newPasswd isEqualToString:@""]) {
-		NSString *curPasswd = [[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
-            account:username];
+	if(newPasswd && [newPasswd length] > 0) {
+		NSString *curPasswd = [[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler" account:username];
         if (![newPasswd isEqualToString:curPasswd]) {
             @try {
-                [[KeyChain defaultKeyChain] setGenericPassword:newPasswd forService:@"iScrobbler"
-                    account:username];
+                [[KeyChain defaultKeyChain] setGenericPassword:newPasswd forService:@"iScrobbler" account:username];
                 [[NSNotificationCenter defaultCenter] postNotificationName:iScrobblerAuthenticationDidChange object:self];
                 #if 0
                 // A few users have complained that this is a security hole -- even though it's only at TRACE level.
@@ -88,7 +92,7 @@
                 NSBeginAlertSheet([exception name], @"OK", nil, nil, [self preferencesWindow],
                     nil, nil, nil, nil, [exception reason]);
                 ScrobLog(SCROB_LOG_ERR, @"KeyChain Error: '%@' - %@\n", [exception reason], [exception userInfo]);
-                @throw;
+                return (NO);
              }
          }
 	} else {
@@ -96,6 +100,7 @@
 	}
     
     [[NSNotificationCenter defaultCenter] postNotificationName:SCROB_PREFS_CHANGED object:self];
+    return (YES);
 }
 
 - (IBAction)cancel:(id)sender
@@ -106,12 +111,17 @@
 
 - (IBAction)OK:(id)sender
 {
+    BOOL good = NO;
 	@try {
-        [self savePrefs];
-    } @catch (NSException *exception) {
-        return;
+        good = [self savePrefs];
+    } @catch (NSException *e) {
+        good = NO;
+        ScrobLog(SCROB_LOG_ERR, @"exception saving prefs: %@", e);
     }
-	[preferencesWindow performClose:sender];
+    if (good)
+        [preferencesWindow performClose:sender];
+    else
+        NSBeep();
 }
 	
 @end
