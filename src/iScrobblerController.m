@@ -2610,8 +2610,8 @@ resolvePath:
         [self setAlphaValue:alpha > 0.0 ? alpha : 0.0];
     } else {
         alpha = [[timer userInfo] doubleValue];
-        (void)[[timer retain] autorelease];
         [timer invalidate];
+        [timer autorelease];
         
         BOOL willBeReleased = [self isReleasedWhenClosed];
         (void)[[self retain] autorelease];
@@ -2623,8 +2623,8 @@ resolvePath:
 
 - (void)fadeOutAndClose
 {
-    [NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
-        userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES];
+    [[NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
+        userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES] retain];
 }
 
 @end
