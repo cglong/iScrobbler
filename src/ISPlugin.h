@@ -12,6 +12,7 @@
 @protocol ISPluginProxy
 
 - (NSBundle*)applicationBundle;
+- (NSString*)applicationVersion;
 - (NSString*)nowPlayingNotificationName;
 
 @end

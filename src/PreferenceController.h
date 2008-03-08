@@ -28,3 +28,4 @@
 @end
 
 #define SCROB_PREFS_CHANGED @"iScrobbler Prefs Changed"
+#define iScrobblerAuthenticationDidChange @"iScrobblerAuthenticationDidChange"

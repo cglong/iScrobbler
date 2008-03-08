@@ -117,6 +117,11 @@ static NSMutableArray *allPlugins = nil;
     return ([NSBundle mainBundle]);
 }
 
+- (NSString*)applicationVersion
+{
+    return ([[NSApp delegate] performSelector:@selector(versionString)]);
+}
+
 - (NSString*)nowPlayingNotificationName
 {
     return (@"Now Playing");

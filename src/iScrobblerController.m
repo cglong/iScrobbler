@@ -130,13 +130,17 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     NSData *artwork = nil;
     NSString *npInfo = nil, *title = nil;
 
+    BOOL useGrowl = [GrowlApplicationBridge isGrowlRunning];
     if ((s = [self nowPlaying])) {
         @try {
-        artwork = [[s artwork] TIFFRepresentation];
-        } @catch (NSException* e) {}
+        if (useGrowl)
+            artwork = [[s artwork] TIFFRepresentation];
+        } @catch (NSException* e) {
+        artwork = nil;
+        }
         
-        title = [currentSong growlTitle];
-        npInfo = [currentSong growlDescription];
+        title = [s growlTitle];
+        npInfo = [s growlDescription];
     } else if (msg)
         title = NSLocalizedString(@"Status", "");
     
@@ -146,7 +150,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     if (npInfo)
         msg = msg ? [npInfo stringByAppendingFormat:@"\n%@", msg] : npInfo;
     
-    if ([GrowlApplicationBridge isGrowlRunning]) {
+    if (useGrowl) {
         [GrowlApplicationBridge
             notifyWithTitle:title
             description:msg
@@ -657,6 +661,8 @@ player_info_exit:
 
 - (id)init
 {
+    srandomdev();
+    
     // Read in a defaults.plist preferences file
     NSString * file = [[NSBundle mainBundle] pathForResource:@"defaults" ofType:@"plist"];
     NSDictionary * defaultPrefs = [NSDictionary dictionaryWithContentsOfFile:file];
@@ -1404,7 +1410,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 
 - (SongData*)nowPlaying
 {
-    return (!currentSongPaused ? currentSong : nil);
+    return (!currentSongPaused ? [[currentSong retain] autorelease] : nil);
 }
 
 // App services
@@ -2604,8 +2610,8 @@ resolvePath:
         [self setAlphaValue:alpha > 0.0 ? alpha : 0.0];
     } else {
         alpha = [[timer userInfo] doubleValue];
-        (void)[[timer retain] autorelease];
         [timer invalidate];
+        [timer autorelease];
         
         BOOL willBeReleased = [self isReleasedWhenClosed];
         (void)[[self retain] autorelease];
@@ -2617,8 +2623,8 @@ resolvePath:
 
 - (void)fadeOutAndClose
 {
-    [NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
-        userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES];
+    [[NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
+        userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES] retain];
 }
 
 @end

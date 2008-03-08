@@ -416,6 +416,19 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         name:PersistentProfileDidEditObject
         object:nil];
     
+    ScrobLog(SCROB_LOG_TRACE, @"Opened Local Charts database version %@. Internal version is %@.",
+            [metadata objectForKey:(NSString*)kMDItemVersion], IS_CURRENT_STORE_VERSION);
+    ScrobLog(SCROB_LOG_TRACE, @"Local Charts epoch is '%@'", [metadata objectForKey:(NSString*)kMDItemContentCreationDate]);
+    
+    id ver = [metadata objectForKey:(NSString*)kMDItemCreator];
+    ScrobLog(SCROB_LOG_TRACE, @"Local Charts creator is '%@'", ver ? ver : @"unknown version");
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ver = [metadata objectForKey:(NSString*)kMDItemEditors];
+    ScrobLog(SCROB_LOG_TRACE, @"Local Charts were last opened by '%@'", ver ? ver : @"unknown version");
+    [self setStoreMetadata:[NSArray arrayWithObject:[mProxy applicationVersion]] forKey:(NSString*)kMDItemEditors moc:mainMOC];
+    #endif
+    
     [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
@@ -500,7 +513,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     NSMigrationManager *migm = [[[NSMigrationManager alloc] initWithSourceModel:v1mom destinationModel:v2mom] autorelease];
     if (migm) {
         tmpURL = [NSURL fileURLWithPath:
-            [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"ISMIG_%d", getpid()]]];
+            [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"ISMIG_%d", random()]]];
         ISStartTime();
         migrated = [migm migrateStoreFromURL:dburl
             type:NSSQLiteStoreType
@@ -529,7 +542,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                 }
             }
             (void)[fm removeItemAtPath:tmppath error:nil];
-        }
+        }  
     } else
         ScrobLog(SCROB_LOG_ERR, @"Migration: Failed to create migration manager");
     
@@ -567,6 +580,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             IS_CURRENT_STORE_VERSION, (NSString*)kMDItemVersion,
             createDate, (NSString*)kMDItemContentCreationDate, // epoch
             [metadata objectForKey:@"ISDidImportiTunesLibrary"], @"ISDidImportiTunesLibrary",
+            [mProxy applicationVersion], (NSString*)kMDItemCreator,
             // NSStoreTypeKey and NSStoreUUIDKey are always added
             nil];
         [psc setMetadata:metadata forPersistentStore:store];
@@ -715,11 +729,13 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                 now, (NSString*)kMDItemContentCreationDate, // epoch
                 [NSNumber numberWithBool:NO], @"ISDidImportiTunesLibrary",
                 [NSNumber numberWithLongLong:[[NSTimeZone defaultTimeZone] secondsFromGMT]], @"ISTZOffset",
+                [mProxy applicationVersion], (NSString*)kMDItemCreator,
                 // NSStoreTypeKey and NSStoreUUIDKey are always added
                 nil]
             forPersistentStore:mainStore];
         
         [self createDatabase];
+        
         NSManagedObject *allSession = [sessionMgr sessionWithName:@"all" moc:mainMOC];
         ISASSERT(allSession != nil, "missing all session!");
         [allSession setValue:now forKey:@"epoch"];
@@ -748,9 +764,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             return (NO);
             #endif
         }
-        ScrobLog(SCROB_LOG_TRACE, @"Opened Local Charts database version %@. Internal version is %@.",
-            [metadata objectForKey:(NSString*)kMDItemVersion], IS_CURRENT_STORE_VERSION);
-        ScrobLog(SCROB_LOG_TRACE, @"Local Charts epoch is '%@'", [metadata objectForKey:(NSString*)kMDItemContentCreationDate]);
         
         [self backupDatabase];
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
@@ -759,6 +772,24 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             *failureReason = error;
             return (NO);
         }
+    }
+    
+    const char *appSig = [[[mProxy applicationBundle] objectForInfoDictionaryKey:@"CFBundleSignature"]
+        cStringUsingEncoding:NSASCIIStringEncoding];
+    if (appSig && strlen(appSig) >= 4) {
+        OSType ccode = appSig[0] << 24 | appSig[1] << 16 | appSig[2] << 8 | appSig[3];
+        NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithUnsignedInt:ccode], NSFileHFSCreatorCode,
+            nil];
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+        if (0 == [[[[NSFileManager defaultManager] attributesOfItemAtPath:[url path] error:nil] objectForKey:NSFileHFSCreatorCode] intValue]) {
+            (void)[[NSFileManager defaultManager] setAttributes:attrs ofItemAtPath:[url path] error:nil];
+        }
+        #else
+        if (0 == [[[[NSFileManager defaultManager] fileAttributesAtPath:[url path] traverseLink:YES] objectForKey:NSFileHFSCreatorCode] intValue]) {
+            (void)[[NSFileManager defaultManager] changeFileAttributes:attrs atPath:[url path]];
+        }
+        #endif
     }
 
     [self databaseDidInitialize:metadata];

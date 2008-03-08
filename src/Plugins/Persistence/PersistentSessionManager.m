@@ -187,12 +187,13 @@
     NSNumber *lastTZOffset = [pp storeMetadataForKey:@"ISTZOffset" moc:moc];
     NSInteger tzOffset = [[NSTimeZone defaultTimeZone] secondsFromGMT];
     if (!lastTZOffset || (tzOffset != (NSInteger)[lastTZOffset longLongValue])) {
-        ScrobLog(SCROB_LOG_TRACE, @"TZ has changed, updating caches");
+        ScrobLog(SCROB_LOG_VERBOSE, @"Time Zone has changed, updating local chart caches...");
         NSArray *sessions = [self activeSessionsWithMOC:moc];
         NSEnumerator *en = [sessions objectEnumerator];
         NSManagedObject *s;
         while ((s = [en nextObject])) {
             [self recreateHourCacheForSession:s songs:[pp songsForSession:s] moc:moc];
+            ScrobLog(SCROB_LOG_VERBOSE, @"'%@' session updated for time zone change.", [s valueForKey:@"name"]);
         }
         
         [pp setStoreMetadata:[NSNumber numberWithLongLong:tzOffset] forKey:@"ISTZOffset" moc:moc];
@@ -204,7 +205,7 @@
     
     } @catch (NSException *e) {
         [moc rollback];
-        ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception during TZ change handler: %@", e);
+        ScrobLog(SCROB_LOG_TRACE, @"uncaught exception during TZ change handler: %@", e);
     }
 }
 
