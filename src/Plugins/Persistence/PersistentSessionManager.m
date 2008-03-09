@@ -1603,6 +1603,10 @@
     [request setEntity:entity];
     [request setPredicate:predicate];
     NSArray *result = [moc executeFetchRequest:request error:&err];
+    // see if we can do a case-only change
+    if (1 == [result count] && [[[result objectAtIndex:0] objectID] isEqualTo:[mobj objectID]]) {
+        result = [NSArray array];
+    }
     if (0 == [result count]) {
         [mobj setValue:newName forKey:@"name"];
         [profile save:moc withNotification:NO];
