@@ -1203,6 +1203,52 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     }
 }
 
+- (void)createActionMenuForItem:(NSMenuItem*)songItem
+{
+    SongData *song = [songItem representedObject];
+    
+    NSMenuItem *item;
+    NSMenu *m = [songActionMenu copy];
+    if ([song isLastFmRadio]) {
+        // Use the radio sepcific skip and ban
+        item = [m itemWithTag:MACTION_SKIP]; 
+        [item setAction:@selector(skip)];
+        [item setTarget:[ISRadioController sharedInstance]];
+        
+        item = [m itemWithTag:MACTION_BAN_TAG]; 
+        [item setAction:@selector(ban)];
+        [item setTarget:[ISRadioController sharedInstance]];
+        if ([song banned])
+            [item setEnabled:NO];
+    } else {
+        if ([song banned]) {
+            item = [m itemWithTag:MACTION_BAN_TAG];
+            [item setAction:@selector(unBanTrack:)];
+            [item setTitle:NSLocalizedString(@"Un-Ban", "")];
+        } else if ([song skipped]) {
+            // this should not occur because a local skip tells the player to go to the next track,
+            // but just in case...
+            [[m itemWithTag:MACTION_SKIP] setEnabled:NO];
+        }
+    }
+    [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
+    
+    item = nil;
+    [songItem setAction:nil];
+    [songItem setSubmenu:m];
+    if ([song isLastFmRadio]) {
+        NSString *tip;
+        unsigned int days, hours, minutes, seconds;
+        ISDurationsFromTime([[song duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
+        if (0 == hours)
+            tip = [NSString stringWithFormat:@"%@: %u:%02u", NSLocalizedString(@"Duration", ""), minutes, seconds];
+        else
+            tip = [NSString stringWithFormat:@"%@: %u:%02u:%02u", NSLocalizedString(@"Duration", ""), hours, minutes, seconds];
+        [songItem setToolTip:tip];
+    }
+    [m release];
+}
+
 - (void)updateMenu
 {
     NSMenuItem *item;
@@ -1241,47 +1287,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     if (addedSongs) {
         if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
-            NSMenu *m = [songActionMenu copy];
-            if ([song isLastFmRadio]) {
-                // Use the radio sepcific skip and ban
-                item = [m itemWithTag:MACTION_SKIP]; 
-                [item setAction:@selector(skip)];
-                [item setTarget:[ISRadioController sharedInstance]];
-                
-                item = [m itemWithTag:MACTION_BAN_TAG]; 
-                [item setAction:@selector(ban)];
-                [item setTarget:[ISRadioController sharedInstance]];
-                if ([song banned])
-                    [item setEnabled:NO];
-            } else {
-                if ([song banned]) {
-                    item = [m itemWithTag:MACTION_BAN_TAG];
-                    [item setAction:@selector(unBanTrack:)];
-                    [item setTitle:NSLocalizedString(@"Un-Ban", "")];
-                } else if ([song skipped]) {
-                    // this should not occur because a local skip tells the player to go to the next track,
-                    // but just in case...
-                    [[m itemWithTag:MACTION_SKIP] setEnabled:NO];
-                }
-            }
-            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
-            
-            item = [theMenu itemAtIndex:0];
-            ISASSERT(song == [item representedObject], "songs don't match!");
-            [item setAction:nil];
-            [item setSubmenu:m];
-            if ([song isLastFmRadio]) {
-                NSString *tip;
-                unsigned int days, hours, minutes, seconds;
-                ISDurationsFromTime([[song duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
-                if (0 == hours)
-                    tip = [NSString stringWithFormat:@"%@: %u:%02u", NSLocalizedString(@"Duration", ""), minutes, seconds];
-                else
-                    tip = [NSString stringWithFormat:@"%@: %u:%02u:%02u", NSLocalizedString(@"Duration", ""), hours, minutes, seconds];
-                [item setToolTip:tip];
-            }
-            [m release];
-            
+            [self createActionMenuForItem:[theMenu itemAtIndex:0]];
         }
         [theMenu insertItem:[NSMenuItem separatorItem] atIndex:addedSongs];
     }
