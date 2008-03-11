@@ -4,6 +4,6 @@
 ;; without notice.
 ;;
 (version 1)
-(debug deny)
+;;(debug deny)
 (allow default)
 (deny file-read* file-write* (regex "/[iI]nput[mM]anagers"))
