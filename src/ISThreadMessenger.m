@@ -22,7 +22,7 @@ typedef struct ISThreadMsg {
     [super init];
     delegate = mDelegate;
     
-    msgQLock = [[NSRecursiveLock alloc] init];
+    msgQLock = [[NSLock alloc] init];
     msgQueue = [[NSMutableArray alloc] init];
     port = [[NSPort port] retain];
     [port setDelegate:self];

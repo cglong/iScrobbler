@@ -13,6 +13,8 @@
 ISEXPORT_CLASS
 @interface ISThreadMessenger : NSObject {
     NSPort *port;
+    NSMutableArray *msgQueue;
+    NSLock *msgQLock;
     id delegate;
 }
 
