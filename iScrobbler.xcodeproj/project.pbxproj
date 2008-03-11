@@ -95,6 +95,7 @@
 		D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */ = {isa = PBXBuildFile; fileRef = D33ED7540D2FAD3100AE7771 /* DBEditController.m */; };
 		D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
+		D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */ = {isa = PBXBuildFile; fileRef = D357D2BB0D86AF320026C486 /* iScrobbler.sb */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
 		D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
@@ -323,6 +324,7 @@
 		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBEdit.xib; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
+		D357D2BB0D86AF320026C486 /* iScrobbler.sb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iScrobbler.sb; sourceTree = "<group>"; };
 		D3712C490D1A3B810011F980 /* Persistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Persistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPlugin.h; path = src/ISPlugin.h; sourceTree = "<group>"; };
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPluginController.h; path = src/ISPluginController.h; sourceTree = "<group>"; };
@@ -602,6 +604,7 @@
 				D398FB520CDE01E5008CB4C8 /* Tag.xib */,
 				D398FB450CDE016A008CB4C8 /* TopLists.xib */,
 				D376FC690CAD00A000C04863 /* iScrobbler.sdef */,
+				D357D2BB0D86AF320026C486 /* iScrobbler.sb */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
@@ -1023,6 +1026,7 @@
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
 				D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */,
 				D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */,
+				D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
