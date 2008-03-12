@@ -298,7 +298,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     NSMutableData *data = [verData autorelease];
     verData = nil;
     
-   if (data) {
+   if (data && [data length] > 0) {
       CFStringRef errstr = NULL;
       BOOL display = NO;
       
@@ -373,12 +373,17 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          
          if (display && ![[super window] isVisible])
             [[super window] makeKeyAndOrderFront:nil];
+      } else {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+        // corrupt XML
+        [fieldTitle setStringValue:NSLocalizedStringFromTable(@"Version Data Error", @"BBNetUpdate", @"")];
+        [fieldText setStringValue:NSLocalizedStringFromTable(@"The version data file appears corrupt.", @"BBNetUpdate", @"")];
       }
-   } else  {
+   } else {
       [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
       // No version data
-      [fieldTitle setStringValue:
-         NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
+      [fieldTitle setStringValue:NSLocalizedStringFromTable(@"Version Data Error", @"BBNetUpdate", @"")];
+      [fieldText setStringValue:NSLocalizedStringFromTable(@"The server returned empty version data.", @"BBNetUpdate", @"")];
    }
    
    [progressBar stopAnimation:nil];
