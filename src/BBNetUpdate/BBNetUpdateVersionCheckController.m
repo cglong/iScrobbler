@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006,2007 Brian Bergstrand.
+* Copyright 2002,2006-2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -144,9 +144,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       return;
    }
    
-   [buttonDownload setEnabled:NO];
-   [buttonMoreInfo setEnabled:NO];
-   
    [boxDontCheck setState:
       [[NSUserDefaults standardUserDefaults] boolForKey:@"BBNetUpdateDontAutoCheckVersion"]];
    
@@ -180,15 +177,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     checkingVersion = YES;
 }
 
-- (IBAction)cancel:(id)sender
-{
-    if (verInfo) {
-        // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
-        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
-    }
-    [self close];
-}
-
 - (IBAction)download:(id)sender
 {
    NSSavePanel *op;
@@ -208,32 +196,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
 }
 
-- (IBAction)showHideMoreInfo:(id)sender
-{
-   NSString *tempTitle;
-   
-   if (0 == [sender tag]){
-      [sender setTag:1];
-      // swap the titles
-      tempTitle = [sender title];
-      [sender setTitle:[sender alternateTitle]];
-      [sender setAlternateTitle:tempTitle];
-      // open the drawer
-      [drawerMoreInfo open];
-   } else {
-      [sender setTag:0];
-      // swap the titles back
-      tempTitle = [sender title];
-      [sender setTitle:[sender alternateTitle]];
-      [sender setAlternateTitle:tempTitle];
-      // close the drawer
-      [drawerMoreInfo close];
-   }
-}
-
 // NSWindowController
-- (void)close
+- (void)windowWillClose
 {
+    if (verInfo) {
+        // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+    }
+    
     [connection cancel];
     [connection autorelease];
     connection = nil;
@@ -255,8 +225,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateDidFinishUpdateCheck
          object:nil];
    }
-   
-   [super close];
 }
 
 // NSURLConnection delegate methods
@@ -351,13 +319,13 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
             moreInfo = [[verInfo objectForKey:@"Notes"] objectForKey:@"English"];
             if (moreInfo) {
                [fieldMoreInfo setString:moreInfo];
-               [buttonMoreInfo setEnabled:YES];
             }
          
             title = NSLocalizedStringFromTable(@"BBNetUpdateNewVersionTitle", @"BBNetUpdate", @"");
             
             // Make sure the user knows there is a new version
             display = YES;
+            [buttonDownload setTitle:NSLocalizedStringFromTable(@"Download", @"BBNetUpdate", @"")];
          } else {
             title = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"");
             newVer = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"");
@@ -423,6 +391,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 - (void)windowDidLoad
 {
     [(NSPanel*)[self window] setLevel:NSModalPanelWindowLevel + 1];
+    [[self window] setTitle:[NSString stringWithFormat:@"%@ %@",
+        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
+        NSLocalizedStringFromTable(@"Software Update", @"BBNetUpdate", @"")]];
+    [buttonDownload setTitle:@"OK"];
+    [buttonDownload setEnabled:NO];
 }
 
 // Sheet handlers

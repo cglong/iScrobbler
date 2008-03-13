@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 Brian Bergstrand.
+* Copyright 2002,2007,2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -30,8 +30,6 @@
 {
     IBOutlet id boxDontCheck;
     IBOutlet id buttonDownload;
-    IBOutlet id buttonMoreInfo;
-    IBOutlet id drawerMoreInfo;
     IBOutlet id fieldMoreInfo;
     IBOutlet id fieldText;
     IBOutlet id fieldTitle;
@@ -52,9 +50,7 @@
 + (NSDate*)lastCheck;
 + (NSString*)userAgent;
 
-- (IBAction)cancel:(id)sender;
 - (IBAction)download:(id)sender;
-- (IBAction)showHideMoreInfo:(id)sender;
 
 - (void)connect:(id)sender; // Don't call directly
 
