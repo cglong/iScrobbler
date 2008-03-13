@@ -294,19 +294,37 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 
 - (void)downloadDidFinish:(NSURLDownload *)download
 {
+    NSError *error;
     if (bbHash && NO == [self hashFile:bbTmpFile using:bbHash]) {
         NSDictionary *info = [NSDictionary dictionaryWithObject:
             NSLocalizedStringFromTable(@"Hash failed: the file may be corrupt or invalid.", @"BBNetUpdate", @"")
             forKey:NSLocalizedDescriptionKey];
         
-        NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
         [self download:download didFailWithError:error];
-        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
         return;
     }
     
     // Move the temp file to the final location
-    (void)[[NSFileManager defaultManager] movePath:bbTmpFile toPath:_file handler:nil];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    BOOL didMove;
+    if ([fm respondsToSelector:@selector(moveItemAtPath:toPath:error:)])
+        didMove = [fm moveItemAtPath:bbTmpFile toPath:_file error:&error];
+    else    
+        didMove = [fm movePath:bbTmpFile toPath:_file handler:nil];
+    
+    if (!didMove) {
+        if (!error) {
+            NSDictionary *info = [NSDictionary dictionaryWithObject:
+                NSLocalizedStringFromTable(@"Failed to move the temporary download file.", @"BBNetUpdate", @"")
+                forKey:NSLocalizedDescriptionKey];
+            
+            error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+        }
+        [self download:download didFailWithError:error];
+        return;
+    }
+    
     [self close];
 }
 
