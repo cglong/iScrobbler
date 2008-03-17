@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006,2007 Brian Bergstrand.
+* Copyright 2002,2006-2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -67,9 +67,9 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 
 + (void)downloadTo:(NSString*)file from:(NSString*)url withHashInfo:(NSDictionary*)hash
 {
-    timeMonikers[0] = NSLocalizedStringFromTable(@"seconds", @"BBNetUpdate", @"");
-    timeMonikers[1] = NSLocalizedStringFromTable(@"minutes", @"BBNetUpdate", @"");
-    timeMonikers[2] = NSLocalizedStringFromTable(@"hours", @"BBNetUpdate", @"");
+    timeMonikers[0] = NSLocalizedString(@"seconds", @"");
+    timeMonikers[1] = NSLocalizedString(@"minutes", @"");
+    timeMonikers[2] = NSLocalizedString(@"hours", @"");
         
    if (!gDLInstance) {
       gDLInstance = [[BBNetUpdateDownloadController alloc] initWithWindowNibName:@"BBNetUpdateDownload"];
@@ -162,10 +162,10 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     NSString *title;
     if (installSelf) {
-        title = [NSString stringWithFormat:NSLocalizedStringFromTable(@"Installing %@ Update", @"BBNetUpdate", @""),
+        title = [NSString stringWithFormat:NSLocalizedString(@"Installing %@ Update", @""),
             [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"]];
     } else {
-        title = [NSString stringWithFormat:NSLocalizedStringFromTable(@"Downloading %@ Update", @"BBNetUpdate", @""),
+        title = [NSString stringWithFormat:NSLocalizedString(@"Downloading %@ Update", @""),
             [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"]];
     }
     [[self window] setTitle:title];
@@ -334,19 +334,19 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
                     (void)[[NSFileManager defaultManager] removeFileAtPath:[childPath stringByDeletingLastPathComponent]  handler:nil];
                 } else {
                     NSDictionary *info = [NSDictionary dictionaryWithObject:
-                        NSLocalizedStringFromTable(@"Failed to replace the current version.", @"BBNetUpdate", @"")
+                        NSLocalizedString(@"Failed to replace the current version.", @"")
                         forKey:NSLocalizedDescriptionKey];
                     error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
                 }
             } else {
                 NSDictionary *info = [NSDictionary dictionaryWithObject:
-                    NSLocalizedStringFromTable(@"Could not find a new version of the application in the archive.", @"BBNetUpdate", @"")
+                    NSLocalizedString(@"Could not find a new version of the application in the archive.", @"")
                     forKey:NSLocalizedDescriptionKey];
                 error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
             }
         } else {
             NSDictionary *info = [NSDictionary dictionaryWithObject:
-                NSLocalizedStringFromTable(@"Archive extraction failed.", @"BBNetUpdate", @"")
+                NSLocalizedString(@"Archive extraction failed.", @"")
                 forKey:NSLocalizedDescriptionKey];
             error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
         }
@@ -373,7 +373,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             else
                 (void)[NSApp requestUserAttention:NSInformationalRequest];
         }
-        [actionButton setTitle:NSLocalizedStringFromTable(@"Restart", @"BBNetUpdate", @"")];
+        [actionButton setTitle:NSLocalizedString(@"Restart", @"")];
         [actionButton setAction:@selector(restartSelf:)];
         totalBytes = -1.0;
         [self willChangeValueForKey:@"progressString"];
@@ -409,11 +409,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             recvdSize, byteMonikers[ri], totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
             remainingTime, timeMonikers[timei]];
     } else if (installSelf && roundtol(totalBytes) == roundtol(recvdBytes)) {
-        s = NSLocalizedStringFromTable(@"The new version has finished downloading and is now being installed.", @"BBNetUpdate", @"");
+        s = NSLocalizedString(@"The new version has finished downloading and is now being installed.", @"");
     } else if (installSelf && totalBytes < 0.0) {
-        s = NSLocalizedStringFromTable(@"The new version has been installed.", @"BBNetUpdate", @"");
+        s = NSLocalizedString(@"The new version has been installed.", @"");
     } else
-        s = [NSLocalizedStringFromTable(@"Establishing connection", @"BBNetUpdate", @"") stringByAppendingFormat:@"%C", 0x2026];
+        s = [NSLocalizedString(@"Establishing connection", @"") stringByAppendingFormat:@"%C", 0x2026];
     return (s);
 }
 
@@ -440,10 +440,10 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {   
    // Alert the user
    NSBeginInformationalAlertSheet(
-        NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
+        NSLocalizedString(@"Update Error", @""),
         @"OK", nil, nil, [super window],
         self, @selector(endAlertSheet:returnCode:contextInfo:), nil, (void*)-1,
-        NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [error localizedDescription]);
+        NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [error localizedDescription]);
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
 }
 
@@ -452,7 +452,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     NSError *error;
     if (bbHash && NO == [self hashFile:bbTmpFile using:bbHash]) {
         NSDictionary *info = [NSDictionary dictionaryWithObject:
-            NSLocalizedStringFromTable(@"Hash failed: the file may be corrupt or invalid.", @"BBNetUpdate", @"")
+            NSLocalizedString(@"Hash failed: the file may be corrupt or invalid.", @"")
             forKey:NSLocalizedDescriptionKey];
         
         error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
@@ -478,7 +478,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     if (!didMove) {
         if (!error) {
             NSDictionary *info = [NSDictionary dictionaryWithObject:
-                NSLocalizedStringFromTable(@"Failed to move the temporary download file.", @"BBNetUpdate", @"")
+                NSLocalizedString(@"Failed to move the temporary download file.", @"")
                 forKey:NSLocalizedDescriptionKey];
             
             error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];

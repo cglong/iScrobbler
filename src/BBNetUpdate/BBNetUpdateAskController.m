@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 Brian Bergstrand.
+* Copyright 2002,2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -70,7 +70,7 @@ static BBNetUpdateAskController *gInstance = nil;
 {
     [[self window] setTitle:[NSString stringWithFormat:@"%@ %@",
         [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
-        NSLocalizedStringFromTable(@"Software Update", @"BBNetUpdate", @"")]];
+        NSLocalizedString(@"Software Update", @"")]];
 }
 
 - (id)initWithWindowNibNameAndAppName:(NSString*)nib appName:(NSString*)appName
@@ -89,11 +89,11 @@ static BBNetUpdateAskController *gInstance = nil;
    
    // Set our text fields
    question = [NSString stringWithFormat:
-      NSLocalizedStringFromTable(@"BBNetUpdateAskQuestion", @"BBNetUpdate", @""),
+      NSLocalizedString(@"Check For Update?", @""),
       appName];
    
    [fieldTitle setStringValue:
-      NSLocalizedStringFromTable(@"BBNetUpdateAskTitle", @"BBNetUpdate", @"")];
+      NSLocalizedString(@"Do you want to check the Internet for a new version of %@?", @"")];
    [fieldQuestion setStringValue:question];
    
    return (instance);

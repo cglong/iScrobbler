@@ -131,7 +131,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 - (void)connect:(id)sender
 {
    [fieldTitle setStringValue:
-      NSLocalizedStringFromTable(@"BBNetUpdateCheckNewVersionTitle", @"BBNetUpdate", @"")];
+      NSLocalizedString(@"A New Version is Available", @"")];
    [fieldText setStringValue:@""];
    
    NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
@@ -258,8 +258,8 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         [progressBar stopAnimation:nil];
         [progressBar displayIfNeeded];
         if (_interact) {
-            [fieldTitle setStringValue:NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
-            [fieldText setStringValue:NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"")];
+            [fieldTitle setStringValue:NSLocalizedString(@"You Have the Latest Version", @"")];
+            [fieldText setStringValue:NSLocalizedString(@"You are using the latest version.", @"")];
             [buttonDownload setTitle:@"OK"];
             [buttonDownload setEnabled:YES];
             [[super window] makeKeyAndOrderFront:nil];
@@ -320,9 +320,9 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
             
             NSString *fmt;
             if (installSelf)
-                fmt = NSLocalizedStringFromTable(@"You are using version %@ of %@. Version %@ is now available. Would you like to install the new version?", @"BBNetUpdate", @"");
+                fmt = NSLocalizedString(@"You are using version %@ of %@. Version %@ is now available. Would you like to install the new version?", @"");
             else
-                fmt = NSLocalizedStringFromTable(@"You are using version %@ of %@. Version %@ is now available. Would you like to download the new version?", @"BBNetUpdate", @"");
+                fmt = NSLocalizedString(@"You are using version %@ of %@. Version %@ is now available. Would you like to download the new version?", @"");
             newVer = [NSString stringWithFormat:fmt, curVer, bundleName, netVer];
             
             moreInfo = [[verInfo objectForKey:@"Notes"] objectForKey:@"English"];
@@ -330,17 +330,17 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
                [fieldMoreInfo setString:moreInfo];
             }
          
-            title = NSLocalizedStringFromTable(@"BBNetUpdateNewVersionTitle", @"BBNetUpdate", @"");
+            title = NSLocalizedString(@"A New Version is Available", @"");
             
             // Make sure the user knows there is a new version
             display = YES;
             if (installSelf)
-                [buttonDownload setTitle:NSLocalizedStringFromTable(@"Install", @"BBNetUpdate", @"")];
+                [buttonDownload setTitle:NSLocalizedString(@"Install", @"")];
             else
-                [buttonDownload setTitle:NSLocalizedStringFromTable(@"Download", @"BBNetUpdate", @"")];
+                [buttonDownload setTitle:NSLocalizedString(@"Download", @"")];
          } else {
-            title = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"");
-            newVer = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"");
+            title = NSLocalizedString(@"You Have the Latest Version", @"");
+            newVer = NSLocalizedString(@"You are using the latest version.", @"");
             
             [buttonDownload setTitle:@"OK"];
             [verInfo release]; verInfo = nil;
@@ -356,14 +356,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       } else {
         [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
         // corrupt XML
-        [fieldTitle setStringValue:NSLocalizedStringFromTable(@"Version Data Error", @"BBNetUpdate", @"")];
-        [fieldText setStringValue:NSLocalizedStringFromTable(@"The version data file appears corrupt.", @"BBNetUpdate", @"")];
+        [fieldTitle setStringValue:NSLocalizedString(@"Version Data Error", @"")];
+        [fieldText setStringValue:NSLocalizedString(@"The version data file appears corrupt.", @"")];
       }
    } else {
       [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
       // No version data
-      [fieldTitle setStringValue:NSLocalizedStringFromTable(@"Version Data Error", @"BBNetUpdate", @"")];
-      [fieldText setStringValue:NSLocalizedStringFromTable(@"The server returned empty version data.", @"BBNetUpdate", @"")];
+      [fieldTitle setStringValue:NSLocalizedString(@"Version Data Error", @"")];
+      [fieldText setStringValue:NSLocalizedString(@"The server returned empty version data.", @"")];
    }
    
    [progressBar stopAnimation:nil];
@@ -381,12 +381,12 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         [[super window] makeKeyAndOrderFront:nil];
 
     // Alert the user
-    NSBeginAlertSheet(NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
+    NSBeginAlertSheet(NSLocalizedString(@"Update Error", @""),
       @"OK", nil, nil, [super window], self, nil, nil, nil,
-    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [reason localizedDescription]);
+    NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [reason localizedDescription]);
 
     [fieldTitle setStringValue:
-         NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
+         NSLocalizedString(@"Could not obtain version data", @"")];
 
     [buttonDownload setTitle:@"OK"];
     [buttonDownload setEnabled:YES];
@@ -405,7 +405,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     [(NSPanel*)[self window] setLevel:NSModalPanelWindowLevel + 1];
     [[self window] setTitle:[NSString stringWithFormat:@"%@ %@",
         [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
-        NSLocalizedStringFromTable(@"Software Update", @"BBNetUpdate", @"")]];
+        NSLocalizedString(@"Software Update", @"")]];
     [buttonDownload setTitle:@"OK"];
     [buttonDownload setEnabled:NO];
     
