@@ -185,6 +185,13 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [self close];
       return;
    }
+
+    if (installSelf) {
+        [BBNetUpdateDownloadController downloadTo:nil from:[verInfo objectForKey:@"File"]
+            withHashInfo:[verInfo objectForKey:@"Hash"]];
+        [self close];
+        return;
+    }
    
    // Prompt the user for the save dir.
    op = [NSSavePanel savePanel];
@@ -310,11 +317,13 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          } else if (curVer && netVer &&
             (BBCFVersionNumberFromString((CFStringRef)curVer) <
                BBCFVersionNumberFromString((CFStringRef)netVer))) {
-            newVer = [NSString stringWithFormat:
-               NSLocalizedStringFromTable(@"BBNetUpdateNewVersionAvail", @"BBNetUpdate", @""),
-               curVer,
-               bundleName,
-               netVer];
+            
+            NSString *fmt;
+            if (installSelf)
+                fmt = NSLocalizedStringFromTable(@"You are using version %@ of %@. Version %@ is now available. Would you like to install the new version?", @"BBNetUpdate", @"");
+            else
+                fmt = NSLocalizedStringFromTable(@"You are using version %@ of %@. Version %@ is now available. Would you like to download the new version?", @"BBNetUpdate", @"");
+            newVer = [NSString stringWithFormat:fmt, curVer, bundleName, netVer];
             
             moreInfo = [[verInfo objectForKey:@"Notes"] objectForKey:@"English"];
             if (moreInfo) {
@@ -325,7 +334,10 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
             
             // Make sure the user knows there is a new version
             display = YES;
-            [buttonDownload setTitle:NSLocalizedStringFromTable(@"Download", @"BBNetUpdate", @"")];
+            if (installSelf)
+                [buttonDownload setTitle:NSLocalizedStringFromTable(@"Install", @"BBNetUpdate", @"")];
+            else
+                [buttonDownload setTitle:NSLocalizedStringFromTable(@"Download", @"BBNetUpdate", @"")];
          } else {
             title = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"");
             newVer = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"");
@@ -396,6 +408,16 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         NSLocalizedStringFromTable(@"Software Update", @"BBNetUpdate", @"")]];
     [buttonDownload setTitle:@"OK"];
     [buttonDownload setEnabled:NO];
+    
+    installSelf = [[[NSDictionary dictionaryWithContentsOfFile:
+        [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
+        objectForKey:@"BBNetUpdateInstallSelf"] boolValue];
+    if (installSelf) {
+        // If we can't write, then don't allow self install
+        NSString *pathToParent = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
+        if (NO == [[NSFileManager defaultManager] isWritableFileAtPath:pathToParent])
+            installSelf = NO;
+    }
 }
 
 // Sheet handlers

@@ -39,7 +39,7 @@
     NSMutableData *verData;
     NSDictionary *verInfo;
     NSString *bundleName;
-    BOOL checkingVersion, _interact, _didDownload;
+    BOOL checkingVersion, _interact, _didDownload, installSelf;
 }
 
 // 'appName' can (and probably should) be nil. If it is, the app bundle will be queried

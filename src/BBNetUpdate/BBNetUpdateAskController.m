@@ -66,6 +66,13 @@ static BBNetUpdateAskController *gInstance = nil;
    [_delagate connect:self];
 }
 
+- (void)windowDidLoad
+{
+    [[self window] setTitle:[NSString stringWithFormat:@"%@ %@",
+        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
+        NSLocalizedStringFromTable(@"Software Update", @"BBNetUpdate", @"")]];
+}
+
 - (id)initWithWindowNibNameAndAppName:(NSString*)nib appName:(NSString*)appName
 {
    NSString *question;
