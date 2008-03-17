@@ -62,7 +62,6 @@
 		D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */; };
 		D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */; };
 		D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */ = {isa = PBXBuildFile; fileRef = D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */; };
-		D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */ = {isa = PBXBuildFile; fileRef = D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */; };
 		D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */ = {isa = PBXBuildFile; fileRef = D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */; };
 		D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */; };
 		D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */; };
@@ -306,7 +305,6 @@
 		D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateDownloadController.m; sourceTree = "<group>"; };
 		D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateVersionCheckController.h; sourceTree = "<group>"; };
 		D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateVersionCheckController.m; sourceTree = "<group>"; };
-		D317911D0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
 		D317911F0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
 		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
 		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
@@ -631,7 +629,6 @@
 				D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */,
 				D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */,
 				D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */,
-				D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */,
 				D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */,
 				D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */,
 				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
@@ -1009,7 +1006,6 @@
 				D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */,
 				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
 				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
-				D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */,
 				D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */,
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
@@ -1218,14 +1214,6 @@
 				089C165DFE840E0CC02AAC07 /* English */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D317911D0A6A9B5C00B0F081 /* English */,
-			);
-			name = BBNetUpdate.strings;
 			sourceTree = "<group>";
 		};
 		D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */ = {
