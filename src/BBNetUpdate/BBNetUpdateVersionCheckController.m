@@ -358,12 +358,16 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         // corrupt XML
         [fieldTitle setStringValue:NSLocalizedString(@"Version Data Error", @"")];
         [fieldText setStringValue:NSLocalizedString(@"The version data file appears corrupt.", @"")];
+        if (![[super window] isVisible])
+            [[super window] makeKeyAndOrderFront:nil];
       }
    } else {
       [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
       // No version data
       [fieldTitle setStringValue:NSLocalizedString(@"Version Data Error", @"")];
       [fieldText setStringValue:NSLocalizedString(@"The server returned empty version data.", @"")];
+      if (![[super window] isVisible])
+        [[super window] makeKeyAndOrderFront:nil];
    }
    
    [progressBar stopAnimation:nil];
@@ -388,8 +392,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     [fieldTitle setStringValue:
          NSLocalizedString(@"Could not obtain version data", @"")];
 
-    [buttonDownload setTitle:@"OK"];
-    [buttonDownload setEnabled:YES];
+    [buttonDownload setEnabled:NO];
 
     [progressBar stopAnimation:nil];
     [progressBar displayIfNeeded];
