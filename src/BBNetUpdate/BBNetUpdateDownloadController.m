@@ -271,6 +271,26 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     return YES;
 }
 
+- (BOOL)extractZIP:(NSString*)archivePath
+{
+    NSTask *zTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
+        [NSArray arrayWithObjects:@"unzip", @"-q", archivePath, nil]];
+    [zTask waitUntilExit];
+    if ([zTask terminationStatus] != 0) { return NO; }
+    
+    return (YES);
+}
+
+- (BOOL)extractArchive:(NSString*)archivePath
+{
+    if (NSOrderedSame == [@"dmg" caseInsensitiveCompare:[archivePath pathExtension]]) {
+        return ([self extractDMG:archivePath]);
+    } else if (NSOrderedSame == [@"zip" caseInsensitiveCompare:[archivePath pathExtension]]) {
+        return ([self extractZIP:archivePath]);
+    }
+    return (NO);
+}
+
 - (void)applicationWillTerminate:(NSNotification*)note
 {
     (void)[NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
@@ -309,7 +329,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     [progressBar startAnimation:nil];
     
     @try {
-        if ([self extractDMG:bbTmpFile]) {
+        if ([self extractArchive:bbTmpFile]) {
             // Find the app
             NSString *appName = [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"]
                 stringByAppendingPathExtension:@"app"];
