@@ -295,7 +295,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     (void)[NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
         [NSArray arrayWithObjects:@"perl", @"-e",
-            [NSString stringWithFormat:@"sleep 2; system('open %@')", [[NSBundle mainBundle] bundlePath]], nil]];
+            [NSString stringWithFormat:
+                @"use Time::HiRes qw(usleep); do {usleep(200000); $exists = kill(0, %d);} while($exists); system('open %@')",
+                getpid(),
+                [[NSBundle mainBundle] bundlePath]],
+                nil]];
 }
 
 - (BOOL)replaceSelfWithAppAtPath:(NSString*)path
