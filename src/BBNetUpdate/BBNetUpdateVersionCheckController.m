@@ -130,8 +130,15 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 
 - (void)connect:(id)sender
 {
-   [fieldTitle setStringValue:
-      NSLocalizedString(@"A New Version is Available", @"")];
+    if ([BBNetUpdateDownloadController finalizingInstallation]) {
+        [fieldTitle setStringValue:NSLocalizedString(@"Installation in Progress", @"")];
+        [fieldText setStringValue:NSLocalizedString(@"A new version has been installed and is waiting for the current version to quit.", @"")];
+        [buttonDownload setEnabled:NO];
+        [[super window] makeKeyAndOrderFront:nil];
+        return;
+    }
+
+   [fieldTitle setStringValue:NSLocalizedString(@"A New Version is Available", @"")];
    [fieldText setStringValue:@""];
    
    NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:

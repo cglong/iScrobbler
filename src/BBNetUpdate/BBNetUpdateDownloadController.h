@@ -37,13 +37,16 @@
     NSDictionary *bbHash;
     double totalBytes, recvdBytes;
     NSTimeInterval epoch;
-    BOOL _didDownload, installSelf;
+    BOOL _didDownload, installSelf, waitingForAppTerm;
 }
 
 + (void)downloadTo:(NSString*)dir from:(NSString*)url withHashInfo:(NSDictionary*)hash;
 
++ (BOOL)finalizingInstallation;
+
 - (IBAction)cancel:(id)sender;
 
 - (void)startDownload;
+
 
 @end

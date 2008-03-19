@@ -105,6 +105,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
    [gDLInstance startDownload];
 }
 
++ (BOOL)finalizingInstallation
+{
+    return (gDLInstance ? gDLInstance->waitingForAppTerm : NO);
+}
+
 - (IBAction)cancel:(id)sender
 {
     // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
@@ -152,8 +157,8 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
    [bbHash release];
    bbHash = nil;
    
-   [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateDidFinishUpdateCheck
-         object:nil];
+    if (!waitingForAppTerm)
+        [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateDidFinishUpdateCheck object:nil];
    
    [super close];
 }
@@ -300,6 +305,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
                 getpid(),
                 [[NSBundle mainBundle] bundlePath]],
                 nil]];
+    waitingForAppTerm = NO;
 }
 
 - (BOOL)replaceSelfWithAppAtPath:(NSString*)path
@@ -319,7 +325,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:)
             name:NSApplicationWillTerminateNotification object:NSApp];
-    [self retain];
+    waitingForAppTerm = YES;
     [self close];
     [NSApp terminate:nil];
 }
