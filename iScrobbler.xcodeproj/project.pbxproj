@@ -249,7 +249,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D3D8E4BA0D8FE3930051DA80 /* SubStats */;
+			remoteGlobalIDString = D3D8E4BA0D8FE3930051DA80;
 			remoteInfo = SubStats;
 		};
 /* End PBXContainerItemProxy section */
@@ -341,7 +341,7 @@
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPluginController.h; path = src/ISPluginController.h; sourceTree = "<group>"; };
 		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISPluginController.m; path = src/ISPluginController.m; sourceTree = "<group>"; };
 		D37606340CB2307F00C04863 /* ChatStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatStatus.m; sourceTree = "<group>"; };
-		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = ChatStatus.plugin; path = "build/Debug-Internal/ChatStatus.plugin"; sourceTree = "<group>"; };
+		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatStatus.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		D376063B0CB230A900C04863 /* ChatStatus-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "ChatStatus-Info.plist"; sourceTree = "<group>"; };
 		D37606AC0CB236CD00C04863 /* InstantMessage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InstantMessage.framework; path = /System/Library/Frameworks/InstantMessage.framework; sourceTree = "<absolute>"; };
 		D3760C640CB421A400C04863 /* Persistence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Persistence.h; sourceTree = "<group>"; };
