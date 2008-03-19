@@ -2608,7 +2608,8 @@ resolvePath:
 @end
 
 @implementation NSWindow (ISAdditions)
-- (void)ISFadeOut:(NSTimer*)timer
+
+- (void)scrobFadeOut:(NSTimer*)timer
 {
     CGFloat alpha = [self alphaValue];
     if (alpha > 0.0) {
@@ -2629,8 +2630,25 @@ resolvePath:
 
 - (void)fadeOutAndClose
 {
-    [[NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
+    (void)[[NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(scrobFadeOut:)
         userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES] retain];
+}
+
+@end
+
+@implementation NSWindowController (ISAdditions)
+
+- (BOOL)scrobWindowShouldClose
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_4) {
+        // 10.4 has some bugs that are triggered by a delayed close.
+        // For instance if the fade timer fires while a menu is tracking, the app will likely crash.
+        return (YES);
+    }
+    #endif
+    [[self window] fadeOutAndClose];
+    return (NO);
 }
 
 @end

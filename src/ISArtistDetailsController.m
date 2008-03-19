@@ -703,6 +703,15 @@ static NSImage *artistImgPlaceholder = nil;
 
 - (BOOL)windowShouldClose:(NSNotification*)note
 {
+    // return ([self scrobWindowShouldClose]);
+    // XXX: we don't inherit from NSWindowController, so we need a copy of scrobWindowShouldClose
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_4) {
+        // 10.4 has some bugs that are triggered by a delayed close.
+        // For instance if the fade timer fires while a menu is tracking, the app will likely crash.
+        return (YES);
+    }
+    #endif
     [[self window] fadeOutAndClose];
     return (NO);
 }

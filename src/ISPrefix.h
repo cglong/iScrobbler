@@ -26,8 +26,12 @@
 @end
 
 @interface NSWindow (ISAdditions)
-- (void)ISfadeOutAndClose;
-#define fadeOutAndClose ISfadeOutAndClose
+- (void)scrobFadeOutAndClose;
+#define fadeOutAndClose scrobFadeOutAndClose
+@end
+
+@interface NSWindowController (ISAdditions)
+- (BOOL)scrobWindowShouldClose;
 @end
 
 NS_INLINE NSString* ISCPUArchitectureString() {
