@@ -29,9 +29,18 @@
 @end
 #endif
 
+@interface ISLogLevelToBool : NSValueTransformer {
+
+}
+
+@end
+
 int main(int argc, const char *argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    [NSValueTransformer setValueTransformer:[[[ISLogLevelToBool alloc] init] autorelease]
+        forName:@"ISLogLevelIsTrace"];
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     if (sandbox_init)
@@ -65,3 +74,30 @@ int main(int argc, const char *argv[])
     
     return NSApplicationMain(argc, argv);
 }
+
+@implementation ISLogLevelToBool
+
++ (Class)transformedValueClass
+{
+    return [NSNumber class];
+}
+
++ (BOOL)allowsReverseTransformation
+{
+    return (YES);   
+}
+
+- (id)transformedValue:(id)value
+{
+    return ([NSNumber numberWithBool:[value isEqualTo:@"TRACE"]]);
+}
+
+- (id)reverseTransformedValue:(id)value
+{
+    if ([value boolValue])
+        return (@"TRACE");
+    
+    return (@"VERB");
+}
+
+@end
