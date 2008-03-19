@@ -1971,7 +1971,6 @@
 		D3D8E4BD0D8FE3940051DA80 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
@@ -1991,7 +1990,6 @@
 		D3D8E4BE0D8FE3940051DA80 /* Debug-Internal */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
@@ -2011,7 +2009,6 @@
 		D3D8E4BF0D8FE3940051DA80 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
