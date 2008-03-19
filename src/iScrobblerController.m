@@ -131,7 +131,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     NSString *npInfo = nil, *title = nil;
 
     BOOL useGrowl = [GrowlApplicationBridge isGrowlRunning];
-    if ((s = [self nowPlaying])) {
+    if ((s = [self nowPlaying]) && [[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
         @try {
         if (useGrowl)
             artwork = [[s artwork] TIFFRepresentation];
@@ -175,6 +175,8 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
 {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisplayErrors"]) {
+    
     if ([GrowlApplicationBridge isGrowlRunning]) {
         [GrowlApplicationBridge
             notifyWithTitle:title
@@ -187,10 +189,14 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     } else {
         [msgWindowPlugin message:msg withTitle:title withImage:nil sticky:YES];
     }
+    
+    }
 }
 
 - (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
 {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisplayWarnings"]) {
+    
     if ([GrowlApplicationBridge isGrowlRunning]) {
         [GrowlApplicationBridge
             notifyWithTitle:title
@@ -202,6 +208,8 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
             clickContext:nil];
     } else {
         [msgWindowPlugin message:msg withTitle:title withImage:nil];
+    }
+    
     }
 }
 
