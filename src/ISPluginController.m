@@ -68,7 +68,6 @@ static NSMutableArray *allPlugins = nil;
         [den skipDescendents];
         if ((plug = [self loadPlugin:[pluginsPath stringByAppendingPathComponent:path]])) {
             [plugs addObject:plug];
-            [plug release];
         }
     }
     
@@ -80,7 +79,11 @@ static NSMutableArray *allPlugins = nil;
 
 - (void)appWillTerm:(NSNotification*)note
 {
+    @try {
     [allPlugins makeObjectsPerformSelector:@selector(applicationWillTerminate)];
+    } @catch (NSException *e) {
+        ScrobDebug(@"exception: %@", e);
+    }
 }
 
 - (id)init
