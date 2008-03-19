@@ -28,6 +28,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				D3D8E6070D91197B0051DA80 /* PBXTargetDependency */,
 				D37005D00D2003230057EFBD /* PBXTargetDependency */,
 				D37005D40D20032B0057EFBD /* PBXTargetDependency */,
 			);
@@ -149,6 +150,10 @@
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
 		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
+		D3D8E4D20D8FE40F0051DA80 /* SubStats.xib in Resources */ = {isa = PBXBuildFile; fileRef = D3D8E4CB0D8FE40F0051DA80 /* SubStats.xib */; };
+		D3D8E4D40D8FE40F0051DA80 /* SubStats.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D8E4CF0D8FE40F0051DA80 /* SubStats.m */; };
+		D3D8E4D50D8FE40F0051DA80 /* SubStatsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D8E4D10D8FE40F0051DA80 /* SubStatsController.m */; };
+		D3D8E6050D9119570051DA80 /* SubStats.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */; };
 		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
@@ -240,6 +245,13 @@
 			remoteGlobalIDString = D39902020D5B43760050C17C;
 			remoteInfo = MsgWindow;
 		};
+		D3D8E6060D91197B0051DA80 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3D8E4BA0D8FE3930051DA80 /* SubStats */;
+			remoteInfo = SubStats;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -258,9 +270,10 @@
 		D37606630CB2362D00C04863 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "Core Plugins";
-			dstSubfolderSpec = 1;
+			dstPath = "";
+			dstSubfolderSpec = 13;
 			files = (
+				D3D8E6050D9119570051DA80 /* SubStats.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,7 +341,7 @@
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPluginController.h; path = src/ISPluginController.h; sourceTree = "<group>"; };
 		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISPluginController.m; path = src/ISPluginController.m; sourceTree = "<group>"; };
 		D37606340CB2307F00C04863 /* ChatStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatStatus.m; sourceTree = "<group>"; };
-		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatStatus.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = ChatStatus.plugin; path = "build/Debug-Internal/ChatStatus.plugin"; sourceTree = "<group>"; };
 		D376063B0CB230A900C04863 /* ChatStatus-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "ChatStatus-Info.plist"; sourceTree = "<group>"; };
 		D37606AC0CB236CD00C04863 /* InstantMessage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InstantMessage.framework; path = /System/Library/Frameworks/InstantMessage.framework; sourceTree = "<absolute>"; };
 		D3760C640CB421A400C04863 /* Persistence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Persistence.h; sourceTree = "<group>"; };
@@ -403,6 +416,13 @@
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISProfileDocumentController.m; path = src/ISProfileDocumentController.m; sourceTree = "<group>"; };
 		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ProfileReport.css; sourceTree = "<group>"; };
+		D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SubStats.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3D8E4CC0D8FE40F0051DA80 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/SubStats.xib; sourceTree = "<group>"; };
+		D3D8E4CD0D8FE40F0051DA80 /* SubStats-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "SubStats-Info.plist"; sourceTree = "<group>"; };
+		D3D8E4CE0D8FE40F0051DA80 /* SubStats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubStats.h; sourceTree = "<group>"; };
+		D3D8E4CF0D8FE40F0051DA80 /* SubStats.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubStats.m; sourceTree = "<group>"; };
+		D3D8E4D00D8FE40F0051DA80 /* SubStatsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubStatsController.h; sourceTree = "<group>"; };
+		D3D8E4D10D8FE40F0051DA80 /* SubStatsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubStatsController.m; sourceTree = "<group>"; };
 		D3EC73100804F73B00392110 /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Growl.framework; sourceTree = "<group>"; };
 		D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetArtworkForTrack.applescript; sourceTree = "<group>"; };
 		D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlaySpecifiedTrack.applescript; sourceTree = "<group>"; };
@@ -495,6 +515,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D3D8E4B90D8FE3930051DA80 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -540,11 +567,12 @@
 			isa = PBXGroup;
 			children = (
 				D3191CC907E3A51700821D03 /* iScrobbler.app */,
-				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
 				D39802400CE0FE41008CB4C8 /* iScrobblerProxy */,
 				D3712C490D1A3B810011F980 /* Persistence.plugin */,
 				D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */,
 				D399020F0D5B43760050C17C /* MsgWindow.plugin */,
+				D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */,
+				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -769,6 +797,7 @@
 		D37606320CB2307F00C04863 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				D3D8E4CA0D8FE40F0051DA80 /* SubStats */,
 				D37606330CB2307F00C04863 /* ChatStatus (obsolete) */,
 			);
 			name = Plugins;
@@ -833,6 +862,19 @@
 			);
 			includeInIndex = 0;
 			name = Documentation;
+			sourceTree = "<group>";
+		};
+		D3D8E4CA0D8FE40F0051DA80 /* SubStats */ = {
+			isa = PBXGroup;
+			children = (
+				D3D8E4CE0D8FE40F0051DA80 /* SubStats.h */,
+				D3D8E4CF0D8FE40F0051DA80 /* SubStats.m */,
+				D3D8E4D00D8FE40F0051DA80 /* SubStatsController.h */,
+				D3D8E4D10D8FE40F0051DA80 /* SubStatsController.m */,
+				D3D8E4CD0D8FE40F0051DA80 /* SubStats-Info.plist */,
+				D3D8E4CB0D8FE40F0051DA80 /* SubStats.xib */,
+			);
+			path = SubStats;
 			sourceTree = "<group>";
 		};
 		D3EC7C98080858F800392110 /* KFASAdditions */ = {
@@ -959,6 +1001,23 @@
 			productReference = D399020F0D5B43760050C17C /* MsgWindow.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		D3D8E4BA0D8FE3930051DA80 /* SubStats */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3D8E4C00D8FE3950051DA80 /* Build configuration list for PBXNativeTarget "SubStats" */;
+			buildPhases = (
+				D3D8E4B70D8FE3930051DA80 /* Resources */,
+				D3D8E4B80D8FE3930051DA80 /* Sources */,
+				D3D8E4B90D8FE3930051DA80 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SubStats;
+			productName = SubStats;
+			productReference = D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -988,6 +1047,7 @@
 				D3712C480D1A3B810011F980 /* Persistence */,
 				D38835950D200A5D005B6D1D /* TigerPersistence */,
 				D39902020D5B43760050C17C /* MsgWindow */,
+				D3D8E4BA0D8FE3930051DA80 /* SubStats */,
 				D37005BA0D2002B40057EFBD /* Copy Core Plugins */,
 				D37606390CB230A900C04863 /* ChatStatus (obsolete) */,
 			);
@@ -1038,6 +1098,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				D39903770D5B9A7A0050C17C /* MsgWindow.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3D8E4B70D8FE3930051DA80 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3D8E4D20D8FE40F0051DA80 /* SubStats.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1152,6 +1220,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D3D8E4B80D8FE3930051DA80 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3D8E4D40D8FE40F0051DA80 /* SubStats.m in Sources */,
+				D3D8E4D50D8FE40F0051DA80 /* SubStatsController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1204,6 +1281,11 @@
 			isa = PBXTargetDependency;
 			target = D39902020D5B43760050C17C /* MsgWindow */;
 			targetProxy = D39902360D5B44690050C17C /* PBXContainerItemProxy */;
+		};
+		D3D8E6070D91197B0051DA80 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3D8E4BA0D8FE3930051DA80 /* SubStats */;
+			targetProxy = D3D8E6060D91197B0051DA80 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1334,6 +1416,14 @@
 				D3CA425E0D23FD71006CB485 /* English */,
 			);
 			name = PlayHistory.xib;
+			sourceTree = "<group>";
+		};
+		D3D8E4CB0D8FE40F0051DA80 /* SubStats.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3D8E4CC0D8FE40F0051DA80 /* English */,
+			);
+			name = SubStats.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -1878,6 +1968,66 @@
 			};
 			name = Release;
 		};
+		D3D8E4BD0D8FE3940051DA80 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SubStats;
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		D3D8E4BE0D8FE3940051DA80 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SubStats;
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = YES;
+			};
+			name = "Debug-Internal";
+		};
+		D3D8E4BF0D8FE3940051DA80 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SubStats;
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1967,6 +2117,16 @@
 				D399020C0D5B43760050C17C /* Debug */,
 				D399020D0D5B43760050C17C /* Debug-Internal */,
 				D399020E0D5B43760050C17C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D3D8E4C00D8FE3950051DA80 /* Build configuration list for PBXNativeTarget "SubStats" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3D8E4BD0D8FE3940051DA80 /* Debug */,
+				D3D8E4BE0D8FE3940051DA80 /* Debug-Internal */,
+				D3D8E4BF0D8FE3940051DA80 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
