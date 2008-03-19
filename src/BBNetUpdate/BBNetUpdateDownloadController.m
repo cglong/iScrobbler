@@ -354,9 +354,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             
             if (childPath) {
                 childPath = [[bbTmpFile stringByDeletingLastPathComponent] stringByAppendingPathComponent:childPath];
-                if ([self replaceSelfWithAppAtPath:childPath]) {
-                    (void)[[NSFileManager defaultManager] removeFileAtPath:[childPath stringByDeletingLastPathComponent]  handler:nil];
-                } else {
+                if (NO == [self replaceSelfWithAppAtPath:childPath]) {
                     NSDictionary *info = [NSDictionary dictionaryWithObject:
                         NSLocalizedString(@"Failed to replace the current version.", @"")
                         forKey:NSLocalizedDescriptionKey];
@@ -385,7 +383,8 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     
     [actionButton setEnabled:YES];
     if (!error) {
-        (void)[[NSFileManager defaultManager] removeFileAtPath:bbTmpFile handler:nil];
+        // remove our temp directory created by [download:decideDestinationWithSuggestedFilename:]
+        (void)[[NSFileManager defaultManager] removeFileAtPath:[bbTmpFile stringByDeletingLastPathComponent] handler:nil];
         
         if (NO == [NSApp isActive]) {
             ProcessSerialNumber psn;
