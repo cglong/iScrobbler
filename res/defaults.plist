@@ -48,6 +48,12 @@
     <key>Disable Local Lists</key>
     <false />
     
+    <key>DisplayErrors</key>
+    <true />
+    
+    <key>DisplayWarnings</key>
+    <true />
+    
     <key>ForcePlayCache</key>
     <false />
     
@@ -147,12 +153,12 @@
 	<string>1.2</string>
         
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.1.1</string>
+	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.1.2</string>
         
 	<key>username</key>
 	<string></string>
         
 	<key>version</key>
-	<string>2.1.1</string>
+	<string>2.1.2</string>
 </dict>
 </plist>

@@ -112,6 +112,8 @@
     
     [myWebView setCustomUserAgent:[[ProtocolManager sharedInstance] userAgent]];
     [myWebView setMaintainsBackForwardList:NO];
+    [[WebPreferences standardPreferences] setPlugInsEnabled:NO];
+    [[WebPreferences standardPreferences] setJavaEnabled:NO];
 }
 
 - (void)windowWillClose:(NSNotification*)note

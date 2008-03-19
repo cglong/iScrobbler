@@ -12,6 +12,11 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 
+#import <sandbox.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+#pragma weak sandbox_init
+#endif
+
 @implementation ISProxy
 
 - (NSDictionary*)runScriptWithURL:(in NSURL*)url handler:(in NSString*)handler args:(in NSArray*)args;
@@ -64,6 +69,25 @@
 int main(int argc, char *argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    if (sandbox_init)
+    #endif
+    {
+        const char *sbf = [[[NSBundle mainBundle] pathForResource:@"iScrobbler" ofType:@"sb"] fileSystemRepresentation];
+        if (sbf) {
+            char *sberr = NULL;
+            (void)sandbox_init(sbf, SANDBOX_NAMED_EXTERNAL, &sberr);
+            if (sberr) {
+                #ifdef ISDEBUG
+                if (strlen(sberr) > 0)
+                    NSLog(@"sandbox error: '%s'\n", sberr);
+                #endif
+                sandbox_free_error(sberr);
+            }
+        }
+    }
+    
     (void)[NSApplication sharedApplication];
     
     (void)[[ISProxy alloc] init];

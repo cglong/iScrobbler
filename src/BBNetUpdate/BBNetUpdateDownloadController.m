@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006,2007 Brian Bergstrand.
+* Copyright 2002,2006-2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -67,9 +67,9 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 
 + (void)downloadTo:(NSString*)file from:(NSString*)url withHashInfo:(NSDictionary*)hash
 {
-    timeMonikers[0] = NSLocalizedStringFromTable(@"seconds", @"BBNetUpdate", @"");
-    timeMonikers[1] = NSLocalizedStringFromTable(@"minutes", @"BBNetUpdate", @"");
-    timeMonikers[2] = NSLocalizedStringFromTable(@"hours", @"BBNetUpdate", @"");
+    timeMonikers[0] = NSLocalizedString(@"seconds", @"");
+    timeMonikers[1] = NSLocalizedString(@"minutes", @"");
+    timeMonikers[2] = NSLocalizedString(@"hours", @"");
         
    if (!gDLInstance) {
       gDLInstance = [[BBNetUpdateDownloadController alloc] initWithWindowNibName:@"BBNetUpdateDownload"];
@@ -93,6 +93,8 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
    }
    
     gDLInstance->_file = [file retain];
+    gDLInstance->installSelf = !gDLInstance->_file;
+    
     gDLInstance->bbHash = [hash retain];
    
    if (![gDLInstance isWindowLoaded]) {
@@ -101,6 +103,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
    }
    
    [gDLInstance startDownload];
+}
+
++ (BOOL)finalizingInstallation
+{
+    return (gDLInstance ? gDLInstance->waitingForAppTerm : NO);
 }
 
 - (IBAction)cancel:(id)sender
@@ -142,14 +149,32 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     bbDownload = nil;
 
    [_file release];
+   _file = nil;
    [_url release];
+   _url = nil;
    [bbTmpFile release];
+   bbTmpFile = nil;
    [bbHash release];
+   bbHash = nil;
    
-   [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateDidFinishUpdateCheck
-         object:nil];
+    if (!waitingForAppTerm)
+        [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateDidFinishUpdateCheck object:nil];
    
    [super close];
+}
+
+- (void)windowDidLoad
+{
+    NSString *title;
+    if (installSelf) {
+        title = [NSString stringWithFormat:NSLocalizedString(@"Installing %@ Update", @""),
+            [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"]];
+    } else {
+        title = [NSString stringWithFormat:NSLocalizedString(@"Downloading %@ Update", @""),
+            [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"]];
+    }
+    [[self window] setTitle:title];
+    [[self window] setHidesOnDeactivate:NO];
 }
 
 - (BOOL)hashFile:(NSString*)path using:(NSDictionary*)hashInfo
@@ -232,10 +257,165 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     return (good);
 }
 
+// Pulled this from the Sparkle framework (r33)
+// Copyright 2006 Andy Matuschak. All rights reserved.
+- (BOOL)extractDMG:(NSString *)archivePath
+{
+    // First, we internet-enable the volume.
+    NSTask *hdiTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
+        [NSArray arrayWithObjects:@"hdiutil", @"internet-enable", @"-quiet", archivePath, nil]];
+    [hdiTask waitUntilExit];
+    if ([hdiTask terminationStatus] != 0) { return NO; }
+
+    // Now, open the volume; it'll extract into its own directory.
+    hdiTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
+        [NSArray arrayWithObjects:@"hdiutil", @"attach", @"-idme", @"-noidmereveal", @"-noidmetrash", @"-noverify", @"-nobrowse", @"-noautoopen", @"-quiet", archivePath, nil]];
+    [hdiTask waitUntilExit];
+    if ([hdiTask terminationStatus] != 0) { return NO; }
+
+    return YES;
+}
+
+- (BOOL)extractZIP:(NSString*)archivePath
+{
+    NSTask *zTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
+        [NSArray arrayWithObjects:@"unzip", @"-q", archivePath, nil]];
+    [zTask waitUntilExit];
+    if ([zTask terminationStatus] != 0) { return NO; }
+    
+    return (YES);
+}
+
+- (BOOL)extractArchive:(NSString*)archivePath
+{
+    if (NSOrderedSame == [@"dmg" caseInsensitiveCompare:[archivePath pathExtension]]) {
+        return ([self extractDMG:archivePath]);
+    } else if (NSOrderedSame == [@"zip" caseInsensitiveCompare:[archivePath pathExtension]]) {
+        return ([self extractZIP:archivePath]);
+    }
+    return (NO);
+}
+
+- (void)applicationWillTerminate:(NSNotification*)note
+{
+    (void)[NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
+        [NSArray arrayWithObjects:@"perl", @"-e",
+            [NSString stringWithFormat:
+                @"use Time::HiRes qw(usleep); do {usleep(200000); $exists = kill(0, %d);} while($exists); system('open %@')",
+                getpid(),
+                [[NSBundle mainBundle] bundlePath]],
+                nil]];
+    waitingForAppTerm = NO;
+}
+
+- (BOOL)replaceSelfWithAppAtPath:(NSString*)path
+{
+    NSString *pathToSelf = [[NSBundle mainBundle] bundlePath];
+    NSInteger tag = 0;
+    BOOL good = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation
+        source:[pathToSelf stringByDeletingLastPathComponent]
+        destination:@"" files:[NSArray arrayWithObject:[pathToSelf lastPathComponent]] tag:&tag];
+    if (good)
+        good = [[NSFileManager defaultManager] movePath:path toPath:pathToSelf handler:nil];
+    
+    return (good);
+}
+
+- (IBAction)restartSelf:(id)sender
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:)
+            name:NSApplicationWillTerminateNotification object:NSApp];
+    waitingForAppTerm = YES;
+    [self close];
+    [NSApp terminate:nil];
+}
+
+- (IBAction)installSelf:(id)sender
+{
+    NSError *error = nil;
+    [actionButton setEnabled:NO];
+    
+    [progressBar setIndeterminate:YES];
+    [progressBar startAnimation:nil];
+    
+    @try {
+        if ([self extractArchive:bbTmpFile]) {
+            // Find the app
+            NSString *appName = [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"]
+                stringByAppendingPathExtension:@"app"];
+            NSDirectoryEnumerator *de = [[NSFileManager defaultManager] enumeratorAtPath:
+                [bbTmpFile stringByDeletingLastPathComponent]];
+            NSString *childPath;
+            while ((childPath = [de nextObject])) {
+                NSDictionary *attrs = [de fileAttributes];
+                if (NO == [NSFileTypeDirectory isEqualToString:[attrs objectForKey:NSFileType]])
+                    continue;
+                
+                if (NSOrderedSame == [[childPath lastPathComponent] caseInsensitiveCompare:appName])
+                    break;
+                else if ([childPath hasPrefix:@"/"]) { // ignore anything outside of our temp dir
+                    [de skipDescendents];
+                }
+            }
+            
+            if (childPath) {
+                childPath = [[bbTmpFile stringByDeletingLastPathComponent] stringByAppendingPathComponent:childPath];
+                if (NO == [self replaceSelfWithAppAtPath:childPath]) {
+                    NSDictionary *info = [NSDictionary dictionaryWithObject:
+                        NSLocalizedString(@"Failed to replace the current version.", @"")
+                        forKey:NSLocalizedDescriptionKey];
+                    error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+                }
+            } else {
+                NSDictionary *info = [NSDictionary dictionaryWithObject:
+                    NSLocalizedString(@"Could not find a new version of the application in the archive.", @"")
+                    forKey:NSLocalizedDescriptionKey];
+                error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+            }
+        } else {
+            NSDictionary *info = [NSDictionary dictionaryWithObject:
+                NSLocalizedString(@"Archive extraction failed.", @"")
+                forKey:NSLocalizedDescriptionKey];
+            error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+        }
+    } @catch (NSException *e) {
+        NSDictionary *info = [NSDictionary dictionaryWithObject:
+            [e reason] forKey:NSLocalizedDescriptionKey];
+        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+    }
+    
+    [progressBar stopAnimation:nil];
+    [progressBar setIndeterminate:NO];
+    
+    [actionButton setEnabled:YES];
+    if (!error) {
+        // remove our temp directory created by [download:decideDestinationWithSuggestedFilename:]
+        (void)[[NSFileManager defaultManager] removeFileAtPath:[bbTmpFile stringByDeletingLastPathComponent] handler:nil];
+        
+        if (NO == [NSApp isActive]) {
+            ProcessSerialNumber psn;
+            (void)GetCurrentProcess(&psn);
+            NSDictionary *infoDict = (NSDictionary*)ProcessInformationCopyDictionary(&psn, kProcessDictionaryIncludeAllInformationMask);
+            [infoDict autorelease];
+            if ([infoDict objectForKey:@"LSUIElement"] && [[infoDict objectForKey:@"LSUIElement"] boolValue])
+                [NSApp activateIgnoringOtherApps:YES];
+            else
+                (void)[NSApp requestUserAttention:NSInformationalRequest];
+        }
+        [actionButton setTitle:NSLocalizedString(@"Restart", @"")];
+        [actionButton setAction:@selector(restartSelf:)];
+        totalBytes = -1.0;
+        [self willChangeValueForKey:@"progressString"];
+        [self didChangeValueForKey:@"progressString"];
+    } else {
+        [self download:nil didFailWithError:error];
+    }
+}
+
 - (NSString*)progressString
 {
     NSString *s;
-    if (totalBytes > 0.0) {
+    if (totalBytes > 0.0 && recvdBytes < totalBytes) {
         static NSString* const byteMonikers[] = {@"bytes", @"KB", @"MB", @"GB", @"TB", @"PB", nil};
         
         NSTimeInterval delta = [[NSDate date] timeIntervalSince1970] - epoch;
@@ -257,8 +437,12 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             NSLocalizedStringFromTable(@"%.1f %@ of %.1f %@ (%.1f %@/sec), About %.1f %@ remaining", @"BBNetUpdate", @"received of total (received/second), About time remaining"),
             recvdSize, byteMonikers[ri], totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
             remainingTime, timeMonikers[timei]];
+    } else if (installSelf && roundtol(totalBytes) == roundtol(recvdBytes)) {
+        s = NSLocalizedString(@"The new version has finished downloading and is now being installed.", @"");
+    } else if (installSelf && totalBytes < 0.0) {
+        s = NSLocalizedString(@"The new version has been installed.", @"");
     } else
-        s = [NSLocalizedStringFromTable(@"Establishing connection", @"BBNetUpdate", @"") stringByAppendingFormat:@"%C", 0x2026];
+        s = [NSLocalizedString(@"Establishing connection", @"") stringByAppendingFormat:@"%C", 0x2026];
     return (s);
 }
 
@@ -285,28 +469,53 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {   
    // Alert the user
    NSBeginInformationalAlertSheet(
-        NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
+        NSLocalizedString(@"Update Error", @""),
         @"OK", nil, nil, [super window],
         self, @selector(endAlertSheet:returnCode:contextInfo:), nil, (void*)-1,
-        NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [error localizedDescription]);
+        NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [error localizedDescription]);
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
 }
 
 - (void)downloadDidFinish:(NSURLDownload *)download
 {
+    NSError *error;
     if (bbHash && NO == [self hashFile:bbTmpFile using:bbHash]) {
         NSDictionary *info = [NSDictionary dictionaryWithObject:
-            NSLocalizedStringFromTable(@"Hash failed: the file may be corrupt or invalid.", @"BBNetUpdate", @"")
+            NSLocalizedString(@"Hash failed: the file may be corrupt or invalid.", @"")
             forKey:NSLocalizedDescriptionKey];
         
-        NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
         [self download:download didFailWithError:error];
-        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+        return;
+    }
+    
+    if (installSelf) {
+        [self willChangeValueForKey:@"progressString"];
+        [self didChangeValueForKey:@"progressString"];
+        [self performSelector:@selector(installSelf:) withObject:nil afterDelay:0.0]; 
         return;
     }
     
     // Move the temp file to the final location
-    (void)[[NSFileManager defaultManager] movePath:bbTmpFile toPath:_file handler:nil];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    BOOL didMove;
+    if ([fm respondsToSelector:@selector(moveItemAtPath:toPath:error:)])
+        didMove = [fm moveItemAtPath:bbTmpFile toPath:_file error:&error];
+    else    
+        didMove = [fm movePath:bbTmpFile toPath:_file handler:nil];
+    
+    if (!didMove) {
+        if (!error) {
+            NSDictionary *info = [NSDictionary dictionaryWithObject:
+                NSLocalizedString(@"Failed to move the temporary download file.", @"")
+                forKey:NSLocalizedDescriptionKey];
+            
+            error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
+        }
+        [self download:download didFailWithError:error];
+        return;
+    }
+    
     [self close];
 }
 
@@ -330,7 +539,9 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
         ([path respondsToSelector:@selector(stringWithCString:encoding:)] ?
         [NSString stringWithCString:tmp encoding:NSASCIIStringEncoding] :
         [NSString stringWithCString:tmp])];
-    [download setDestination:path allowOverwrite:NO];
+    (void)[[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];
+    
+    [download setDestination:[path stringByAppendingPathComponent:filename] allowOverwrite:NO];
     if ([download respondsToSelector:@selector(setDeletesFileUponFailure:)])
         [download setDeletesFileUponFailure:YES];
 }

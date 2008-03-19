@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.bergstrand.iscrobbler.Persistence</string>
+	<string>org.bergstrand.iscrobbler.SubStats</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -15,8 +15,8 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.2</string>
-    <key>NSPrincipalClass</key>
-    <string>PersistentProfile</string>
+	<string>1.0</string>
+	<key>NSPrincipalClass</key>
+	<string>ISSubStats</string>
 </dict>
 </plist>

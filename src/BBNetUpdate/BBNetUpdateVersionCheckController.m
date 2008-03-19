@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006,2007 Brian Bergstrand.
+* Copyright 2002,2006-2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -130,8 +130,15 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 
 - (void)connect:(id)sender
 {
-   [fieldTitle setStringValue:
-      NSLocalizedStringFromTable(@"BBNetUpdateCheckNewVersionTitle", @"BBNetUpdate", @"")];
+    if ([BBNetUpdateDownloadController finalizingInstallation]) {
+        [fieldTitle setStringValue:NSLocalizedString(@"Installation in Progress", @"")];
+        [fieldText setStringValue:NSLocalizedString(@"A new version has been installed and is waiting for the current version to quit.", @"")];
+        [buttonDownload setEnabled:NO];
+        [[super window] makeKeyAndOrderFront:nil];
+        return;
+    }
+
+   [fieldTitle setStringValue:NSLocalizedString(@"A New Version is Available", @"")];
    [fieldText setStringValue:@""];
    
    NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
@@ -143,9 +150,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       NSBeep();
       return;
    }
-   
-   [buttonDownload setEnabled:NO];
-   [buttonMoreInfo setEnabled:NO];
    
    [boxDontCheck setState:
       [[NSUserDefaults standardUserDefaults] boolForKey:@"BBNetUpdateDontAutoCheckVersion"]];
@@ -180,15 +184,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     checkingVersion = YES;
 }
 
-- (IBAction)cancel:(id)sender
-{
-    if (verInfo) {
-        // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
-        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
-    }
-    [self close];
-}
-
 - (IBAction)download:(id)sender
 {
    NSSavePanel *op;
@@ -197,6 +192,13 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [self close];
       return;
    }
+
+    if (installSelf) {
+        [BBNetUpdateDownloadController downloadTo:nil from:[verInfo objectForKey:@"File"]
+            withHashInfo:[verInfo objectForKey:@"Hash"]];
+        [self close];
+        return;
+    }
    
    // Prompt the user for the save dir.
    op = [NSSavePanel savePanel];
@@ -208,32 +210,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
 }
 
-- (IBAction)showHideMoreInfo:(id)sender
-{
-   NSString *tempTitle;
-   
-   if (0 == [sender tag]){
-      [sender setTag:1];
-      // swap the titles
-      tempTitle = [sender title];
-      [sender setTitle:[sender alternateTitle]];
-      [sender setAlternateTitle:tempTitle];
-      // open the drawer
-      [drawerMoreInfo open];
-   } else {
-      [sender setTag:0];
-      // swap the titles back
-      tempTitle = [sender title];
-      [sender setTitle:[sender alternateTitle]];
-      [sender setAlternateTitle:tempTitle];
-      // close the drawer
-      [drawerMoreInfo close];
-   }
-}
-
 // NSWindowController
-- (void)close
+- (void)windowWillClose
 {
+    if (verInfo) {
+        // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+    }
+    
     [connection cancel];
     [connection autorelease];
     connection = nil;
@@ -255,8 +239,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateDidFinishUpdateCheck
          object:nil];
    }
-   
-   [super close];
 }
 
 // NSURLConnection delegate methods
@@ -283,8 +265,8 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         [progressBar stopAnimation:nil];
         [progressBar displayIfNeeded];
         if (_interact) {
-            [fieldTitle setStringValue:NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
-            [fieldText setStringValue:NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"")];
+            [fieldTitle setStringValue:NSLocalizedString(@"You Have the Latest Version", @"")];
+            [fieldText setStringValue:NSLocalizedString(@"You are using the latest version.", @"")];
             [buttonDownload setTitle:@"OK"];
             [buttonDownload setEnabled:YES];
             [[super window] makeKeyAndOrderFront:nil];
@@ -298,7 +280,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     NSMutableData *data = [verData autorelease];
     verData = nil;
     
-   if (data) {
+   if (data && [data length] > 0) {
       CFStringRef errstr = NULL;
       BOOL display = NO;
       
@@ -342,25 +324,30 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          } else if (curVer && netVer &&
             (BBCFVersionNumberFromString((CFStringRef)curVer) <
                BBCFVersionNumberFromString((CFStringRef)netVer))) {
-            newVer = [NSString stringWithFormat:
-               NSLocalizedStringFromTable(@"BBNetUpdateNewVersionAvail", @"BBNetUpdate", @""),
-               curVer,
-               bundleName,
-               netVer];
+            
+            NSString *fmt;
+            if (installSelf)
+                fmt = NSLocalizedString(@"You are using version %@ of %@. Version %@ is now available. Would you like to install the new version?", @"");
+            else
+                fmt = NSLocalizedString(@"You are using version %@ of %@. Version %@ is now available. Would you like to download the new version?", @"");
+            newVer = [NSString stringWithFormat:fmt, curVer, bundleName, netVer];
             
             moreInfo = [[verInfo objectForKey:@"Notes"] objectForKey:@"English"];
             if (moreInfo) {
                [fieldMoreInfo setString:moreInfo];
-               [buttonMoreInfo setEnabled:YES];
             }
          
-            title = NSLocalizedStringFromTable(@"BBNetUpdateNewVersionTitle", @"BBNetUpdate", @"");
+            title = NSLocalizedString(@"A New Version is Available", @"");
             
             // Make sure the user knows there is a new version
             display = YES;
+            if (installSelf)
+                [buttonDownload setTitle:NSLocalizedString(@"Install", @"")];
+            else
+                [buttonDownload setTitle:NSLocalizedString(@"Download", @"")];
          } else {
-            title = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"");
-            newVer = NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionAvail", @"BBNetUpdate", @"");
+            title = NSLocalizedString(@"You Have the Latest Version", @"");
+            newVer = NSLocalizedString(@"You are using the latest version.", @"");
             
             [buttonDownload setTitle:@"OK"];
             [verInfo release]; verInfo = nil;
@@ -373,12 +360,21 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          
          if (display && ![[super window] isVisible])
             [[super window] makeKeyAndOrderFront:nil];
+      } else {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+        // corrupt XML
+        [fieldTitle setStringValue:NSLocalizedString(@"Version Data Error", @"")];
+        [fieldText setStringValue:NSLocalizedString(@"The version data file appears corrupt.", @"")];
+        if (![[super window] isVisible])
+            [[super window] makeKeyAndOrderFront:nil];
       }
-   } else  {
+   } else {
       [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
       // No version data
-      [fieldTitle setStringValue:
-         NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
+      [fieldTitle setStringValue:NSLocalizedString(@"Version Data Error", @"")];
+      [fieldText setStringValue:NSLocalizedString(@"The server returned empty version data.", @"")];
+      if (![[super window] isVisible])
+        [[super window] makeKeyAndOrderFront:nil];
    }
    
    [progressBar stopAnimation:nil];
@@ -396,15 +392,14 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         [[super window] makeKeyAndOrderFront:nil];
 
     // Alert the user
-    NSBeginAlertSheet(NSLocalizedStringFromTable(@"BBNetUpdateDownloadErrorTitle", @"BBNetUpdate", @""),
+    NSBeginAlertSheet(NSLocalizedString(@"Update Error", @""),
       @"OK", nil, nil, [super window], self, nil, nil, nil,
-    NSLocalizedStringFromTable(@"BBNetUpdateDownloadError", @"BBNetUpdate", @""), [reason localizedDescription]);
+    NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [reason localizedDescription]);
 
     [fieldTitle setStringValue:
-         NSLocalizedStringFromTable(@"BBNetUpdateNoNewVersionTitle", @"BBNetUpdate", @"")];
+         NSLocalizedString(@"Could not obtain version data", @"")];
 
-    [buttonDownload setTitle:@"OK"];
-    [buttonDownload setEnabled:YES];
+    [buttonDownload setEnabled:NO];
 
     [progressBar stopAnimation:nil];
     [progressBar displayIfNeeded];
@@ -418,6 +413,21 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 - (void)windowDidLoad
 {
     [(NSPanel*)[self window] setLevel:NSModalPanelWindowLevel + 1];
+    [[self window] setTitle:[NSString stringWithFormat:@"%@ %@",
+        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
+        NSLocalizedString(@"Software Update", @"")]];
+    [buttonDownload setTitle:@"OK"];
+    [buttonDownload setEnabled:NO];
+    
+    installSelf = [[[NSDictionary dictionaryWithContentsOfFile:
+        [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
+        objectForKey:@"BBNetUpdateInstallSelf"] boolValue];
+    if (installSelf) {
+        // If we can't write, then don't allow self install
+        NSString *pathToParent = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
+        if (NO == [[NSFileManager defaultManager] isWritableFileAtPath:pathToParent])
+            installSelf = NO;
+    }
 }
 
 // Sheet handlers

@@ -106,7 +106,7 @@
 - (BOOL)windowShouldClose:(NSNotification*)note
 {
     if (NO == [self isBusy])
-        [[self window] fadeOutAndClose];
+        return ([self scrobWindowShouldClose]);
     else
         NSBeep();
     return (NO);

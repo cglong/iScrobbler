@@ -93,6 +93,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 #define SUBMIT_IPOD_MENUITEM_TAG    4
 #define RADIO_MENUITEM_TAG 5
+#ifndef PLUGINS_MENUITEM_TAG
+#define PLUGINS_MENUITEM_TAG 9999
+#endif
 
 @interface SongData (iScrobblerControllerAdditions)
 - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
@@ -125,7 +128,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 }
 
 - (void)displayNowPlayingWithMsg:(NSString*)msg
-{    
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
+    
     SongData *s;
     NSData *artwork = nil;
     NSString *npInfo = nil, *title = nil;
@@ -163,18 +168,22 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     } else {
         [msgWindowPlugin message:msg withTitle:title withImage:[s artwork]];
     }
+    
+    }
 }
 
 - (void)displayNowPlaying
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
-         NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
+        NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
         [self displayNowPlayingWithMsg:msg ? [NSString stringWithFormat:@"%@: %@", IS_RADIO_TUNEDTO_STR, msg] : nil];
     }
 }
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
 {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisplayErrors"]) {
+    
     if ([GrowlApplicationBridge isGrowlRunning]) {
         [GrowlApplicationBridge
             notifyWithTitle:title
@@ -187,10 +196,14 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     } else {
         [msgWindowPlugin message:msg withTitle:title withImage:nil sticky:YES];
     }
+    
+    }
 }
 
 - (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
 {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisplayWarnings"]) {
+    
     if ([GrowlApplicationBridge isGrowlRunning]) {
         [GrowlApplicationBridge
             notifyWithTitle:title
@@ -202,6 +215,8 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
             clickContext:nil];
     } else {
         [msgWindowPlugin message:msg withTitle:title withImage:nil];
+    }
+    
     }
 }
 
@@ -1203,6 +1218,52 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     }
 }
 
+- (void)createActionMenuForItem:(NSMenuItem*)songItem
+{
+    SongData *song = [songItem representedObject];
+    
+    NSMenuItem *item;
+    NSMenu *m = [songActionMenu copy];
+    if ([song isLastFmRadio]) {
+        // Use the radio sepcific skip and ban
+        item = [m itemWithTag:MACTION_SKIP]; 
+        [item setAction:@selector(skip)];
+        [item setTarget:[ISRadioController sharedInstance]];
+        
+        item = [m itemWithTag:MACTION_BAN_TAG]; 
+        [item setAction:@selector(ban)];
+        [item setTarget:[ISRadioController sharedInstance]];
+        if ([song banned])
+            [item setEnabled:NO];
+    } else {
+        if ([song banned]) {
+            item = [m itemWithTag:MACTION_BAN_TAG];
+            [item setAction:@selector(unBanTrack:)];
+            [item setTitle:NSLocalizedString(@"Un-Ban", "")];
+        } else if ([song skipped]) {
+            // this should not occur because a local skip tells the player to go to the next track,
+            // but just in case...
+            [[m itemWithTag:MACTION_SKIP] setEnabled:NO];
+        }
+    }
+    [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
+    
+    item = nil;
+    [songItem setAction:nil];
+    [songItem setSubmenu:m];
+    if ([song isLastFmRadio]) {
+        NSString *tip;
+        unsigned int days, hours, minutes, seconds;
+        ISDurationsFromTime([[song duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
+        if (0 == hours)
+            tip = [NSString stringWithFormat:@"%@: %u:%02u", NSLocalizedString(@"Duration", ""), minutes, seconds];
+        else
+            tip = [NSString stringWithFormat:@"%@: %u:%02u:%02u", NSLocalizedString(@"Duration", ""), hours, minutes, seconds];
+        [songItem setToolTip:tip];
+    }
+    [m release];
+}
+
 - (void)updateMenu
 {
     NSMenuItem *item;
@@ -1241,47 +1302,7 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
     if (addedSongs) {
         if (songActionMenu && (song = [self nowPlaying])) {
             // Setup the action menu for the currently playing song  
-            NSMenu *m = [songActionMenu copy];
-            if ([song isLastFmRadio]) {
-                // Use the radio sepcific skip and ban
-                item = [m itemWithTag:MACTION_SKIP]; 
-                [item setAction:@selector(skip)];
-                [item setTarget:[ISRadioController sharedInstance]];
-                
-                item = [m itemWithTag:MACTION_BAN_TAG]; 
-                [item setAction:@selector(ban)];
-                [item setTarget:[ISRadioController sharedInstance]];
-                if ([song banned])
-                    [item setEnabled:NO];
-            } else {
-                if ([song banned]) {
-                    item = [m itemWithTag:MACTION_BAN_TAG];
-                    [item setAction:@selector(unBanTrack:)];
-                    [item setTitle:NSLocalizedString(@"Un-Ban", "")];
-                } else if ([song skipped]) {
-                    // this should not occur because a local skip tells the player to go to the next track,
-                    // but just in case...
-                    [[m itemWithTag:MACTION_SKIP] setEnabled:NO];
-                }
-            }
-            [[m itemArray] makeObjectsPerformSelector:@selector(setRepresentedObject:) withObject:song];
-            
-            item = [theMenu itemAtIndex:0];
-            ISASSERT(song == [item representedObject], "songs don't match!");
-            [item setAction:nil];
-            [item setSubmenu:m];
-            if ([song isLastFmRadio]) {
-                NSString *tip;
-                unsigned int days, hours, minutes, seconds;
-                ISDurationsFromTime([[song duration] unsignedIntValue], &days, &hours, &minutes, &seconds);
-                if (0 == hours)
-                    tip = [NSString stringWithFormat:@"%@: %u:%02u", NSLocalizedString(@"Duration", ""), minutes, seconds];
-                else
-                    tip = [NSString stringWithFormat:@"%@: %u:%02u:%02u", NSLocalizedString(@"Duration", ""), hours, minutes, seconds];
-                [item setToolTip:tip];
-            }
-            [m release];
-            
+            [self createActionMenuForItem:[theMenu itemAtIndex:0]];
         }
         [theMenu insertItem:[NSMenuItem separatorItem] atIndex:addedSongs];
     }
@@ -2602,7 +2623,8 @@ resolvePath:
 @end
 
 @implementation NSWindow (ISAdditions)
-- (void)ISFadeOut:(NSTimer*)timer
+
+- (void)scrobFadeOut:(NSTimer*)timer
 {
     CGFloat alpha = [self alphaValue];
     if (alpha > 0.0) {
@@ -2623,8 +2645,25 @@ resolvePath:
 
 - (void)fadeOutAndClose
 {
-    [[NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(ISFadeOut:)
+    (void)[[NSTimer scheduledTimerWithTimeInterval:0.06 target:self selector:@selector(scrobFadeOut:)
         userInfo:[NSNumber numberWithDouble:[self alphaValue]] repeats:YES] retain];
+}
+
+@end
+
+@implementation NSWindowController (ISAdditions)
+
+- (BOOL)scrobWindowShouldClose
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_4) {
+        // 10.4 has some bugs that are triggered by a delayed close.
+        // For instance if the fade timer fires while a menu is tracking, the app will likely crash.
+        return (YES);
+    }
+    #endif
+    [[self window] fadeOutAndClose];
+    return (NO);
 }
 
 @end

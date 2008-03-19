@@ -85,8 +85,7 @@ static NSPoint mwLastWhere = {0.0,0.0};
 
 - (BOOL)windowShouldClose:(NSNotification*)note
 {
-    [[self window] fadeOutAndClose];
-    return (NO);
+    return ([self scrobWindowShouldClose]);
 }
 
 - (void)windowWillClose:(NSNotification*)note

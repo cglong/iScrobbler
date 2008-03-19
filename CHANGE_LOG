@@ -13,6 +13,13 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v2.1.2 (BDB)
+- A minimal stats window is back.
+- Redesigned preferences window with some previously hidden prefs now exposed.
+- New self-install version updater.
+- Bug Fix: Possible hang on slower machines - the main thread could have blocked while waiting for the local charts thread to process messages.
+- Bug Fix: The version check did not handle a corrupted version data file properly.
+
 v2.1.1 (BDB)
 - Bug Fix: If the user name and/or password are changed, iScrobbler will re-handshake.
 - Bug Fix: Check for and don't allow an empty user name in the prefs window.

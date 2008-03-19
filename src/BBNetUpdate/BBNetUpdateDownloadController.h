@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006 Brian Bergstrand.
+* Copyright 2002,2006-2008 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -29,6 +29,7 @@
 @interface BBNetUpdateDownloadController : NSWindowController
 {
     IBOutlet id progressBar;
+    IBOutlet NSButton *actionButton;
     
     NSURL *_url;
     id bbDownload;
@@ -36,13 +37,16 @@
     NSDictionary *bbHash;
     double totalBytes, recvdBytes;
     NSTimeInterval epoch;
-    BOOL _didDownload;
+    BOOL _didDownload, installSelf, waitingForAppTerm;
 }
 
 + (void)downloadTo:(NSString*)dir from:(NSString*)url withHashInfo:(NSDictionary*)hash;
 
++ (BOOL)finalizingInstallation;
+
 - (IBAction)cancel:(id)sender;
 
 - (void)startDownload;
+
 
 @end
