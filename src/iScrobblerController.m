@@ -128,13 +128,15 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 }
 
 - (void)displayNowPlayingWithMsg:(NSString*)msg
-{    
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
+    
     SongData *s;
     NSData *artwork = nil;
     NSString *npInfo = nil, *title = nil;
 
     BOOL useGrowl = [GrowlApplicationBridge isGrowlRunning];
-    if ((s = [self nowPlaying]) && [[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
+    if ((s = [self nowPlaying])) {
         @try {
         if (useGrowl)
             artwork = [[s artwork] TIFFRepresentation];
@@ -166,12 +168,14 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
     } else {
         [msgWindowPlugin message:msg withTitle:title withImage:[s artwork]];
     }
+    
+    }
 }
 
 - (void)displayNowPlaying
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"GrowlPlays"]) {
-         NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
+        NSString *msg = [[ISRadioController sharedInstance] performSelector:@selector(currentStation)];
         [self displayNowPlayingWithMsg:msg ? [NSString stringWithFormat:@"%@: %@", IS_RADIO_TUNEDTO_STR, msg] : nil];
     }
 }
