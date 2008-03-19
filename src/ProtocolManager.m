@@ -103,6 +103,52 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return (self);
 }
 
+- (NSDictionary*)hsNotificationUserInfo
+{
+    NSString *msg = [self lastHandshakeMessage];
+    if (msg)
+        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
+    else
+        msg = NSLocalizedString(@"Handshake pending", @"");
+        
+    NSString *song;
+    if (lastSongSubmitted)
+        song = [NSString stringWithFormat:@"%@ - %@", [lastSongSubmitted artist], [lastSongSubmitted title]];
+    else
+        song = nil;
+
+    return ([NSDictionary dictionaryWithObjectsAndKeys:
+                [NSNumber numberWithUnsignedLongLong:[[QueueManager sharedInstance] count]], @"queueCount",
+                [NSNumber numberWithUnsignedLong:submissionAttempts], @"submissionAttempts",
+                [NSNumber numberWithUnsignedLong:successfulSubmissions], @"successfulSubmissions",
+                msg, @"lastServerRepsonse",
+                song, @"lastSongSubmitted",
+                nil]);
+}
+
+- (NSDictionary*)subNotificationUserInfo
+{
+    NSString *msg = [self lastSubmissionMessage];
+    if (msg)
+        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
+    else
+        msg = [self lastHandshakeMessage];
+        
+    NSString *song;
+    if (lastSongSubmitted)
+        song = [NSString stringWithFormat:@"%@ - %@", [lastSongSubmitted artist], [lastSongSubmitted title]];
+    else
+        song = nil;
+
+    return ([NSDictionary dictionaryWithObjectsAndKeys:
+                [NSNumber numberWithUnsignedLongLong:[[QueueManager sharedInstance] count]], @"queueCount",
+                [NSNumber numberWithUnsignedLong:submissionAttempts], @"submissionAttempts",
+                [NSNumber numberWithUnsignedLong:successfulSubmissions], @"successfulSubmissions",
+                msg, @"lastServerRepsonse",
+                song, @"lastSongSubmitted",
+                nil]);
+}
+
 - (void)scheduleHandshake:(NSTimer*)timer
 {
     handshakeTimer = NULL;
@@ -190,7 +236,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     @try {
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self
+        userInfo:[self hsNotificationUserInfo]];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -534,7 +581,8 @@ didFinishLoadingExit:
     @try {
     if (0 != notify_post)
         notify_post("org.bergstrand.iscrobbler.didsubmit");
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
+        userInfo:[self subNotificationUserInfo]];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -590,7 +638,8 @@ didFinishLoadingExit:
     [self setLastSongSubmitted:[inFlight lastObject]];
     
     @try {
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
+        userInfo:[self subNotificationUserInfo]];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -725,7 +774,8 @@ didFinishLoadingExit:
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
         @try {
-        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
+            userInfo:[self subNotificationUserInfo]];
         } @catch (NSException *e2) {
             ScrobDebug(@"exception: %@", e2);
         }
