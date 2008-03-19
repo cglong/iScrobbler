@@ -93,6 +93,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 #define SUBMIT_IPOD_MENUITEM_TAG    4
 #define RADIO_MENUITEM_TAG 5
+#ifndef PLUGINS_MENUITEM_TAG
+#define PLUGINS_MENUITEM_TAG 9999
+#endif
 
 @interface SongData (iScrobblerControllerAdditions)
 - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict;
