@@ -421,11 +421,11 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     ScrobLog(SCROB_LOG_TRACE, @"Local Charts epoch is '%@'", [metadata objectForKey:(NSString*)kMDItemContentCreationDate]);
     
     id ver = [metadata objectForKey:(NSString*)kMDItemCreator];
-    ScrobLog(SCROB_LOG_TRACE, @"Local Charts creator is '%@'", ver ? ver : @"unknown version");
+    ScrobLog(SCROB_LOG_TRACE, @"Local Charts creator is '%@'", ver ? ver : @"pre-2.1.1");
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ver = [metadata objectForKey:(NSString*)kMDItemEditors];
-    ScrobLog(SCROB_LOG_TRACE, @"Local Charts were last opened by '%@'", ver ? ver : @"unknown version");
+    ScrobLog(SCROB_LOG_TRACE, @"Local Charts were last opened by '%@'", ver ? ver : @"pre-2.1.1");
     [self setStoreMetadata:[NSArray arrayWithObject:[mProxy applicationVersion]] forKey:(NSString*)kMDItemEditors moc:mainMOC];
     #endif
     
