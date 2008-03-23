@@ -6,4 +6,4 @@
 (version 1)
 ;;(debug deny)
 (allow default)
-(deny file-read* file-write* (regex "/[iI]nput[mM]anagers|/[iI]nternet [pP]lug-[iI]ns"))
+(deny file-read* file-write* (regex "/[iI]nput[mM]anagers|/[iI]nternet [pP]lug-[iI]ns|/[aA]pplication ?[eE]nhancer"))
