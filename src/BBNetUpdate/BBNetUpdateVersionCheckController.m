@@ -151,9 +151,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       return;
    }
    
-   [boxDontCheck setState:
-      [[NSUserDefaults standardUserDefaults] boolForKey:@"BBNetUpdateDontAutoCheckVersion"]];
-   
    if (_interact)
       [[super window] makeKeyAndOrderFront:nil];
    
@@ -211,7 +208,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
 }
 
 // NSWindowController
-- (void)windowWillClose
+- (void)windowWillClose:(NSNotification*)note
 {
     if (verInfo) {
         // user chose to cancel a new version, delete the lastCheck key so they are still notified that a new version exists later
@@ -226,9 +223,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     
    [verInfo release];
    verInfo = nil;
-   
-   [[NSUserDefaults standardUserDefaults]
-      setBool:(NSOnState == [boxDontCheck state]) forKey:@"BBNetUpdateDontAutoCheckVersion"];
    
    checkingVersion = NO;
    
