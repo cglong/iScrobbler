@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.1.2b1</string>
+        <string>2.1.2b2</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.2b1.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.2b2.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -18,10 +18,7 @@
         <key>Notes</key>
         <dict>
 			<key>English</key>
-			<string>- A minimal stats window is back.
-- Redesigned preferences window with some previously hidden prefs now exposed.
-- New self-install version updater.
-- Bug fixes.
+			<string>This release is mainly to test the new auto-install updater. If you expereince a problem with the install, please post in the forums. Other changes are minor.
 			</string>
         </dict>
 </dict>
