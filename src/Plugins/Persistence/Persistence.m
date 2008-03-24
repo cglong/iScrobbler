@@ -71,12 +71,23 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify
 {
-    NSError *error;
+    NSError *error;    
     if ([moc save:&error]) {
         if (notify)
             [self performSelectorOnMainThread:@selector(profileDidChange) withObject:nil waitUntilDone:NO];
         return (YES);
     } else {
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:
+            [[NSApp delegate] methodSignatureForSelector:@selector(displayErrorWithTitle:message:)]];
+        [inv retainArguments];
+        [inv setTarget:[NSApp delegate]]; // arg 0
+        [inv setSelector:@selector(displayErrorWithTitle:message:)]; // arg 1
+        NSString *title = NSLocalizedStringFromTableInBundle(@"Local Charts Could Not Be Saved", nil, [NSBundle bundleForClass:[self class]], "");
+        [inv setArgument:&title atIndex:2];
+        NSString *msg = NSLocalizedStringFromTableInBundle(@"The local charts database could not be saved. This may be an indication of corruption. See the log file for more information.", nil, [NSBundle bundleForClass:[self class]], "");
+        [inv setArgument:&msg atIndex:3];
+        [inv performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
+        
         ScrobLog(SCROB_LOG_ERR, @"failed to save persistent db (%@ -- %@)", error,
             [[error userInfo] objectForKey:NSDetailedErrorsKey]);
         [moc rollback];
