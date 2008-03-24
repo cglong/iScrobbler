@@ -226,8 +226,8 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
         }
         
         if (!(dbCount = [track objectForKey:@"Play Count"])) {
-            ScrobLog(SCROB_LOG_ERR, @"Failed to retrieve play count for '%@' from iTunes library using db id '%@'.",
-                [song brief], trackKey);
+            ScrobLog(SCROB_LOG_ERR, @"Failed to retrieve play count for '%@' from iTunes library using db id '%@' and persitent id '%@'.",
+                [song brief], trackKey, songUUID);
             continue;
         }
         
