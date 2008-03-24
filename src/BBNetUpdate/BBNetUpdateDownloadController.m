@@ -279,7 +279,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 - (BOOL)extractZIP:(NSString*)archivePath
 {
     NSTask *zTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
-        [NSArray arrayWithObjects:@"unzip", @"-q", archivePath, nil]];
+        [NSArray arrayWithObjects:@"ditto", @"-x", @"-k", archivePath, [archivePath stringByDeletingLastPathComponent], nil]];
     [zTask waitUntilExit];
     if ([zTask terminationStatus] != 0) { return NO; }
     
