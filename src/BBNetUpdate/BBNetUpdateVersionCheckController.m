@@ -138,8 +138,8 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         return;
     }
 
-   [fieldTitle setStringValue:NSLocalizedString(@"A New Version is Available", @"")];
-   [fieldText setStringValue:@""];
+   [fieldTitle setStringValue:NSLocalizedString(@"Requesting Version Data", @"")];
+   [fieldText setStringValue:@"The latest version data is being retrieved."];
    
    NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
          [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
@@ -390,8 +390,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       @"OK", nil, nil, [super window], self, nil, nil, nil,
     NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [reason localizedDescription]);
 
-    [fieldTitle setStringValue:
-         NSLocalizedString(@"Could not obtain version data", @"")];
+    [fieldTitle setStringValue:NSLocalizedString(@"Could not obtain version data", @"")];
 
     [buttonDownload setEnabled:NO];
 
