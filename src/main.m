@@ -15,7 +15,6 @@
 #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
 @interface ISTigerAnimationViewProxy : NSView {
 }
-
 - (id)animator;
 @end
 
@@ -30,9 +29,11 @@
 #endif
 
 @interface ISLogLevelToBool : NSValueTransformer {
-
 }
+@end
 
+@interface ISDateToString : NSValueTransformer {
+}
 @end
 
 int main(int argc, const char *argv[])
@@ -41,6 +42,9 @@ int main(int argc, const char *argv[])
     
     [NSValueTransformer setValueTransformer:[[[ISLogLevelToBool alloc] init] autorelease]
         forName:@"ISLogLevelIsTrace"];
+    
+    [NSValueTransformer setValueTransformer:[[[ISDateToString alloc] init] autorelease]
+        forName:@"ISDateToString"];
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     if (sandbox_init)
@@ -98,6 +102,25 @@ int main(int argc, const char *argv[])
         return (@"TRACE");
     
     return (@"VERB");
+}
+
+@end
+
+@implementation ISDateToString
+
++ (Class)transformedValueClass
+{
+    return [NSString class];
+}
+
++ (BOOL)allowsReverseTransformation
+{
+    return (NO);   
+}
+
+- (id)transformedValue:(id)value
+{
+    return ([value description]);
 }
 
 @end
