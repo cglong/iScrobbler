@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 12/18/04.
-//  Copyright 2004-2007 Brian Bergstrand.
+//  Copyright 2004-2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -1325,9 +1325,12 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
             NSRange r;
             r.location = [s length];
             if (r.location > 0) {
+                // remove the trailing ", "
                 r.location -= 2;
                 r.length = 2;
                 [s deleteCharactersInRange:r];
+                // append the count
+                [s appendFormat:@" (%lu)", [newArtists count]];
             }
             HAdd(d, TDEntry(@"<td class=\"userinfo\">", s));
             HAdd(d, TRCLOSE);
