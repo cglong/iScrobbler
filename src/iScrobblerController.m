@@ -1066,6 +1066,10 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
 {
     if ([ISCrashReporter crashReporter])
         [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
+    else {
+        ScrobLog(SCROB_LOG_VERBOSE, @"last version check: %@",
+            [[[NSUserDefaults standardUserDefaults] objectForKey:@"BBNetUpdateLastCheck"] GMTDate]);
+    }
     
     if (isTopListsActive) {
         if ([TopListsController willCreateNewProfile]) {
