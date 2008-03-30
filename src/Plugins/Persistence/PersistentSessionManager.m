@@ -1023,8 +1023,7 @@
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing moc");
     NSCalendarDate *epoch; // we could use [t fireDate], but it may be off by a few seconds
-    NSCalendarDate *gmtNow = [NSCalendarDate calendarDate];
-    [gmtNow setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
+    NSCalendarDate *gmtNow = [[NSCalendarDate calendarDate] GMTDate];
     if (0 != [gmtNow dayOfWeek])
         epoch = [gmtNow dateByAddingYears:0 months:0 days:-([gmtNow dayOfWeek]) hours:0 minutes:0 seconds:0];
     else if ([gmtNow hourOfDay] < 12)
@@ -1038,11 +1037,18 @@
     else
         epoch = [epoch dateByAddingYears:0 months:0 days:0
             hours:(11 - [gmtNow hourOfDay]) minutes:(59 - [gmtNow minuteOfHour]) seconds:(60 - [gmtNow secondOfMinute])];
-    [epoch setTimeZone:[NSTimeZone defaultTimeZone]];
+    epoch = [epoch dateWithCalendarFormat:nil timeZone:[NSTimeZone defaultTimeZone]];
     
     BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
     
     epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
+    NSCalendarDate *now = [NSCalendarDate date];
+    if ([epoch isLessThan:now]) {
+        // last week was standard time and the current time is DST, check again at nearest 1/2 hour
+        NSInteger mAdj = [now minuteOfHour];
+        mAdj = mAdj >= 30 ? (59 - mAdj) : (29 - mAdj);
+        epoch = [now dateByAddingYears:0 months:0 days:0 hours:0 minutes:mAdj seconds:(60 - [now secondOfMinute])];
+    }
     
     lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
         target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
