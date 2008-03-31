@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/3/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -179,6 +179,17 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         moid, @"oid",
         NSStringFromSelector(@selector(rename:to:)), @"method",
         [NSArray arrayWithObjects:moid, newTitle, nil], @"args",
+        nil];
+
+    [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
+}
+
+- (NSError*)removeObject:(NSManagedObjectID*)moid
+{
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+        moid, @"oid",
+        NSStringFromSelector(@selector(removeObject:)), @"method",
+        [NSArray arrayWithObjects:moid, nil], @"args",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];

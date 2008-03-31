@@ -1615,11 +1615,100 @@
     
     } @catch (NSException *e) {
         [profile setImportInProgress:NO];
+        [moc rollback];
         @throw (e);
     }
     
     [profile setImportInProgress:NO];
     return (err);
+}
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(notyet)
+- (NSError*)recreateSessionTotals:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
+{
+    PersistentProfile *pp = [PersistentProfile sharedInstance];
+    NSArray *songs = [pp songsForSession:session];
+    
+    NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
+    NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
+    [session setValue:count forKey:@"playCount"];
+    [session setValue:ptime forKey:@"playTime"];
+    
+    NSEntityDescription *entity;
+    NSPredicate *predicate;
+    NSFetchRequest *request;
+    NSError *error;
+    
+    entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
+    predicate = [NSPredicate predicateWithFormat:@"session = %@", session];
+    
+    [request setPredicate:predicate];
+    [request setReturnsObjectsAsFaults:NO];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", @"item.songs", nil]];
+    NSArray *artists = [moc executeFetchRequest:request error:&error];
+    NSEnumerator *en = [artists objectEnumerator];
+    NSManagedObject *artist;
+    while ((artist = [en nextObject])) {
+        
+    
+        [artist setValue:count forKey:@"playCount"];
+        [artist setValue:ptime forKey:@"playTime"];
+    }
+    
+    [self recreateHourCacheForSession:session songs:songs moc:moc];
+    [self recreateRatingsCacheForSession:session songs:songs moc:moc];
+}
+#endif
+
+- (NSError*)removeObject:(NSManagedObjectID*)moid
+{
+    ScrobDebug(@"");
+    
+    // We require the extended scrubbing of the 10.5 plugin
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(notyet)
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    NSError *err = nil;
+    
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+    [profile setImportInProgress:YES]; // lock the database from additions by external clients
+    
+    @try {
+    NSMutableSet *sessions = [NSMutableSet set];
+    NSManagedObject *mobj = [moc objectWithID:moid];
+    NSString *type = [mobj valueForKey:@"itemType"];
+    if ([ITEM_SONG isEqualTo:type]) {
+        [sessions setSet:[mobj valueForKeyPath:@"sessionAliases.session"]];
+        [moc deleteObject:mobj];
+    } else {
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"removeObject: invalid type" userInfo:nil]);
+    }
+    
+    // don't delete a song if it belongs to any session execpt 'all', since it would require a lot of work
+    // to update each session's artist and album totals
+    
+    // scrub takes care of the 'all' session
+    [sessions removeObject:[self sessionWithName:@"all" moc:moc]];
+    #ifdef notyet
+    NSEnumerator *en = [sessions objectEnumerator];
+    while ((mobj = [en nextObject])) {
+        [self recreateSessionTotals:mobj];
+    }
+    #endif
+    [self setNeedsScrub:YES];
+    [self scrub:nil];
+    
+    } @catch (NSException *e) {
+        [profile setImportInProgress:NO];
+        [moc rollback];
+        @throw (e);
+    }
+    
+    [profile setImportInProgress:NO];
+    return (err);
+    #else
+    @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"removeObject: not supported with this OS version" userInfo:nil]);
+    #endif
 }
 
 @end

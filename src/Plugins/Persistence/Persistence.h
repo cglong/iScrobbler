@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/3/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -35,9 +35,9 @@
 - (BOOL)isVersion2;
 
 // write
-// adds the song, and updates all sessions
-- (void)addSongPlay:(SongData*)song;
+- (void)addSongPlay:(SongData*)song; // adds the song, and updates all sessions
 - (void)rename:(NSManagedObjectID*)moid to:(NSString*)newTitle;
+- (NSError*)removeObject:(NSManagedObjectID*)moid;
 
 // read
 - (NSArray*)allSessions;
