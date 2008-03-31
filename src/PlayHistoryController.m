@@ -96,8 +96,7 @@ static PlayHistoryController *sharedController = nil;
 
 - (BOOL)windowShouldClose:(NSNotification*)note
 {
-    [[self window] fadeOutAndClose];
-    return (NO);
+    return ([self scrobWindowShouldClose]);
 }
 
 - (void)windowWillClose:(NSNotification*)note

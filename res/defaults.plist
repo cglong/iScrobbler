@@ -24,6 +24,9 @@
     <dict>
     </dict>
     
+    <key>BBNetUpdateDontAskConnect</key>
+    <true />
+    
     <key>CheckDefaultRadioPlayer</key>
     <true />
     
@@ -44,6 +47,12 @@
     
     <key>Disable Local Lists</key>
     <false />
+    
+    <key>DisplayErrors</key>
+    <true />
+    
+    <key>DisplayWarnings</key>
+    <true />
     
     <key>ForcePlayCache</key>
     <false />

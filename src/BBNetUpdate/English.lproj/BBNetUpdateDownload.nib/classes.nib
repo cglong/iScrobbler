@@ -19,6 +19,14 @@
 			<string>ObjC</string>
 		</dict>
 		<dict>
+			<key>CLASS</key>
+			<string>NSWindow</string>
+			<key>LANGUAGE</key>
+			<string>ObjC</string>
+			<key>SUPERCLASS</key>
+			<string>NSResponder</string>
+		</dict>
+		<dict>
 			<key>ACTIONS</key>
 			<dict>
 				<key>cancel</key>
@@ -30,6 +38,8 @@
 			<string>ObjC</string>
 			<key>OUTLETS</key>
 			<dict>
+				<key>actionButton</key>
+				<string>NSButton</string>
 				<key>bbDownload</key>
 				<string>id</string>
 				<key>progressBar</key>

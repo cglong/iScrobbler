@@ -18,6 +18,7 @@
 #import "QueueManager.h"
 #import "SongData.h"
 #import "iScrobblerController.h"
+#import "PreferenceController.h"
 
 #define REQUEST_TIMEOUT 60.0
 #define HANDSHAKE_DEFAULT_DELAY 60.0f
@@ -102,6 +103,52 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     return (self);
 }
 
+- (NSDictionary*)hsNotificationUserInfo
+{
+    NSString *msg = [self lastHandshakeMessage];
+    if (msg)
+        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
+    else
+        msg = NSLocalizedString(@"Handshake pending", @"");
+        
+    NSString *song;
+    if (lastSongSubmitted)
+        song = [NSString stringWithFormat:@"%@ - %@", [lastSongSubmitted artist], [lastSongSubmitted title]];
+    else
+        song = nil;
+
+    return ([NSDictionary dictionaryWithObjectsAndKeys:
+                [NSNumber numberWithUnsignedLongLong:[[QueueManager sharedInstance] count]], @"queueCount",
+                [NSNumber numberWithUnsignedLong:submissionAttempts], @"submissionAttempts",
+                [NSNumber numberWithUnsignedLong:successfulSubmissions], @"successfulSubmissions",
+                msg, @"lastServerRepsonse",
+                song, @"lastSongSubmitted",
+                nil]);
+}
+
+- (NSDictionary*)subNotificationUserInfo
+{
+    NSString *msg = [self lastSubmissionMessage];
+    if (msg)
+        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
+    else
+        msg = [self lastHandshakeMessage];
+        
+    NSString *song;
+    if (lastSongSubmitted)
+        song = [NSString stringWithFormat:@"%@ - %@", [lastSongSubmitted artist], [lastSongSubmitted title]];
+    else
+        song = nil;
+
+    return ([NSDictionary dictionaryWithObjectsAndKeys:
+                [NSNumber numberWithUnsignedLongLong:[[QueueManager sharedInstance] count]], @"queueCount",
+                [NSNumber numberWithUnsignedLong:submissionAttempts], @"submissionAttempts",
+                [NSNumber numberWithUnsignedLong:successfulSubmissions], @"successfulSubmissions",
+                msg, @"lastServerRepsonse",
+                song, @"lastSongSubmitted",
+                nil]);
+}
+
 - (void)scheduleHandshake:(NSTimer*)timer
 {
     handshakeTimer = NULL;
@@ -165,9 +212,6 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
         handshakeDelay = HANDSHAKE_DEFAULT_DELAY;
 	} else {
         if ([[self lastHandshakeResult] isEqualToString:HS_RESULT_BADAUTH]) {
-            // If this occurs during a handshake, the user name is invalid.
-            // If it occurs during a sub, the user name is valid, but the password is not.
-            //hsState = hs_needed;
             ++hsBadAuth;
             if (hsBadAuth >= BADAUTH_WARN) {
                 @try {
@@ -182,7 +226,6 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
             }
         } else {
             hsBadAuth = 0;
-            //hsState = hs_delay;
             handshakeDelay *= 2.0f;
             if (handshakeDelay > [self handshakeMaxDelay])
                 handshakeDelay = [self handshakeMaxDelay];
@@ -193,7 +236,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     }
     
     @try {
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_COMPLETE object:self
+        userInfo:[self hsNotificationUserInfo]];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -407,8 +451,10 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)writeSubLogEntry:(unsigned)sid withTrackCount:(NSUInteger)count withData:(NSData*)data
 {
     @try {
-    [subLog writeData:[[NSString stringWithFormat:@"[id=%u,ct=%lu,sz=%lu]\n", sid, count, [data length]]
-        dataUsingEncoding:NSUTF8StringEncoding]];
+    NSString *timestamp = [[NSDate date] descriptionWithCalendarFormat:@"%Y/%m/%e %H:%M:%S GMT"
+        timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
+    [subLog writeData:[[NSString stringWithFormat:@"[%@, attempt=%u, track count=%lu, size=%lu]\n",
+        timestamp, sid, count, [data length]] dataUsingEncoding:NSUTF8StringEncoding]];
     [subLog writeData:data];
     [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
     } @catch(id e) {}
@@ -426,6 +472,7 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
     if (hs_inprogress == hsState) {
+        ISASSERT(subConn == nil, "subConn active!");
         [self completeHandshake:myData];
         [myData release];
         myData = nil;
@@ -534,7 +581,8 @@ didFinishLoadingExit:
     @try {
     if (0 != notify_post)
         notify_post("org.bergstrand.iscrobbler.didsubmit");
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
+        userInfo:[self subNotificationUserInfo]];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -564,6 +612,7 @@ didFinishLoadingExit:
     }
     
     if (hs_inprogress == hsState) {
+        ISASSERT(subConn == nil, "subConn active!");
         // Emulate a server error
         NSData *response = [[@"FAILED Connection failed - " stringByAppendingString:why]
             dataUsingEncoding:NSUTF8StringEncoding];
@@ -589,7 +638,8 @@ didFinishLoadingExit:
     [self setLastSongSubmitted:[inFlight lastObject]];
     
     @try {
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
+        userInfo:[self subNotificationUserInfo]];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -634,7 +684,7 @@ didFinishLoadingExit:
                 [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:nil]];
         } else {
             ScrobLog(SCROB_LOG_WARN, @"Already connected to server, delaying submission... (connection=%p, inFlight=%p)",
-                inFlight, subConn);
+                subConn, inFlight);
         }
         return;
     }
@@ -724,7 +774,8 @@ didFinishLoadingExit:
     } @catch (NSException *e) {
         ScrobLog(SCROB_LOG_ERR, @"Exception generated during submission attempt: %@\n", e);
         @try {
-        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self];
+        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
+            userInfo:[self subNotificationUserInfo]];
         } @catch (NSException *e2) {
             ScrobDebug(@"exception: %@", e2);
         }
@@ -899,7 +950,7 @@ static int npDelays = 0;
         
         ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
         if (SCROB_LOG_TRACE == ScrobLogLevel())
-            [self writeSubLogEntry:UINT_MAX withTrackCount:1 withData:[request HTTPBody]];
+            [self writeSubLogEntry:0 withTrackCount:1 withData:[request HTTPBody]];
     } else if (npDelays < 3) {
         [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+=1) * 1.0];
     } else {
@@ -939,6 +990,25 @@ static int npDelays = 0;
     [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:1.0];
 }
 
+- (void)authDidChange:(NSNotification*)note
+{
+    if (subConn) {
+        ScrobLog(SCROB_LOG_TRACE, @"Authentication credentials have changed during an active network connection, delaying state change...");
+        // We don't want to reset the handshake state while a sub is in progress; otherwise,
+        // an error will occur in [connectionDidFinishLoading:] 
+        [self performSelector:@selector(authDidChange:) withObject:note afterDelay:1.0];
+        return;
+    }
+    ScrobLog(SCROB_LOG_VERBOSE, @"Authentication credentials changed, need to handshake");
+    hsState = hs_needed;
+    
+    if ([[QueueManager sharedInstance] count] > 0) {
+        // This is a really a warning, but errors require the user to close the window manually
+        [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Credentials Changed", "")
+            message:NSLocalizedString(@"The Last.fm credentials have changed and there are songs queued for submission. The queued songs will be submitted to the current last.fm account even if they were played while a different account was active.", "")];
+    }
+}
+
 - (id)init
 {
     self = [super init];
@@ -967,6 +1037,9 @@ static int npDelays = 0;
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
             selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(authDidChange:) name:iScrobblerAuthenticationDidChange object:nil];
     
     // Indicate that we have not yet handshaked
     hsState = hs_needed;

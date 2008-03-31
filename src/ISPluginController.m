@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/1/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -68,7 +68,6 @@ static NSMutableArray *allPlugins = nil;
         [den skipDescendents];
         if ((plug = [self loadPlugin:[pluginsPath stringByAppendingPathComponent:path]])) {
             [plugs addObject:plug];
-            [plug release];
         }
     }
     
@@ -80,7 +79,11 @@ static NSMutableArray *allPlugins = nil;
 
 - (void)appWillTerm:(NSNotification*)note
 {
+    @try {
     [allPlugins makeObjectsPerformSelector:@selector(applicationWillTerminate)];
+    } @catch (NSException *e) {
+        ScrobDebug(@"exception: %@", e);
+    }
 }
 
 - (id)init
@@ -117,9 +120,26 @@ static NSMutableArray *allPlugins = nil;
     return ([NSBundle mainBundle]);
 }
 
+- (NSString*)applicationVersion
+{
+    return ([[NSApp delegate] performSelector:@selector(versionString)]);
+}
+
 - (NSString*)nowPlayingNotificationName
 {
     return (@"Now Playing");
+}
+
+#ifndef PLUGINS_MENUITEM_TAG
+#define PLUGINS_MENUITEM_TAG 9999
+#endif
+
+- (void)addMenuItem:(NSMenuItem*)item
+{
+    NSMenu *appMenu = [[NSApp delegate] valueForKey:@"theMenu"];
+    NSMenuItem *plugRoot = [appMenu itemWithTag:PLUGINS_MENUITEM_TAG];
+    
+    [appMenu insertItem:item atIndex:[appMenu indexOfItem:plugRoot]];
 }
 
 // Singleton support

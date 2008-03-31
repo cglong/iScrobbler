@@ -2,7 +2,9 @@
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
 <dict>
-	<key>BBNetUpdateDownloadInfoURL</key>
+	<key>BBNetUpdateInstallSelf</key>
+    <true />
+    <key>BBNetUpdateDownloadInfoURL</key>
 	<string>http://www.bergstrand.org/brian/software/iScrobbler/update2.plist</string>
 </dict>
 </plist>

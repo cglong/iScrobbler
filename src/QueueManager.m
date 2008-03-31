@@ -134,10 +134,15 @@ static QueueManager *g_QManager = nil;
     
     [self setLastSongQueued:song];
     
-    [[NSNotificationCenter defaultCenter]
-        postNotificationName:QM_NOTIFICATION_SONG_QUEUED
-        object:self
-        userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_USERINFO_KEY_SONG]]; 
+    @try {
+    [[NSNotificationCenter defaultCenter] postNotificationName:QM_NOTIFICATION_SONG_QUEUED
+        object:self userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+            song, QM_NOTIFICATION_USERINFO_KEY_SONG,
+            [NSNumber numberWithUnsignedLongLong:[songQueue count]], @"queueCount",
+            nil]]; 
+    } @catch (NSException *e) {
+        ScrobDebug(@"exception: %@");
+    }
     
     if (submit) {
         [song setPostDate:[song startTime]];
@@ -200,11 +205,16 @@ static QueueManager *g_QManager = nil;
             [found retain];
             [songQueue removeObjectAtIndex:idx];
             
-            [[NSNotificationCenter defaultCenter]
-                postNotificationName:QM_NOTIFICATION_SONG_DEQUEUED
-                object:self
-                userInfo:[NSDictionary dictionaryWithObject:song forKey:QM_NOTIFICATION_USERINFO_KEY_SONG]];
-        
+            @try {
+            [[NSNotificationCenter defaultCenter] postNotificationName:QM_NOTIFICATION_SONG_DEQUEUED
+                object:self userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                    song, QM_NOTIFICATION_USERINFO_KEY_SONG,
+                    [NSNumber numberWithUnsignedLongLong:[songQueue count]], @"queueCount",
+                    nil]];
+            } @catch (NSException *e) {
+                ScrobDebug(@"exception: %@");
+            }
+    
             [found release];
             
             if (syncQueue)

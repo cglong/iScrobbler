@@ -28,6 +28,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				D3D8E6070D91197B0051DA80 /* PBXTargetDependency */,
 				D37005D00D2003230057EFBD /* PBXTargetDependency */,
 				D37005D40D20032B0057EFBD /* PBXTargetDependency */,
 			);
@@ -62,7 +63,6 @@
 		D31791320A6A9B5D00B0F081 /* BBNetUpdateAskController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791170A6A9B5C00B0F081 /* BBNetUpdateAskController.m */; };
 		D31791340A6A9B5D00B0F081 /* BBNetUpdateDownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */; };
 		D31791360A6A9B5D00B0F081 /* BBNetUpdateVersionCheckController.m in Sources */ = {isa = PBXBuildFile; fileRef = D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */; };
-		D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */ = {isa = PBXBuildFile; fileRef = D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */; };
 		D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */ = {isa = PBXBuildFile; fileRef = D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */; };
 		D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */; };
 		D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */ = {isa = PBXBuildFile; fileRef = D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */; };
@@ -95,6 +95,7 @@
 		D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */ = {isa = PBXBuildFile; fileRef = D33ED7540D2FAD3100AE7771 /* DBEditController.m */; };
 		D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
+		D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */ = {isa = PBXBuildFile; fileRef = D357D2BB0D86AF320026C486 /* iScrobbler.sb */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
 		D3712C6C0D1A43DA0011F980 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
 		D37605590CB18BF700C04863 /* ISPluginController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37605560CB18BF700C04863 /* ISPluginController.m */; };
@@ -149,10 +150,13 @@
 		D3D7BB070809AC26005EF5CA /* ISProfileDocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */; };
 		D3D7BB1C0809AD09005EF5CA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D7BB1B0809AD09005EF5CA /* WebKit.framework */; };
 		D3D7BB560809B0EC005EF5CA /* ProfileReport.css in Resources */ = {isa = PBXBuildFile; fileRef = D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */; };
+		D3D8E4D20D8FE40F0051DA80 /* SubStats.xib in Resources */ = {isa = PBXBuildFile; fileRef = D3D8E4CB0D8FE40F0051DA80 /* SubStats.xib */; };
+		D3D8E4D40D8FE40F0051DA80 /* SubStats.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D8E4CF0D8FE40F0051DA80 /* SubStats.m */; };
+		D3D8E4D50D8FE40F0051DA80 /* SubStatsController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3D8E4D10D8FE40F0051DA80 /* SubStatsController.m */; };
+		D3D8E6050D9119570051DA80 /* SubStats.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */; };
 		D3EC731C0804F74600392110 /* Growl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D3EC7C9E080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D3EC7CA0080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
-		D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */ = {isa = PBXBuildFile; fileRef = D3EE90A20A093FF80024A013 /* checkmark.tif */; };
 		D3EE9CC70A144A470024A013 /* MBID.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EE9CC50A144A470024A013 /* MBID.c */; };
 		D3F4A4350CC4FF4B000DCBB6 /* ISThreadMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4340CC4FF4B000DCBB6 /* ISThreadMessenger.m */; };
 		D3F71FA80D33E42500C0E22F /* iPodController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F71FA70D33E42500C0E22F /* iPodController.m */; };
@@ -241,6 +245,13 @@
 			remoteGlobalIDString = D39902020D5B43760050C17C;
 			remoteInfo = MsgWindow;
 		};
+		D3D8E6060D91197B0051DA80 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3D8E4BA0D8FE3930051DA80;
+			remoteInfo = SubStats;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -259,9 +270,10 @@
 		D37606630CB2362D00C04863 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "Core Plugins";
-			dstSubfolderSpec = 1;
+			dstPath = "";
+			dstSubfolderSpec = 13;
 			files = (
+				D3D8E6050D9119570051DA80 /* SubStats.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -306,7 +318,6 @@
 		D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateDownloadController.m; sourceTree = "<group>"; };
 		D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BBNetUpdateVersionCheckController.h; sourceTree = "<group>"; };
 		D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BBNetUpdateVersionCheckController.m; sourceTree = "<group>"; };
-		D317911D0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/BBNetUpdate.strings; sourceTree = "<group>"; };
 		D317911F0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
 		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
 		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
@@ -324,6 +335,7 @@
 		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBEdit.xib; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
+		D357D2BB0D86AF320026C486 /* iScrobbler.sb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iScrobbler.sb; sourceTree = "<group>"; };
 		D3712C490D1A3B810011F980 /* Persistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Persistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		D37605540CB18BF700C04863 /* ISPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPlugin.h; path = src/ISPlugin.h; sourceTree = "<group>"; };
 		D37605550CB18BF700C04863 /* ISPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISPluginController.h; path = src/ISPluginController.h; sourceTree = "<group>"; };
@@ -404,6 +416,13 @@
 		D3D7BB050809AC26005EF5CA /* ISProfileDocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISProfileDocumentController.m; path = src/ISProfileDocumentController.m; sourceTree = "<group>"; };
 		D3D7BB1B0809AD09005EF5CA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
 		D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ProfileReport.css; sourceTree = "<group>"; };
+		D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SubStats.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3D8E4CC0D8FE40F0051DA80 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/SubStats.xib; sourceTree = "<group>"; };
+		D3D8E4CD0D8FE40F0051DA80 /* SubStats-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "SubStats-Info.plist"; sourceTree = "<group>"; };
+		D3D8E4CE0D8FE40F0051DA80 /* SubStats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubStats.h; sourceTree = "<group>"; };
+		D3D8E4CF0D8FE40F0051DA80 /* SubStats.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubStats.m; sourceTree = "<group>"; };
+		D3D8E4D00D8FE40F0051DA80 /* SubStatsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubStatsController.h; sourceTree = "<group>"; };
+		D3D8E4D10D8FE40F0051DA80 /* SubStatsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubStatsController.m; sourceTree = "<group>"; };
 		D3EC73100804F73B00392110 /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Growl.framework; sourceTree = "<group>"; };
 		D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetArtworkForTrack.applescript; sourceTree = "<group>"; };
 		D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesPlaySpecifiedTrack.applescript; sourceTree = "<group>"; };
@@ -411,7 +430,6 @@
 		D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KFAppleScriptHandlerAdditionsCore.m; sourceTree = "<group>"; };
 		D3EC7C9B080858F800392110 /* KFASHandlerAdditions-TypeTranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "KFASHandlerAdditions-TypeTranslation.h"; sourceTree = "<group>"; };
 		D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "KFASHandlerAdditions-TypeTranslation.m"; sourceTree = "<group>"; };
-		D3EE90A20A093FF80024A013 /* checkmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = checkmark.tif; sourceTree = "<group>"; };
 		D3EE9CC50A144A470024A013 /* MBID.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = MBID.c; path = src/MBID.c; sourceTree = "<group>"; };
 		D3EE9CC60A144A470024A013 /* MBID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBID.h; path = src/MBID.h; sourceTree = "<group>"; };
 		D3EFA9AF07A9B1FA00CF9B46 /* ISSearchArrayController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ISSearchArrayController.h; path = src/ISSearchArrayController.h; sourceTree = "<group>"; };
@@ -497,6 +515,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D3D8E4B90D8FE3930051DA80 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -542,11 +567,12 @@
 			isa = PBXGroup;
 			children = (
 				D3191CC907E3A51700821D03 /* iScrobbler.app */,
-				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
 				D39802400CE0FE41008CB4C8 /* iScrobblerProxy */,
 				D3712C490D1A3B810011F980 /* Persistence.plugin */,
 				D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */,
 				D399020F0D5B43760050C17C /* MsgWindow.plugin */,
+				D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */,
+				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -604,11 +630,11 @@
 				D398FB520CDE01E5008CB4C8 /* Tag.xib */,
 				D398FB450CDE016A008CB4C8 /* TopLists.xib */,
 				D376FC690CAD00A000C04863 /* iScrobbler.sdef */,
+				D357D2BB0D86AF320026C486 /* iScrobbler.sb */,
 				D3D7BB4A0809B09D005EF5CA /* ProfileReport.css */,
 				DC00A46205B21B9200674DB4 /* iscrobbler.icns */,
 				D306F89009EC34F80011CEE1 /* no_artist.tiff */,
 				D306FC7909EF550C0011CEE1 /* no_album.tiff */,
-				D3EE90A20A093FF80024A013 /* checkmark.tif */,
 			);
 			name = Resources;
 			path = res;
@@ -631,7 +657,6 @@
 				D31791190A6A9B5C00B0F081 /* BBNetUpdateDownloadController.m */,
 				D317911A0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.h */,
 				D317911B0A6A9B5C00B0F081 /* BBNetUpdateVersionCheckController.m */,
-				D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */,
 				D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */,
 				D31791200A6A9B5C00B0F081 /* BBNetUpdateDownload.nib */,
 				D31791220A6A9B5C00B0F081 /* BBNetUpdateVersionCheck.nib */,
@@ -772,6 +797,7 @@
 		D37606320CB2307F00C04863 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				D3D8E4CA0D8FE40F0051DA80 /* SubStats */,
 				D37606330CB2307F00C04863 /* ChatStatus (obsolete) */,
 			);
 			name = Plugins;
@@ -836,6 +862,19 @@
 			);
 			includeInIndex = 0;
 			name = Documentation;
+			sourceTree = "<group>";
+		};
+		D3D8E4CA0D8FE40F0051DA80 /* SubStats */ = {
+			isa = PBXGroup;
+			children = (
+				D3D8E4CE0D8FE40F0051DA80 /* SubStats.h */,
+				D3D8E4CF0D8FE40F0051DA80 /* SubStats.m */,
+				D3D8E4D00D8FE40F0051DA80 /* SubStatsController.h */,
+				D3D8E4D10D8FE40F0051DA80 /* SubStatsController.m */,
+				D3D8E4CD0D8FE40F0051DA80 /* SubStats-Info.plist */,
+				D3D8E4CB0D8FE40F0051DA80 /* SubStats.xib */,
+			);
+			path = SubStats;
 			sourceTree = "<group>";
 		};
 		D3EC7C98080858F800392110 /* KFASAdditions */ = {
@@ -962,6 +1001,23 @@
 			productReference = D399020F0D5B43760050C17C /* MsgWindow.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		D3D8E4BA0D8FE3930051DA80 /* SubStats */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3D8E4C00D8FE3950051DA80 /* Build configuration list for PBXNativeTarget "SubStats" */;
+			buildPhases = (
+				D3D8E4B70D8FE3930051DA80 /* Resources */,
+				D3D8E4B80D8FE3930051DA80 /* Sources */,
+				D3D8E4B90D8FE3930051DA80 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SubStats;
+			productName = SubStats;
+			productReference = D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -991,6 +1047,7 @@
 				D3712C480D1A3B810011F980 /* Persistence */,
 				D38835950D200A5D005B6D1D /* TigerPersistence */,
 				D39902020D5B43760050C17C /* MsgWindow */,
+				D3D8E4BA0D8FE3930051DA80 /* SubStats */,
 				D37005BA0D2002B40057EFBD /* Copy Core Plugins */,
 				D37606390CB230A900C04863 /* ChatStatus (obsolete) */,
 			);
@@ -1009,8 +1066,6 @@
 				D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */,
 				D306F89109EC34F80011CEE1 /* no_artist.tiff in Resources */,
 				D306FC7A09EF550C0011CEE1 /* no_album.tiff in Resources */,
-				D3EE90A30A093FF80024A013 /* checkmark.tif in Resources */,
-				D31791370A6A9B5D00B0F081 /* BBNetUpdate.strings in Resources */,
 				D31791380A6A9B5D00B0F081 /* BBNetUpdateAsk.nib in Resources */,
 				D31791390A6A9B5D00B0F081 /* BBNetUpdateDownload.nib in Resources */,
 				D317913A0A6A9B5D00B0F081 /* BBNetUpdateVersionCheck.nib in Resources */,
@@ -1027,6 +1082,7 @@
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
 				D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */,
 				D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */,
+				D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1042,6 +1098,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				D39903770D5B9A7A0050C17C /* MsgWindow.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3D8E4B70D8FE3930051DA80 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3D8E4D20D8FE40F0051DA80 /* SubStats.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1156,6 +1220,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D3D8E4B80D8FE3930051DA80 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3D8E4D40D8FE40F0051DA80 /* SubStats.m in Sources */,
+				D3D8E4D50D8FE40F0051DA80 /* SubStatsController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1209,6 +1282,11 @@
 			target = D39902020D5B43760050C17C /* MsgWindow */;
 			targetProxy = D39902360D5B44690050C17C /* PBXContainerItemProxy */;
 		};
+		D3D8E6070D91197B0051DA80 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3D8E4BA0D8FE3930051DA80 /* SubStats */;
+			targetProxy = D3D8E6060D91197B0051DA80 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -1218,14 +1296,6 @@
 				089C165DFE840E0CC02AAC07 /* English */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		D317911C0A6A9B5C00B0F081 /* BBNetUpdate.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D317911D0A6A9B5C00B0F081 /* English */,
-			);
-			name = BBNetUpdate.strings;
 			sourceTree = "<group>";
 		};
 		D317911E0A6A9B5C00B0F081 /* BBNetUpdateAsk.nib */ = {
@@ -1346,6 +1416,14 @@
 				D3CA425E0D23FD71006CB485 /* English */,
 			);
 			name = PlayHistory.xib;
+			sourceTree = "<group>";
+		};
+		D3D8E4CB0D8FE40F0051DA80 /* SubStats.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3D8E4CC0D8FE40F0051DA80 /* English */,
+			);
+			name = SubStats.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -1890,6 +1968,63 @@
 			};
 			name = Release;
 		};
+		D3D8E4BD0D8FE3940051DA80 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SubStats;
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		D3D8E4BE0D8FE3940051DA80 /* Debug-Internal */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SubStats;
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = YES;
+			};
+			name = "Debug-Internal";
+		};
+		D3D8E4BF0D8FE3940051DA80 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DYNAMIC_NO_PIC = NO;
+				INFOPLIST_FILE = "src/Plugins/SubStats/SubStats-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SubStats;
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1979,6 +2114,16 @@
 				D399020C0D5B43760050C17C /* Debug */,
 				D399020D0D5B43760050C17C /* Debug-Internal */,
 				D399020E0D5B43760050C17C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D3D8E4C00D8FE3950051DA80 /* Build configuration list for PBXNativeTarget "SubStats" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3D8E4BD0D8FE3940051DA80 /* Debug */,
+				D3D8E4BE0D8FE3940051DA80 /* Debug-Internal */,
+				D3D8E4BF0D8FE3940051DA80 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

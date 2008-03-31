@@ -1,0 +1,9 @@
+;;
+;; WARNING: The sandbox rules in this file currently constitute
+;; Apple System Private Interface and are subject to change at any time and
+;; without notice.
+;;
+(version 1)
+;;(debug deny)
+(allow default)
+(deny file-read* file-write* (regex "/[iI]nput[mM]anagers|/[iI]nternet [pP]lug-[iI]ns|/[aA]pplication ?[eE]nhancer"))
