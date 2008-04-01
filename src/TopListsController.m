@@ -44,7 +44,9 @@ void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned in
 static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topAlbums = nil;
 static NSMutableDictionary *topRatings = nil;
+static NSMutableDictionary *artistComparisonData = nil;
 static NSMutableArray *topHours = nil;
+
 
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
@@ -1247,7 +1249,35 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topartists\">\n" TR);
     tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
         NSLocalizedString(@"Total", ""), [artists count], TOP_ARTISTS_TITLE];
-    HAdd(d, TH(2, TBLTITLE(tmp, TOP_ARTISTS_TITLE)));
+    
+    NSEnumerator *en;
+    unsigned position = 0; // ranking in chart
+    unsigned absPosition = 1; // absolute position in chart
+    unsigned prevPlayCount = 0;
+    NSNumber *playCount;
+    NSString *artist;
+    /// compute previuos artist chart rankings
+    NSArray *previousArtistCounts = [artistComparisonData keysSortedByValueUsingSelector:@selector(compare:)];
+    NSMutableDictionary *previousArtistRanks;
+    if ([[artistComparisonData objectForKey:[previousArtistCounts lastObject]] unsignedIntValue] > 0) {
+        previousArtistRanks = [NSMutableDictionary dictionaryWithCapacity:[previousArtistCounts count]];
+        en = [previousArtistCounts reverseObjectEnumerator]; // high->low
+        while ((artist = [en nextObject])) {
+            playCount = [artistComparisonData objectForKey:artist];
+            if (prevPlayCount != [playCount unsignedIntValue]) {
+                position = absPosition;
+                prevPlayCount = [playCount unsignedIntValue];
+            }
+            
+            [previousArtistRanks setObject:[NSNumber numberWithUnsignedInt:position] forKey:artist];
+            ++absPosition;
+        }
+    } else {
+        previousArtistCounts = nil;
+        previousArtistRanks = nil;
+    }
+    
+    HAdd(d, TH(previousArtistCounts ? 3 : 2, TBLTITLE(tmp, TOP_ARTISTS_TITLE)));
     HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""), @"")));
     if (elapsedDays > 14.0) {
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Week", ""), @"")));
@@ -1256,20 +1286,20 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""), @"")));
     HAdd(d, TRCLOSE);
     
-    NSEnumerator *en = [artists reverseObjectEnumerator]; // high->low
+    en = [artists reverseObjectEnumerator]; // high->low
     NSDictionary *entry;
-    NSString *artist, *track;
-    NSNumber *playCount;
-    unsigned position = 0; // ranking in chart
-    unsigned absPosition = 1; // absolute position in chart
-    unsigned prevPlayCount = 0;
+    NSString *track;
     float width = 100.0f /* bar width */, percentage,
     basePlayCount = [[artists valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue],
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
     float secondaryBasePlayCount = basePlayCount / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
     float secondaryTotalPlayCount = [totalPlays floatValue] / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
     BOOL newThisSession;
+    NSNumber *previousRank;
     NSMutableArray *newArtists = [NSMutableArray array];
+    position = 0;
+    absPosition = 1;
+    prevPlayCount = 0;
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
@@ -1282,6 +1312,31 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         if (prevPlayCount != [playCount unsignedIntValue]) {
             position = absPosition;
             prevPlayCount = [playCount unsignedIntValue];
+        }
+        previousRank = [previousArtistRanks objectForKey:artist];
+        if (previousRank) {
+            int delta = (int)position - [previousRank intValue];
+            unichar deltaChar;
+            if (delta < 0) {
+                tmp = [NSString stringWithFormat:@"<td class=\"delta\" title=\"%@\">",
+                    [NSString stringWithFormat:NSLocalizedString(@"Up %d places", ""), ABS(delta)]];
+                deltaChar = 0x25B2; // up triangle
+            } else if (delta > 0) {
+                tmp = [NSString stringWithFormat:@"<td class=\"delta\" title=\"%@\">",
+                    [NSString stringWithFormat:NSLocalizedString(@"Down %d places", ""), delta]];
+                deltaChar = 0x25BC; // down triangle
+            } else {
+                tmp = [NSString stringWithFormat:@"<td class=\"delta\" title=\"%@\">",
+                    NSLocalizedString(@"Same position", "")];
+                deltaChar = 0x2014; // em dash
+            }
+            
+            HAdd(d, TDEntry(tmp, [NSString stringWithFormat:(delta != 0 ? @"%C&nbsp;%ld" : @"%C"),
+                deltaChar, ABS(delta)]));
+        } else if (previousArtistRanks) {
+            tmp = [NSString stringWithFormat:@"<td class=\"delta\" title=\"%@\">",
+                NSLocalizedString(@"New entry", "")];
+            HAdd(d, TDEntry(tmp, @"&nbsp;"));
         }
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         HAdd(d, TDEntry(@"<td class=\"mediumtitle\">", artist));

@@ -54,6 +54,8 @@ topAlbums = nil; \
 topRatings = nil; \
 [topHours release]; \
 topHours = nil; \
+[artistComparisonData release]; \
+artistComparisonData = nil; \
 } while(0)
 
 // methods that run on the main thread
@@ -231,6 +233,7 @@ topHours = nil; \
         topAlbums = [[results objectForKey:@"albums"] retain];
         topRatings = [[results objectForKey:@"ratings"] retain];
         topHours = [[results objectForKey:@"hours"] retain];
+        artistComparisonData = [[results objectForKey:@"artistComparison"] retain]; 
         
         [self generateProfileReport];
         
@@ -256,6 +259,59 @@ topHours = nil; \
         [obj refreshSelf];
         [self performSelectorOnMainThread:@selector(persistentProfileDidUpdate:) withObject:nil waitUntilDone:NO]; 
     }
+}
+
+- (NSDictionary*)artistCountsForSessionPreviousTo:(NSManagedObject*)session
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing thread moc!");
+
+    NSError *error = nil;
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    NSPredicate *predicate;
+    NSCalendarDate *now = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
+    // just before midnight of the first day of the current week
+    NSInteger limit = 1;
+    NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
+        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute] - 10)];
+    // XXX: we only archive lastfm weeklies currently, but if that changes then we need a '(name contains)' condition 
+    predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (epoch < %@)",
+        ITEM_SESSION, [fromDate GMTDate], [now GMTDate]];
+    [request setPredicate:predicate];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
+    
+    NSArray *results = [moc executeFetchRequest:request error:&error];
+    if ([results count] > 0) {
+        // We should never get more than 1, but just in case:
+        results = [results sortedArrayUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
+        
+        NSEnumerator *en;
+        NSManagedObject *mobj;
+        NSManagedObject *comparisonSession = [results objectAtIndex:0];
+        ScrobLog(SCROB_LOG_TRACE, @"local charts: using session '%@' for artist movement comparison",
+            [comparisonSession valueForKey:@"name"]);
+        
+        NSArray *cArtists = [[persistence sessionManager] artistsForSession:comparisonSession moc:moc];
+        // prefetch the object releationship
+        entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+        [request setEntity:entity];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [cArtists valueForKeyPath:@"item.objectID"]]];
+        error = nil;
+        (void)[moc executeFetchRequest:request error:&error];
+        
+        NSMutableDictionary *d = [NSMutableDictionary dictionaryWithCapacity:[cArtists count]];
+        en = [cArtists objectEnumerator];
+        while ((mobj = [en nextObject])) {
+            [d setObject:[mobj valueForKey:@"playCount"] forKey:[mobj valueForKeyPath:@"item.name"]];
+        }
+        return (d);
+    }
+    return (nil);
 }
 
 - (void)loadInitialSessionData:(NSManagedObjectID*)sessionID
@@ -306,8 +362,9 @@ topHours = nil; \
 
     // import the data into the GUI
     NSEnumerator *en;
-    NSMutableDictionary *entry;
     NSManagedObject *mobj;
+    
+    NSMutableDictionary *entry;
     u_int64_t secs;
     NSString *playTime;
     unsigned days, hours, minutes, seconds, i = 0;
@@ -545,10 +602,22 @@ loadExit:
     if (cancelLoad > 0)
         goto loadExit;
     
+    // Attempt to get the data to compute artist movements. We only do this for archived last.fm sessions.
+    NSDictionary *artistComparison;
+    if (nil != [session valueForKey:@"archive"] && [[session valueForKey:@"name"] hasPrefix:@"lastfm"]) {
+        artistComparison = [self artistCountsForSessionPreviousTo:session];
+    } else
+        artistComparison = nil;
+    
+    OSMemoryBarrier();
+    if (cancelLoad > 0)
+        goto loadExit;
+    
     NSDictionary *results = [NSDictionary dictionaryWithObjectsAndKeys:
         albumEntries, @"albums",
         ratingEntries, @"ratings",
         hourEntries, @"hours",
+        artistComparison, @"artistComparison", // can be nil
         nil];
     [self performSelectorOnMainThread:@selector(loadExtendedDidFinish:) withObject:results waitUntilDone:NO];
     
