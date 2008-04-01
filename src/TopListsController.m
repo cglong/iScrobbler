@@ -1096,7 +1096,7 @@ exit:
 #define TOP_RATINGS_TITLE NSLocalizedString(@"Top Ratings", "")
 #define TOP_HOURS_TITLE NSLocalizedString(@"Top Hours", "")
 
-- (NSString*)tableTitleWithString:(NSString*)tt
+- (NSString*)tableTitleWithString:(NSString*)tt usingID:(NSString*)tid
 {
     static NSDictionary *bclinks = nil;
     static NSArray *bctitles = nil;
@@ -1119,13 +1119,13 @@ exit:
             nil];
     }
     
-    NSString *myname = [bclinks objectForKey:tt];
+    NSString *myname = [bclinks objectForKey:tid];
     if (myname) {
         NSMutableString *breadcrumb = [NSMutableString string];
         NSEnumerator *en = [bctitles objectEnumerator];
         NSString *s;
         while ((s = [en nextObject])) {
-            if (NSOrderedSame == [s localizedCaseInsensitiveCompare:tt])
+            if (NSOrderedSame == [s localizedCaseInsensitiveCompare:tid])
                 continue;
             
             [breadcrumb appendFormat:@"<a href=\"#%@\">%@</a>&nbsp;", [bclinks objectForKey:s], s];
@@ -1147,7 +1147,7 @@ exit:
 #define BODY @"<body><div class=\"content\">\n"
 #define DOCCLOSE @"</div></body></html>"
 #define TBLCLOSE @"</table>\n"
-#define TBLTITLE(t) [self tableTitleWithString:t]
+#define TBLTITLE(t, tid) [self tableTitleWithString:t usingID:tid]
 #define TR @"<tr>\n"
 #define TRALT @"<tr class=\"alt\">"
 #define TRCLOSE @"</tr>\n"
@@ -1214,10 +1214,11 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes, seconds];
     
+    //// OVERALL ////
     HAdd(d, @"<table style=\"width:100%; border:0; margin:0; padding:0;\">\n<tr><td valign=\"top\">\n");
     
     HAdd(d, @"<div class=\"modbox\" style=\"vertical-align:top;\">\n" @"<table class=\"topn\">\n" TR);
-    HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Totals", ""))));
+    HAdd(d, TH(2, TBLTITLE(NSLocalizedString(@"Totals", ""), @"")));
     HAdd(d, TRCLOSE TR);
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Tracks Played:", "")));
     
@@ -1242,21 +1243,26 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, TDCLOSE TRCLOSE TBLCLOSE);
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    //// ARTISTS ////
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topartists\">\n" TR);
-    HAdd(d, TH(2, TBLTITLE(TOP_ARTISTS_TITLE)));
-    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
+    tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
+        NSLocalizedString(@"Total", ""), [artists count], TOP_ARTISTS_TITLE];
+    HAdd(d, TH(2, TBLTITLE(tmp, TOP_ARTISTS_TITLE)));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""), @"")));
     if (elapsedDays > 14.0) {
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Week", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Week", ""), @"")));
     } else
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Day", ""))));
-    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count per Day", ""), @"")));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""), @"")));
     HAdd(d, TRCLOSE);
     
     NSEnumerator *en = [artists reverseObjectEnumerator]; // high->low
     NSDictionary *entry;
     NSString *artist, *track;
     NSNumber *playCount;
-    unsigned position = 1; // ranking
+    unsigned position = 0; // ranking in chart
+    unsigned absPosition = 1; // absolute position in chart
+    unsigned prevPlayCount = 0;
     float width = 100.0f /* bar width */, percentage,
     basePlayCount = [[artists valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue],
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
@@ -1271,8 +1277,12 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         if ((newThisSession = [[entry objectForKey:@"New This Session"] boolValue]))
             [newArtists addObject:artist];
         
-        HAdd(d, (position & 0x0000001) ? TR : TRALT);
+        HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
         
+        if (prevPlayCount != [playCount unsignedIntValue]) {
+            position = absPosition;
+            prevPlayCount = [playCount unsignedIntValue];
+        }
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         HAdd(d, TDEntry(@"<td class=\"mediumtitle\">", artist));
         // Total Plays bar
@@ -1293,25 +1303,28 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
         
         HAdd(d, TRCLOSE);
-        ++position;
+        ++absPosition;
     }
     
     HAdd(d, TBLCLOSE @"</div>");
     
+    //// NEWARTISTS ////
     if ([persistence isVersion2]) {
-        position = 1;
+        absPosition = 1;
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"newartists\">\n" TR);
-        HAdd(d, TH(4, TBLTITLE(NEW_ARTISTS_TITLE)));
+        tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
+            NSLocalizedString(@"Total", ""), [newArtists count], NEW_ARTISTS_TITLE];
+        HAdd(d, TH(4, TBLTITLE(tmp, NEW_ARTISTS_TITLE)));
         HAdd(d, TRCLOSE);
         en = [[newArtists sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] objectEnumerator];
         #if 0
         if (elapsedDays > 14.0) {
             // 1 artist per row with date
             while ((entry = [en nextObject])) {
-                HAdd(d, (position & 0x0000001) ? TR : TRALT);
+                HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
                 HAdd(d, TDEntry(@"<td class=\"title\">", entry));
                 HAdd(d, TRCLOSE);
-                ++position;
+                ++absPosition;
             }
         } else
         #endif
@@ -1329,8 +1342,6 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
                 r.location -= 2;
                 r.length = 2;
                 [s deleteCharactersInRange:r];
-                // append the count
-                [s appendFormat:@" (%lu)", [newArtists count]];
             }
             HAdd(d, TDEntry(@"<td class=\"userinfo\">", s));
             HAdd(d, TRCLOSE);
@@ -1341,14 +1352,19 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     [pool release];
     
     pool = [[NSAutoreleasePool alloc] init];
+    //// TRACKS ////
     HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"toptracks\">\n" TR);
-    HAdd(d, TH(2, TBLTITLE(TOP_TRACKS_TITLE)));
-    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Last Played", ""))));
-    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
+    tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
+        NSLocalizedString(@"Total", ""), [tracks count], TOP_TRACKS_TITLE];
+    HAdd(d, TH(2, TBLTITLE(tmp, TOP_TRACKS_TITLE)));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Last Played", ""), @"")));
+    HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""), @"")));
     HAdd(d, TRCLOSE);
     
     en = [tracks reverseObjectEnumerator]; // high->low
-    position = 1;
+    absPosition = 1;
+    position = 0;
+    prevPlayCount = 0;
     basePlayCount = [[tracks valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue];
     while ((entry = [en nextObject])) {
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
@@ -1357,8 +1373,12 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
             descriptionWithCalendarFormat:PROFILE_DATE_FORMAT timeZone:nil locale:nil];
         track = [[entry objectForKey:@"Track"] stringByConvertingCharactersToHTMLEntities];
         
-        HAdd(d, (position & 0x0000001) ? TR : TRALT);
+        HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
         
+        if (prevPlayCount != [playCount unsignedIntValue]) {
+            ++position;
+            prevPlayCount = [playCount unsignedIntValue];
+        }
         HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
         tmp = [NSString stringWithFormat:@"%@ - %@", track, artist];
         HAdd(d, TDEntry(TDTITLE, tmp));
@@ -1370,21 +1390,24 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
         
         HAdd(d, TRCLOSE);
-        ++position;
+        ++absPosition;
     }
     
     HAdd(d, TBLCLOSE @"</div>");
     [pool release];
 
     NSArray *keys;
+    //// ALBUMS ////
     if (topAlbums && [topAlbums count] > 0) {
         pool = [[NSAutoreleasePool alloc] init];
         [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
-        HAdd(d, TH(2, TBLTITLE(TOP_ALBUMS_TITLE)));
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
+        tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
+            NSLocalizedString(@"Total", ""), [topAlbums count], TOP_ALBUMS_TITLE];
+        HAdd(d, TH(2, TBLTITLE(tmp, TOP_ALBUMS_TITLE)));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""), @"")));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""), @"")));
         HAdd(d, TRCLOSE);
         
         keys = [topAlbums keysSortedByValueUsingSelector:@selector(sortByDuration:)];
@@ -1398,7 +1421,9 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         playCount = [[topAlbums objectForKey:tmp] objectForKey:@"Play Count"];
         basePlayCount = [playCount floatValue];
         en = [keys reverseObjectEnumerator]; // Largest to smallest
-        position = 1;
+        absPosition = 1;
+        position = 0;
+        prevPlayCount = 0;
         while ((tmp = [en nextObject])) { // tmp is our key into the topAlbums dict
             NSArray *items = [tmp componentsSeparatedByString:TOP_ALBUMS_KEY_TOKEN];
             if (items && 2 == [items count]) {
@@ -1406,13 +1431,17 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
                 NSString *album = [[items objectAtIndex:1] stringByConvertingCharactersToHTMLEntities];
                 entry = [topAlbums objectForKey:tmp];
                 
-                HAdd(d, (position & 0x0000001) ? TR : TRALT);
+                HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
                 
+                playCount = [entry objectForKey:@"Play Count"];
+                if (prevPlayCount != [playCount unsignedIntValue]) {
+                    ++position;
+                    prevPlayCount = [playCount unsignedIntValue];
+                }
                 HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
                 tmp = [NSString stringWithFormat:@"%@ - %@", album, artist];
                 HAdd(d, TDEntry(TDTITLE, tmp));
                 // Total Plays bar
-                playCount = [entry objectForKey:@"Play Count"];
                 width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
                 percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
                 tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -1427,7 +1456,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
                 HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
                 
                 HAdd(d, TRCLOSE);
-                ++position;
+                ++absPosition;
             }
         }
         
@@ -1435,23 +1464,24 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         [pool release];
     }
     
+    //// RATINGS ////
     if (topRatings) {
         pool = [[NSAutoreleasePool alloc] init];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topratings\">\n" TR);
-        HAdd(d, TH(1, TBLTITLE(TOP_RATINGS_TITLE)));
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
+        HAdd(d, TH(1, TBLTITLE(TOP_RATINGS_TITLE, TOP_RATINGS_TITLE)));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""), @"")));
         HAdd(d, TRCLOSE);
         
         // Determine max count
         NSNumber *rating;
         unsigned maxCount = [[[topRatings allValues] valueForKeyPath:@"Play Count.@max.unsignedIntValue"] unsignedIntValue];
         basePlayCount = (float)maxCount;
-        position = 1;
+        absPosition = 1;
         en = [[[topRatings allKeys] sortedArrayUsingSelector:@selector(compare:)] reverseObjectEnumerator];
         SongData *dummy = [[SongData alloc] init];
         while ((rating = [en nextObject])) {
-            HAdd(d, (position & 0x0000001) ? TR : TRALT);
+            HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
             
             //HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
             // Get the rating string to display
@@ -1468,7 +1498,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
             
             HAdd(d, TRCLOSE);
-            ++position;
+            ++absPosition;
         }
         [dummy release];
         
@@ -1476,13 +1506,14 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         [pool release];
     }
     
+    //// HOURS ////
     if (topHours) {
         pool = [[NSAutoreleasePool alloc] init];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"tophours\">\n" TR);
-        HAdd(d, TH(1, TBLTITLE(TOP_HOURS_TITLE)));
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""))));
-        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""))));
+        HAdd(d, TH(1, TBLTITLE(TOP_HOURS_TITLE, TOP_HOURS_TITLE)));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Count", ""), @"")));
+        HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""), @"")));
         HAdd(d, TRCLOSE);
         
         // Determine max count
@@ -1490,15 +1521,15 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         basePlayCount = (float)maxCount;
         maxCount = [[topHours valueForKeyPath:@"Total Duration.@max.unsignedLongLongValue"] unsignedIntValue];
         basePlayTime = (float)maxCount;
-        position = 0;
-        for (; position < 24; ++position) {
-            HAdd(d, (position & 0x0000001) ? TR : TRALT);
+        absPosition = 0;
+        for (; absPosition < 24; ++absPosition) {
+            HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
             
-            tmp = [NSString stringWithFormat:@"%02d00", position];
+            tmp = [NSString stringWithFormat:@"%02d00", absPosition];
             
             HAdd(d, TDEntry(@"<td class=\"smalltitle\">", tmp));
             // Total Plays bar
-            float ratingCount = [[[topHours objectAtIndex:position] objectForKey:@"Play Count"] floatValue];
+            float ratingCount = [[[topHours objectAtIndex:absPosition] objectForKey:@"Play Count"] floatValue];
             width = rintf((ratingCount / basePlayCount) * 100.0f);
             percentage = (ratingCount / [totalPlays floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
@@ -1506,7 +1537,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
             HAdd(d, TDEntry(@"<td class=\"graph\">", DIVEntry(@"bar", width, tmp, playCount)));
             
             // Total time bar
-            ratingCount = [[[topHours objectAtIndex:position] objectForKey:@"Total Duration"] floatValue];
+            ratingCount = [[[topHours objectAtIndex:absPosition] objectForKey:@"Total Duration"] floatValue];
             width = rintf((ratingCount / basePlayTime) * 100.0f);
             percentage = (ratingCount / [totalTime floatValue]) * 100.0f;
             tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
