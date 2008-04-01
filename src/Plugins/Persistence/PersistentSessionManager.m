@@ -573,7 +573,7 @@
         // Update all dependencies
         
         // Artist
-        // since filteredArrayUsingPredicate is so SLOW, pair the number of items to search to the smallest possible
+        // since filteredArrayUsingPredicate is so SLOW, pare the number of items to search to the smallest possible
         aliases = [sessionSong valueForKeyPath:@"item.artist.sessionAliases"];
         filter = [NSPredicate predicateWithFormat:@"session.name == %@", sessionName];
         filterResults = [[aliases allObjects] filteredArrayUsingPredicate:filter];
