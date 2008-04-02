@@ -219,8 +219,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_SONG, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_SONG, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -234,8 +234,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PRatingCache" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_RATING_CCH, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_RATING_CCH, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -249,8 +249,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PHourCache" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_HOUR_CCH, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_HOUR_CCH, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif

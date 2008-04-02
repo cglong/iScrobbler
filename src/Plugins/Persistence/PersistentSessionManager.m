@@ -116,8 +116,8 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_ARTIST, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_ARTIST, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -130,8 +130,8 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_ALBUM, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_ALBUM, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -143,8 +143,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:[NSEntityDescription entityForName:@"PRatingCache" inManagedObjectContext:moc]];
     [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (rating == %@)",
-            ITEM_RATING_CCH, [session valueForKey:@"name"], rating]];
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (rating == %@)",
+            ITEM_RATING_CCH, session, rating]];
     
     NSError *error;
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -162,8 +162,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:[NSEntityDescription entityForName:@"PHourCache" inManagedObjectContext:moc]];
     [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (hour == %@)",
-            ITEM_HOUR_CCH, [session valueForKey:@"name"], hour]];
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (hour == %@)",
+            ITEM_HOUR_CCH, session, hour]];
     
     NSError *error;
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -750,8 +750,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_SONG, sname]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_SONG, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
