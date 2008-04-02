@@ -275,10 +275,10 @@ artistComparisonData = nil; \
     // just before midnight of the first day of the current week
     NSInteger limit = 1;
     NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
-        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute] - 10)];
+        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-(ABS([now secondOfMinute] - 2))];
     // XXX: we only archive lastfm weeklies currently, but if that changes then we need a '(name contains)' condition 
-    predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (epoch < %@)",
-        ITEM_SESSION, [fromDate GMTDate], [now GMTDate]];
+    predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (self != %@) AND (archive != NULL) AND (epoch < %@) AND (epoch > %@)",
+        ITEM_SESSION, session, [now GMTDate], [fromDate GMTDate]];
     [request setPredicate:predicate];
     LEOPARD_BEGIN
     [request setReturnsObjectsAsFaults:NO];
