@@ -51,9 +51,6 @@ static NSMutableArray *topHours = nil;
 // This is the ASCII Record Separator char code
 #define TOP_ALBUMS_KEY_TOKEN @"\x1e"
 
-#define TOP_LISTS_PERSISTENT_STORE \
-[@"~/Library/Caches/org.bergstrand.iscrobbler.persistent.toplists.plist" stringByExpandingTildeInPath]
-
 @interface NSString (ISHTMLConversion)
 - (NSString *)stringByConvertingCharactersToHTMLEntities;
 @end
@@ -81,7 +78,19 @@ static NSMutableArray *topHours = nil;
     // XXX this belongs in the persistence plugin, but it's here so we don't have to load the plugin to test
     // whether a new profile will be created or not.
     NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
+    #else
     NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    #endif
+    if (!metadata) {
+        url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB_21X];
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
+        #else
+        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+        #endif
+    }
     // while technically indicating a new profile, the last check is also true while an import is in progress
     // and [iScrobblerController applicationShouldTerminate:] would break in this case.
     return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);

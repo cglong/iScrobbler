@@ -703,6 +703,58 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 }
 #endif
 
+- (BOOL)moveDatabaseToNewSupportFolder
+{
+    NSString *oldPath = PERSISTENT_STORE_DB_21X;
+    
+    NSURL *url = [NSURL fileURLWithPath:oldPath];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
+    #else
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    #endif
+    if (metadata && nil == [metadata objectForKey:@"ISStoreLocationVersion"]) {
+        NSString *newPath = PERSISTENT_STORE_DB;
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+        BOOL good = [[NSFileManager defaultManager] moveItemAtPath:oldPath toPath:newPath error:nil];
+        #else
+        BOOL good = [[NSFileManager defaultManager] movePath:oldPath toPath:newPath handler:nil];
+        #endif
+        if (good) {
+            // move the most recent backup and create a symlink for the old file
+            NSString *backup = [oldPath stringByAppendingString:@"-backup"];
+            NSString *newBackup = [newPath stringByAppendingString:@"-backup"];
+            NSString *symlinkDest = [NSString stringWithFormat:@"./%@/%@",
+                [[newPath stringByDeletingLastPathComponent] lastPathComponent],
+                [newPath lastPathComponent]];
+            
+            #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+            (void)[[NSFileManager defaultManager] moveItemAtPath:backup toPath:newBackup error:nil];
+            (void)[[NSFileManager defaultManager] removeItemAtPath:[backup stringByAppendingString:@"-1"] error:nil];
+            (void)[[NSFileManager defaultManager] createSymbolicLinkAtPath:oldPath withDestinationPath:symlinkDest error:nil];
+            #else
+            (void)[[NSFileManager defaultManager] movePath:backup toPath:newBackup handler:nil];
+            (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
+            (void)[[NSFileManager defaultManager] createSymbolicLinkAtPath:oldPath pathContent:symlinkDest];
+            #endif
+            
+            return (YES);
+        }
+    } else if (metadata) {
+        // remove stale backups
+        NSString *backup = [oldPath stringByAppendingString:@"-backup"];
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+        (void)[[NSFileManager defaultManager] removeItemAtPath:backup error:nil];
+        (void)[[NSFileManager defaultManager] removeItemAtPath:[backup stringByAppendingString:@"-1"] error:nil];
+        #else
+        (void)[[NSFileManager defaultManager] removeFileAtPath:backup handler:nil];
+        (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
+        #endif
+    }
+    
+    return (NO);
+}
+
 - (BOOL)initDatabase:(NSError**)failureReason
 {
     NSError *error = nil;
@@ -725,6 +777,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [mainMOC setMergePolicy:NSRollbackMergePolicy];
     
     sessionMgr = [PersistentSessionManager sharedInstance];
+    
+    BOOL didLocationMove = [self moveDatabaseToNewSupportFolder];
     
     NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
     // NSXMLStoreType is slow and keeps the whole object graph in mem, but great for looking at the DB internals (debugging)
@@ -752,6 +806,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
                 [NSNumber numberWithBool:NO], @"ISDidImportiTunesLibrary",
                 [NSNumber numberWithLongLong:[[NSTimeZone defaultTimeZone] secondsFromGMT]], @"ISTZOffset",
                 [mProxy applicationVersion], (NSString*)kMDItemCreator,
+                PERSISTENT_STORE_DB_LOCATION_VERSION, @"ISStoreLocationVersion",
                 // NSStoreTypeKey and NSStoreUUIDKey are always added
                 nil]
             forPersistentStore:mainStore];
@@ -813,8 +868,12 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         }
         #endif
     }
-
+    
     [self databaseDidInitialize:metadata];
+    if (didLocationMove) {
+        [self setStoreMetadata:PERSISTENT_STORE_DB_LOCATION_VERSION forKey:@"ISStoreLocationVersion" moc:mainMOC];
+        [self save:mainMOC withNotification:NO];
+    }
     *failureReason = nil;
     return (YES);
 }

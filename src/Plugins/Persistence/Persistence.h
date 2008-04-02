@@ -70,8 +70,13 @@
 @end
 
 // Private, exposed only for TopListsController
-#define PERSISTENT_STORE_DB \
+#define PERSISTENT_STORE_DB_21X \
 [@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]
+
+#define PERSISTENT_STORE_DB \
+[[[NSFileManager defaultManager] iscrobblerSupportFolder] stringByAppendingPathComponent:@"toplists.data"]
+
+#define PERSISTENT_STORE_DB_LOCATION_VERSION @"22X"
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 #define IS_CURRENT_STORE_VERSION @"2"

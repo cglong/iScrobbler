@@ -884,7 +884,18 @@ player_info_exit:
         [ud synchronize];
     }
     
-    songList=[[NSMutableArray alloc ]init];
+    if (NO == [[NSFileManager defaultManager] fileExistsAtPath:[[NSFileManager defaultManager] iscrobblerSupportFolder]]) {
+        // 2.2.0 organizes support files in one sub-folder
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+        (void)[[NSFileManager defaultManager] createDirectoryAtPath:[[NSFileManager defaultManager] iscrobblerSupportFolder]
+            withIntermediateDirectories:NO attributes:nil error:nil];
+        #else
+        (void)[[NSFileManager defaultManager] createDirectoryAtPath:[[NSFileManager defaultManager] iscrobblerSupportFolder]
+            attributes:nil];
+        #endif
+    }
+    
+    songList = [[NSMutableArray alloc ] init];
     
 // We don't need to do this right now, as the only thing that uses playlists is the prefs.
 #if 0
@@ -2554,7 +2565,7 @@ exit:
 }
 @end
 
-@implementation NSFileManager (ISAliasExtensions)
+@implementation NSFileManager (ISExtensions)
 
 - (NSString*)destinationOfAliasAtPath:(NSString*)path error:(NSError**)error
 {
@@ -2597,6 +2608,11 @@ resolvePath:
     }
 
     return (nil);
+}
+
+- (NSString*)iscrobblerSupportFolder
+{
+    return ([@"~/Library/Application Support/iScrobbler" stringByExpandingTildeInPath]);
 }
 
 @end

@@ -16,9 +16,10 @@
 - (NSCalendarDate*)GMTDate;
 @end
 
-@interface NSFileManager (ISAliasExtensions)
+@interface NSFileManager (ISExtensions)
 - (NSString*)ISDestinationOfAliasAtPath:(NSString*)path error:(NSError**)error;
 #define destinationOfAliasAtPath ISDestinationOfAliasAtPath
+- (NSString*)iscrobblerSupportFolder;
 @end
 
 @interface NSXMLElement (ISAdditions)
