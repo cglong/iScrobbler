@@ -2463,7 +2463,7 @@ exit:
 
 - (void)launchProxy
 {
-    NSString *path = [[NSBundle mainBundle] pathForAuxiliaryExecutable:IS_PROXY_APP];
+    NSString *path = [[NSBundle mainBundle] pathForResource:IS_PROXY_APP ofType:@""];
     // [[NSWorkspace sharedWorkspace] launchApplication:showIcon:autolaunch:] fails for non-bundled apps
     OSStatus err;
     LSApplicationParameters params;
