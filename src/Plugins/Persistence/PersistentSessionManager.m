@@ -23,6 +23,7 @@
 
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify;
 - (BOOL)save:(NSManagedObjectContext*)moc;
+- (void)backupDatabase;
 - (void)resetMain;
 - (void)setImportInProgress:(BOOL)import;
 - (NSManagedObjectContext*)mainMOC;
@@ -200,7 +201,7 @@
         [pp save:moc withNotification:NO];
         
         if (updateSessions && [updateSessions intValue] > 0)
-            [self performSelector:@selector(updateSessions:) withObject:nil];
+            [self performSelector:@selector(sessionManagerUpdate) withObject:nil];
     }
     
     } @catch (NSException *e) {
@@ -1123,6 +1124,7 @@
     
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
     if (didRemove) {
+        [[PersistentProfile sharedInstance] backupDatabase];
         @try {
         [moc reset];
         } @catch (NSException *e) {

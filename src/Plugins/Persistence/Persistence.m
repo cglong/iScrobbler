@@ -960,7 +960,6 @@ So for now, this is disabled.
             #endif
         }
         
-        [self backupDatabase];
         mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
         if (!mainStore) {
             [self databaseDidFailInitialize:nil];
