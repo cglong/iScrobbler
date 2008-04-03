@@ -1238,7 +1238,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         elapsedDays >= 1.0 ? round([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%@ %@)</span>",
         tmp,
-        totalPlays,
+        [NSString stringWithFormat:NSLocalizedString(@"%@ tracks from %lu artists", ""), totalPlays, [artists count]],
         NSLocalizedString(@"since", ""),
         [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);
