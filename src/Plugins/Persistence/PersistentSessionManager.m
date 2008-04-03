@@ -824,7 +824,8 @@
             NSDate *histPlayed = [histEntry valueForKey:@"lastPlayed"];
             ScrobLog(SCROB_LOG_TRACE, @"removing play history '%@' for '%@. %@'",
                 histPlayed, [song valueForKeyPath:@"trackNumber"], [song valueForKey:@"name"]);
-            [[song managedObjectContext] deleteObject:histEntry];
+            
+            //[[song managedObjectContext] deleteObject:histEntry];
         }
     }
 }
@@ -864,9 +865,7 @@
             ScrobLog(SCROB_LOG_TRACE, @"time mismatch for '%@': session: %@, actual: %@",
                 [mobj valueForKeyPath:@"item.name"], [mobj valueForKey:@"playTime"], ptime);
         }
-        #if 0
         [self validatePlayHistory:[mobj valueForKey:@"item"]];
-        #endif
         #endif
         
         [mobj setValue:count forKey:@"playCount"];
