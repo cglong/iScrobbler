@@ -40,6 +40,30 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 @implementation PersistentProfile
 
+- (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
+{
+    NSInvocation *inv = [NSInvocation invocationWithMethodSignature:
+        [[NSApp delegate] methodSignatureForSelector:@selector(displayErrorWithTitle:message:)]];
+    [inv retainArguments];
+    [inv setTarget:[NSApp delegate]]; // arg 0
+    [inv setSelector:@selector(displayErrorWithTitle:message:)]; // arg 1
+    [inv setArgument:&title atIndex:2];
+    [inv setArgument:&msg atIndex:3];
+    [inv performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
+}
+
+- (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg
+{
+    NSInvocation *inv = [NSInvocation invocationWithMethodSignature:
+        [[NSApp delegate] methodSignatureForSelector:@selector(displayWarningWithTitle:message:)]];
+    [inv retainArguments];
+    [inv setTarget:[NSApp delegate]]; // arg 0
+    [inv setSelector:@selector(displayWarningWithTitle:message:)]; // arg 1
+    [inv setArgument:&title atIndex:2];
+    [inv setArgument:&msg atIndex:3];
+    [inv performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
+}
+
 - (void)postNoteWithArgs:(NSDictionary*)args
 {
     @try {
@@ -77,16 +101,9 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
             [self performSelectorOnMainThread:@selector(profileDidChange) withObject:nil waitUntilDone:NO];
         return (YES);
     } else {
-        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:
-            [[NSApp delegate] methodSignatureForSelector:@selector(displayErrorWithTitle:message:)]];
-        [inv retainArguments];
-        [inv setTarget:[NSApp delegate]]; // arg 0
-        [inv setSelector:@selector(displayErrorWithTitle:message:)]; // arg 1
         NSString *title = NSLocalizedStringFromTableInBundle(@"Local Charts Could Not Be Saved", nil, [NSBundle bundleForClass:[self class]], "");
-        [inv setArgument:&title atIndex:2];
         NSString *msg = NSLocalizedStringFromTableInBundle(@"The local charts database could not be saved. This may be an indication of corruption. See the log file for more information.", nil, [NSBundle bundleForClass:[self class]], "");
-        [inv setArgument:&msg atIndex:3];
-        [inv performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:NO];
+        [self displayErrorWithTitle:title message:msg];
         
         ScrobLog(SCROB_LOG_ERR, @"failed to save persistent db (%@ -- %@)", error,
             [[error userInfo] objectForKey:NSDetailedErrorsKey]);
@@ -475,6 +492,96 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 }
 
 #if IS_STORE_V2
+/*
+The repair method does its job, but when saving the test databases caused the process to run out of VM space (32bit) because of thousands of exceptions.
+So for now, this is disabled.
+*/
+#ifdef ISDB_REPAIR
+- (void)repairDatabaseInconsistenciesWithModel:(NSManagedObjectModel*)model URL:(NSURL*)url
+{
+    NSString *errMsg;
+    NSManagedObjectContext *moc = nil;
+    NSError *error;
+    @try {
+    
+    moc = [[NSManagedObjectContext alloc] init];
+    [moc setUndoManager:nil];
+    
+    NSPersistentStoreCoordinator *psc;
+    psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:model];
+    [moc setPersistentStoreCoordinator:psc];
+    [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
+    [psc release];
+    
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionItem" inManagedObjectContext:moc];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"item == NULL || session == NULL"];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    [request setPredicate:predicate];
+    
+    NSArray *results = [moc executeFetchRequest:request error:nil];
+    if ([results count] > 0) {
+        ScrobLog(SCROB_LOG_WARN, @"The database appears to be corrupted, attempting repair.");
+        errMsg = NSLocalizedStringFromTableInBundle(@"The database appears to be corrupted, attempting repair.", nil, [NSBundle bundleForClass:[self class]], "");
+        [self displayWarningWithTitle:@"" message:errMsg];
+    } else
+        errMsg = nil;
+    
+    NSManagedObject *mobj;
+    NSEnumerator *en = [results objectEnumerator];
+    while ((mobj = [en nextObject])) {
+        ScrobLog(SCROB_LOG_WARN, @"Session object '%@' is invalid and cannot be recovered, deleting...", [mobj objectID]);
+        [moc deleteObject:mobj];
+    }
+    
+    predicate = [NSPredicate predicateWithFormat:@"itemType == NULL"];
+    [request setPredicate:predicate];
+    results = [moc executeFetchRequest:request error:nil];
+    if ([results count] > 0 && !errMsg) {
+        ScrobLog(SCROB_LOG_WARN, @"The database appears to be corrupted, attempting repair.");
+        errMsg = NSLocalizedStringFromTableInBundle(@"The database appears to be corrupted, attempting repair.", nil, [NSBundle bundleForClass:[self class]], "");
+        [self displayWarningWithTitle:@"" message:errMsg];
+    }
+    
+    en = [results objectEnumerator];
+    while ((mobj = [en nextObject])) {
+        NSString *mobjClass = [[mobj entity] managedObjectClassName];
+        if ([mobjClass isEqualToString:@"PSessionSong"]) {
+            [mobj setValue:ITEM_SONG forKey:@"itemType"];
+        } else if ([mobjClass isEqualToString:@"PSessionArtist"]) {
+            [mobj setValue:ITEM_ARTIST forKey:@"itemType"];
+        } else if ([mobjClass isEqualToString:@"PSessionAlbum"]) {
+            [mobj setValue:ITEM_ALBUM forKey:@"itemType"];
+        } else if ([mobjClass isEqualToString:@"PHourCache"]) {
+            [mobj setValue:ITEM_HOUR_CCH forKey:@"itemType"];
+        } else if ([mobjClass isEqualToString:@"PRatingCache"]) {
+            [mobj setValue:ITEM_RATING_CCH forKey:@"itemType"];
+        }
+    }
+    
+    entity = [NSEntityDescription entityForName:@"PItem" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:nil];
+    results = [moc executeFetchRequest:request error:nil];
+    
+    if ([moc hasChanges])
+        [moc save:&error];
+    
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"exception while attempting to repair database: %@", e);
+        [moc rollback];
+        
+        NSString *title = NSLocalizedStringFromTableInBundle(@"Database Repairs Failed", nil, [NSBundle bundleForClass:[self class]], "");
+        errMsg = NSLocalizedStringFromTableInBundle(@"The database may be in an unrecoverable state.", nil, [NSBundle bundleForClass:[self class]], "");
+        [self displayErrorWithTitle:title message:errMsg];
+    }
+    
+    @try {
+    [moc release];
+    } @catch (NSException *e2) {}
+}
+#endif // ISDB_REPAIR
+
 - (void)migrationDidComplete:(NSDictionary*)metadata
 {   
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
@@ -516,7 +623,18 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     @try {
     
     NSArray *searchBundles = [self dataModelBundles];
-    NSURL *tmpURL = [NSURL fileURLWithPath:[[searchBundles objectAtIndex:0]
+    NSURL *tmpURL;
+    #ifdef ISDB_REPAIR
+    // Before migration, attempt to repair any DB problems
+    // The v1reapir MOM is a copy of the v1 MOM with relaxed relationship requirements so bad objects can be loaded
+    tmpURL = [NSURL fileURLWithPath:[[searchBundles objectAtIndex:0]
+        pathForResource:@"iScrobblerV1repair" ofType:@"mom" inDirectory:@"iScrobbler.momd"]];
+    NSManagedObjectModel *v1repairmom = [[[NSManagedObjectModel alloc] initWithContentsOfURL:tmpURL] autorelease];
+    if (v1repairmom)
+        [self repairDatabaseInconsistenciesWithModel:v1repairmom URL:dburl];
+    #endif
+    
+    tmpURL = [NSURL fileURLWithPath:[[searchBundles objectAtIndex:0]
         pathForResource:@"iScrobbler" ofType:@"mom" inDirectory:@"iScrobbler.momd"]];
     NSManagedObjectModel *v1mom = [[[NSManagedObjectModel alloc] initWithContentsOfURL:tmpURL] autorelease];
     if (!v1mom)

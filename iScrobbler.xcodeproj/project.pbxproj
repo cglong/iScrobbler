@@ -332,6 +332,7 @@
 		D33ED7530D2FAD3100AE7771 /* DBEditController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DBEditController.h; path = src/DBEditController.h; sourceTree = "<group>"; };
 		D33ED7540D2FAD3100AE7771 /* DBEditController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DBEditController.m; path = src/DBEditController.m; sourceTree = "<group>"; };
 		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBEdit.xib; sourceTree = "<group>"; };
+		D34ACCAF0DA4E2A90049C106 /* iScrobblerV1repair.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV1repair.xcdatamodel; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D357D2BB0D86AF320026C486 /* iScrobbler.sb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iScrobbler.sb; sourceTree = "<group>"; };
@@ -2136,6 +2137,7 @@
 			children = (
 				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
 				D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */,
+				D34ACCAF0DA4E2A90049C106 /* iScrobblerV1repair.xcdatamodel */,
 			);
 			currentVersion = D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */;
 			path = iScrobbler.xcdatamodeld;
