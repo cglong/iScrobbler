@@ -803,6 +803,33 @@
 }
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+// This is not a general use method as we don't know for sure which play history events are valid
+// I wrote it to clean up my personal db
+#ifdef ISDEBUG
+- (void)validatePlayHistory:(NSManagedObject*)song
+{
+    NSUInteger songCount = [[song valueForKey:@"playCount"] unsignedIntValue];
+    NSUInteger histCount = [[song valueForKey:@"playHistory"] count];
+    if (songCount < histCount) {
+        NSArray *hist = [[[song valueForKey:@"playHistory"] allObjects] sortedArrayUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"lastPlayed" ascending:YES] autorelease]]];;
+        ScrobLog(SCROB_LOG_TRACE, @"invalid playHistory for '%@': count: %lu, history count: %lu",
+            [song valueForKey:@"name"], songCount, histCount);
+        
+        NSManagedObject *histEntry;
+        NSRange r;
+        r = NSMakeRange(0, histCount - songCount);
+        NSEnumerator *histEn = [[hist subarrayWithRange:r] objectEnumerator];
+        while ((histEntry = [histEn nextObject])) {
+            NSDate *histPlayed = [histEntry valueForKey:@"lastPlayed"];
+            ScrobLog(SCROB_LOG_TRACE, @"removing play history '%@' for '%@. %@'",
+                histPlayed, [song valueForKeyPath:@"trackNumber"], [song valueForKey:@"name"]);
+            [[song managedObjectContext] deleteObject:histEntry];
+        }
+    }
+}
+#endif
+
 - (BOOL)recreateCaches:(NSManagedObjectContext*)moc
 {
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
@@ -837,6 +864,9 @@
             ScrobLog(SCROB_LOG_TRACE, @"time mismatch for '%@': session: %@, actual: %@",
                 [mobj valueForKeyPath:@"item.name"], [mobj valueForKey:@"playTime"], ptime);
         }
+        #if 0
+        [self validatePlayHistory:[mobj valueForKey:@"item"]];
+        #endif
         #endif
         
         [mobj setValue:count forKey:@"playCount"];
@@ -933,6 +963,7 @@
         save = NO;
         [moc rollback];
         ScrobLog(SCROB_LOG_ERR, @"scrub: exception while merging songs: %@", e);
+        return;
     }
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
