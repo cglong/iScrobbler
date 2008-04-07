@@ -16,12 +16,6 @@
 
 @implementation DBEditController
 
-- (id)init
-{
-    self = [super initWithWindowNibName:@"DBEdit"];
-    return (self);
-}
-
 - (BOOL)isBusy
 {
     return (isBusy);
@@ -39,15 +33,15 @@
     // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
     LEOPARD_END
-    NSWindow *w = [[NSPanel alloc] initWithContentRect:[renameView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
+    NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     [w setLevel:NSNormalWindowLevel];
     if (0 == (style & NSHUDWindowMask))
         [w setAlphaValue:IS_UTIL_WINDOW_ALPHA];
     
     [w setReleasedWhenClosed:NO];
-    [w setContentView:renameView];
-    [w setMinSize:[renameView frame].size];
+    [w setContentView:contentView];
+    [w setMinSize:[contentView frame].size];
     
     [self setWindow:w];
     [w setDelegate:self]; // setWindow: does not do this for us (why?)
@@ -64,7 +58,7 @@
     [moc setPersistentStoreCoordinator:psc];
 }
 
-- (IBAction)showRenameWindow:(id)sender
+- (IBAction)showWindow:(id)sender
 {
     if (![[self window] isVisible]) {
         [NSApp activateIgnoringOtherApps:YES];
@@ -78,29 +72,12 @@
             name:PersistentProfileFailedEditObject
             object:nil];
     }
-    NSManagedObject *obj = [moc objectWithID:moid];
-    [renameText setStringValue:[obj valueForKey:@"name"]];
-    [super showWindow:nil];
+    [super showWindow:sender];
 }
 
 - (IBAction)performClose:(id)sender
 {
     [[self window] close];
-}
-
-- (IBAction)performRename:(id)sender
-{
-    [[self window] endEditingFor:nil];
-    
-    NSString *newTitle = [renameText stringValue];
-    if (!moid || !newTitle || 0 == [newTitle length]) {
-        NSBeep();
-        return;
-    }
-    
-    [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
-    PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
-    [persistence rename:moid to:newTitle];
 }
 
 - (BOOL)windowShouldClose:(NSNotification*)note
@@ -125,9 +102,17 @@
     [self autorelease];
 }
 
-- (void)setRenameTitle:(NSString*)newTitle
+- (void)setWindowTitle:(NSString*)newTitle
 {
-    [[self window] setTitle:[NSLocalizedString(@"Rename", "") stringByAppendingFormat:@": %@", newTitle]];
+    NSString *op;
+    if ([self isKindOfClass:[DBRenameController class]]) {
+        op = NSLocalizedString(@"Rename", "");
+    } else {
+        op = nil;
+        ISASSERT(0, "invalid class!");
+    }
+    
+    [[self window] setTitle:[op stringByAppendingFormat:@": %@", newTitle]];
 }
 
 - (void)setObject:(NSDictionary*)objectInfo
@@ -145,7 +130,7 @@
     else
         title = [objectInfo objectForKey:@"Artist"];
 
-    [self setRenameTitle:title];
+    [self setWindowTitle:title];
 }
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
@@ -177,7 +162,7 @@
         ISASSERT(0, "invalid object type!");
     #endif
     }
-    [self setRenameTitle:title];
+    [self setWindowTitle:title];
     
     } @catch (NSException *e) {
         ScrobTrace(@"exception: %@", e);
@@ -211,6 +196,39 @@
     #else
     return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor darkGrayColor] : [NSColor blackColor]);
     #endif
+}
+
+@end
+
+@implementation DBRenameController
+
+- (id)init
+{
+    self = [super initWithWindowNibName:@"DBRename"];
+    return (self);
+}
+
+- (IBAction)showRenameWindow:(id)sender
+{
+    NSManagedObject *obj = [moc objectWithID:moid];
+    [renameText setStringValue:[obj valueForKey:@"name"]];
+    
+    [super showWindow:sender];
+}
+
+- (IBAction)performRename:(id)sender
+{
+    [[self window] endEditingFor:nil];
+    
+    NSString *newTitle = [renameText stringValue];
+    if (!moid || !newTitle || 0 == [newTitle length]) {
+        NSBeep();
+        return;
+    }
+    
+    [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
+    PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+    [persistence rename:moid to:newTitle];
 }
 
 @end

@@ -11,8 +11,7 @@
 #import <Cocoa/Cocoa.h>
 
 @interface DBEditController : NSWindowController {
-    IBOutlet NSView *renameView;
-    IBOutlet NSTextField *renameText;
+    IBOutlet NSView *contentView;
     IBOutlet NSProgressIndicator *progress;
     
     NSManagedObjectContext *moc;
@@ -22,9 +21,15 @@
 
 - (void)setObject:(NSDictionary*)objectInfo;
 
-- (IBAction)showRenameWindow:(id)sender;
-
 - (IBAction)performClose:(id)sender;
+
+@end
+
+@interface DBRenameController : DBEditController {
+    IBOutlet NSTextField *renameText;
+}
+
+- (IBAction)showRenameWindow:(id)sender;
 - (IBAction)performRename:(id)sender;
 
 @end

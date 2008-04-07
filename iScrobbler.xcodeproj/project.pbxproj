@@ -93,7 +93,7 @@
 		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
 		D33ED50B0D2E866100AE7771 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D33ED50A0D2E866100AE7771 /* QuartzCore.framework */; };
 		D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */ = {isa = PBXBuildFile; fileRef = D33ED7540D2FAD3100AE7771 /* DBEditController.m */; };
-		D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */; };
+		D33ED7B00D2FB5BF00AE7771 /* DBRename.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */ = {isa = PBXBuildFile; fileRef = D357D2BB0D86AF320026C486 /* iScrobbler.sb */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
@@ -331,7 +331,7 @@
 		D33ED50A0D2E866100AE7771 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
 		D33ED7530D2FAD3100AE7771 /* DBEditController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DBEditController.h; path = src/DBEditController.h; sourceTree = "<group>"; };
 		D33ED7540D2FAD3100AE7771 /* DBEditController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DBEditController.m; path = src/DBEditController.m; sourceTree = "<group>"; };
-		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBEdit.xib; sourceTree = "<group>"; };
+		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBRename.xib; sourceTree = "<group>"; };
 		D34ACCAF0DA4E2A90049C106 /* iScrobblerV1repair.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV1repair.xcdatamodel; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
@@ -619,7 +619,7 @@
 				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */,
-				D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */,
+				D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */,
 				D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */,
 				D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */,
 				D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */,
@@ -1082,7 +1082,7 @@
 				D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */,
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
 				D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */,
-				D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */,
+				D33ED7B00D2FB5BF00AE7771 /* DBRename.xib in Resources */,
 				D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1323,12 +1323,12 @@
 			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
 		};
-		D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */ = {
+		D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				D33ED7AF0D2FB5BF00AE7771 /* English */,
 			);
-			name = DBEdit.xib;
+			name = DBRename.xib;
 			sourceTree = "<group>";
 		};
 		D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */ = {

@@ -480,7 +480,7 @@ static NSMutableArray *topHours = nil;
     // Command and Shift are used for multiple selection, so we can't use those
     if (NSAlternateKeyMask == ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask)) {
         if ((selection = [[sender dataSource] selectedObjects]) && [selection count] == 1) {
-            DBEditController *ec = [[DBEditController alloc] init];
+            DBRenameController *ec = [[DBRenameController alloc] init];
             [ec setObject:[selection objectAtIndex:0]];
             [ec showRenameWindow:nil];
         } else
