@@ -1028,10 +1028,10 @@
         if (now < nextScrub)
             return;
         
-        nextScrub = now + 900.0;
+        nextScrub = now + 600.0;
     } else {
         if (now >= nextScrub)
-            nextScrub = now + 900.0;
+            nextScrub = now + 420.0;
         
         NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
         if (!lastScrub) {
