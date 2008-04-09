@@ -748,6 +748,8 @@
 
 - (BOOL)mergeSongsInSession:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
 {
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: merging song plays");
+    
     NSString *sname = [session valueForKey:@"name"];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
@@ -846,6 +848,7 @@
     // XXX: assumption that [mergeSongsInSession:] was used first
     // this fixes a bug in the 2.0 iTunes importer that would not update the session alias counts when a duplicate song was found
     NSManagedObject *session = [self sessionWithName:@"all" moc:moc];
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: recreating song play cache");
     entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
@@ -892,6 +895,7 @@
     [self recreateHourCacheForSession:session songs:songs moc:moc];
     
     // artists
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: recreating artist play cache");
     entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
@@ -917,6 +921,7 @@
 #endif
     
     // albums
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: recreating album play cache");
     entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
@@ -975,6 +980,8 @@
     #endif
     ISASSERT(moc != nil, "missing moc");
     
+    ScrobLog(SCROB_LOG_TRACE, @"scrub started");
+    
     BOOL save;
     @try {
     save = [self mergeSongsInSession:[self sessionWithName:@"all" moc:moc] moc:moc];
@@ -1004,6 +1011,8 @@
         (void)[[PersistentProfile sharedInstance] save:moc];
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
     }
+    
+    ScrobLog(SCROB_LOG_TRACE, @"scrub finished");
     
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBNeedsScrub"];
 }
