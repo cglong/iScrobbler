@@ -93,14 +93,18 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [self postNote:PersistentProfileDidUpdateNotification];
 }
 
-- (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify
+- (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify error:(NSError**)failure
 {
-    NSError *error;    
+    NSError *error; 
     if ([moc save:&error]) {
         if (notify)
             [self performSelectorOnMainThread:@selector(profileDidChange) withObject:nil waitUntilDone:NO];
+        if (failure)
+            failure = nil;
         return (YES);
     } else {
+        if (failure)
+            *failure = error;
         NSString *title = NSLocalizedStringFromTableInBundle(@"Local Charts Could Not Be Saved", nil, [NSBundle bundleForClass:[self class]], "");
         NSString *msg = NSLocalizedStringFromTableInBundle(@"The local charts database could not be saved. This may be an indication of corruption. See the log file for more information.", nil, [NSBundle bundleForClass:[self class]], "");
         [self displayErrorWithTitle:title message:msg];
@@ -112,9 +116,14 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     return (NO);
 }
 
+- (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify
+{
+    return ([self save:moc withNotification:notify error:nil]);
+}
+
 - (BOOL)save:(NSManagedObjectContext*)moc
 {
-    return ([self save:moc withNotification:YES]);
+    return ([self save:moc withNotification:YES error:nil]);
 }
 
 - (void)resetMain

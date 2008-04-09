@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/21/07.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -455,8 +455,9 @@ artistComparisonData = nil; \
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
             [entryObj valueForKey:@"name"], @"Track",
             [entryObj valueForKey:@"lastPlayed"], @"Last Played",
-            // this can be used to get further info, such as the complete play time history
+            // these can be used to get further info, such as the complete play time history
             [entryObj objectID], @"objectID",
+            [allSongPlays valueForKeyPath:@"objectID"], @"sessionInstanceIDs",
             nil];
         [chartEntries addObject:entry];
         
@@ -479,8 +480,9 @@ artistComparisonData = nil; \
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
             [entryObj valueForKey:@"name"], @"Track",
             [entryObj valueForKey:@"lastPlayed"], @"Last Played",
-            // this can be used to get further info, such as the complete play time history
+            // these can be used to get further info, such as the complete play time history
             [entryObj objectID], @"objectID",
+            [allSongPlays valueForKeyPath:@"objectID"], @"sessionInstanceIDs",
             nil];
         [chartEntries addObject:entry];
     }

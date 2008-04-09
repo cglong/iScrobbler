@@ -365,6 +365,17 @@ static NSMutableArray *topHours = nil;
 }
 
 // details, table selection and IB actions
+- (NSArrayController*)currentDataController
+{
+    NSString *viewID = [[tabView selectedTabViewItem] identifier];
+    if ([viewID isEqualToString:@"Tracks"])
+        return (topTracksController);
+    else if ([viewID isEqualToString:@"Artists"])
+        return (topArtistsController);
+    
+    return (nil);
+}
+
 - (void)selectionDidChange:(NSNotification*)note
 {
     @try {
@@ -407,8 +418,7 @@ static NSMutableArray *topHours = nil;
 {
     [artistDetails performSelector:@selector(showWindow:) withObject:sender];
     
-    NSTabViewItem *activeTab = [tabView selectedTabViewItem];
-    NSArrayController *data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    NSArrayController *data = [self currentDataController];
     NSArray *selection;
     if (NO == ((selection = [topTracksController selectedObjects]) && [selection count] > 0)) {
         if ([[data arrangedObjects] count] > 0)
@@ -474,15 +484,43 @@ static NSMutableArray *topHours = nil;
     [self hideDetails:nil];
 }
 
+- (void)keyDown:(NSEvent*)event
+{
+    NSString *chars = [event charactersIgnoringModifiers];
+    unichar ch = [chars length] == 1 ? [chars characterAtIndex:0] : 0;
+    NSArrayController *data = [self currentDataController];
+    NSArray *selection;
+    if ((selection = [data selectedObjects]) && [selection count] == 1) {
+        DBEditController *ec;
+        switch (ch) {
+            case NSF1FunctionKey:
+                ec = [[DBRenameController alloc] init];
+            break;
+            case NSF2FunctionKey:
+                if (data == topTracksController && [persistence isVersion2])
+                    ec = [[DBRemoveController alloc] init];
+                else
+                    return;
+            break;
+            default:
+                return;
+            break;
+        }
+        [ec setObject:[selection objectAtIndex:0]];
+        [ec showWindow:nil];
+    }
+}
+
 - (void)handleDoubleClick:(NSTableView*)sender
 {
     NSArray *selection;
+    // Legacy support
     // Command and Shift are used for multiple selection, so we can't use those
     if (NSAlternateKeyMask == ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask)) {
         if ((selection = [[sender dataSource] selectedObjects]) && [selection count] == 1) {
             DBRenameController *ec = [[DBRenameController alloc] init];
             [ec setObject:[selection objectAtIndex:0]];
-            [ec showRenameWindow:nil];
+            [ec showWindow:nil];
         } else
             NSBeep();
         return;
@@ -798,11 +836,9 @@ exit:
 
 - (IBAction)recommend:(id)sender
 {
-    NSTabViewItem *activeTab;
     id data, obj;
     @try {
-    activeTab = [tabView selectedTabViewItem];
-    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    data = [self currentDataController];
     obj = [[data selectedObjects] objectAtIndex:0];
     } @catch (id e) {
         return;
@@ -880,11 +916,9 @@ exit:
 
 - (IBAction)tag:(id)sender
 {
-    NSTabViewItem *activeTab;
     id data, obj;
     @try {
-    activeTab = [tabView selectedTabViewItem];
-    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    data = [self currentDataController];
     obj = [data selectedObjects];
     } @catch (id e) {
         return;
@@ -1017,16 +1051,13 @@ exit:
 
 - (BOOL)validateToolbarItem:(NSToolbarItem*)item
 {
-    NSTabViewItem *activeTab;
     id data;
-    
     NSInteger flags = [item tag];
     if (0 == flags)
         return (YES);
     
     @try {
-    activeTab = [tabView selectedTabViewItem];
-    data = [[activeTab identifier] isEqualToString:@"Tracks"] ? topTracksController : topArtistsController;
+    data = [self currentDataController];
     } @catch (id e) {
         return (NO);
     }
@@ -1238,7 +1269,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         elapsedDays >= 1.0 ? round([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%@ %@)</span>",
         tmp,
-        [NSString stringWithFormat:NSLocalizedString(@"%@ tracks from %lu artists", ""), totalPlays, [artists count]],
+        [NSString stringWithFormat:NSLocalizedString(@"%@ plays from %lu artists", ""), totalPlays, [artists count]],
         NSLocalizedString(@"since", ""),
         [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);

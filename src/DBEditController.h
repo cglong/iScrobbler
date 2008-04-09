@@ -29,7 +29,17 @@
     IBOutlet NSTextField *renameText;
 }
 
-- (IBAction)showRenameWindow:(id)sender;
 - (IBAction)performRename:(id)sender;
+
+@end
+
+@interface DBRemoveController : DBEditController {
+    IBOutlet NSArrayController *playEvents;
+    
+    NSMutableArray *playEventsContent;
+    NSMutableDictionary *playEventBeingRemoved;
+}
+
+- (IBAction)performRemove:(id)sender;
 
 @end
