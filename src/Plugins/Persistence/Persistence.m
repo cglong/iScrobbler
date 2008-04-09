@@ -478,6 +478,12 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
         selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    CFURLRef url = (CFURLRef)[NSURL fileURLWithPath:[PERSISTENT_STORE_DB stringByAppendingString:@"-backup-1"]];
+    if (NO == CSBackupIsItemExcluded(url, NULL))
+        (void)CSBackupSetItemExcluded(url, YES, YES);
+    #endif
 }
 
 - (void)databaseDidFailInitialize:(id)arg
