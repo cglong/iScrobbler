@@ -350,15 +350,17 @@ artistComparisonData = nil; \
     // get the session songs
     NSArray *sessionSongs = [persistence songsForSession:session];
     if (0 == (lastLoadCount = [sessionSongs count]))
-        goto loadExit; 
+        goto loadExit;
+    NSArray *sessionArtists = [[persistence sessionManager] artistsForSession:session moc:moc];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     // pre-fetch the relationships (individual backing store faults are VERY expensive)
     // processing the artists is much less work and we can present the data faster to the user
-    NSArray *sessionArtists = [[persistence sessionManager] artistsForSession:session moc:moc];
     entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionArtists valueForKeyPath:@"item.objectID"]]];
     error = nil;
     (void)[moc executeFetchRequest:request error:&error];
+    #endif
 
     // import the data into the GUI
     NSEnumerator *en;
@@ -527,11 +529,13 @@ loadExit:
     NSEntityDescription *entity;
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];;
     NSArray *sessionAlbums = [[persistence sessionManager] albumsForSession:session moc:moc];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     // pre-fetch the albums
     entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionAlbums valueForKeyPath:@"item.objectID"]]];
     error = nil;
+    #endif
     NSArray *albumObjects = [moc executeFetchRequest:request error:&error];
     // The artists should hopefully be in the MOC cache, but just incase, pre-fetch them as well
     entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
