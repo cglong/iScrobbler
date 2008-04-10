@@ -22,7 +22,7 @@
 - (NSString*)iscrobblerSupportFolder;
 @end
 
-@interface NSXMLElement (ISAdditions)
+@interface NSXMLNode (ISAdditions)
 - (NSInteger)integerValue; // this could be added at some point to 10.5.x or 10.6
 @end
 

@@ -2617,7 +2617,7 @@ resolvePath:
 
 @end
 
-@implementation NSXMLElement (ISAdditions)
+@implementation NSXMLNode (ISAdditions)
 
 - (NSInteger)integerValue
 {
