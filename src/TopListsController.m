@@ -42,7 +42,6 @@ enum {
 void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
 
 static TopListsController *g_topLists = nil;
-static NSMutableDictionary *topAlbums = nil;
 static NSMutableDictionary *topRatings = nil;
 static NSMutableDictionary *artistComparisonData = nil;
 static NSMutableArray *topHours = nil;
@@ -56,7 +55,6 @@ static NSMutableArray *topHours = nil;
 @end
 
 @interface NSMutableDictionary (ISTopListsAdditions)
-- (void)mergeValuesUsingCaseInsensitiveCompare;
 - (NSComparisonResult)sortByPlayCount:(NSDictionary*)entry;
 - (NSComparisonResult)sortByDuration:(NSDictionary*)entry;
 @end
@@ -372,6 +370,8 @@ static NSMutableArray *topHours = nil;
         return (topTracksController);
     else if ([viewID isEqualToString:@"Artists"])
         return (topArtistsController);
+    else if ([viewID isEqualToString:@"Albums"])
+        return (topAlbumsController);
     
     return (nil);
 }
@@ -574,7 +574,9 @@ static NSMutableArray *topHours = nil;
         [topArtistsController removeObjects:[topArtistsController content]];
     if ([[topTracksController content] count])
         [topTracksController removeObjects:[topTracksController content]];
-        
+    if ([[topAlbumsController content] count])
+        [topAlbumsController removeObjects:[topAlbumsController content]];
+    
     // Setup our sort descriptors
     NSSortDescriptor *playCountSort = [[NSSortDescriptor alloc] initWithKey:@"Play Count" ascending:NO];
     NSSortDescriptor *artistSort = [[NSSortDescriptor alloc] initWithKey:@"Artist" ascending:YES
@@ -582,7 +584,6 @@ static NSMutableArray *topHours = nil;
     NSSortDescriptor *playTimeSort = [[NSSortDescriptor alloc] initWithKey:@"Play Time" ascending:YES
         selector:@selector(caseInsensitiveNumericCompare:)];
     NSArray *sorters = [NSArray arrayWithObjects:playCountSort, artistSort, playTimeSort, nil];
-    
     [topArtistsController setSortDescriptors:sorters];
     
     NSSortDescriptor *trackSort = [[NSSortDescriptor alloc] initWithKey:@"Track" ascending:YES
@@ -590,15 +591,23 @@ static NSMutableArray *topHours = nil;
     sorters = [NSArray arrayWithObjects:playCountSort, artistSort, trackSort, nil];
     [topTracksController setSortDescriptors:sorters];
     
+    NSSortDescriptor *albumSort = [[NSSortDescriptor alloc] initWithKey:@"Album" ascending:YES
+        selector:@selector(caseInsensitiveNumericCompare:)];
+    sorters = [NSArray arrayWithObjects:playCountSort, artistSort, albumSort, nil];
+    [topAlbumsController setSortDescriptors:sorters];
+    
     [playCountSort release];
     [artistSort release];
     [playTimeSort release];
     [trackSort release];
+    [albumSort release];
     
     [topArtistsTable setTarget:self];
     [topArtistsTable setDoubleAction:@selector(handleDoubleClick:)];
     [topTracksTable setTarget:self];
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
+    [topAlbumsTable setTarget:self];
+    [topAlbumsTable setDoubleAction:@selector(handleDoubleClick:)];
     
     [self hideDetails:nil];
     
@@ -793,10 +802,11 @@ static NSMutableArray *topHours = nil;
         ASXMLRPC *req = [[ASXMLRPC alloc] init];
         NSMutableArray *p = [req standardParams];
         
+        NSString *title;
         [req setMethod:@"recommendItem"];
         switch ([rc type]) {
             case rt_track: {
-                NSString *title = [song objectForKey:@"Track"];
+                title = [song objectForKey:@"Track"];
                 if (!title) {
                     [req release];
                     goto exit;
@@ -813,6 +823,15 @@ static NSMutableArray *topHours = nil;
             break;
             
             case rt_album:
+                title = [song objectForKey:@"Album"];
+                if (!title) {
+                    [req release];
+                    goto exit;
+                }
+                [p addObject:artist];
+                [p addObject:title];
+                [p addObject:@"album"]; // type
+            break;
             default:
                 [req release];
                 goto exit;
@@ -849,10 +868,13 @@ exit:
     ISRecommendController *rc = [[ISRecommendController alloc] init];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recommendSheetDidEnd:)
         name:ISRecommendDidEnd object:rc];
-    [rc setAlbumEnabled:NO];
     if (data == topArtistsController) {
         [rc setTrackEnabled:NO];
+        [rc setAlbumEnabled:NO];
         [rc setType:rt_artist];
+    } else if (data == topAlbumsController) {
+        [rc setTrackEnabled:NO];
+        [rc setType:rt_album];
     }
     [rc setRepresentedObject:obj];
     [rc showWindow:[self window]];
@@ -863,6 +885,7 @@ exit:
     ISTagController *tc = [note object];
     NSArray *tracks = [tc representedObject];
     NSArray *tags = [tc tags];
+    NSString *title;
     if (tags && [tc send] && tracks && [tracks isKindOfClass:[NSArray class]]) {
         NSEnumerator *en = [tracks objectEnumerator];
         NSDictionary *song;
@@ -878,7 +901,7 @@ exit:
             NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
             switch ([tc type]) {
                 case tt_track: {
-                    NSString *title = [song objectForKey:@"Track"];
+                    title = [song objectForKey:@"Track"];
                     if (!title) {
                         [req release];
                         continue;
@@ -893,7 +916,16 @@ exit:
                     [p addObject:artist];
                 break;
                 
-                case tt_album:                
+                case tt_album:
+                    title = [song objectForKey:@"Album"];
+                    if (!title) {
+                        [req release];
+                        continue;
+                    }
+                    [req setMethod:@"tagAlbum"];
+                    [p addObject:artist];
+                    [p addObject:title];
+                break;               
                 default:
                     [req release];
                     continue;
@@ -927,10 +959,13 @@ exit:
     ISTagController *tc = [[ISTagController alloc] init];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tagSheetDidEnd:)
         name:ISTagDidEnd object:tc];
-    [tc setAlbumEnabled:NO];
     if (data == topArtistsController) {
         [tc setTrackEnabled:NO];
+        [tc setAlbumEnabled:NO];
         [tc setType:tt_artist];
+    } else if (data == topAlbumsController) {
+        [tc setTrackEnabled:NO];
+        [tc setType:tt_album];
     }
     [tc setRepresentedObject:obj];
     [tc showWindow:[self window]];
@@ -972,8 +1007,7 @@ exit:
         [ASXMLFile expireCacheEntryForURL:[ASWebServices currentUserTagsURL]];
     
     id obj = [request representedObject];
-    ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)",
-        method, obj);
+    ScrobLog(SCROB_LOG_TRACE, @"RPC request '%@' successful (%@)", method, obj);
     
     NSString *artist, *title;
     if (tag && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTagLovedBanned"]
@@ -1121,7 +1155,7 @@ exit:
 
 - (IBAction)createProfileReport:(id)sender
 {    
-    if (!topAlbums) {
+    if (!topRatings) {
         NSManagedObjectID *oid = [[self selectedSession] objectID];
         if (oid) {
             [self setValue:[NSNumber numberWithBool:YES] forKey:@"loading"]; // this is cleared in [loadExtendedDidFinish];
@@ -1490,12 +1524,12 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     
     HAdd(d, TBLCLOSE @"</div>");
     [pool release];
-
-    NSArray *keys;
+    
     //// ALBUMS ////
-    if (topAlbums && [topAlbums count] > 0) {
+    NSArray *topAlbums = [[topAlbumsController valueForKey:@"arrangedObjects"]
+        sortedArrayUsingSelector:@selector(sortByPlayCount:)];
+    if ([topAlbums count] > 0) {
         pool = [[NSAutoreleasePool alloc] init];
-        [topAlbums mergeValuesUsingCaseInsensitiveCompare];
         
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"topalbums\">\n" TR);
         tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
@@ -1505,54 +1539,42 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         HAdd(d, TH(1, TBLTITLE(NSLocalizedString(@"Time", ""), @"")));
         HAdd(d, TRCLOSE);
         
-        keys = [topAlbums keysSortedByValueUsingSelector:@selector(sortByDuration:)];
-        // The keys are ordered from smallest to largest, therefore we want the last one
-        tmp = [keys objectAtIndex:[keys count]-1];
-        playCount = [[topAlbums objectForKey:tmp] objectForKey:@"Total Duration"];
-        basePlayTime = [playCount floatValue];
-        
-        keys = [topAlbums keysSortedByValueUsingSelector:@selector(sortByPlayCount:)];
-        tmp = [keys objectAtIndex:[keys count]-1];
-        playCount = [[topAlbums objectForKey:tmp] objectForKey:@"Play Count"];
-        basePlayCount = [playCount floatValue];
-        en = [keys reverseObjectEnumerator]; // Largest to smallest
+        basePlayCount = [[topAlbums valueForKeyPath:@"Play Count.@max.unsignedIntValue"] floatValue],
+        basePlayTime = [[topAlbums valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
+        en = [topAlbums reverseObjectEnumerator]; // high->low
         absPosition = 1;
         position = 0;
         prevPlayCount = 0;
-        while ((tmp = [en nextObject])) { // tmp is our key into the topAlbums dict
-            NSArray *items = [tmp componentsSeparatedByString:TOP_ALBUMS_KEY_TOKEN];
-            if (items && 2 == [items count]) {
-                artist = [[items objectAtIndex:0] stringByConvertingCharactersToHTMLEntities];
-                NSString *album = [[items objectAtIndex:1] stringByConvertingCharactersToHTMLEntities];
-                entry = [topAlbums objectForKey:tmp];
-                
-                HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
-                
-                playCount = [entry objectForKey:@"Play Count"];
-                if (prevPlayCount != [playCount unsignedIntValue]) {
-                    ++position;
-                    prevPlayCount = [playCount unsignedIntValue];
-                }
-                HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
-                tmp = [NSString stringWithFormat:@"%@ - %@", album, artist];
-                HAdd(d, TDEntry(TDTITLE, tmp));
-                // Total Plays bar
-                width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
-                percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
-                tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
-                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
-                // Total time bar
-                playCount = [entry objectForKey:@"Total Duration"];
-                width = rintf(([playCount floatValue] / basePlayTime) * 100.0f);
-                percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0f;
-                tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
-                ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
-                timeStr = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
-                HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
-                
-                HAdd(d, TRCLOSE);
-                ++absPosition;
+        while ((entry = [en nextObject])) { // tmp is our key into the topAlbums dict
+            artist = [entry objectForKey:@"Artist"];
+            NSString *album = [entry objectForKey:@"Album"];
+            
+            HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
+            
+            playCount = [entry objectForKey:@"Play Count"];
+            if (prevPlayCount != [playCount unsignedIntValue]) {
+                ++position;
+                prevPlayCount = [playCount unsignedIntValue];
             }
+            HAdd(d, TDEntry(TDPOS, [NSNumber numberWithUnsignedInt:position]));
+            tmp = [NSString stringWithFormat:@"%@ - %@", album, artist];
+            HAdd(d, TDEntry(TDTITLE, tmp));
+            // Total Plays bar
+            width = rintf(([playCount floatValue] / basePlayCount) * 100.0f);
+            percentage = ([playCount floatValue] / [totalPlays floatValue]) * 100.0f;
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, playCount)));
+            // Total time bar
+            playCount = [entry objectForKey:@"Total Duration"];
+            width = rintf(([playCount floatValue] / basePlayTime) * 100.0f);
+            percentage = ([playCount floatValue] / [totalTime floatValue]) * 100.0f;
+            tmp = [NSString stringWithFormat:@"%.1f%%", percentage];
+            ISDurationsFromTime([playCount unsignedIntValue], &days, &hours, &minutes, &seconds);
+            timeStr = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+            HAdd(d, TDEntry(TDGRAPH, DIVEntry(@"bar", width, tmp, timeStr)));
+            
+            HAdd(d, TRCLOSE);
+            ++absPosition;
         }
         
         HAdd(d, TBLCLOSE @"</div>");
@@ -1712,41 +1734,6 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
 @end
 
 @implementation NSMutableDictionary (ISTopListsAdditions)
-
-- (void)mergeValuesUsingCaseInsensitiveCompare
-{
-    NSMutableArray *keys = [[self allKeys] mutableCopy];
-    NSUInteger i, j, count;
-    unsigned value;
-    
-    count = [keys count];
-    for (i=0; i < count; ++i) {
-        NSString *key = [keys objectAtIndex:i], *key2 = nil;
-        NSMutableDictionary *entry, *entry2;
-        for (j = i+1; [key length] > 0 && j < count; ++j) {
-            key2 = [keys objectAtIndex:j];
-            if (NSOrderedSame == [key caseInsensitiveCompare:key2]) {
-                (void)[key2 retain];
-                [keys replaceObjectAtIndex:j withObject:@""];
-                
-                entry = [self objectForKey:key];
-                entry2 = [self objectForKey:key2];
-                // Merge the counts with key 1
-                value = [[entry objectForKey:@"Play Count"] unsignedIntValue] +
-                    [[entry2 objectForKey:@"Play Count"] unsignedIntValue];
-                [entry setObject:[NSNumber numberWithUnsignedInt:value] forKey:@"Play Count"];
-                value = [[entry objectForKey:@"Total Duration"] unsignedIntValue] +
-                    [[entry2 objectForKey:@"Total Duration"] unsignedIntValue];
-                [entry setObject:[NSNumber numberWithUnsignedInt:value] forKey:@"Total Duration"];
-                // Remove the second key
-                [self removeObjectForKey:key2];
-                [key2 release];
-                // Can't break since there may be another alt. spelling
-            }
-        }
-    }
-    [keys release];
-}
 
 - (NSComparisonResult)sortByPlayCount:(NSDictionary*)entry
 {
