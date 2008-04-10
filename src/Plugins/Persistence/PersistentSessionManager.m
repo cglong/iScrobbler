@@ -1886,10 +1886,11 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    
     NSPredicate *predicate = [self matchingPredicateWithTrackNum:YES];
     [request setPredicate:predicate];
-    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    [request setReturnsObjectsAsFaults:NO];
+    #endif
     NSArray *result = [moc executeFetchRequest:request error:&error];
     if ([result count] > 1) {
         #ifdef ISINTERNAL
@@ -1959,6 +1960,14 @@
     if (moSong) {
         [moSong setValue:[self postDate] forKey:@"submitted"];
         [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
+        
+        NSString *mymbid = [self mbid];
+        if ([mymbid length] > 0) {
+            NSString *pmbid;
+            if (!(pmbid = [moSong valueForKey:@"mbid"]) || NSOrderedSame != [mymbid caseInsensitiveCompare:pmbid])
+                [moSong setValue:mymbid forKey:@"mbid"];
+        }
+        
         return (moSong);
     }
     
