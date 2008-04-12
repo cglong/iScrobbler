@@ -12,14 +12,17 @@
 
 @class ISThreadMessenger;
 @class PersistentProfile;
+@class ISSearchArrayController;
 
 @interface TopListsController : NSWindowController
 {
-    IBOutlet id topArtistsController;
-    IBOutlet id topTracksController;
+    IBOutlet ISSearchArrayController *topArtistsController;
+    IBOutlet ISSearchArrayController *topTracksController;
+    IBOutlet ISSearchArrayController *topAlbumsController;
     IBOutlet id sessionController;
     IBOutlet NSTableView *topArtistsTable;
     IBOutlet NSTableView *topTracksTable;
+    IBOutlet NSTableView *topAlbumsTable;
     IBOutlet NSTabView *tabView;
     
     NSMutableDictionary *toolbarItems;

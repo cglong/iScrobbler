@@ -21,8 +21,10 @@
 @interface PersistentProfile (Private)
 + (PersistentProfile*)sharedInstance;
 
+- (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify error:(NSError**)error;
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify;
 - (BOOL)save:(NSManagedObjectContext*)moc;
+- (void)backupDatabase;
 - (void)resetMain;
 - (void)setImportInProgress:(BOOL)import;
 - (NSManagedObjectContext*)mainMOC;
@@ -67,7 +69,7 @@
         NSCalendarDate *now = [NSCalendarDate date];
         // just before midnight of the first day of the current week
         NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
-            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute] - 10)];
+            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-(ABS([now secondOfMinute] - 2))];
         predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL) AND (epoch > %@)",
             ITEM_SESSION, [fromDate GMTDate]];
     } else
@@ -116,8 +118,8 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_ARTIST, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_ARTIST, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -130,8 +132,8 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_ALBUM, [session valueForKey:@"name"]]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_ALBUM, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -143,8 +145,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:[NSEntityDescription entityForName:@"PRatingCache" inManagedObjectContext:moc]];
     [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (rating == %@)",
-            ITEM_RATING_CCH, [session valueForKey:@"name"], rating]];
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (rating == %@)",
+            ITEM_RATING_CCH, session, rating]];
     
     NSError *error;
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -162,8 +164,8 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:[NSEntityDescription entityForName:@"PHourCache" inManagedObjectContext:moc]];
     [request setPredicate:
-        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@) AND (hour == %@)",
-            ITEM_HOUR_CCH, [session valueForKey:@"name"], hour]];
+        [NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@) AND (hour == %@)",
+            ITEM_HOUR_CCH, session, hour]];
     
     NSError *error;
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -200,7 +202,7 @@
         [pp save:moc withNotification:NO];
         
         if (updateSessions && [updateSessions intValue] > 0)
-            [self performSelector:@selector(updateSessions:) withObject:nil];
+            [self performSelector:@selector(sessionManagerUpdate) withObject:nil];
     }
     
     } @catch (NSException *e) {
@@ -524,6 +526,23 @@
     }
 }
 
+- (NSManagedObject*)sessionAlbumForSessionSong:(NSManagedObject*)sessionSong
+{
+    NSSet *aliases = [sessionSong valueForKeyPath:@"item.album.sessionAliases"];
+    NSPredicate *filter = [NSPredicate predicateWithFormat:@"session.name == %@", [sessionSong valueForKeyPath:@"session.name"]];
+    NSArray *filterResults = [[aliases allObjects] filteredArrayUsingPredicate:filter];
+    ISASSERT([filterResults count] <= 1, "mulitple session albums!");
+    NSManagedObject *sAlbum;
+    if ([filterResults count] > 0) {
+        sAlbum = [filterResults objectAtIndex:0];
+        ISASSERT([[sAlbum valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.album.name"]], "album names don't match!");
+        ISASSERT([[sAlbum valueForKeyPath:@"item.artist.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
+        return (sAlbum);
+    }
+    
+    return (nil);
+}
+
 - (void)removeSongs:(NSArray*)songs fromSession:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
 {
     {// Pre-fetch all our relationships
@@ -573,7 +592,7 @@
         // Update all dependencies
         
         // Artist
-        // since filteredArrayUsingPredicate is so SLOW, pair the number of items to search to the smallest possible
+        // since filteredArrayUsingPredicate is so SLOW, pare the number of items to search to the smallest possible
         aliases = [sessionSong valueForKeyPath:@"item.artist.sessionAliases"];
         filter = [NSPredicate predicateWithFormat:@"session.name == %@", sessionName];
         filterResults = [[aliases allObjects] filteredArrayUsingPredicate:filter];
@@ -585,17 +604,10 @@
         
         // Album
         if ([sessionSong valueForKeyPath:@"item.album"]) {
-            aliases = [sessionSong valueForKeyPath:@"item.album.sessionAliases"];
-            filter = [NSPredicate predicateWithFormat:@"session.name == %@", sessionName];
-            filterResults = [[aliases allObjects] filteredArrayUsingPredicate:filter];
-            ISASSERT(1 == [filterResults count], "missing or mulitple albums!");
-            sAlbum = [filterResults objectAtIndex:0];
-            ISASSERT([[sAlbum valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.album.name"]], "album names don't match!");
-            ISASSERT([[sAlbum valueForKeyPath:@"item.artist.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
-            if (sAlbum) {
-                [sAlbum decrementPlayCount:playCount];
-                [sAlbum decrementPlayTime:playTime];
-            }
+            sAlbum = [self sessionAlbumForSessionSong:sessionSong];
+            ISASSERT(sAlbum != nil, "missing session album!");
+            [sAlbum decrementPlayCount:playCount];
+            [sAlbum decrementPlayTime:playTime];
         } else
             sAlbum = nil;
         
@@ -746,12 +758,14 @@
 
 - (BOOL)mergeSongsInSession:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
 {
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: merging song plays");
+    
     NSString *sname = [session valueForKey:@"name"];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session.name == %@)",
-            ITEM_SONG, sname]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+            ITEM_SONG, session]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -802,25 +816,56 @@
 }
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+// This is not a general use method as we don't know for sure which play history events are valid
+// I wrote it to clean up my personal db
+#ifdef ISDEBUG
+- (void)validatePlayHistory:(NSManagedObject*)song
+{
+    NSUInteger songCount = [[song valueForKey:@"playCount"] unsignedIntValue];
+    NSUInteger histCount = [[song valueForKey:@"playHistory"] count];
+    if (songCount < histCount) {
+        NSArray *hist = [[[song valueForKey:@"playHistory"] allObjects] sortedArrayUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"lastPlayed" ascending:YES] autorelease]]];
+        ScrobLog(SCROB_LOG_TRACE, @"invalid playHistory for '%@': count: %lu, history count: %lu",
+            [song valueForKey:@"name"], songCount, histCount);
+        
+        NSManagedObject *histEntry;
+        NSRange r;
+        r = NSMakeRange(0, histCount - songCount);
+        NSEnumerator *histEn = [[hist subarrayWithRange:r] objectEnumerator];
+        while ((histEntry = [histEn nextObject])) {
+            NSDate *histPlayed = [histEntry valueForKey:@"lastPlayed"];
+            ScrobLog(SCROB_LOG_TRACE, @"removing play history '%@' for '%@. %@'",
+                histPlayed, [song valueForKeyPath:@"trackNumber"], [song valueForKey:@"name"]);
+            
+            //[[song managedObjectContext] deleteObject:histEntry];
+        }
+    }
+}
+#endif
+
 - (BOOL)recreateCaches:(NSManagedObjectContext*)moc
 {
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     NSEntityDescription *entity;
-    NSManagedObject *mobj;
+    NSManagedObject *mobj, *rootObj;
     NSEnumerator *en;
     NSError *error;
     NSNumber *count, *ptime;
+    NSNumber *zero = [NSNumber numberWithUnsignedInt:0];
     
     // 'all' session
     // XXX: assumption that [mergeSongsInSession:] was used first
     // this fixes a bug in the 2.0 iTunes importer that would not update the session alias counts when a duplicate song was found
     NSManagedObject *session = [self sessionWithName:@"all" moc:moc];
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: recreating song play cache");
     entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
         ITEM_SONG, session]];
     [request setReturnsObjectsAsFaults:NO];
     [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", nil]];
+    BOOL refetch = NO;
     NSArray *songs = [moc executeFetchRequest:request error:&error];
     en = [songs objectEnumerator];
     while ((mobj = [en nextObject])) {
@@ -836,11 +881,21 @@
             ScrobLog(SCROB_LOG_TRACE, @"time mismatch for '%@': session: %@, actual: %@",
                 [mobj valueForKeyPath:@"item.name"], [mobj valueForKey:@"playTime"], ptime);
         }
+        [self validatePlayHistory:[mobj valueForKey:@"item"]];
         #endif
         
-        [mobj setValue:count forKey:@"playCount"];
-        [mobj setValue:ptime forKey:@"playTime"];
+        if ([count unsignedIntValue] > 0) {        
+            [mobj setValue:count forKey:@"playCount"];
+            [mobj setValue:ptime forKey:@"playTime"];
+        } else {
+            [mobj setValue:zero forKey:@"playTime"];
+            [moc deleteObject:mobj];
+            refetch = YES;
+        }
     }
+    if (refetch)
+        songs = [moc executeFetchRequest:request error:&error];
+    
     count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
     ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
     [session setValue:count forKey:@"playCount"];
@@ -850,16 +905,21 @@
     [self recreateHourCacheForSession:session songs:songs moc:moc];
     
     // artists
-    entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: recreating artist play cache");
+    entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@)", ITEM_ARTIST]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+        ITEM_ARTIST, session]];
     [request setReturnsObjectsAsFaults:NO];
-    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"songs", nil]];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", @"item.songs", nil]];
     NSArray *artists = [moc executeFetchRequest:request error:&error];
     en = [artists objectEnumerator];
     while ((mobj = [en nextObject])) {
-        count = [mobj valueForKeyPath:@"songs.@sum.playCount"];
-        ptime = [mobj valueForKeyPath:@"songs.@sum.playTime"];
+        rootObj = [mobj valueForKey:@"item"];
+        count = [rootObj valueForKeyPath:@"songs.@sum.playCount"];
+        ptime = [rootObj valueForKeyPath:@"songs.@sum.playTime"];
+        [rootObj setValue:count forKey:@"playCount"];
+        [rootObj setValue:ptime forKey:@"playTime"];
         [mobj setValue:count forKey:@"playCount"];
         [mobj setValue:ptime forKey:@"playTime"];
     }
@@ -871,11 +931,13 @@
 #endif
     
     // albums
-    entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
+    ScrobLog(SCROB_LOG_VERBOSE, @"scrub: recreating album play cache");
+    entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@)", ITEM_ALBUM]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
+        ITEM_ALBUM, session]];
     [request setReturnsObjectsAsFaults:NO];
-    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"songs", nil]];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", @"item.songs", nil]];
 #if 0
     [request setSortDescriptors:[NSArray arrayWithObjects:
         [[[NSSortDescriptor alloc] initWithKey:@"artist.name" ascending:YES] autorelease],
@@ -885,8 +947,9 @@
     NSArray *albums = [moc executeFetchRequest:request error:&error];
     en = [albums objectEnumerator];
     while ((mobj = [en nextObject])) {
-        count = [mobj valueForKeyPath:@"songs.@sum.playCount"];
-        ptime = [mobj valueForKeyPath:@"songs.@sum.playTime"];
+        rootObj = [mobj valueForKey:@"item"];
+        count = [rootObj valueForKeyPath:@"songs.@sum.playCount"];
+        ptime = [rootObj valueForKeyPath:@"songs.@sum.playTime"];
     #if 0
         NSString *msg = [NSString stringWithFormat:@"%@ - %@ (%lu): cache: %@, actual: %@, %@\n",
             [mobj valueForKeyPath:@"artist.name"], [mobj valueForKey:@"name"], [[mobj valueForKey:@"songs"] count],
@@ -894,10 +957,21 @@
             ([[mobj valueForKey:@"playCount"] isEqualTo:count]) ? @"" : @"*****"];
         [[PersistentProfile sharedInstance] log:msg];
     #endif
-        [mobj setValue:count forKey:@"playCount"];
-        [mobj setValue:ptime forKey:@"playTime"];
+        [rootObj setValue:count forKey:@"playCount"];
+        [rootObj setValue:ptime forKey:@"playTime"];
+        if ([count unsignedIntValue] > 0) {
+            [mobj setValue:count forKey:@"playCount"];
+            [mobj setValue:ptime forKey:@"playTime"];
+        } else {
+            [mobj setValue:zero forKey:@"playTime"];
+            [moc deleteObject:mobj];
+            refetch = YES;
+        }
     }
 #ifdef ISDEBUG
+    if (refetch)
+        albums = [moc executeFetchRequest:request error:&error];
+    
     u_int32_t cc = [[albums valueForKeyPath:@"playCount.@sum.unsignedIntValue"] unsignedIntValue];
     u_int64_t tt = [[albums valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"] unsignedLongLongValue];
     
@@ -925,6 +999,8 @@
     #endif
     ISASSERT(moc != nil, "missing moc");
     
+    ScrobLog(SCROB_LOG_TRACE, @"scrub started");
+    
     BOOL save;
     @try {
     save = [self mergeSongsInSession:[self sessionWithName:@"all" moc:moc] moc:moc];
@@ -932,6 +1008,7 @@
         save = NO;
         [moc rollback];
         ScrobLog(SCROB_LOG_ERR, @"scrub: exception while merging songs: %@", e);
+        return;
     }
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
@@ -954,6 +1031,8 @@
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
     }
     
+    ScrobLog(SCROB_LOG_TRACE, @"scrub finished");
+    
     [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBNeedsScrub"];
 }
 
@@ -968,10 +1047,10 @@
         if (now < nextScrub)
             return;
         
-        nextScrub = now + 900.0;
+        nextScrub = now + 600.0;
     } else {
         if (now >= nextScrub)
-            nextScrub = now + 900.0;
+            nextScrub = now + 420.0;
         
         NSDate *lastScrub = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLastScrub"];
         if (!lastScrub) {
@@ -1123,6 +1202,7 @@
     
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
     if (didRemove) {
+        [[PersistentProfile sharedInstance] backupDatabase];
         @try {
         [moc reset];
         } @catch (NSException *e) {
@@ -1615,7 +1695,7 @@
     }
     if (0 == [result count]) {
         [mobj setValue:newName forKey:@"name"];
-        [profile save:moc withNotification:NO];
+        (void)[profile save:moc withNotification:NO error:&err];
         [mobj refreshSelf];
     } else {
         err = [NSError errorWithDomain:@"iScrobbler Persistence" code:EINVAL userInfo:
@@ -1634,40 +1714,66 @@
     return (err);
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(notyet)
-- (NSError*)recreateSessionTotals:(NSManagedObject*)session moc:(NSManagedObjectContext*)moc
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+- (void)updateSongPlayCountsWithRemovedSessionInstance:(NSManagedObject*)sessionSong
 {
-    PersistentProfile *pp = [PersistentProfile sharedInstance];
-    NSArray *songs = [pp songsForSession:session];
+    NSManagedObject *song = [sessionSong valueForKey:@"item"];
+    NSManagedObject *parent;
+    NSNumber *playCount = [sessionSong valueForKey:@"playCount"];
+    NSNumber *playTime = [sessionSong valueForKey:@"playTime"];
     
-    NSNumber *count = [songs valueForKeyPath:@"playCount.@sum.unsignedIntValue"];
-    NSNumber *ptime = [songs valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"];
-    [session setValue:count forKey:@"playCount"];
-    [session setValue:ptime forKey:@"playTime"];
-    
-    NSEntityDescription *entity;
-    NSPredicate *predicate;
-    NSFetchRequest *request;
-    NSError *error;
-    
-    entity = [NSEntityDescription entityForName:@"PSessionArtist" inManagedObjectContext:moc];
-    predicate = [NSPredicate predicateWithFormat:@"session = %@", session];
-    
-    [request setPredicate:predicate];
-    [request setReturnsObjectsAsFaults:NO];
-    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", @"item.songs", nil]];
-    NSArray *artists = [moc executeFetchRequest:request error:&error];
-    NSEnumerator *en = [artists objectEnumerator];
-    NSManagedObject *artist;
-    while ((artist = [en nextObject])) {
-        
-    
-        [artist setValue:count forKey:@"playCount"];
-        [artist setValue:ptime forKey:@"playTime"];
+    [song decrementPlayCount:playCount];
+    [song decrementPlayTime:playTime];
+    parent = [song valueForKey:@"artist"];
+    [parent decrementPlayCount:playCount];
+    [parent decrementPlayTime:playTime];
+    parent = [song valueForKey:@"album"];
+    if (parent) {
+        [parent decrementPlayCount:playCount];
+        [parent decrementPlayTime:playTime];
     }
     
-    [self recreateHourCacheForSession:session songs:songs moc:moc];
-    [self recreateRatingsCacheForSession:session songs:songs moc:moc];
+    // play history
+     NSCalendarDate *playDate = [NSCalendarDate dateWithTimeIntervalSince1970:
+        [[sessionSong valueForKey:@"submitted"] timeIntervalSince1970] + [[song valueForKey:@"duration"] unsignedIntValue]];
+    if ([[playDate GMTDate] isEqualToDate:[[song valueForKey:@"lastPlayed"] GMTDate]]) {
+        NSArray *hist = [[[song valueForKey:@"playHistory"] allObjects] sortedArrayUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"lastPlayed" ascending:NO] autorelease]]];
+        if ([hist count] > 1)
+            [song setValue:[[hist objectAtIndex:1] valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+    }
+    
+    NSManagedObjectContext *moc = [song managedObjectContext];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:[NSEntityDescription entityForName:@"PSongLastPlayed" inManagedObjectContext:moc]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(self IN %@) AND (lastPlayed == %@)",
+        [song valueForKey:@"playHistory"], [playDate GMTDate]];
+    [request setPredicate:predicate];
+    [request setReturnsObjectsAsFaults:NO];
+    NSError *error;
+    NSArray *histEntries = [moc executeFetchRequest:request error:&error];
+    if (1 == [histEntries count]) {
+        [moc deleteObject:[histEntries objectAtIndex:0]];
+    }
+}
+
+- (void)removeAllPlayInstances:(NSManagedObject*)sessionSong
+{
+    NSManagedObjectContext *moc = [sessionSong managedObjectContext];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:[NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(self IN %@) AND (submitted == %@) AND (session.name != %@)",
+        [sessionSong valueForKeyPath:@"item.sessionAliases"], [[sessionSong valueForKey:@"submitted"] GMTDate], @"all"];
+    [request setPredicate:predicate];
+    [request setReturnsObjectsAsFaults:NO];
+    NSError *error;
+    NSArray *entries = [moc executeFetchRequest:request error:&error];
+    NSManagedObject *s;
+    NSEnumerator *en = [entries objectEnumerator];
+    while ((s = [en nextObject])) {
+        NSManagedObject *session = [s valueForKey:@"session"];
+        [self removeSongs:[NSArray arrayWithObject:s] fromSession:session moc:moc];
+    }
 }
 #endif
 
@@ -1676,7 +1782,7 @@
     ScrobDebug(@"");
     
     // We require the extended scrubbing of the 10.5 plugin
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(notyet)
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing moc");
     NSError *err = nil;
@@ -1684,30 +1790,45 @@
     PersistentProfile *profile = [PersistentProfile sharedInstance];
     [profile setImportInProgress:YES]; // lock the database from additions by external clients
     
+    NSNumber *zero = [NSNumber numberWithInt:0];
+    
     @try {
+    BOOL isSessionSong = NO;
+    NSManagedObject *song = [moc objectWithID:moid];
     NSMutableSet *sessions = [NSMutableSet set];
-    NSManagedObject *mobj = [moc objectWithID:moid];
-    NSString *type = [mobj valueForKey:@"itemType"];
+    NSString *type = [song valueForKey:@"itemType"];
+    NSString *songClass = [[song entity] name];
     if ([ITEM_SONG isEqualTo:type]) {
-        [sessions setSet:[mobj valueForKeyPath:@"sessionAliases.session"]];
-        [moc deleteObject:mobj];
+        if ([@"PSong" isEqualToString:songClass]) {
+            [sessions setSet:[song valueForKeyPath:@"sessionAliases.session"]];
+        } else {
+            isSessionSong = YES;
+            [self updateSongPlayCountsWithRemovedSessionInstance:song];
+            [self removeAllPlayInstances:song];
+        }
     } else {
-        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"removeObject: invalid type" userInfo:nil]);
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"remove object: invalid type" userInfo:nil]);
     }
     
-    // don't delete a song if it belongs to any session execpt 'all', since it would require a lot of work
-    // to update each session's artist and album totals
-    
-    // scrub takes care of the 'all' session
-    [sessions removeObject:[self sessionWithName:@"all" moc:moc]];
-    #ifdef notyet
-    NSEnumerator *en = [sessions objectEnumerator];
-    while ((mobj = [en nextObject])) {
-        [self recreateSessionTotals:mobj];
+    if (NO == isSessionSong) {
+        // scrub takes care of updating the 'all' session
+        [sessions removeObject:[self sessionWithName:@"all" moc:moc]];
+        NSManagedObject *containingSession;
+        NSEnumerator *en = [sessions objectEnumerator];
+        NSSet *allSessionAliases = [song valueForKey:@"sessionAliases"];
+        while ((containingSession = [en nextObject])) {
+            NSArray *sessionSongs = [[allSessionAliases filteredSetUsingPredicate:
+                [NSPredicate predicateWithFormat:@"session == %@", containingSession]] allObjects];
+            [self removeSongs:sessionSongs fromSession:containingSession moc:moc];
+        }
+        [moc deleteObject:song];
     }
-    #endif
-    [self setNeedsScrub:YES];
-    [self scrub:nil];
+    
+    if ([[PersistentProfile sharedInstance] save:moc withNotification:NO error:&err]) {
+        [self setNeedsScrub:YES];
+        // scrub will be performed when this RunLoop run finishes
+        //[self scrub:nil];
+    }
     
     } @catch (NSException *e) {
         [profile setImportInProgress:NO];
@@ -1721,6 +1842,117 @@
     @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"removeObject: not supported with this OS version" userInfo:nil]);
     #endif
 }
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(ISDEBUG)
+- (NSError*)mergeObject:(NSManagedObjectID*)fromID intoObject:(NSManagedObjectID*)toID mergeCounts:(NSNumber*)mergeCounts
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    NSManagedObject *from = [moc objectWithID:fromID];
+    NSManagedObject *to = [moc objectWithID:toID];
+    NSError *err = nil;
+    
+    if ([to isEqualTo:from])
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"merge object: cannot merge into self" userInfo:nil]);
+    
+    if (NO == [[to valueForKey:@"itemType"] isEqualToString:ITEM_SONG]
+        || NO == [[from valueForKey:@"itemType"] isEqualToString:ITEM_SONG])
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"merge object: invalid type" userInfo:nil]);
+    
+    if ([[to valueForKey:@"artist"] isNotEqualTo:[from valueForKey:@"artist"]])
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"merge object: artists do not match" userInfo:nil]);
+    
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+    [profile setImportInProgress:YES]; // lock the database from additions by external clients
+    
+    @try {
+    
+    if ([[from valueForKey:@"firstPlayed"] isLessThan:[to valueForKey:@"firstPlayed"]])
+        [to setValue:[from valueForKey:@"firstPlayed"] forKey:@"firstPlayed"];
+    if ([[from valueForKey:@"lastPlayed"] isGreaterThan:[to valueForKey:@"lastPlayed"]])
+        [to setValue:[from valueForKey:@"lastPlayed"] forKey:@"lastPlayed"];
+    if ([[from valueForKey:@"submitted"] isGreaterThan:[to valueForKey:@"submitted"]])
+        [to setValue:[from valueForKey:@"submitted"] forKey:@"submitted"];
+    #if 0
+    if (nil == [to valueForKey:@"mbid"] && nil != [from valueForKey:@"mbid"])
+        [to setValue:[from valueForKey:@"mbid"] forKey:@"mbid"];
+    #endif
+    
+    if (mergeCounts && [mergeCounts boolValue])
+        [to incrementPlayCount:[from valueForKey:@"playCount"]];
+    u_int64_t newDuration = [[to valueForKey:@"duration"] unsignedLongLongValue];
+    u_int64_t newPlaytime = [[to valueForKey:@"playCount"] unsignedLongLongValue] * newDuration;
+    [to setValue:[NSNumber numberWithUnsignedLongLong:newPlaytime] forKey:@"playTime"];
+    
+    NSManagedObject *oldAlbum = [from valueForKey:@"album"];
+    NSManagedObject *newAlbum = [to valueForKey:@"album"];
+    
+    unsigned count = [[from valueForKey:@"nonLocalPlayCount"] unsignedIntValue] + [[to valueForKey:@"nonLocalPlayCount"] unsignedIntValue];
+    if (count <= [[to valueForKey:@"playCount"] unsignedIntValue])
+        [to setValue:[NSNumber numberWithUnsignedInt:count] forKey:@"nonLocalPlayCount"];
+    
+    count = [[from valueForKey:@"importedPlayCount"] unsignedIntValue] + [[to valueForKey:@"importedPlayCount"] unsignedIntValue];
+    if (count <= [[to valueForKey:@"playCount"] unsignedIntValue])
+        [to setValue:[NSNumber numberWithUnsignedInt:count] forKey:@"importedPlayCount"];
+    
+    NSEnumerator *en = [[[from valueForKey:@"playHistory"] allObjects] objectEnumerator];
+    NSManagedObject *event;
+    while ((event = [en nextObject])) {
+        [event setValue:to forKey:@"song"];
+    }
+    
+    en = [[[from valueForKey:@"sessionAliases"] allObjects] objectEnumerator];
+    while ((event = [en nextObject])) {
+        if ([[event valueForKeyPath:@"session.name"] isEqualToString:@"all"])
+            continue; // scrub will handle this
+        
+        NSManagedObject *sAlbum;
+        NSNumber *eventPlaycount = [event valueForKey:@"playCount"];
+        if (oldAlbum) {
+            if ((sAlbum = [self sessionAlbumForSessionSong:event])) {
+                [sAlbum decrementPlayCount:eventPlaycount];
+                [sAlbum decrementPlayTime:[event valueForKey:@"playTime"]];
+            }
+        }
+        
+        [event setValue:to forKey:@"item"];
+        
+        if (newAlbum) {
+            if ((sAlbum != [self sessionAlbumForSessionSong:event])) {
+                // there's no alias for the "new" album, we have to create it
+                NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
+                sAlbum = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+                [sAlbum setValue:ITEM_ALBUM forKey:@"itemType"];
+                [sAlbum setValue:newAlbum forKey:@"item"];
+                [sAlbum setValue:[event valueForKey:@"session"] forKey:@"session"];
+                 
+            }
+            newPlaytime = [eventPlaycount unsignedLongLongValue] * newDuration;
+            [sAlbum incrementPlayCount:eventPlaycount];
+            [sAlbum incrementPlayTime:[NSNumber numberWithUnsignedLongLong:newPlaytime]];
+        }
+    }
+    
+    NSNumber *zero = [NSNumber numberWithUnsignedInt:0];
+    if (mergeCounts && [mergeCounts boolValue]) {
+        [from setValue:zero forKey:@"playCount"];
+        [from setValue:zero forKey:@"playTime"];
+    }
+    if ([[PersistentProfile sharedInstance] save:moc withNotification:NO error:&err]) {
+        // scrub will update the 'all' session
+        err = [self removeObject:fromID];
+    }
+    
+    } @catch (NSException *e) {
+        [profile setImportInProgress:NO];
+        [moc rollback];
+        @throw (e);
+    }
+    
+    [profile setImportInProgress:NO];
+    return (err);
+}
+#endif
 
 @end
 
@@ -1784,10 +2016,11 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    
     NSPredicate *predicate = [self matchingPredicateWithTrackNum:YES];
     [request setPredicate:predicate];
-    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    [request setReturnsObjectsAsFaults:NO];
+    #endif
     NSArray *result = [moc executeFetchRequest:request error:&error];
     if ([result count] > 1) {
         #ifdef ISINTERNAL
@@ -1857,6 +2090,14 @@
     if (moSong) {
         [moSong setValue:[self postDate] forKey:@"submitted"];
         [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
+        
+        NSString *mymbid = [self mbid];
+        if ([mymbid length] > 0) {
+            NSString *pmbid;
+            if (!(pmbid = [moSong valueForKey:@"mbid"]) || NSOrderedSame != [mymbid caseInsensitiveCompare:pmbid])
+                [moSong setValue:mymbid forKey:@"mbid"];
+        }
+        
         return (moSong);
     }
     

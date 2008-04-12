@@ -13,6 +13,12 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v2.2.0 (BDB)
+- Album chart data is now displayed in the Local Charts window.
+- Enhanced Local Charts profile report, including artist movements for Last.fm weekly archives.
+- Application Support files are now located in the Application Support/iScrobbler sub-folder.
+- The Local Charts database is backed up once per day instead of at application launch.
+- Bug Fix: iScrobbler attempts to use the iLife prefs to find the iTunes XML file (to support non-standard library locations).
 - Bug Fix: Switch from ST to DST would cause 100% CPU usage for one hour.
 
 v2.1.2 (BDB)
@@ -28,9 +34,9 @@ v2.1.1 (BDB)
 
 v2.1 (BDB)
 - Leopard only: New local charts database that allows a new stat in the Profile report - per-session new artists.
-- The complete play history (since iScrobbler started tracking plays) can be viewed for the currently playing track and tracks in the Local Charts.
+- The complete play history (since iScrobbler started tracking plays) can be viewed for the currently playing track and tracks in the Local Charts window.
 - New Local Charts session: Yesterday
-- The Profile Report now contains breadcrumb navigation links to jump to specific sections in the report.
+- The Local Charts profile report now contains breadcrumb navigation links to jump to specific sections in the report.
 - Leopard only: Added 'synchronize local charts with itunes' Applescript command. This verifies play count/time in the local charts database with those in the iTunes database.
 - The Statistics window is gone. Everything it did was available elsewhere with the exception of the Artist Details for the current track; that is now available via the song sub-menu.
 - Artist Details are now displayed in separate windows instead of drawers.

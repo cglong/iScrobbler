@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.1.2</string>
+        <string>2.2.0b1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.1.2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b1.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -18,11 +18,11 @@
         <key>Notes</key>
         <dict>
 			<key>English</key>
-			<string>Changes since 2.1.1:
-A minimal stats window is back.
-Redesigned preferences window with some previously hidden prefs now exposed.
-New self-install version updater.
-Minor bug fixes.
+			<string>- Album chart data is now displayed in the Local Charts window.
+- Enhanced Local Charts profile report, including artist movements for Last.fm weekly archives.
+- Application Support files are now located in the Application Support/iScrobbler sub-folder.
+- The Local Charts database is backed up once per day instead of at application launch.
+- Bug fixes.
 			</string>
         </dict>
 </dict>

@@ -22,13 +22,27 @@
 
 - (NSString*)pathToXMLFile
 {
-    NSString *path = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
+    NSString *path;
+    // Try to get the path from the iApps prefs first:
+    NSDictionary *iappsPrefs = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.apple.iApps"];
+    if (iappsPrefs) {
+        @try {
+            NSArray *possiblePaths = [iappsPrefs objectForKey:@"iTunesRecentDatabases"];
+            path = [[NSURL URLWithString:[possiblePaths objectAtIndex:0]] path];
+        } @catch (NSException *e) {
+            ScrobLog(SCROB_LOG_ERR, @"exception accessing iApps preferences: %@", e);
+            path = nil;
+        }
+    } else
+        path = nil;
+    
+    if (!path) {
+        path = [@"~/Music/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
+        if (NO == [[NSFileManager defaultManager] fileExistsAtPath:path])
+            path = [@"~/Music/iTunes/iTunes Library.xml" stringByExpandingTildeInPath];
+    }
+    
     path = [[NSFileManager defaultManager] destinationOfAliasAtPath:path error:nil];
-    #ifdef obsolete
-    // is this even valid since iTunes 5 or so?
-    if (NO == [[NSFileManager defaultManager] fileExistsAtPath:path])
-        path = [@"~/Documents/iTunes/iTunes Music Library.xml" stringByExpandingTildeInPath];
-    #endif
     return (path);
 }
 

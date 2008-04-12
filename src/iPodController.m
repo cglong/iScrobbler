@@ -671,12 +671,16 @@ sync_exit_with_note:
         [iPodMounts setObject:[NSDate date] forKey:mountPath];
         
         ISASSERT(iPodIcon == nil, "iPodIcon exists!");
+        // The iPod icon is no longer used as of 2.1.
+        // In addition there's been at least 2 crash reports in 10.5.2 due to what looks like corrupted iPod icons and a problem in NSImage.
+        #ifdef notyet
         if ([[NSFileManager defaultManager] fileExistsAtPath:
             [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
             iPodIcon = [[NSImage alloc] initWithContentsOfFile:
                 [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
             [iPodIcon setName:IPOD_ICON_NAME];
         }
+        #endif
         [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
         ++iPodMountCount;
         [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
