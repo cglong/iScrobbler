@@ -221,12 +221,23 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
 }
 
-- (NSError*)removeObject:(NSManagedObjectID*)moid
+- (void)removeObject:(NSManagedObjectID*)moid
 {
     NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
         moid, @"oid",
         NSStringFromSelector(@selector(removeObject:)), @"method",
         [NSArray arrayWithObjects:moid, nil], @"args",
+        nil];
+
+    [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
+}
+
+- (void)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid
+{
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+        moid, @"oid",
+        NSStringFromSelector(@selector(addHistoryEvent:forObject:)), @"method",
+        [NSArray arrayWithObjects:playDate, moid, nil], @"args",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];

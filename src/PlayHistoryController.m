@@ -11,6 +11,8 @@
 #import "PlayHistoryController.h"
 #import "TopListsController.h"
 #import "Persistence.h"
+#import "DBEditController.h"
+#import "PersistentSessionManager.h"
 
 #import "iScrobblerController.h"
 #import "SongData.h"
@@ -79,6 +81,11 @@ static PlayHistoryController *sharedController = nil;
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(nowPlaying:)
             name:@"Now Playing" object:nil];
+            
+         [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileDidEditObject:)
+            name:PersistentProfileDidEditObject
+            object:nil];
         
         id obj = [[NSApp delegate] nowPlaying];
         if (obj) {
@@ -106,8 +113,14 @@ static PlayHistoryController *sharedController = nil;
     [moc release];
     moc = nil;
     
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:PersistentProfileDidEditObject object:nil];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"Now Playing" object:nil];
     [npTrackInfo release];
+    npTrackInfo = nil;
+    
+    [currentTrackInfo release];
+    currentTrackInfo = nil;
     
     ISASSERT(sharedController == self, "sharedController does not match!");
     sharedController = nil;
@@ -152,6 +165,9 @@ static PlayHistoryController *sharedController = nil;
 
 - (void)loadHistoryForTrack:(NSDictionary*)trackInfo
 {
+    [currentTrackInfo release];
+    currentTrackInfo = nil;
+    
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
     [[self window] setTitle:[NSString stringWithFormat:@"\"%@ - %@\" %@",
@@ -199,9 +215,32 @@ static PlayHistoryController *sharedController = nil;
     
     [progress stopAnimation:nil];
     
+    (void)[trackInfo retain];
+    currentTrackInfo = trackInfo;
+    
     // restore the NP info after a short period
     if (npTrackInfo && npTrackInfo != trackInfo) {
         [self performSelector:@selector(loadHistoryForTrack:) withObject:npTrackInfo afterDelay:30.0];
+    }
+}
+
+- (IBAction)addHistoryEvent:(id)sender
+{
+    if (currentTrackInfo) {
+        DBEditController *ec = [[DBAddHistoryController alloc] init];
+        [ec setObject:currentTrackInfo];
+        [ec showWindow:nil];
+    } else
+        NSBeep();
+}
+
+- (void)persistentProfileDidEditObject:(NSNotification*)note
+{
+    NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
+    if (currentTrackInfo && [oid isEqualTo:[currentTrackInfo objectForKey:@"objectID"]]) {
+        NSManagedObject *obj = [moc objectRegisteredForID:oid];
+        [obj refreshSelf];
+        [self loadHistoryForTrack:[[currentTrackInfo retain] autorelease]];
     }
 }
 

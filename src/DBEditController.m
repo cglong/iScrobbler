@@ -114,6 +114,8 @@
         op = NSLocalizedString(@"Delete", "");
     } else if ([self isKindOfClass:[DBRenameController class]]) {
         op = NSLocalizedString(@"Rename", "");
+    } else if ([self isKindOfClass:[DBAddHistoryController class]]) {
+        op = NSLocalizedString(@"Add History", "");
     } else {
         op = nil;
         ISASSERT(0, "invalid class!");
@@ -367,4 +369,49 @@
     }
 }
     
+@end
+
+@implementation DBAddHistoryController
+
+- (id)init
+{
+    self = [super initWithWindowNibName:@"DBAddHistory"];
+    return (self);
+}
+
+- (IBAction)performAdd:(id)sender
+{
+    [[self window] endEditingFor:nil];
+    
+    NSDate *newDate;
+    @try {
+    newDate = [NSDate dateWithString:[dateText stringValue]];
+    } @catch (NSException *e) {
+    newDate = nil;
+    }
+    if (!moid || !newDate) {
+        NSBeep();
+        return;
+    }
+    
+    [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
+    PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+    [persistence addHistoryEvent:newDate forObject:moid];
+}
+
+- (void)persistentProfileDidEditObject:(NSNotification*)note
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    ISASSERT([NSThread isMainThread], "!mainThread!");
+    #endif
+    
+    NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
+    if (NO == [oid isEqualTo:moid])
+        return;
+    
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"isBusy"];
+    
+    [dateText setStringValue:@""];
+}
+
 @end

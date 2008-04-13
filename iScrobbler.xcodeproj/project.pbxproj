@@ -140,6 +140,7 @@
 		D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
+		D3B7C7760DB2067200CD11A0 /* DBAddHistory.xib in Resources */ = {isa = PBXBuildFile; fileRef = D3B7C7740DB2067200CD11A0 /* DBAddHistory.xib */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
 		D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesControl.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -392,6 +393,7 @@
 		D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASXMLRPC.m; path = src/ASXMLRPC.m; sourceTree = "<group>"; };
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScrobLog.h; path = src/ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScrobLog.m; path = src/ScrobLog.m; sourceTree = "<group>"; };
+		D3B7C7750DB2067200CD11A0 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBAddHistory.xib; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISRadioSearchController.h; path = src/ISRadioSearchController.h; sourceTree = "<group>"; };
 		D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISRadioSearchController.m; path = src/ISRadioSearchController.m; sourceTree = "<group>"; };
@@ -621,6 +623,7 @@
 				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */,
+				D3B7C7740DB2067200CD11A0 /* DBAddHistory.xib */,
 				D332B0DC0DAA44BB00BAEBDE /* DBRemove.xib */,
 				D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */,
 				D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */,
@@ -1088,6 +1091,7 @@
 				D33ED7B00D2FB5BF00AE7771 /* DBRename.xib in Resources */,
 				D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */,
 				D332B0DE0DAA44BB00BAEBDE /* DBRemove.xib in Resources */,
+				D3B7C7760DB2067200CD11A0 /* DBAddHistory.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1413,6 +1417,14 @@
 				D398FB530CDE01E5008CB4C8 /* English */,
 			);
 			name = Tag.xib;
+			sourceTree = "<group>";
+		};
+		D3B7C7740DB2067200CD11A0 /* DBAddHistory.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3B7C7750DB2067200CD11A0 /* English */,
+			);
+			name = DBAddHistory.xib;
 			sourceTree = "<group>";
 		};
 		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {

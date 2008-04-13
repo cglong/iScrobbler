@@ -1954,6 +1954,25 @@
 }
 #endif
 
+- (NSError*)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    NSError *err = nil;
+    
+    NSManagedObject *mobj = [moc objectWithID:moid];
+    
+    if (NO == [[[mobj entity] name] isEqualToString:@"PSong"])
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"add history: invalid type" userInfo:nil]);
+        
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSongLastPlayed" inManagedObjectContext:moc];
+    NSManagedObject *event = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+    [event setValue:playDate forKey:@"lastPlayed"];
+    [event setValue:mobj forKey:@"song"];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO error:&err];
+    return (err);
+}
+
 @end
 
 @implementation SongData (PersistentAdditions)

@@ -18,6 +18,7 @@
     
     NSManagedObjectContext *moc;
     NSDictionary *npTrackInfo;
+    NSDictionary *currentTrackInfo;
 }
 
 + (PlayHistoryController*)sharedController;
@@ -25,5 +26,6 @@
 - (void)loadHistoryForTrack:(NSDictionary*)trackInfo;
 
 - (IBAction)performClose:(id)sender;
+- (IBAction)addHistoryEvent:(id)sender;
 
 @end

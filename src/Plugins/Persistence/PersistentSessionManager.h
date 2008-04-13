@@ -48,6 +48,7 @@
 // specfic editors -- these are private
 - (NSError*)rename:(NSManagedObjectID*)moid to:(NSString*)newName;
 - (NSError*)removeObject:(NSManagedObjectID*)moid;
+- (NSError*)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid;
 @end
 
 @interface NSManagedObject (PItemMathAdditions)

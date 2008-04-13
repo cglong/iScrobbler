@@ -43,3 +43,11 @@
 - (IBAction)performRemove:(id)sender;
 
 @end
+
+@interface DBAddHistoryController : DBEditController {
+    IBOutlet NSTextField *dateText;
+}
+
+- (IBAction)performAdd:(id)sender;
+
+@end
