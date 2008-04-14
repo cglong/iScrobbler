@@ -1599,7 +1599,9 @@
     NSError *err = nil;
     PersistentProfile *profile = [PersistentProfile sharedInstance];
     NSMutableDictionary *noteInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-        [args objectForKey:@"oid"], @"oid", nil];
+        [args objectForKey:@"oid"], @"oid",
+        [args objectForKey:@"what"], @"what",
+        nil];
     NSMutableDictionary *noteArgs;
     @try {
     

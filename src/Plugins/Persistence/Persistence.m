@@ -226,6 +226,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         moid, @"oid",
         NSStringFromSelector(@selector(rename:to:)), @"method",
         [NSArray arrayWithObjects:moid, newTitle, nil], @"args",
+        @"rename", @"what",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
@@ -237,6 +238,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         moid, @"oid",
         NSStringFromSelector(@selector(removeObject:)), @"method",
         [NSArray arrayWithObjects:moid, nil], @"args",
+        @"remove", @"what",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
@@ -248,6 +250,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         moid, @"oid",
         NSStringFromSelector(@selector(addHistoryEvent:forObject:)), @"method",
         [NSArray arrayWithObjects:playDate, moid, nil], @"args",
+        @"addhist", @"what",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
@@ -259,6 +262,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         moid, @"oid",
         NSStringFromSelector(@selector(removeHistoryEvent:forObject:)), @"method",
         [NSArray arrayWithObjects:eventID, moid, nil], @"args",
+        @"remhist", @"what",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
