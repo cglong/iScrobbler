@@ -203,7 +203,10 @@ static PlayHistoryController *sharedController = nil;
     NSManagedObject *obj;
     NSEnumerator *en = [history objectEnumerator];
     while ((obj = [en nextObject])) {
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:[obj valueForKey:@"lastPlayed"], @"lastPlayed", nil];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            [obj valueForKey:@"lastPlayed"], @"lastPlayed",
+            [obj objectID], @"oid",
+            nil];
         [content addObject:entry];
     }
     
@@ -230,6 +233,17 @@ static PlayHistoryController *sharedController = nil;
         DBEditController *ec = [[DBAddHistoryController alloc] init];
         [ec setObject:currentTrackInfo];
         [ec showWindow:nil];
+    } else
+        NSBeep();
+}
+
+- (IBAction)removeHistoryEvent:(id)sender
+{
+    NSArray *selection = [historyController selectedObjects];
+    if (currentTrackInfo && [selection count] == 1) {
+        PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+        [persistence removeHistoryEvent:[[selection objectAtIndex:0] objectForKey:@"oid"]
+            forObject:[currentTrackInfo objectForKey:@"objectID"]];
     } else
         NSBeep();
 }

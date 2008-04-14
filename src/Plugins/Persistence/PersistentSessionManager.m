@@ -1961,7 +1961,6 @@
     NSError *err = nil;
     
     NSManagedObject *mobj = [moc objectWithID:moid];
-    
     if (NO == [[[mobj entity] name] isEqualToString:@"PSong"])
         @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"add history: invalid type" userInfo:nil]);
         
@@ -1969,6 +1968,25 @@
     NSManagedObject *event = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
     [event setValue:playDate forKey:@"lastPlayed"];
     [event setValue:mobj forKey:@"song"];
+    (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO error:&err];
+    return (err);
+}
+
+- (NSError*)removeHistoryEvent:(NSManagedObjectID*)eventID forObject:(NSManagedObjectID*)moid
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    NSError *err = nil;
+    
+    NSManagedObject *mobj = [moc objectWithID:moid];
+    NSManagedObject *event = [moc objectWithID:eventID];
+    if (NO == [[[mobj entity] name] isEqualToString:@"PSong"] || NO == [[[event entity] name] isEqualToString:@"PSongLastPlayed"])
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"remove history: invalid type" userInfo:nil]);
+    
+    if (NO == [[event valueForKey:@"song"] isEqualTo:mobj])
+        @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"remove history: invalid event" userInfo:nil]);
+        
+    [moc deleteObject:event];
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO error:&err];
     return (err);
 }

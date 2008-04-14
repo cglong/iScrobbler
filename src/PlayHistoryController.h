@@ -27,5 +27,6 @@
 
 - (IBAction)performClose:(id)sender;
 - (IBAction)addHistoryEvent:(id)sender;
+- (IBAction)removeHistoryEvent:(id)sender;
 
 @end

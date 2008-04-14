@@ -32,6 +32,16 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 - (void)recreateRatingsCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;
 @end
 
+@interface PersistentSessionManager (Editors)
+// generic interface to execute an edit
+- (void)editObject:(NSDictionary*)args;
+// specfic editors -- these are private
+- (NSError*)rename:(NSManagedObjectID*)moid to:(NSString*)newName;
+- (NSError*)removeObject:(NSManagedObjectID*)moid;
+- (NSError*)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid;
+- (NSError*)removeHistoryEvent:(NSManagedObjectID*)eventID forObject:(NSManagedObjectID*)moid;
+@end
+
 @interface PersistentProfile (SessionManagement)
 - (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object;
 - (void)pingSessionManager;
@@ -238,6 +248,17 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         moid, @"oid",
         NSStringFromSelector(@selector(addHistoryEvent:forObject:)), @"method",
         [NSArray arrayWithObjects:playDate, moid, nil], @"args",
+        nil];
+
+    [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
+}
+
+- (void)removeHistoryEvent:(NSManagedObjectID*)eventID forObject:(NSManagedObjectID*)moid
+{
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+        moid, @"oid",
+        NSStringFromSelector(@selector(removeHistoryEvent:forObject:)), @"method",
+        [NSArray arrayWithObjects:eventID, moid, nil], @"args",
         nil];
 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
