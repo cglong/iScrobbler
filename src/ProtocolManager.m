@@ -955,7 +955,7 @@ static int npDelays = 0;
         ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:0 withTrackCount:1 withData:[request HTTPBody]];
-    } else if (npDelays < 3) {
+    } else if (npDelays < 5) {
         [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+=1) * 1.0];
     } else {
         npDelays = 0;
@@ -991,6 +991,7 @@ static int npDelays = 0;
         return;
     }
     
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(sendNowPlaying) object:nil];
     [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:1.0];
 }
 
