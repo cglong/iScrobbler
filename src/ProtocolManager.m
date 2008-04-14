@@ -106,9 +106,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (NSDictionary*)hsNotificationUserInfo
 {
     NSString *msg = [self lastHandshakeMessage];
-    if (msg)
-        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
-    else
+    if (msg) {
+        NSUInteger i = [msg rangeOfString:@"\n"].location;
+        if (NSNotFound != i)
+            msg = [msg substringToIndex:i];
+    } else
         msg = NSLocalizedString(@"Handshake pending", @"");
         
     NSString *song;
@@ -129,9 +131,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (NSDictionary*)subNotificationUserInfo
 {
     NSString *msg = [self lastSubmissionMessage];
-    if (msg)
-        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
-    else
+    if (msg) {
+        NSUInteger i = [msg rangeOfString:@"\n"].location;
+        if (NSNotFound != i)
+            msg = [msg substringToIndex:i];
+    } else
         msg = [self lastHandshakeMessage];
         
     NSString *song;
