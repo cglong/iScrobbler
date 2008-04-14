@@ -178,6 +178,9 @@ artistComparisonData = nil; \
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
 {
+    NSString *what = [[note userInfo] objectForKey:@"what"];
+    if (what && ([what isEqualToString:@"addhist"] || [what isEqualToString:@"remhist"]))
+        return;
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(objectDidChange:) withObject:oid];
 }
