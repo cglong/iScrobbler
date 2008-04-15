@@ -214,7 +214,9 @@ static PlayHistoryController *sharedController = nil;
         [content addObject:entry];
     }
     
-    [totalPlayCount setStringValue:[NSString stringWithFormat:@"%@", [song valueForKey:@"playCount"]]];
+    [totalPlayCount setStringValue:[NSString stringWithFormat:@"%@ of %@",
+        [[historyController arrangedObjects] valueForKey:@"@count"],
+        [song valueForKey:@"playCount"]]];
     
     [moc reset];
     
