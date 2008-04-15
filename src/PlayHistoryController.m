@@ -137,7 +137,7 @@ static PlayHistoryController *sharedController = nil;
     if (!song) {
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
-        if (prevTrackInfo && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
+        if (!editMode && prevTrackInfo && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
             // update the previous track to reflect any changes
             [self performSelector:@selector(loadHistoryForTrack:) withObject:prevTrackInfo afterDelay:1.5];
         }
@@ -160,7 +160,8 @@ static PlayHistoryController *sharedController = nil;
         mid, @"objectID", // this must be last as songs not yet in the db will have a nil id
         nil];
     
-    [self loadHistoryForTrack:npTrackInfo];
+    if (!editMode)
+        [self loadHistoryForTrack:npTrackInfo];
 }
 
 - (void)loadHistoryForTrack:(NSDictionary*)trackInfo
@@ -170,8 +171,11 @@ static PlayHistoryController *sharedController = nil;
     
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
-    [[self window] setTitle:[NSString stringWithFormat:@"\"%@ - %@\" %@",
-        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")]];
+    NSString *title = [NSString stringWithFormat:@"\"%@ - %@\" %@",
+        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")];
+    if (editMode)
+        title = [NSString stringWithFormat:@"%C %@", 0x270E, title];
+    [[self window] setTitle:title];
     
     NSMutableArray *content = [NSMutableArray array];
     [historyController setContent:content];
@@ -222,7 +226,7 @@ static PlayHistoryController *sharedController = nil;
     currentTrackInfo = trackInfo;
     
     // restore the NP info after a short period
-    if (npTrackInfo && npTrackInfo != trackInfo) {
+    if (npTrackInfo && npTrackInfo != trackInfo && !editMode) {
         [self performSelector:@selector(loadHistoryForTrack:) withObject:npTrackInfo afterDelay:30.0];
     }
 }
@@ -255,6 +259,34 @@ static PlayHistoryController *sharedController = nil;
         NSManagedObject *obj = [moc objectRegisteredForID:oid];
         [obj refreshSelf];
         [self loadHistoryForTrack:[[currentTrackInfo retain] autorelease]];
+    }
+}
+
+- (void)keyDown:(NSEvent*)event
+{
+    NSString *chars = [event charactersIgnoringModifiers];
+    unichar ch = [chars length] == 1 ? [chars characterAtIndex:0] : 0;
+    switch (ch) {
+        case NSF1FunctionKey:
+            editMode = !editMode;
+            NSString *title = [[self window] title];
+            if (editMode) {
+                title = [NSString stringWithFormat:@"%C %@", 0x270E, title ? title : @""];
+                [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(loadHistoryForTrack:) object:nil];
+            } else {
+                if (npTrackInfo) {
+                    [self loadHistoryForTrack:npTrackInfo];
+                    break;
+                }
+                
+                if ([title hasPrefix:[NSString stringWithFormat:@"%C ", 0x270E]])
+                    title = [title length] > 2 ? [title substringFromIndex:2] : @"";
+            }
+            [[self window] setTitle:title];
+        break;
+        default:
+            return;
+        break;
     }
 }
 

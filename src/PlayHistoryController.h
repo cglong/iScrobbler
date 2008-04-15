@@ -19,6 +19,7 @@
     NSManagedObjectContext *moc;
     NSDictionary *npTrackInfo;
     NSDictionary *currentTrackInfo;
+    BOOL editMode;
 }
 
 + (PlayHistoryController*)sharedController;
