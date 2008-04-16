@@ -38,7 +38,7 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 // specfic editors -- these are private
 - (NSError*)rename:(NSManagedObjectID*)moid to:(NSString*)newName;
 - (NSError*)removeObject:(NSManagedObjectID*)moid;
-- (NSError*)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid;
+- (NSError*)addHistoryEvents:(NSArray*)playDates forObject:(NSManagedObjectID*)moid;
 - (NSError*)removeHistoryEvent:(NSManagedObjectID*)eventID forObject:(NSManagedObjectID*)moid;
 @end
 
@@ -244,12 +244,12 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [self performSelectorOnSessionMgrThread:@selector(editObject:) withObject:args];
 }
 
-- (void)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid
+- (void)addHistoryEvents:(NSArray*)playDates forObject:(NSManagedObjectID*)moid
 {
     NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
         moid, @"oid",
-        NSStringFromSelector(@selector(addHistoryEvent:forObject:)), @"method",
-        [NSArray arrayWithObjects:playDate, moid, nil], @"args",
+        NSStringFromSelector(@selector(addHistoryEvents:forObject:)), @"method",
+        [NSArray arrayWithObjects:playDates, moid, nil], @"args",
         @"addhist", @"what",
         nil];
 

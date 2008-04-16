@@ -383,20 +383,30 @@
 {
     [[self window] endEditingFor:nil];
     
-    NSDate *newDate;
+    NSMutableArray *allDates = [NSMutableArray array];
     @try {
-    newDate = [NSDate dateWithString:[dateText stringValue]];
-    } @catch (NSException *e) {
-    newDate = nil;
+    NSString *s = [[dateText stringValue] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    NSArray *components = [s componentsSeparatedByString:@","];
+    NSEnumerator *en = [components objectEnumerator];
+    while ((s = [en nextObject])) {
+        NSDate *newDate = [NSDate dateWithString:s];
+        if (newDate) {
+            [allDates addObject:newDate];
+        } else if ([s length] > 0)
+            ScrobLog(SCROB_LOG_ERR, @"add play history: '%@' is an invalid date string", s);
     }
-    if (!moid || !newDate) {
+    
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"add play history: exception '%@'", e);
+    }
+    if (!moid || 0 == [allDates count]) {
         NSBeep();
         return;
     }
     
     [self setValue:[NSNumber numberWithBool:YES] forKey:@"isBusy"];
     PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
-    [persistence addHistoryEvent:newDate forObject:moid];
+    [persistence addHistoryEvents:allDates forObject:moid];
 }
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note

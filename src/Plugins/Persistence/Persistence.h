@@ -38,7 +38,7 @@
 - (void)addSongPlay:(SongData*)song; // adds the song, and updates all sessions
 - (void)rename:(NSManagedObjectID*)moid to:(NSString*)newTitle;
 - (void)removeObject:(NSManagedObjectID*)moid;
-- (void)addHistoryEvent:(NSDate*)playDate forObject:(NSManagedObjectID*)moid;
+- (void)addHistoryEvents:(NSArray*)playDates forObject:(NSManagedObjectID*)moid;
 - (void)removeHistoryEvent:(NSManagedObjectID*)eventID forObject:(NSManagedObjectID*)moid;
 
 // read
