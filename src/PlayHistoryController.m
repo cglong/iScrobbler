@@ -274,7 +274,7 @@ static PlayHistoryController *sharedController = nil;
             NSString *title = [[self window] title];
             if (editMode) {
                 title = [NSString stringWithFormat:@"%C %@", 0x270E, title ? title : @""];
-                [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(loadHistoryForTrack:) object:nil];
+                [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(loadHistoryForTrack:) object:npTrackInfo];
             } else {
                 if (npTrackInfo) {
                     [self loadHistoryForTrack:npTrackInfo];
