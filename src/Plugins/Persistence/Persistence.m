@@ -93,22 +93,29 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     }
 }
 
-- (void)profileDidChange
+- (void)profileDidChangeWithUpdatedObjects:(NSSet*)updatedObjects
 {   
     // we assume all chnages are done from a bg thread
     // refault sessions
     [[self allSessions] makeObjectsPerformSelector:@selector(refreshSelf)];
     (void)[self allSessions]; // fault the data back in
     
-    [self postNote:PersistentProfileDidUpdateNotification];
+    if (updatedObjects) {
+        [self postNoteWithArgs:[NSDictionary dictionaryWithObjectsAndKeys:
+            PersistentProfileDidUpdateNotification, @"name",
+            [NSDictionary dictionaryWithObject:updatedObjects forKey:NSUpdatedObjectsKey], @"info",
+            nil]];
+    } else
+        [self postNote:PersistentProfileDidUpdateNotification];
 }
 
 - (BOOL)save:(NSManagedObjectContext*)moc withNotification:(BOOL)notify error:(NSError**)failure
 {
-    NSError *error; 
+    NSError *error;
+    NSSet *updateObjects = notify ? [[moc updatedObjects] valueForKey:@"objectID"] : nil;
     if ([moc save:&error]) {
         if (notify)
-            [self performSelectorOnMainThread:@selector(profileDidChange) withObject:nil waitUntilDone:NO];
+            [self performSelectorOnMainThread:@selector(profileDidChangeWithUpdatedObjects:) withObject:updateObjects waitUntilDone:NO];
         if (failure)
             failure = nil;
         return (YES);
@@ -641,7 +648,7 @@ So for now, this is disabled.
     
     [self databaseDidInitialize:metadata];
     [self postNote:PersistentProfileDidMigrateNotification];
-    [self profileDidChange];
+    [self profileDidChangeWithUpdatedObjects:nil];
     [self performSelector:@selector(addSongPlay:) withObject:nil afterDelay:0.10]; // process any queued songs
 }
 

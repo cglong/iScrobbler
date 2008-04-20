@@ -117,11 +117,16 @@ artistComparisonData = nil; \
 
 - (void)persistentProfileDidReset:(NSNotification*)note
 {
-    [self performSelector:@selector(persistentProfileDidUpdate:) withObject:nil];
+    [self performSelector:@selector(persistentProfileDidUpdate:) withObject:note];
 }
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
 {
+    NSSet *updatedObjects = [[note userInfo] objectForKey:NSUpdatedObjectsKey];
+    if (updatedObjects) {
+        [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(managedObjectsDidUpdate:) withObject:updatedObjects];
+    }   
+
     // update the session bindings that we use
     // it seems this is needed so the names will update when the underlying object is still a fault
     [self willChangeValueForKey:@"allSessions"];
@@ -264,6 +269,20 @@ artistComparisonData = nil; \
     if (obj) {
         [obj refreshSelf];
         [self performSelectorOnMainThread:@selector(persistentProfileDidUpdate:) withObject:nil waitUntilDone:NO]; 
+    }
+}
+
+- (void)managedObjectsDidUpdate:(NSSet*)updatedObjects
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing thread moc!");
+    
+    NSManagedObjectID *oid;
+    NSEnumerator *en = [updatedObjects objectEnumerator];
+    while ((oid = [en nextObject])) {
+        NSManagedObject *mobj = [moc objectRegisteredForID:oid];
+        if (mobj)
+            [mobj refreshSelf];
     }
 }
 
