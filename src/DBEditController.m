@@ -138,6 +138,8 @@
     }
     
     NSString *title = [objectInfo objectForKey:@"Track"];
+    if (!title)
+        title = [objectInfo objectForKey:@"Album"];
     if (title)
         title = [NSString stringWithFormat:@"%@ - %@", [objectInfo objectForKey:@"Artist"], title];
     else
@@ -227,7 +229,7 @@
     [obj refreshSelf]; // make sure we don't have any cached values
     
     NSString *title;
-    if ([persistence isSong:obj]) {
+    if ([persistence isSong:obj] || [persistence isAlbum:obj]) {
         title = [NSString stringWithFormat:@"%@ - %@", [obj valueForKeyPath:@"artist.name"], [obj valueForKey:@"name"]];
     } else if ([persistence isArtist:obj]) {
         title = [obj valueForKey:@"name"];
