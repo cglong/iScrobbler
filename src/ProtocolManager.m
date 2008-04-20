@@ -895,7 +895,7 @@ didFinishLoadingExit:
 - (void)checkNetReach:(BOOL)force
 {
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-    if (!force && now < (lastNetCheck+3600.0))
+    if (!force && now < (lastNetCheck+900.0))
         return;
     lastNetCheck = now;
     
