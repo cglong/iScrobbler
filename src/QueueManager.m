@@ -12,6 +12,7 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 #import "ProtocolManager.h"
+#import "iPodController.h"
 #import "ISRadioController.h"
 
 static QueueManager *g_QManager = nil;
@@ -160,10 +161,10 @@ static QueueManager *g_QManager = nil;
         if (NO == [[NSApp delegate] queueSongsForLaterSubmission])
             [[ProtocolManager sharedInstance] submit:nil];
         else {
-            id paths = [[NSApp delegate] valueForKey:@"iPodMounts"];
+            id paths = [[iPodController sharedInstance] valueForKey:@"iPodMounts"];
             ScrobLog(SCROB_LOG_INFO, @"QM: Submission is delayed. ForcePlayCache: %u, iPodMountCount: %@, iPodMount paths: %@",
                 [[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"],
-                [[NSApp delegate] valueForKey:@"iPodMountCount"],
+                [[iPodController sharedInstance] valueForKey:@"iPodMountCount"],
                 paths ? paths : @"{none}");
         }
     }
