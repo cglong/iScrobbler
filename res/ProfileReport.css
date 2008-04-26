@@ -660,7 +660,8 @@ ul.menu {
 }
 
 #linkbar li {
-    padding:0pxef;}
+    padding:0px;
+}
 
 ul.hmenu li {
     display: inline;  
