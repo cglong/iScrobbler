@@ -45,8 +45,10 @@ static NSMutableArray *allPlugins = nil;
                     (void)[plug autorelease];
                 } else
                     @throw ([NSException exceptionWithName:NSObjectInaccessibleException reason:@"Failed to instantiate plugin" userInfo:nil]);
-            } else
-                @throw ([NSException exceptionWithName:NSObjectNotAvailableException reason:@"Plugin does not conform to protocol" userInfo:nil]);
+            } else {
+                NSString *reason = [NSString stringWithFormat:@"Plugin class %@ does not conform to protocol", NSStringFromClass(c)];
+                @throw ([NSException exceptionWithName:NSObjectNotAvailableException reason:reason userInfo:nil]);
+            }
         } else
             @throw ([NSException exceptionWithName:NSInvalidArgumentException reason:@"Not a valid bundle" userInfo:nil]);
     } @catch (id e) {
