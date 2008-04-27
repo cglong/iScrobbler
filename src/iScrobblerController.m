@@ -77,9 +77,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 #endif
 
 @interface iScrobblerController (Private)
+- (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector;
 - (void)retryInfoHandler:(NSTimer*)timer;
 - (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc;
-- (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector;
 // iPod
 - (void)restoreITunesLastPlayedTime;
 - (void)setiTunesLastPlayedTime:(NSDate*)date;
@@ -1586,7 +1586,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     badAuthAlertIsOpen = YES;
 }
 
-- (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector
+- (void)presentError:(NSError*)error modalDelegate:(id)delegate didEndHandler:(SEL)selector;
 {
     [NSApp activateIgnoringOtherApps:YES];
     
@@ -1629,9 +1629,14 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         otherButton:[info objectForKey:@"alternateButton"]
         informativeTextWithFormat:
         [info objectForKey:NSLocalizedDescriptionKey], nil];
-    [a beginSheetModalForWindow:w modalDelegate:self didEndSelector:selector contextInfo:w];
+    [a beginSheetModalForWindow:w modalDelegate:delegate didEndSelector:selector contextInfo:w];
     
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"NSWindowResizeTime"];
+}
+
+- (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector
+{
+    [self presentError:error modalDelegate:self didEndHandler:selector];
 }
 
 - (void)showApplicationIsDamagedDialog
