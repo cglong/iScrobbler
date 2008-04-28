@@ -89,9 +89,13 @@ static NSMutableArray *topHours = nil;
         metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
         #endif
     }
+    #if 0
     // while technically indicating a new profile, the last check is also true while an import is in progress
     // and [iScrobblerController applicationShouldTerminate:] would break in this case.
-    return (!metadata /*|| (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]*/);
+    return (!metadata || (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]);
+    #endif
+    
+    return (!metadata && NO == [[NSFileManager defaultManager] fileExistsAtPath:PERSISTENT_STORE_XML]);
 }
 
 + (TopListsController*)sharedInstance
@@ -257,6 +261,12 @@ static NSMutableArray *topHours = nil;
         [persistence addSongPlay:s];
 }
 
+- (void)persistentProfileDidInitialize:(NSNotification*)note
+{
+    persistenceTh = (id)[NSNull null]; // just to prevent any race while the thread is initializing
+    [NSThread detachNewThreadSelector:@selector(persistenceManagerThread:) toTarget:self withObject:nil];
+}
+
 - (void)persistentProfileImportProgress:(NSNotification*)note
 {
     NSDictionary *d = [note userInfo];
@@ -304,6 +314,47 @@ static NSMutableArray *topHours = nil;
     [self didChangeValueForKey:@"loading"];
 }
 
+- (void)persistentProfileDidExport:(NSNotification*)note
+{
+    NSString *path = [[note userInfo] objectForKey:@"exportPath"];
+    if (path && [path isEqualToString:PERSISTENT_STORE_XML]) {
+        NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+        [NSDictionary dictionaryWithObjectsAndKeys:
+            NSLocalizedString(@"Relaunch Needed", nil), NSLocalizedFailureReasonErrorKey,
+            NSLocalizedString(@"To complete the local charts recreation, a relaunch is required.", nil), NSLocalizedDescriptionKey,
+            NSLocalizedString(@"Relaunch", nil), @"defaultButton",
+            nil]];
+        
+        [persistence performSelector:@selector(backupDatabase) withObject:nil];
+        [[NSApp delegate] presentError:error modalDelegate:self
+            didEndHandler:@selector(relaunchNowDidEnd:returnCode:contextInfo:)];
+    }
+}
+
+- (void)relaunchApp:(NSNotification*)note
+{
+    // backup was made in [persistentProfileDidExport:]
+    (void)[[NSFileManager defaultManager] removeItemAtPath:PERSISTENT_STORE_DB error:nil];
+    
+    (void)[NSTask launchedTaskWithLaunchPath:@"/usr/bin/env" arguments:
+        [NSArray arrayWithObjects:@"perl", @"-e",
+            [NSString stringWithFormat:
+                @"use Time::HiRes qw(usleep); do {usleep(200000); $exists = kill(0, %d);} while($exists); system('open \"%@\"')",
+                getpid(),
+                [[NSBundle mainBundle] bundlePath]],
+                nil]];
+}
+
+- (void)relaunchNowDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
+{
+    [(id)contextInfo performSelector:@selector(close) withObject:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(relaunchApp:)
+        name:NSApplicationWillTerminateNotification object:NSApp];
+    
+    [NSApp terminate:nil];
+}
+
 - (id)initWithWindowNibName:(NSString *)windowNibName
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
@@ -326,6 +377,10 @@ static NSMutableArray *topHours = nil;
         
         // Persistence notes
         [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileDidInitialize:)
+            name:PersistentProfileDidFinishInitialization
+            object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(persistentProfileImportProgress:)
             name:PersistentProfileImportProgress
             object:nil];
@@ -340,6 +395,10 @@ static NSMutableArray *topHours = nil;
         [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(persistentProfileMigrateFailed:)
             name:PersistentProfileMigrateFailedNotification
+            object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileDidExport:)
+            name:PersistentProfileDidExportNotification
             object:nil];
         
         NSError *error;
@@ -452,13 +511,8 @@ static NSMutableArray *topHours = nil;
     }
     
     windowIsVisisble = YES;
-    (void)[super window];
-    
-    // start our persistence thread
-    if (!persistenceTh) {
-        persistenceTh = (id)[NSNull null]; // just to prevent any race while the thread is initializing
-        [NSThread detachNewThreadSelector:@selector(persistenceManagerThread:) toTarget:self withObject:nil];
-    } else if (![super isWindowLoaded]) {
+    if (persistenceTh && ![super isWindowLoaded]) {
+        (void)[super window];
         [self sessionDidChange:nil];
     }
     
@@ -1694,6 +1748,17 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
                 PersistentProfile *profile = [[TopListsController sharedInstance] valueForKey:@"persistence"];
                 [profile performSelectorOnSessionMgrThread:@selector(synchronizeDatabaseWithiTunes) withObject:nil];
                 //[profile performSelector:@selector(flushCaches:) withObject:self afterDelay:0.0];
+            }
+        break;
+        case (FourCharCode)'RclC': // recreate local charts
+            if ([TopListsController isActive]) {
+                PersistentProfile *profile = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+                if ([profile isVersion2])
+                    [profile performSelectorOnSessionMgrThread:@selector(exportDatabase:) withObject:nil];
+                else {
+                    NSBeep();
+                    ScrobLog(SCROB_LOG_ERR, @"recreate charts is not supported with this OS version");
+                }
             }
         break;
         default:

@@ -3,12 +3,13 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/7/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "ISiTunesLibrary.h"
+#import "PersistentSessionManager.h"
 
 @interface SongData (iTunesImport)
 - (SongData*)initWithiTunesXMLTrack:(NSDictionary*)track;
@@ -44,12 +45,89 @@
     mosAlbum = nil;
 }
 
+#if IS_STORE_V2
+- (void)createSessionEntriesForSong:(NSManagedObject*)psong withHistory:(NSArray*)playHistory
+{
+    PersistentSessionManager *smgr = [profile sessionManager];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+    NSEntityDescription *histEntity = [NSEntityDescription entityForName:@"PSongLastPlayed" inManagedObjectContext:moc];
+    NSArray *sessions = [[smgr activeSessionsWithMOC:moc] arrayByAddingObjectsFromArray:
+        [smgr archivedSessionsWithMOC:moc weekLimit:0]];
+    NSNumber *playCount = [NSNumber numberWithInteger:1];
+    NSNumber *playTime = [psong valueForKey:@"duration"];
+    #ifdef WTF
+    // // Why does a set fail a valid [containsObject:] test when an array does not!! Cocoa bug?
+    NSSet *currentHistory = [[[psong valueForKey:@"playHistory"] valueForKey:@"lastPlayed"] valueForKey:@"GMTDate"];
+    #else
+    NSArray *currentHistory = [[[[psong valueForKey:@"playHistory"] valueForKey:@"lastPlayed"] valueForKey:@"GMTDate"] allObjects];
+    #endif
+    
+    playHistory = [playHistory valueForKey:@"GMTDate"];
+    for (NSDate *lastPlayed in playHistory) {
+        // add to sessions
+        // XXX: playTime is assumed to be equal to the song duration
+        NSCalendarDate *submitted = [NSCalendarDate dateWithTimeIntervalSince1970:
+            [lastPlayed timeIntervalSince1970] - [playTime unsignedIntValue]];
+        NSManagedObject *sessionSong, *session;
+        for (session in sessions) {
+            if ([[session valueForKey:@"name"] isEqualTo:@"all"])
+                continue;
+            
+            NSDate *term = [[session valueForKey:@"term"] GMTDate];
+            if ([lastPlayed isLessThan:[[session valueForKey:@"epoch"] GMTDate]]
+                || (term && [lastPlayed isGreaterThan:term])) {
+                continue;
+            }
+            
+            sessionSong = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+            [sessionSong setValue:ITEM_SONG forKey:@"itemType"];
+            [sessionSong setValue:psong forKey:@"item"];
+            [sessionSong setValue:submitted forKey:@"submitted"];
+            [sessionSong setValue:[psong valueForKey:@"rating"] forKey:@"rating"];
+            [sessionSong incrementPlayCount:playCount];
+            [sessionSong incrementPlayTime:playTime];
+            
+            if (![smgr addSessionSong:sessionSong toSession:session moc:moc]) 
+                [moc deleteObject:sessionSong];
+        }
+        
+        if (NO == [currentHistory containsObject:lastPlayed]) {
+            NSManagedObject *he = [[[NSManagedObject alloc] initWithEntity:histEntity insertIntoManagedObjectContext:moc] autorelease];
+            [he setValue:lastPlayed forKey:@"lastPlayed"];
+            [he setValue:psong forKey:@"song"];
+        }
+    }
+}
+
+- (void)createSessionArchives:(NSArray*)entries
+{
+    NSEntityDescription *sessionEntity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
+    NSEntityDescription *archiveEntity = [NSEntityDescription entityForName:@"PSessionArchive" inManagedObjectContext:moc];
+    
+    for (NSDictionary *entry in entries) {
+        NSManagedObject *session = [[NSManagedObject alloc] initWithEntity:sessionEntity insertIntoManagedObjectContext:moc];
+        [session setValue:ITEM_SESSION forKey:@"itemType"];
+        [session setValue:[entry objectForKey:@"name"] forKey:@"name"];
+        [session setValue:[entry objectForKey:@"epoch"] forKey:@"epoch"];
+        [session setValue:[entry objectForKey:@"localizedName"] forKey:@"localizedName"];
+        [session setValue:[entry objectForKey:@"term"] forKey:@"term"];
+        
+        NSManagedObject *sArchive = [[NSManagedObject alloc] initWithEntity:archiveEntity insertIntoManagedObjectContext:moc];
+        [session setValue:sArchive forKey:@"archive"];
+        [sArchive setValue:[entry objectForKey:@"created"] forKey:@"created"];
+        
+        [sArchive release];
+        [session release];
+    }
+}
+#endif // IS_STORE_V2
+
 /** This is faster than [addSongPlay:] when aggregated over many imports,
      as it makes assumptions to avoid searching as much as possible:
      1: There are no existing artists or albums
-     2: The DB will not be modified during an import
+     2: The DB will not be modified by other threads during an import
 **/
-- (void)importSong:(SongData*)song withPlayCount:(NSNumber*)playCount
+- (NSManagedObject*)importSong:(SongData*)song withPlayCount:(NSNumber*)playCount
 {
     NSError *error;
     NSEntityDescription *entity;
@@ -137,10 +215,16 @@
         if ([[[song lastPlayed] GMTDate] isLessThan:[prevLastPlayed GMTDate]])
             [moSong setValue:prevLastPlayed forKey:@"lastPlayed"];
         
+        [moSong valueForKey:@"sessionAliases"];
+        
         // Get the session alias, there should only be one
-        NSSet *aliases = [moSong valueForKey:@"sessionAliases"];
+        entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+        [request setEntity:entity];
+        predicate = [NSPredicate predicateWithFormat:@"(item == %@) AND (session == %@)", moSong, moSession];
+        [request setPredicate:predicate];
+        NSArray *aliases = [moc executeFetchRequest:request error:&error];
         ISASSERT([aliases count] > 0, "invalid state - missing session aliases!");
-        mosSong = [aliases anyObject];
+        mosSong = [aliases lastObject];
         [mosSong incrementPlayCount:playCount];
         [mosSong incrementPlayTime:playTime];
     } else {
@@ -192,12 +276,16 @@
     }
     [sMgr incrementSessionCountsWithSong:mosSong moc:moc];
     
+    return (moSong);
+    
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"exception creating song for %@ (%@)", [song brief], e);
     }
+    
+    return (nil);
 }
 
-- (void)importiTunesDB:(id)obj
+- (void)importiTunesDB:(id)importArgs
 {
     u_int32_t totalTracks = 0;
     u_int32_t importedTracks = 0;
@@ -205,7 +293,7 @@
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
-    profile = obj;
+    profile = [PersistentProfile sharedInstance];
     moc = [[NSManagedObjectContext alloc] init];
     [moc setPersistentStoreCoordinator:[[profile valueForKey:@"mainMOC"] persistentStoreCoordinator]];
     [moc setUndoManager:nil];
@@ -216,6 +304,23 @@
     
     double pri = [NSThread threadPriority];
     [NSThread setThreadPriority:pri - (pri * 0.20)];
+    
+    NSString *importFilePath = [importArgs objectForKey:@"xmlFile"];
+    PersistentSessionManager *smgr = [profile sessionManager];
+    #if IS_STORE_V2
+    if (importFilePath) {
+        // we are going to assume that this is an import of an XML dump from a failed migration, so
+        // setup the session epochs so play history is added
+        @try {
+            for (NSManagedObject *session in [smgr activeSessionsWithMOC:moc]) {
+                [session setValue:[NSDate distantPast] forKey:@"epoch"];
+            }
+            [smgr performSelector:@selector(sessionManagerUpdate) withObject:nil];
+        } @catch (NSException *e) {
+            ScrobDebug("%@", e);
+        }
+    }
+    #endif
     
     [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISWillImportiTunesLibrary" moc:moc];
     [profile setImportInProgress:YES];
@@ -229,10 +334,27 @@
     
     ISStartTime();
     
-    NSDictionary *iTunesLib;
-    if (!(iTunesLib = [[ISiTunesLibrary sharedInstance] load])) {
+    NSMutableDictionary *iTunesLib;
+    if (importFilePath) {
+        iTunesLib = [[[ISiTunesLibrary sharedInstance] loadFromPath:importFilePath] mutableCopy];
+        #if IS_STORE_V2
+        NSDate *creation = [iTunesLib objectForKey:(NSString*)kMDItemContentCreationDate];
+        for (NSManagedObject *session in [smgr activeSessionsWithMOC:moc]) {
+            if ([creation isGreaterThan:[session valueForKey:@"epoch"]])
+                [session setValue:creation forKey:@"epoch"];
+        }
+        
+        [self createSessionArchives:[iTunesLib objectForKey:@"org.iScrobbler.Archives"]];
+        #endif
+    } else
+        iTunesLib = [[[ISiTunesLibrary sharedInstance] load] mutableCopy];
+    if (!iTunesLib) {
         @throw ([NSException exceptionWithName:NSGenericException reason:@"iTunes XML Library not found" userInfo:nil]);
     }
+    
+    [pool release];
+    pool = [[NSAutoreleasePool alloc] init];
+    (void)[iTunesLib autorelease];
     
     // Sorting the array allows us to optimze the import by eliminating the need to search for existing artist/albums in our nacent db
     NSArray *allTracks = [[[iTunesLib objectForKey:@"Tracks"] allValues]
@@ -241,14 +363,8 @@
         [[[NSSortDescriptor alloc] initWithKey:@"Album" ascending:YES selector:@selector(caseInsensitiveCompare:)] autorelease],
         [[[NSSortDescriptor alloc] initWithKey:@"Play Date UTC" ascending:NO] autorelease],
         nil]];
-    (void)[allTracks retain];
-    NSString *uuid = [[iTunesLib objectForKey:@"Library Persistent ID"] retain];
-    iTunesLib = nil;
-    
-    [pool release];
-    pool = [[NSAutoreleasePool alloc] init];
-    (void)[allTracks autorelease];
-    (void)[uuid autorelease];
+    [iTunesLib setValue:allTracks forKey:@"Tracks"];
+    NSString *uuid = [iTunesLib objectForKey:@"Library Persistent ID"];
     
     ISEndTime();
     ScrobDebug(@"Opened iTunes Library in %.4lf seconds", (abs2clockns / 1000000000.0));
@@ -256,7 +372,9 @@
     
     totalTracks = (typeof(totalTracks))[allTracks count];
     
-    NSNumber *epochSecs = [allTracks valueForKeyPath:@"Date Added.@min.timeIntervalSince1970"];
+    NSNumber *epochSecs;
+    if (!(epochSecs = [[iTunesLib objectForKey:@"org.iScrobbler.PlayEpoch"] valueForKey:@"timeIntervalSince1970"]))
+        epochSecs = [allTracks valueForKeyPath:@"Date Added.@min.timeIntervalSince1970"];
     if (!epochSecs)
         @throw ([NSException exceptionWithName:NSGenericException reason:@"could not calculate library epoch" userInfo:nil]);
     
@@ -289,14 +407,17 @@
             continue;
         
         [[moc persistentStoreCoordinator] lock];
-        [self importSong:song withPlayCount:[track objectForKey:@"Play Count"]];
+        NSManagedObject *psong = [self importSong:song withPlayCount:[track objectForKey:@"Play Count"]];
+        #if IS_STORE_V2
+        if (psong)
+            [self createSessionEntriesForSong:psong withHistory:[track objectForKey:@"org.iScrobbler.PlayHistory"]];
+        #else
+        #pragma unused (psong)
+        #endif
         [[moc persistentStoreCoordinator] unlock];
         ++importedTracks;
 
         if (0 == (importedTracks % 100)) {
-            [trackPool release];
-            trackPool = [[NSAutoreleasePool alloc] init];
-            
             note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
                 [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
                     [NSNumber numberWithUnsignedInt:importedTracks], @"imported", nil]];
@@ -306,6 +427,9 @@
             ScrobDebug(@"Imported %u tracks (of %u) in %.4lf seconds", importedTracks, totalTracks, (abs2clockns / 1000000000.0));
 #endif
         }
+        
+        [trackPool release];
+        trackPool = [[NSAutoreleasePool alloc] init];
     }
     
     // end import note
@@ -322,6 +446,12 @@
     
     [profile setStoreMetadata:nil forKey:@"ISWillImportiTunesLibrary" moc:moc];
     [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISDidImportiTunesLibrary" moc:moc];
+    id val;
+    if ((val = [iTunesLib objectForKey:(NSString*)kMDItemContentCreationDate]))
+        [profile setStoreMetadata:val forKey:[@"ISImport-" stringByAppendingString:(NSString*)kMDItemContentCreationDate] moc:moc];
+    if ((val = [iTunesLib objectForKey:NSStoreUUIDKey]))
+        [profile setStoreMetadata:val forKey:[@"ISImport-" stringByAppendingString:NSStoreUUIDKey] moc:moc];
+    
     // setStoreMetadata saves the moc for us
         
     } @catch (id e) {
@@ -505,7 +635,7 @@
     }
     [self setArtist:obj];
     
-    if (!(obj = [track objectForKey:@"Location"]) || NO == [[NSURL URLWithString:obj] isFileURL]) {
+    if ((obj = [track objectForKey:@"Location"]) && NO == [[NSURL URLWithString:obj] isFileURL]) {
         [self autorelease];
         @throw ([NSException exceptionWithName:NSGenericException reason:@"unsupported file type" userInfo:nil]);
     }

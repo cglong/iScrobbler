@@ -55,6 +55,7 @@
 - (BOOL)isAlbum:(NSManagedObject*)item;
 @end
 
+#define PersistentProfileDidFinishInitialization @"PersistentProfileDidFinishInitialization"
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
 #define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
 #define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
@@ -62,6 +63,9 @@
 #define PersistentProfileDidMigrateNotification @"PersistentProfileDidMigrateNotification"
 #define PersistentProfileWillMigrateNotification @"PersistentProfileWillMigrateNotification"
 #define PersistentProfileMigrateFailedNotification @"PersistentProfileMigrateFailedNotification"
+#define PersistentProfileDidExportNotification @"PersistentProfileDidExportNotification"
+#define PersistentProfileWillExportNotification @"PersistentProfileWillExportNotification"
+#define PersistentProfileExportFailedNotification @"PersistentProfileExportFailedNotification"
 
 #define PersistentProfileWillEditObject @"PersistentProfileWillEditObject"
 #define PersistentProfileDidEditObject @"PersistentProfileDidEditObject"
@@ -77,6 +81,9 @@
 
 #define PERSISTENT_STORE_DB \
 [[[NSFileManager defaultManager] iscrobblerSupportFolder] stringByAppendingPathComponent:@"toplists.data"]
+
+#define PERSISTENT_STORE_XML \
+[[[NSFileManager defaultManager] iscrobblerSupportFolder] stringByAppendingPathComponent:@"iScrobbler Music.xml"]
 
 #define PERSISTENT_STORE_DB_LOCATION_VERSION @"22X"
 

@@ -83,7 +83,7 @@ artistComparisonData = nil; \
         loadIssued = 1;
         [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
     } else if (!oid) {
-        ISASSERT(0, "should this be valid?");
+        ScrobDebug(@"missing session oid");
         #if 0
         [topArtistsController removeObjects:[topArtistsController content]];
         [topTracksController removeObjects:[topTracksController content]];

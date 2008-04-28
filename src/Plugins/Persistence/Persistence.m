@@ -48,6 +48,14 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 - (BOOL)addSongPlaysToAllSessions:(NSArray*)queue;
 @end
 
+@interface PersistentProfile (ExportAdditions)
+- (BOOL)exportDatabaseAsXMLWithModel:(NSManagedObjectModel*)model from:(NSURL*)from to:(NSURL*)to;
+@end
+
+@interface PersistentSessionManager (ExportAdditions)
+- (void)exportDatabase:(NSString*)path;
+@end
+
 @implementation PersistentProfile
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
@@ -403,6 +411,11 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
 
 - (void)importDidFinish:(id)obj
 {
+    if (nil == [self storeMetadataForKey:@"ISWillImportiTunesLibrary" moc:mainMOC]) {
+        // kill our XML dump
+        [[NSFileManager defaultManager] removeFileAtPath:PERSISTENT_STORE_XML handler:nil];
+    }
+
     [self setImportInProgress:NO];
     //[self setValue:[NSNumber numberWithBool:NO] forKey:@"importInProgress"];
     
@@ -523,8 +536,16 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
+        // Import from our XML dump (from a failed migration)?
+        NSDictionary *importArgs = nil;
+        if ([[NSFileManager defaultManager] fileExistsAtPath:PERSISTENT_STORE_XML]) {
+            importArgs = [NSDictionary dictionaryWithObjectsAndKeys:
+                PERSISTENT_STORE_XML, @"xmlFile",
+                nil];
+        }
+        
         PersistentProfileImport *import = [[PersistentProfileImport alloc] init];
-        [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:self];
+        [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:importArgs];
         [import release];
     }
     
@@ -536,6 +557,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     if (NO == CSBackupIsItemExcluded(url, NULL))
         (void)CSBackupSetItemExcluded(url, YES, YES);
     #endif
+    
+    [self postNote:PersistentProfileDidFinishInitialization];
 }
 
 - (void)databaseDidFailInitialize:(id)arg
@@ -640,11 +663,118 @@ So for now, this is disabled.
 }
 #endif // ISDB_REPAIR
 
+- (BOOL)exportDatabaseAsXMLWithModel:(NSManagedObjectModel*)model from:(NSURL*)from to:(NSURL*)to
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    BOOL exported = NO;
+    
+    if (!to)
+        to = [NSURL fileURLWithPath:PERSISTENT_STORE_XML];
+    
+    NSString *errMsg;
+    NSManagedObjectContext *moc = nil;
+    NSError *error;
+    
+    @try {
+    
+    moc = [[NSManagedObjectContext alloc] init];
+    [moc setUndoManager:nil];
+    
+    NSPersistentStoreCoordinator *psc;
+    psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:model];
+    [moc setPersistentStoreCoordinator:psc];
+    [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:from options:nil error:&error];
+    [psc release];
+    
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    [request setReturnsObjectsAsFaults:NO];
+    [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"artist", @"album", nil]];
+    
+    NSArray *results = [moc executeFetchRequest:request error:nil];
+    NSManagedObject *song;
+    unsigned trackID = 0;
+    NSMutableDictionary *trackEntries = [NSMutableDictionary dictionaryWithCapacity:[results count]];
+    NSMutableDictionary *library = [NSMutableDictionary dictionaryWithObject:trackEntries forKey:@"Tracks"];
+    for (song in results) {
+        NSAutoreleasePool *trackPool = [[NSAutoreleasePool alloc] init];
+        
+        NSNumber *entryID = [NSNumber numberWithUnsignedInt:trackID];
+        NSMutableDictionary *trackEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            entryID, @"Track ID",
+            [song valueForKey:@"name"], @"Name",
+            [song valueForKeyPath:@"artist.name"], @"Artist",
+            nil];
+        
+        id value = [song valueForKeyPath:@"album.name"];
+        if (value)
+            [trackEntry setObject:value forKey:@"Album"];
+        value = [song valueForKey:@"duration"];
+        if (value) {
+            value = [NSNumber numberWithUnsignedLongLong:[value unsignedLongLongValue]*1000ULL];
+            [trackEntry setObject:value forKey:@"Total Time"];
+        }
+        value = [song valueForKey:@"playCount"];
+        if (value)
+            [trackEntry setObject:value forKey:@"Play Count"];
+        value = [song valueForKey:@"lastPlayed"];
+        if (value)
+            [trackEntry setObject:[value GMTDate] forKey:@"Play Date UTC"];
+        value = [song valueForKey:@"rating"];
+        if (value)
+            [trackEntry setObject:value forKey:@"Rating"];
+        value = [song valueForKey:@"trackNumber"];
+        if (value)
+            [trackEntry setObject:value forKey:@"Track Number"];
+        value = [song valueForKey:@"playHistory"];
+        if (value) {
+            value = [[value valueForKey:@"lastPlayed"] valueForKey:@"GMTDate"];
+            [trackEntry setObject:[value allObjects] forKey:@"org.iScrobbler.PlayHistory"];
+        }
+        
+        [trackEntries setObject:trackEntry forKey:[entryID stringValue]];
+        
+        [trackPool release];
+        ++trackID;
+    }
+    
+    NSArray *archives = [sessionMgr archivedSessionsWithMOC:moc weekLimit:0];
+    NSMutableArray *archiveEntries = [NSMutableArray arrayWithCapacity:[archives count]];
+    for (NSManagedObject *archive in archives) {
+        NSMutableDictionary *archiveEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            [archive valueForKey:@"name"], @"name",
+            [archive valueForKey:@"epoch"], @"epoch",
+            [archive valueForKey:@"localizedName"], @"localizedName",
+            [archive valueForKey:@"term"], @"term",
+            [archive valueForKeyPath:@"archive.created"], @"created",
+            nil];
+        
+        [archiveEntries addObject:archiveEntry];
+    }
+    if ([archiveEntries count] > 0) {
+        [library setObject:archiveEntries forKey:@"org.iScrobbler.Archives"];
+    }
+    
+    // iTunes uses "Library Persistent ID"
+    NSDate *epoch = [[[[self sessionManager] sessionWithName:@"all" moc:moc] valueForKey:@"epoch"] GMTDate];
+    [library setObject:epoch forKey:@"org.iScrobbler.PlayEpoch"];
+    [library setObject:[self storeMetadataForKey:NSStoreUUIDKey moc:moc] forKey:NSStoreUUIDKey];
+    [library setObject:[self storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc] forKey:(NSString*)kMDItemContentCreationDate];
+    exported = [library writeToURL:to atomically:NO];
+    
+    } @catch (NSException *e) {
+        ScrobLog(SCROB_LOG_ERR, @"excpetion exporting database: %@", e);
+    }
+    
+    [moc release];
+    [pool release];
+    return (exported);
+}
+
 - (void)migrationDidComplete:(NSDictionary*)metadata
 {   
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     [self databaseDidInitialize:metadata];
     [self postNote:PersistentProfileDidMigrateNotification];
@@ -658,7 +788,7 @@ So for now, this is disabled.
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSManagedObjectContext *moc = nil;
     NSError *error = nil;
-    BOOL migrated = NO;
+    BOOL migrated = NO, reimport = NO;
     
     [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileWillMigrateNotification waitUntilDone:NO];
     
@@ -723,11 +853,11 @@ So for now, this is disabled.
             error:&error];
         ISEndTime();
         ScrobDebug(@"Migration finished in %.4lf seconds", (abs2clockns / 1000000000.0));
+        NSString *dbpath = [dburl path];
         if (migrated) {
             // swap the files as [addPersistentStoreWithType:] would
             migrated = NO;
             NSFileManager *fm = [NSFileManager defaultManager];
-            NSString *dbpath = [dburl path];
             NSString *tmppath = [tmpURL path];
             NSString *backup = [[[dbpath stringByDeletingPathExtension] stringByAppendingString:@"~"]
                 stringByAppendingPathExtension:[dbpath pathExtension]];
@@ -740,7 +870,15 @@ So for now, this is disabled.
                 }
             }
             (void)[fm removeItemAtPath:tmppath error:nil];
-        }  
+        } else if ([self exportDatabaseAsXMLWithModel:v1mom from:dburl to:nil]) {
+            NSString *backup = [[[dbpath stringByDeletingPathExtension] stringByAppendingString:@"~v1"]
+                stringByAppendingPathExtension:[dbpath pathExtension]];
+            if ([[NSFileManager defaultManager] linkItemAtPath:dbpath toPath:backup error:nil]) {
+                if ([[NSFileManager defaultManager] removeItemAtPath:dbpath error:nil]) {
+                    reimport = YES;
+                }
+            }
+        }
     } else
         ScrobLog(SCROB_LOG_ERR, @"Migration: Failed to create migration manager");
     
@@ -870,14 +1008,19 @@ So for now, this is disabled.
     } else {
         ScrobLog(SCROB_LOG_ERR, @"Migration failed with: %@", error ? error : @"unknown");
         [self performSelectorOnMainThread:@selector(databaseDidFailInitialize:) withObject:nil waitUntilDone:YES];
-        [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileMigrateFailedNotification waitUntilDone:NO];
+        if (reimport)
+            [self performSelectorOnMainThread:@selector(initDatabase:) withObject:nil waitUntilDone:NO];
+        else
+            [self performSelectorOnMainThread:@selector(postNote:) withObject:PersistentProfileMigrateFailedNotification waitUntilDone:NO];
+            
+        
     }
     
     [pool release];
     if (![NSThread isMainThread])
         [NSThread exit];
 }
-#endif
+#endif // IS_STORE_V2
 
 - (BOOL)moveDatabaseToNewSupportFolder
 {
@@ -937,6 +1080,9 @@ So for now, this is disabled.
     NSPersistentStore *mainStore;
     mainMOC = [[NSManagedObjectContext alloc] init];
     [mainMOC setUndoManager:nil];
+    
+    if (!failureReason)
+        failureReason = &error;
     
     *failureReason = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL
         userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -1177,6 +1323,46 @@ static PersistentProfile *shared = nil;
 - (BOOL)isAlbum:(NSManagedObject*)item
 {
     return ([ITEM_ALBUM isEqualTo:[item valueForKey:@"itemType"]]);
+}
+
+@end
+
+@implementation PersistentSessionManager (ExportAdditions)
+
+- (void)exportDatabase:(NSString*)path
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing moc");
+    
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+    
+    [profile setImportInProgress:YES];
+    
+    BOOL exported;
+    @try {
+    
+    if (!path)
+        path = PERSISTENT_STORE_XML;
+    
+    [profile postNote:PersistentProfileWillExportNotification];
+    
+    id model = [[moc persistentStoreCoordinator] managedObjectModel];
+    exported = [profile exportDatabaseAsXMLWithModel:model
+        from:[NSURL fileURLWithPath:PERSISTENT_STORE_DB] to:[NSURL fileURLWithPath:path]];
+    
+    } @catch (NSException *e) {
+        exported = NO;
+    }
+    
+    [profile setImportInProgress:NO];
+    
+    if (exported)
+        [profile postNoteWithArgs:[NSDictionary dictionaryWithObjectsAndKeys:
+            PersistentProfileDidExportNotification, @"name",
+            [NSDictionary dictionaryWithObjectsAndKeys:path, @"exportPath", nil], @"info",
+            nil]];
+    else
+        [profile postNote:PersistentProfileExportFailedNotification];
 }
 
 @end

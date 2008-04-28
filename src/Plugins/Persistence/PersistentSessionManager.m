@@ -47,7 +47,8 @@
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive == NULL)", ITEM_SESSION]];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive == NULL) AND (name != %@)",
+        ITEM_SESSION, @"temp"]];
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
     #endif
@@ -1560,10 +1561,8 @@
             [self archivedSessionsWithMOC:moc weekLimit:6]];
         NSEnumerator *en = [sessions objectEnumerator];
         entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
-        NSString *sessionName;
         while ((session = [en nextObject])) {
-            if ([(sessionName = [session valueForKey:@"name"]) isEqualTo:@"temp"]
-                || (importCount && NO == [sessionName isEqualTo:@"all"]))
+            if ((importCount && NO == [[session valueForKey:@"name"] isEqualTo:@"all"]))
                 continue;
             
             NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
