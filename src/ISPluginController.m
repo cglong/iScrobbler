@@ -55,7 +55,8 @@ static NSMutableArray *allPlugins = nil;
         ScrobLog(SCROB_LOG_ERR, @"exception loading plugin '%@': %@", path, e);
     }
     
-    return  (plug);
+    ISASSERT(plug != nil, "plugin failed to load");
+    return (plug);
 }
 
 - (void)loadPlugins:(id)arg
