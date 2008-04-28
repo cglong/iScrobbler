@@ -533,8 +533,6 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
     [self setStoreMetadata:[NSArray arrayWithObject:[mProxy applicationVersion]] forKey:(NSString*)kMDItemEditors moc:mainMOC];
     #endif
     
-    [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
-    
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
         // Import from our XML dump (from a failed migration)?
         NSDictionary *importArgs = nil;
@@ -547,6 +545,8 @@ On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should 
         PersistentProfileImport *import = [[PersistentProfileImport alloc] init];
         [NSThread detachNewThreadSelector:@selector(importiTunesDB:) toTarget:import withObject:importArgs];
         [import release];
+    } else {
+        [self performSelector:@selector(pingSessionManager) withObject:nil afterDelay:0.0];
     }
     
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
