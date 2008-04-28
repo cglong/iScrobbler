@@ -88,12 +88,13 @@
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
+		D332B0DE0DAA44BB00BAEBDE /* DBRemove.xib in Resources */ = {isa = PBXBuildFile; fileRef = D332B0DC0DAA44BB00BAEBDE /* DBRemove.xib */; };
 		D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */; };
 		D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
 		D33ED50B0D2E866100AE7771 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D33ED50A0D2E866100AE7771 /* QuartzCore.framework */; };
 		D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */ = {isa = PBXBuildFile; fileRef = D33ED7540D2FAD3100AE7771 /* DBEditController.m */; };
-		D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */; };
+		D33ED7B00D2FB5BF00AE7771 /* DBRename.xib in Resources */ = {isa = PBXBuildFile; fileRef = D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */; };
 		D34BF2EB0CD2D6BA002BC0DF /* ISiTunesLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */; };
 		D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */ = {isa = PBXBuildFile; fileRef = D357D2BB0D86AF320026C486 /* iScrobbler.sb */; };
 		D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D3712C490D1A3B810011F980 /* Persistence.plugin */; };
@@ -117,7 +118,7 @@
 		D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */; };
 		D398024A0CE0FF54008CB4C8 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D398024D0CE0FF55008CB4C8 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
-		D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in CopyFiles */ = {isa = PBXBuildFile; fileRef = D39802400CE0FE41008CB4C8 /* iScrobblerProxy */; };
+		D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in Resources */ = {isa = PBXBuildFile; fileRef = D39802400CE0FE41008CB4C8 /* iScrobblerProxy */; };
 		D398025F0CE0FFB9008CB4C8 /* ISProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D398025E0CE0FFB9008CB4C8 /* ISProxy.m */; };
 		D398FB470CDE016A008CB4C8 /* ArtistDetails.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */; };
 		D398FB480CDE016A008CB4C8 /* ISProfileReport.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */; };
@@ -139,6 +140,7 @@
 		D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F4A0B517381008F54BF /* iTunesPlaySpecifiedTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8208082DED00392110 /* iTunesPlaySpecifiedTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B1A0D00B51A1B2008F54BF /* ASXMLRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */; };
+		D3B7C7760DB2067200CD11A0 /* DBAddHistory.xib in Resources */ = {isa = PBXBuildFile; fileRef = D3B7C7740DB2067200CD11A0 /* DBAddHistory.xib */; };
 		D3C1126E084565DF000AA2BC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D3C1126C084565DF000AA2BC /* Localizable.strings */; };
 		D3C304400CA288EA001AEFEA /* ISRadioSearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */; };
 		D3C309980CA3D317001AEFEA /* iTunesControl.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3C309970CA3D317001AEFEA /* iTunesControl.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -283,7 +285,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,12 +328,14 @@
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoginItemsAE.c; sourceTree = "<group>"; };
 		D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginItemsAE.h; sourceTree = "<group>"; };
+		D332B0DD0DAA44BB00BAEBDE /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBRemove.xib; sourceTree = "<group>"; };
 		D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV2.xcdatamodel; sourceTree = "<group>"; };
 		D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcmappingmodel; path = iScrobblerV1toV2.xcmappingmodel; sourceTree = "<group>"; };
 		D33ED50A0D2E866100AE7771 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
 		D33ED7530D2FAD3100AE7771 /* DBEditController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DBEditController.h; path = src/DBEditController.h; sourceTree = "<group>"; };
 		D33ED7540D2FAD3100AE7771 /* DBEditController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DBEditController.m; path = src/DBEditController.m; sourceTree = "<group>"; };
-		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBEdit.xib; sourceTree = "<group>"; };
+		D33ED7AF0D2FB5BF00AE7771 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBRename.xib; sourceTree = "<group>"; };
+		D34ACCAF0DA4E2A90049C106 /* iScrobblerV1repair.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV1repair.xcdatamodel; sourceTree = "<group>"; };
 		D34BF2E80CD2D6BA002BC0DF /* ISiTunesLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISiTunesLibrary.h; path = src/ISiTunesLibrary.h; sourceTree = "<group>"; };
 		D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISiTunesLibrary.m; path = src/ISiTunesLibrary.m; sourceTree = "<group>"; };
 		D357D2BB0D86AF320026C486 /* iScrobbler.sb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iScrobbler.sb; sourceTree = "<group>"; };
@@ -390,6 +393,7 @@
 		D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASXMLRPC.m; path = src/ASXMLRPC.m; sourceTree = "<group>"; };
 		D3B61DF20744151D00AF5A33 /* ScrobLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScrobLog.h; path = src/ScrobLog.h; sourceTree = "<group>"; };
 		D3B61DF30744151D00AF5A33 /* ScrobLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScrobLog.m; path = src/ScrobLog.m; sourceTree = "<group>"; };
+		D3B7C7750DB2067200CD11A0 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBAddHistory.xib; sourceTree = "<group>"; };
 		D3C1126D084565DF000AA2BC /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D3C3043D0CA288EA001AEFEA /* ISRadioSearchController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISRadioSearchController.h; path = src/ISRadioSearchController.h; sourceTree = "<group>"; };
 		D3C3043E0CA288EA001AEFEA /* ISRadioSearchController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISRadioSearchController.m; path = src/ISRadioSearchController.m; sourceTree = "<group>"; };
@@ -619,7 +623,9 @@
 				D3C1126C084565DF000AA2BC /* Localizable.strings */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */,
-				D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */,
+				D3B7C7740DB2067200CD11A0 /* DBAddHistory.xib */,
+				D332B0DC0DAA44BB00BAEBDE /* DBRemove.xib */,
+				D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */,
 				D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */,
 				D398FB3B0CDE016A008CB4C8 /* ISRadioSearch.xib */,
 				D398FB4F0CDE01C0008CB4C8 /* LoveBanList.xib */,
@@ -1059,6 +1065,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in Resources */,
 				D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */,
 				D3191CAA07E3A51700821D03 /* defaults.plist in Resources */,
 				D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */,
@@ -1081,8 +1088,10 @@
 				D398FB510CDE01C0008CB4C8 /* LoveBanList.xib in Resources */,
 				D398FB540CDE01E5008CB4C8 /* Tag.xib in Resources */,
 				D3CA425F0D23FD71006CB485 /* PlayHistory.xib in Resources */,
-				D33ED7B00D2FB5BF00AE7771 /* DBEdit.xib in Resources */,
+				D33ED7B00D2FB5BF00AE7771 /* DBRename.xib in Resources */,
 				D357D2BC0D86AF320026C486 /* iScrobbler.sb in Resources */,
+				D332B0DE0DAA44BB00BAEBDE /* DBRemove.xib in Resources */,
+				D3B7C7760DB2067200CD11A0 /* DBAddHistory.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1322,12 +1331,20 @@
 			name = BBNetUpdateVersionCheck.nib;
 			sourceTree = "<group>";
 		};
-		D33ED7AE0D2FB5BF00AE7771 /* DBEdit.xib */ = {
+		D332B0DC0DAA44BB00BAEBDE /* DBRemove.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D332B0DD0DAA44BB00BAEBDE /* English */,
+			);
+			name = DBRemove.xib;
+			sourceTree = "<group>";
+		};
+		D33ED7AE0D2FB5BF00AE7771 /* DBRename.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				D33ED7AF0D2FB5BF00AE7771 /* English */,
 			);
-			name = DBEdit.xib;
+			name = DBRename.xib;
 			sourceTree = "<group>";
 		};
 		D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */ = {
@@ -1400,6 +1417,14 @@
 				D398FB530CDE01E5008CB4C8 /* English */,
 			);
 			name = Tag.xib;
+			sourceTree = "<group>";
+		};
+		D3B7C7740DB2067200CD11A0 /* DBAddHistory.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D3B7C7750DB2067200CD11A0 /* English */,
+			);
+			name = DBAddHistory.xib;
 			sourceTree = "<group>";
 		};
 		D3C1126C084565DF000AA2BC /* Localizable.strings */ = {
@@ -2136,6 +2161,7 @@
 			children = (
 				D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */,
 				D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */,
+				D34ACCAF0DA4E2A90049C106 /* iScrobblerV1repair.xcdatamodel */,
 			);
 			currentVersion = D33ECC000D27A38400AE7771 /* iScrobblerV2.xcdatamodel */;
 			path = iScrobbler.xcdatamodeld;

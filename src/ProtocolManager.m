@@ -106,9 +106,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (NSDictionary*)hsNotificationUserInfo
 {
     NSString *msg = [self lastHandshakeMessage];
-    if (msg)
-        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
-    else
+    if (msg) {
+        NSUInteger i = [msg rangeOfString:@"\n"].location;
+        if (NSNotFound != i)
+            msg = [msg substringToIndex:i];
+    } else
         msg = NSLocalizedString(@"Handshake pending", @"");
         
     NSString *song;
@@ -129,9 +131,11 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 - (NSDictionary*)subNotificationUserInfo
 {
     NSString *msg = [self lastSubmissionMessage];
-    if (msg)
-        msg = [msg substringToIndex:[msg rangeOfString:@"\n"].location];
-    else
+    if (msg) {
+        NSUInteger i = [msg rangeOfString:@"\n"].location;
+        if (NSNotFound != i)
+            msg = [msg substringToIndex:i];
+    } else
         msg = [self lastHandshakeMessage];
         
     NSString *song;
@@ -891,7 +895,7 @@ didFinishLoadingExit:
 - (void)checkNetReach:(BOOL)force
 {
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-    if (!force && now < (lastNetCheck+3600.0))
+    if (!force && now < (lastNetCheck+900.0))
         return;
     lastNetCheck = now;
     
@@ -951,7 +955,7 @@ static int npDelays = 0;
         ScrobLog(SCROB_LOG_VERBOSE, @"Sending NP notification for '%@'.", [npSong brief]);
         if (SCROB_LOG_TRACE == ScrobLogLevel())
             [self writeSubLogEntry:0 withTrackCount:1 withData:[request HTTPBody]];
-    } else if (npDelays < 3) {
+    } else if (npDelays < 5) {
         [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:(npDelays+=1) * 1.0];
     } else {
         npDelays = 0;
@@ -987,6 +991,7 @@ static int npDelays = 0;
         return;
     }
     
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(sendNowPlaying) object:nil];
     [self performSelector:@selector(sendNowPlaying) withObject:nil afterDelay:1.0];
 }
 

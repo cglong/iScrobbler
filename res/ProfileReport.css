@@ -505,15 +505,26 @@ input#textbox2 {
 }
 
 table.topn {
-    	width: 100%;
+    width: 100%;
 	font-size: 10pt;
 	border: 1px solid #f0f0f0;
 }
 
-table.topn td.position {
-    width:30px;
-    text-align:center;
+table.topn td.delta {
+    width:50px;
+    font-size:6pt;
+    text-align:left;
     color:grey;
+    border:0px;
+}
+
+table.topn td.position {
+    width:40px;
+    font-size:9pt;
+    text-align:right;
+    color:grey;
+    margin-right:4px;
+    border:0px;
 }
 
 table#recenttracks td.date {
@@ -649,7 +660,8 @@ ul.menu {
 }
 
 #linkbar li {
-    padding:0pxef;}
+    padding:0px;
+}
 
 ul.hmenu li {
     display: inline;  

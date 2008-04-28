@@ -11,6 +11,8 @@
 #import "PlayHistoryController.h"
 #import "TopListsController.h"
 #import "Persistence.h"
+#import "DBEditController.h"
+#import "PersistentSessionManager.h"
 
 #import "iScrobblerController.h"
 #import "SongData.h"
@@ -79,6 +81,11 @@ static PlayHistoryController *sharedController = nil;
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(nowPlaying:)
             name:@"Now Playing" object:nil];
+            
+         [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(persistentProfileDidEditObject:)
+            name:PersistentProfileDidEditObject
+            object:nil];
         
         id obj = [[NSApp delegate] nowPlaying];
         if (obj) {
@@ -106,8 +113,14 @@ static PlayHistoryController *sharedController = nil;
     [moc release];
     moc = nil;
     
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:PersistentProfileDidEditObject object:nil];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"Now Playing" object:nil];
     [npTrackInfo release];
+    npTrackInfo = nil;
+    
+    [currentTrackInfo release];
+    currentTrackInfo = nil;
     
     ISASSERT(sharedController == self, "sharedController does not match!");
     sharedController = nil;
@@ -124,7 +137,7 @@ static PlayHistoryController *sharedController = nil;
     if (!song) {
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
-        if (prevTrackInfo && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
+        if (!editMode && prevTrackInfo && [[[note userInfo] objectForKey:@"isStopped"] boolValue]) {
             // update the previous track to reflect any changes
             [self performSelector:@selector(loadHistoryForTrack:) withObject:prevTrackInfo afterDelay:1.5];
         }
@@ -147,15 +160,22 @@ static PlayHistoryController *sharedController = nil;
         mid, @"objectID", // this must be last as songs not yet in the db will have a nil id
         nil];
     
-    [self loadHistoryForTrack:npTrackInfo];
+    if (!editMode)
+        [self loadHistoryForTrack:npTrackInfo];
 }
 
 - (void)loadHistoryForTrack:(NSDictionary*)trackInfo
 {
+    [currentTrackInfo release];
+    currentTrackInfo = nil;
+    
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
-    [[self window] setTitle:[NSString stringWithFormat:@"\"%@ - %@\" %@",
-        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")]];
+    NSString *title = [NSString stringWithFormat:@"\"%@ - %@\" %@",
+        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")];
+    if (editMode)
+        title = [NSString stringWithFormat:@"%C %@", 0x270E, title];
+    [[self window] setTitle:title];
     
     NSMutableArray *content = [NSMutableArray array];
     [historyController setContent:content];
@@ -187,11 +207,16 @@ static PlayHistoryController *sharedController = nil;
     NSManagedObject *obj;
     NSEnumerator *en = [history objectEnumerator];
     while ((obj = [en nextObject])) {
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:[obj valueForKey:@"lastPlayed"], @"lastPlayed", nil];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            [obj valueForKey:@"lastPlayed"], @"lastPlayed",
+            [obj objectID], @"oid",
+            nil];
         [content addObject:entry];
     }
     
-    [totalPlayCount setStringValue:[NSString stringWithFormat:@"%@", [song valueForKey:@"playCount"]]];
+    [totalPlayCount setStringValue:[NSString stringWithFormat:@"%@ of %@",
+        [[historyController arrangedObjects] valueForKey:@"@count"],
+        [song valueForKey:@"playCount"]]];
     
     [moc reset];
     
@@ -199,9 +224,71 @@ static PlayHistoryController *sharedController = nil;
     
     [progress stopAnimation:nil];
     
+    (void)[trackInfo retain];
+    currentTrackInfo = trackInfo;
+    
     // restore the NP info after a short period
-    if (npTrackInfo && npTrackInfo != trackInfo) {
+    if (npTrackInfo && npTrackInfo != trackInfo && !editMode) {
         [self performSelector:@selector(loadHistoryForTrack:) withObject:npTrackInfo afterDelay:30.0];
+    }
+}
+
+- (IBAction)addHistoryEvent:(id)sender
+{
+    if (currentTrackInfo) {
+        DBEditController *ec = [[DBAddHistoryController alloc] init];
+        [ec setObject:currentTrackInfo];
+        [ec showWindow:nil];
+    } else
+        NSBeep();
+}
+
+- (IBAction)removeHistoryEvent:(id)sender
+{
+    NSArray *selection = [historyController selectedObjects];
+    if (currentTrackInfo && [selection count] == 1) {
+        PersistentProfile *persistence = [[TopListsController sharedInstance] valueForKey:@"persistence"];
+        [persistence removeHistoryEvent:[[selection objectAtIndex:0] objectForKey:@"oid"]
+            forObject:[currentTrackInfo objectForKey:@"objectID"]];
+    } else
+        NSBeep();
+}
+
+- (void)persistentProfileDidEditObject:(NSNotification*)note
+{
+    NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
+    if (currentTrackInfo && [oid isEqualTo:[currentTrackInfo objectForKey:@"objectID"]]) {
+        NSManagedObject *obj = [moc objectRegisteredForID:oid];
+        [obj refreshSelf];
+        [self loadHistoryForTrack:[[currentTrackInfo retain] autorelease]];
+    }
+}
+
+- (void)keyDown:(NSEvent*)event
+{
+    NSString *chars = [event charactersIgnoringModifiers];
+    unichar ch = [chars length] == 1 ? [chars characterAtIndex:0] : 0;
+    switch (ch) {
+        case NSF1FunctionKey:
+            editMode = !editMode;
+            NSString *title = [[self window] title];
+            if (editMode) {
+                title = [NSString stringWithFormat:@"%C %@", 0x270E, title ? title : @""];
+                [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(loadHistoryForTrack:) object:npTrackInfo];
+            } else {
+                if (npTrackInfo) {
+                    [self loadHistoryForTrack:npTrackInfo];
+                    break;
+                }
+                
+                if ([title hasPrefix:[NSString stringWithFormat:@"%C ", 0x270E]])
+                    title = [title length] > 2 ? [title substringFromIndex:2] : @"";
+            }
+            [[self window] setTitle:title];
+        break;
+        default:
+            return;
+        break;
     }
 }
 

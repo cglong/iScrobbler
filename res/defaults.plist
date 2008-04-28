@@ -115,7 +115,7 @@
     <false />
     
     <key>IgnorePodcasts</key>
-    <false />
+    <true />
     
     <key>Now Playing Detail</key>
     <true />

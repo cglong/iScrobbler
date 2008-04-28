@@ -12,6 +12,7 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 #import "ProtocolManager.h"
+#import "iPodController.h"
 #import "ISRadioController.h"
 
 static QueueManager *g_QManager = nil;
@@ -160,10 +161,10 @@ static QueueManager *g_QManager = nil;
         if (NO == [[NSApp delegate] queueSongsForLaterSubmission])
             [[ProtocolManager sharedInstance] submit:nil];
         else {
-            id paths = [[NSApp delegate] valueForKey:@"iPodMounts"];
+            id paths = [[iPodController sharedInstance] valueForKey:@"iPodMounts"];
             ScrobLog(SCROB_LOG_INFO, @"QM: Submission is delayed. ForcePlayCache: %u, iPodMountCount: %@, iPodMount paths: %@",
                 [[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"],
-                [[NSApp delegate] valueForKey:@"iPodMountCount"],
+                [[iPodController sharedInstance] valueForKey:@"iPodMountCount"],
                 paths ? paths : @"{none}");
         }
     }
@@ -345,21 +346,29 @@ static QueueManager *g_QManager = nil;
         }
         
         FSRef appSupport;
-        
+        NSString *tmp;
         if (noErr == FSFindFolder(kUserDomain, kApplicationSupportFolderType, kCreateFolder, &appSupport)) {
             NSURL *url = (NSURL*)CFURLCreateFromFSRef(kCFAllocatorSystemDefault, &appSupport);
             NSString *dirPath  = (NSString*)CFURLCopyFileSystemPath((CFURLRef)url, kCFURLPOSIXPathStyle);
             [url release];
             if (dirPath) {
-                NSString *tmp = [dirPath stringByAppendingPathComponent:@"net_sourceforge_iscrobbler_cache.plist"];
+                tmp = [dirPath stringByAppendingPathComponent:@"net_sourceforge_iscrobbler_cache.plist"];
                 if ([[NSFileManager defaultManager] fileExistsAtPath:tmp]) {
                     (void)[[NSFileManager defaultManager] movePath:tmp
                         toPath:[dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"]
                         handler:nil];
                 }
-                queuePath = [[dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"] retain];
+                queuePath = [dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"];
                 [dirPath release];
             }
+        }
+        
+        tmp = queuePath;
+        queuePath = [[[[NSFileManager defaultManager] iscrobblerSupportFolder]
+            stringByAppendingPathComponent:@"subcache.plist"] retain];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:tmp]) {
+            (void)[[NSFileManager defaultManager] movePath:tmp
+                toPath:queuePath handler:nil];
         }
 
         songQueue = [[NSMutableArray alloc] init];

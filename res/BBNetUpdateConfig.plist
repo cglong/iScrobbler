@@ -5,6 +5,6 @@
 	<key>BBNetUpdateInstallSelf</key>
     <true />
     <key>BBNetUpdateDownloadInfoURL</key>
-	<string>http://www.bergstrand.org/brian/software/iScrobbler/update2.plist</string>
+	<string>http://www.bergstrand.org/brian/software/iScrobbler/update22.plist</string>
 </dict>
 </plist>

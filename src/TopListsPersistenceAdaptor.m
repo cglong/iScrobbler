@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/21/07.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -48,12 +48,12 @@
 }
 
 #define ClearExtendedData() do { \
-[topAlbums release]; \
-topAlbums = nil; \
 [topRatings release]; \
 topRatings = nil; \
 [topHours release]; \
 topHours = nil; \
+[artistComparisonData release]; \
+artistComparisonData = nil; \
 } while(0)
 
 // methods that run on the main thread
@@ -83,7 +83,7 @@ topHours = nil; \
         loadIssued = 1;
         [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(loadInitialSessionData:) withObject:oid];
     } else if (!oid) {
-        ISASSERT(0, "should this be valid?");
+        ScrobDebug(@"missing session oid");
         #if 0
         [topArtistsController removeObjects:[topArtistsController content]];
         [topTracksController removeObjects:[topTracksController content]];
@@ -117,11 +117,16 @@ topHours = nil; \
 
 - (void)persistentProfileDidReset:(NSNotification*)note
 {
-    [self performSelector:@selector(persistentProfileDidUpdate:) withObject:nil];
+    [self performSelector:@selector(persistentProfileDidUpdate:) withObject:note];
 }
 
 - (void)persistentProfileDidUpdate:(NSNotification*)note
 {
+    NSSet *updatedObjects = [[note userInfo] objectForKey:NSUpdatedObjectsKey];
+    if (updatedObjects) {
+        [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(managedObjectsDidUpdate:) withObject:updatedObjects];
+    }   
+
     // update the session bindings that we use
     // it seems this is needed so the names will update when the underlying object is still a fault
     [self willChangeValueForKey:@"allSessions"];
@@ -178,6 +183,9 @@ topHours = nil; \
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
 {
+    NSString *what = [[note userInfo] objectForKey:@"what"];
+    if (what && ([what isEqualToString:@"addhist"] || [what isEqualToString:@"remhist"]))
+        return;
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     [ISThreadMessenger makeTarget:persistenceTh performSelector:@selector(objectDidChange:) withObject:oid];
 }
@@ -188,6 +196,7 @@ topHours = nil; \
     // remove the stale data
     [topArtistsController setContent:[NSMutableArray array]];
     [topTracksController setContent:[NSMutableArray array]];
+    [topAlbumsController setContent:[NSMutableArray array]];
     ClearExtendedData();
 }
 
@@ -221,6 +230,11 @@ topHours = nil; \
     [self displayEntries:entries withController:topTracksController];
 }
 
+- (void)displayAlbumEntries:(NSArray*)entries
+{
+    [self displayEntries:entries withController:topAlbumsController];
+}
+
 - (void)loadExtendedDidFinish:(NSDictionary*)results
 {
     if (results) {
@@ -228,9 +242,9 @@ topHours = nil; \
         
         ClearExtendedData(); // in case an exception is thrown
         
-        topAlbums = [[results objectForKey:@"albums"] retain];
         topRatings = [[results objectForKey:@"ratings"] retain];
         topHours = [[results objectForKey:@"hours"] retain];
+        artistComparisonData = [[results objectForKey:@"artistComparison"] retain]; 
         
         [self generateProfileReport];
         
@@ -256,6 +270,73 @@ topHours = nil; \
         [obj refreshSelf];
         [self performSelectorOnMainThread:@selector(persistentProfileDidUpdate:) withObject:nil waitUntilDone:NO]; 
     }
+}
+
+- (void)managedObjectsDidUpdate:(NSSet*)updatedObjects
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing thread moc!");
+    
+    NSManagedObjectID *oid;
+    NSEnumerator *en = [updatedObjects objectEnumerator];
+    while ((oid = [en nextObject])) {
+        NSManagedObject *mobj = [moc objectRegisteredForID:oid];
+        if (mobj)
+            [mobj refreshSelf];
+    }
+}
+
+- (NSDictionary*)artistCountsForSessionPreviousTo:(NSManagedObject*)session
+{
+    NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
+    ISASSERT(moc != nil, "missing thread moc!");
+
+    NSError *error = nil;
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
+    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+    [request setEntity:entity];
+    NSPredicate *predicate;
+    NSCalendarDate *now = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
+    // just before midnight of the first day of the current week
+    NSInteger limit = 1;
+    NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
+        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-(ABS([now secondOfMinute] - 2))];
+    // XXX: we only archive lastfm weeklies currently, but if that changes then we need a '(name contains)' condition 
+    predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (self != %@) AND (archive != NULL) AND (epoch < %@) AND (epoch > %@)",
+        ITEM_SESSION, session, [now GMTDate], [fromDate GMTDate]];
+    [request setPredicate:predicate];
+    LEOPARD_BEGIN
+    [request setReturnsObjectsAsFaults:NO];
+    LEOPARD_END
+    
+    NSArray *results = [moc executeFetchRequest:request error:&error];
+    if ([results count] > 0) {
+        // We should never get more than 1, but just in case:
+        results = [results sortedArrayUsingDescriptors:
+            [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
+        
+        NSEnumerator *en;
+        NSManagedObject *mobj;
+        NSManagedObject *comparisonSession = [results objectAtIndex:0];
+        ScrobLog(SCROB_LOG_TRACE, @"local charts: using session '%@' for artist movement comparison",
+            [comparisonSession valueForKey:@"name"]);
+        
+        NSArray *cArtists = [[persistence sessionManager] artistsForSession:comparisonSession moc:moc];
+        // prefetch the object releationship
+        entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
+        [request setEntity:entity];
+        [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [cArtists valueForKeyPath:@"item.objectID"]]];
+        error = nil;
+        (void)[moc executeFetchRequest:request error:&error];
+        
+        NSMutableDictionary *d = [NSMutableDictionary dictionaryWithCapacity:[cArtists count]];
+        en = [cArtists objectEnumerator];
+        while ((mobj = [en nextObject])) {
+            [d setObject:[mobj valueForKey:@"playCount"] forKey:[mobj valueForKeyPath:@"item.name"]];
+        }
+        return (d);
+    }
+    return (nil);
 }
 
 - (void)loadInitialSessionData:(NSManagedObjectID*)sessionID
@@ -294,10 +375,11 @@ topHours = nil; \
     // get the session songs
     NSArray *sessionSongs = [persistence songsForSession:session];
     if (0 == (lastLoadCount = [sessionSongs count]))
-        goto loadExit; 
+        goto loadExit;
+    //// ARTISTS ////
+    NSArray *sessionArtists = [[persistence sessionManager] artistsForSession:session moc:moc];
     // pre-fetch the relationships (individual backing store faults are VERY expensive)
     // processing the artists is much less work and we can present the data faster to the user
-    NSArray *sessionArtists = [[persistence sessionManager] artistsForSession:session moc:moc];
     entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionArtists valueForKeyPath:@"item.objectID"]]];
@@ -306,8 +388,8 @@ topHours = nil; \
 
     // import the data into the GUI
     NSEnumerator *en;
-    NSMutableDictionary *entry;
     NSManagedObject *mobj;
+    NSMutableDictionary *entry;
     u_int64_t secs;
     NSString *playTime;
     unsigned days, hours, minutes, seconds, i = 0;
@@ -356,7 +438,59 @@ topHours = nil; \
     [entryPool release];
     if (loadCanceled)
         goto loadExit;
+    
+    //// ABLUMS ////
+    NSManagedObject *rootObj;
+    NSArray *sessionAlbums = [[persistence sessionManager] albumsForSession:session moc:moc];
+    // pre-fetch the albums
+    entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
+    [request setEntity:entity];
+    [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionAlbums valueForKeyPath:@"item.objectID"]]];
+    (void)[moc executeFetchRequest:request error:&error];
+    error = nil;
+    
+    en = [sessionAlbums objectEnumerator];
+    entryPool = [[NSAutoreleasePool alloc] init];
+    chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK]; // alloc in loop pool!
+    i = 0;
+    while ((mobj = [en nextObject])) {
+        OSMemoryBarrier();
+        if ((loadCanceled = (cancelLoad > 0)))
+            break;
         
+        secs = [[mobj valueForKey:@"playTime"] unsignedLongLongValue];
+        ISDurationsFromTime64(secs, &days, &hours, &minutes, &seconds);
+        playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
+        rootObj = [mobj valueForKey:@"item"];
+        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            [rootObj valueForKeyPath:@"artist.name"], @"Artist",
+            [rootObj valueForKey:@"name"], @"Album",
+            [mobj valueForKey:@"playCount"], @"Play Count",
+            [mobj valueForKey:@"playTime"], @"Total Duration",
+            playTime, @"Play Time",
+            // this can be used to get further info, or to edit the object
+            [rootObj objectID], @"objectID",
+            nil];
+        [chartEntries addObject:entry];
+        
+        if (0 == (++i % IMPORT_CHUNK)) {
+            // Display the entries in the GUI            
+            [self performSelectorOnMainThread:@selector(displayAlbumEntries:) withObject:chartEntries waitUntilDone:NO];
+            [entryPool release];
+            entryPool = [[NSAutoreleasePool alloc] init];
+            chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
+        }
+    }
+    if (!loadCanceled && [chartEntries count] > 0)
+        [self performSelectorOnMainThread:@selector(displayAlbumEntries:) withObject:chartEntries waitUntilDone:NO];
+    
+    // send empty set to signal we are done
+    [self performSelectorOnMainThread:@selector(displayAlbumEntries:) withObject:[NSArray array] waitUntilDone:NO];
+    [entryPool release];
+    if (loadCanceled)
+        goto loadExit;
+    
+    //// SONGS ////
     // pre-fetch the songs
     entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     [request setEntity:entity];
@@ -372,7 +506,7 @@ topHours = nil; \
     sessionSongs = [moc executeFetchRequest:request error:&error];
     [request setSortDescriptors:nil];
     
-    NSManagedObject *entryObj;
+    NSManagedObject *mAlbum;
     NSMutableArray *allSongPlays = [NSMutableArray array]; // alloc outside of loop pool!
     // tracks however, have a session entry for each play and the GUI displays all track plays merged as one
     // so we have to do a little extra work;
@@ -386,20 +520,23 @@ topHours = nil; \
         if ((loadCanceled = (cancelLoad > 0)))
             break;
         
-        entryObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
-        if ([[mobj valueForKey:@"item"] isEqualTo:entryObj]) {
+        rootObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
+        if ([[mobj valueForKey:@"item"] isEqualTo:rootObj]) {
             [allSongPlays addObject:mobj];
             continue;
         }
         
+        mAlbum = [rootObj valueForKey:@"album"];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            [entryObj valueForKeyPath:@"artist.name"], @"Artist",
+            [rootObj valueForKeyPath:@"artist.name"], @"Artist",
             [allSongPlays valueForKeyPath:@"playCount.@sum.unsignedIntValue"], @"Play Count",
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
-            [entryObj valueForKey:@"name"], @"Track",
-            [entryObj valueForKey:@"lastPlayed"], @"Last Played",
-            // this can be used to get further info, such as the complete play time history
-            [entryObj objectID], @"objectID",
+            [rootObj valueForKey:@"name"], @"Track",
+            [rootObj valueForKey:@"lastPlayed"], @"Last Played",
+            // these can be used to get further info, such as the complete play time history
+            [rootObj objectID], @"objectID",
+            [allSongPlays valueForKeyPath:@"objectID"], @"sessionInstanceIDs",
+            [mAlbum valueForKey:@"name"], @"Album", // mAlbum may be nil
             nil];
         [chartEntries addObject:entry];
         
@@ -415,15 +552,18 @@ topHours = nil; \
         }
     }
     if ([allSongPlays count] > 0) {
-        entryObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
+        rootObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
+        mAlbum = [rootObj valueForKey:@"album"];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            [entryObj valueForKeyPath:@"artist.name"], @"Artist",
+            [rootObj valueForKeyPath:@"artist.name"], @"Artist",
             [allSongPlays valueForKeyPath:@"playCount.@sum.unsignedIntValue"], @"Play Count",
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
-            [entryObj valueForKey:@"name"], @"Track",
-            [entryObj valueForKey:@"lastPlayed"], @"Last Played",
-            // this can be used to get further info, such as the complete play time history
-            [entryObj objectID], @"objectID",
+            [rootObj valueForKey:@"name"], @"Track",
+            [rootObj valueForKey:@"lastPlayed"], @"Last Played",
+            // these can be used to get further info, such as the complete play time history
+            [rootObj objectID], @"objectID",
+            [allSongPlays valueForKeyPath:@"objectID"], @"sessionInstanceIDs",
+            [mAlbum valueForKey:@"name"], @"Album", // mAlbum may be nil
             nil];
         [chartEntries addObject:entry];
     }
@@ -464,55 +604,12 @@ loadExit:
     NSManagedObject *session = [moc objectWithID:sessionID];
     ISASSERT(session != nil, "session not found!");
     
-    NSError *error = nil;
-    NSEntityDescription *entity;
-    NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];;
-    NSArray *sessionAlbums = [[persistence sessionManager] albumsForSession:session moc:moc];
-    // pre-fetch the albums
-    entity = [NSEntityDescription entityForName:@"PAlbum" inManagedObjectContext:moc];
-    [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [sessionAlbums valueForKeyPath:@"item.objectID"]]];
-    error = nil;
-    NSArray *albumObjects = [moc executeFetchRequest:request error:&error];
-    // The artists should hopefully be in the MOC cache, but just incase, pre-fetch them as well
-    entity = [NSEntityDescription entityForName:@"PArtist" inManagedObjectContext:moc];
-    [request setEntity:entity];
-    [request setPredicate:[NSPredicate predicateWithFormat:@"self IN %@", [albumObjects valueForKeyPath:@"artist.objectID"]]];
-    error = nil;
-    (void)[moc executeFetchRequest:request error:&error];
-    
-    NSMutableDictionary *albumEntries = [NSMutableDictionary dictionary];
-    NSEnumerator *en = [sessionAlbums objectEnumerator];
-    NSMutableDictionary *entry;
     NSManagedObject *mobj;
-    unsigned i = 0;
-    NSAutoreleasePool *entryPool = [[NSAutoreleasePool alloc] init];
-    BOOL loadCanceled = NO;
-    while ((mobj = [en nextObject])) {
-        OSMemoryBarrier();
-        if ((loadCanceled = (cancelLoad > 0)))
-            break;
-        
-        NSString *akey = [NSString stringWithFormat:@"%@" TOP_ALBUMS_KEY_TOKEN @"%@",
-            [mobj valueForKeyPath:@"item.artist.name"], [mobj valueForKeyPath:@"item.name"]];
-        entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            [mobj valueForKey:@"playCount"], @"Play Count",
-            [mobj valueForKey:@"playTime"],  @"Total Duration",
-            nil];
-        [albumEntries setObject:entry forKey:akey];
-        
-        if (0 == (++i % IMPORT_CHUNK)) {
-            [entryPool release];
-            entryPool = [[NSAutoreleasePool alloc] init];
-        }
-    }
-    [entryPool release];
-    if (loadCanceled)
-        goto loadExit;
-    
+    NSMutableDictionary *entry;
+    unsigned i;
     NSMutableDictionary *ratingEntries = [NSMutableDictionary dictionaryWithCapacity:5];
     NSArray *sessionRatings = [persistence ratingsForSession:session];
-    en = [sessionRatings objectEnumerator];
+    NSEnumerator *en = [sessionRatings objectEnumerator];
     while ((mobj = [en nextObject])) {
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             [mobj valueForKey:@"playCount"], @"Play Count",
@@ -545,10 +642,21 @@ loadExit:
     if (cancelLoad > 0)
         goto loadExit;
     
+    // Attempt to get the data to compute artist movements. We only do this for archived last.fm sessions.
+    NSDictionary *artistComparison;
+    if (nil != [session valueForKey:@"archive"] && [[session valueForKey:@"name"] hasPrefix:@"lastfm"]) {
+        artistComparison = [self artistCountsForSessionPreviousTo:session];
+    } else
+        artistComparison = nil;
+    
+    OSMemoryBarrier();
+    if (cancelLoad > 0)
+        goto loadExit;
+    
     NSDictionary *results = [NSDictionary dictionaryWithObjectsAndKeys:
-        albumEntries, @"albums",
         ratingEntries, @"ratings",
         hourEntries, @"hours",
+        artistComparison, @"artistComparison", // can be nil
         nil];
     [self performSelectorOnMainThread:@selector(loadExtendedDidFinish:) withObject:results waitUntilDone:NO];
     

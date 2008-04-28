@@ -37,7 +37,9 @@
 // write
 - (void)addSongPlay:(SongData*)song; // adds the song, and updates all sessions
 - (void)rename:(NSManagedObjectID*)moid to:(NSString*)newTitle;
-- (NSError*)removeObject:(NSManagedObjectID*)moid;
+- (void)removeObject:(NSManagedObjectID*)moid;
+- (void)addHistoryEvents:(NSArray*)playDates forObject:(NSManagedObjectID*)moid;
+- (void)removeHistoryEvent:(NSManagedObjectID*)eventID forObject:(NSManagedObjectID*)moid;
 
 // read
 - (NSArray*)allSessions;
@@ -53,6 +55,7 @@
 - (BOOL)isAlbum:(NSManagedObject*)item;
 @end
 
+#define PersistentProfileDidFinishInitialization @"PersistentProfileDidFinishInitialization"
 #define PersistentProfileDidUpdateNotification @"ISPersistentProfileDidUpdateNotification"
 #define PersistentProfileDidResetNotification @"ISPersistentProfileDidResetNotification"
 #define PersistentProfileWillResetNotification @"PersistentProfileWillResetNotification"
@@ -60,6 +63,9 @@
 #define PersistentProfileDidMigrateNotification @"PersistentProfileDidMigrateNotification"
 #define PersistentProfileWillMigrateNotification @"PersistentProfileWillMigrateNotification"
 #define PersistentProfileMigrateFailedNotification @"PersistentProfileMigrateFailedNotification"
+#define PersistentProfileDidExportNotification @"PersistentProfileDidExportNotification"
+#define PersistentProfileWillExportNotification @"PersistentProfileWillExportNotification"
+#define PersistentProfileExportFailedNotification @"PersistentProfileExportFailedNotification"
 
 #define PersistentProfileWillEditObject @"PersistentProfileWillEditObject"
 #define PersistentProfileDidEditObject @"PersistentProfileDidEditObject"
@@ -70,8 +76,16 @@
 @end
 
 // Private, exposed only for TopListsController
-#define PERSISTENT_STORE_DB \
+#define PERSISTENT_STORE_DB_21X \
 [@"~/Library/Application Support/org.bergstrand.iscrobbler.persistent.toplists.data" stringByExpandingTildeInPath]
+
+#define PERSISTENT_STORE_DB \
+[[[NSFileManager defaultManager] iscrobblerSupportFolder] stringByAppendingPathComponent:@"toplists.data"]
+
+#define PERSISTENT_STORE_XML \
+[[[NSFileManager defaultManager] iscrobblerSupportFolder] stringByAppendingPathComponent:@"iScrobbler Music.xml"]
+
+#define PERSISTENT_STORE_DB_LOCATION_VERSION @"22X"
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 #define IS_CURRENT_STORE_VERSION @"2"

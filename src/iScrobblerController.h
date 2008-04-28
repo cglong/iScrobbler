@@ -117,6 +117,8 @@
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg;
 - (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg;
 
+- (void)presentError:(NSError*)error modalDelegate:(id)delegate didEndHandler:(SEL)selector;
+
 // Bindings
 - (BOOL)isIPodMounted;
 - (void)setIsIPodMounted:(BOOL)val;

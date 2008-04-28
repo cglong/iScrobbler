@@ -633,24 +633,19 @@
 
 - (void)radioBusyStateDidChange:(BOOL)windowClosing
 {
-    NSView *cview = [[splitView subviews] objectAtIndex:1];
+    NSView *cview = [[self window] contentView];
     BOOL busy = [[ISRadioController sharedInstance] isBusy];
-    if (cview != busyView && busy && !windowClosing) {
+    BOOL busyShowing = nil != [busyView window];
+    if (!busyShowing  && busy && !windowClosing) {
         [busyView setFrame:[cview frame]];
-        [[splitView animator] replaceSubview:cview with:busyView];
-        ISASSERT(activeViewBeforeBusy == nil, "stale view!");
-        activeViewBeforeBusy = [cview retain];
+        [cview addSubview:busyView];
         LEOPARD_BEGIN
         [sourceList setEnabled:NO];
         LEOPARD_END
         [busyIndicator startAnimation:nil];
-    } else if (cview == busyView && (!busy || windowClosing)) {
-        ISASSERT(activeViewBeforeBusy != nil, "missing view!");
-        [activeViewBeforeBusy setFrame:[cview frame]];
+    } else if (busyShowing && (!busy || windowClosing)) {
         [busyIndicator stopAnimation:nil];
-        [[splitView animator] replaceSubview:busyView with:activeViewBeforeBusy];
-        [activeViewBeforeBusy release];
-        activeViewBeforeBusy = nil;
+        [busyView removeFromSuperview];
         LEOPARD_BEGIN
         [sourceList setEnabled:YES];
         LEOPARD_END
@@ -706,7 +701,6 @@
     
     LEOPARD_BEGIN
     CIFilter *filter = [CIFilter filterWithName:@"CIDissolveTransition"];
-    [filter setEnabled:YES];
     CATransition *effect = [CATransition animation];
     [effect setType:kCATransitionFade];
     [effect setFillMode:kCAFillModeRemoved];
@@ -722,7 +716,12 @@
     [searchView setWantsLayer:YES];
     [searchView setAnimations:viewAnimations];
     [busyView setWantsLayer:YES];
+    [busyView setAlphaValue:0.0];
     [busyView setAnimations:viewAnimations];
+    filter = [CIFilter filterWithName:@"CIGaussianBlur" keysAndValues:
+        kCIInputRadiusKey, [NSNumber numberWithFloat:2.0], nil];
+    [busyView setBackgroundFilters:[NSArray arrayWithObject:filter]];
+    [[busyView layer] setOpacity:1.0];
     LEOPARD_END
 }
 

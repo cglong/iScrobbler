@@ -16,12 +16,13 @@
 - (NSCalendarDate*)GMTDate;
 @end
 
-@interface NSFileManager (ISAliasExtensions)
+@interface NSFileManager (ISExtensions)
 - (NSString*)ISDestinationOfAliasAtPath:(NSString*)path error:(NSError**)error;
 #define destinationOfAliasAtPath ISDestinationOfAliasAtPath
+- (NSString*)iscrobblerSupportFolder;
 @end
 
-@interface NSXMLElement (ISAdditions)
+@interface NSXMLNode (ISAdditions)
 - (NSInteger)integerValue; // this could be added at some point to 10.5.x or 10.6
 @end
 

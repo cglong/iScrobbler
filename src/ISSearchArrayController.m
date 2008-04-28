@@ -110,7 +110,7 @@
     NSMutableString *textData = [NSMutableString string];
     
     /* XXX: Internal knowledge of dict. */
-    NSSet *ignoredKeys = [NSSet setWithObjects:@"Play Time", @"objectID", @"New This Session", nil];
+    NSSet *ignoredKeys = [NSSet setWithObjects:@"Play Time", @"objectID", @"New This Session", @"sessionInstanceIDs", nil];
     row = [rows firstIndex];
     if (NSNotFound != row) {
         data = [objects objectAtIndex:row];

@@ -121,9 +121,18 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         @"Unknown"
         #endif
         ;
-        
-    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X;) %@/%@(r%@)",
-        arch, [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], ver, build];
+    
+    SInt32 majorVer = 0, minorVer = 0, bugFixVer = 0; 
+    // These selectors will fail in 10.3.x
+    Gestalt(gestaltSystemVersionMajor, &majorVer);
+    Gestalt(gestaltSystemVersionMinor, &minorVer);
+    Gestalt(gestaltSystemVersionBugFix, &bugFixVer);
+    
+    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X %d_%d_%d;) %@/%@(r%@)",
+        arch,
+        majorVer, minorVer, bugFixVer,
+        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
+        ver, build];
         
     return (agent);
 }
