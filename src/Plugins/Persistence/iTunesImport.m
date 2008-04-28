@@ -447,8 +447,11 @@
     [profile setStoreMetadata:nil forKey:@"ISWillImportiTunesLibrary" moc:moc];
     [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISDidImportiTunesLibrary" moc:moc];
     id val;
-    if ((val = [iTunesLib objectForKey:(NSString*)kMDItemContentCreationDate]))
-        [profile setStoreMetadata:val forKey:[@"ISImport-" stringByAppendingString:(NSString*)kMDItemContentCreationDate] moc:moc];
+    if ((val = [iTunesLib objectForKey:(NSString*)kMDItemContentCreationDate])) {
+        [profile setStoreMetadata:[profile storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc]
+            forKey:@"ISImportDate" moc:moc];
+        [profile setStoreMetadata:val forKey:(NSString*)kMDItemContentCreationDate moc:moc];
+    }
     if ((val = [iTunesLib objectForKey:NSStoreUUIDKey]))
         [profile setStoreMetadata:val forKey:[@"ISImport-" stringByAppendingString:NSStoreUUIDKey] moc:moc];
     
