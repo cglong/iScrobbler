@@ -87,6 +87,7 @@
 		D3191CC307E3A51700821D03 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B303FBC574005DC01B /* Carbon.framework */; };
 		D3191CC407E3A51700821D03 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB5069B403FBC574005DC01B /* CoreFoundation.framework */; };
 		D3191CC507E3A51700821D03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D4741F077407F50076AA7D /* SystemConfiguration.framework */; };
+		D323AAEF0DC85DE70076C708 /* ISBusyView.m in Sources */ = {isa = PBXBuildFile; fileRef = D323AAEE0DC85DE70076C708 /* ISBusyView.m */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D332B0DE0DAA44BB00BAEBDE /* DBRemove.xib in Resources */ = {isa = PBXBuildFile; fileRef = D332B0DC0DAA44BB00BAEBDE /* DBRemove.xib */; };
 		D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */; };
@@ -326,6 +327,8 @@
 		D318A6C30D1FC534003068D5 /* Persistence-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Persistence-Info.plist"; sourceTree = "<group>"; };
 		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D323AAED0DC85DE70076C708 /* ISBusyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISBusyView.h; path = src/ISBusyView.h; sourceTree = "<group>"; };
+		D323AAEE0DC85DE70076C708 /* ISBusyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISBusyView.m; path = src/ISBusyView.m; sourceTree = "<group>"; };
 		D32907090CDB4E0600CAAB66 /* LoginItemsAE.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoginItemsAE.c; sourceTree = "<group>"; };
 		D329070A0CDB4E0600CAAB66 /* LoginItemsAE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginItemsAE.h; sourceTree = "<group>"; };
 		D332B0DD0DAA44BB00BAEBDE /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/DBRemove.xib; sourceTree = "<group>"; };
@@ -769,6 +772,8 @@
 			isa = PBXGroup;
 			children = (
 				D39802380CE0FD9B008CB4C8 /* iScrobblerProxy */,
+				D323AAEE0DC85DE70076C708 /* ISBusyView.m */,
+				D323AAED0DC85DE70076C708 /* ISBusyView.h */,
 				D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */,
 				D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */,
 				D34BF2E90CD2D6BA002BC0DF /* ISiTunesLibrary.m */,
@@ -1178,6 +1183,7 @@
 				D3CA42640D23FDB4006CB485 /* PlayHistoryController.m in Sources */,
 				D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */,
 				D3F71FA80D33E42500C0E22F /* iPodController.m in Sources */,
+				D323AAEF0DC85DE70076C708 /* ISBusyView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
