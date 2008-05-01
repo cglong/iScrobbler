@@ -1557,7 +1557,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, TBLCLOSE @"</div>");
     
     //// NEWARTISTS ////
-    if ([persistence isVersion2] && [newArtists count] > 0) {
+    if ([persistence isVersion2]) {
         absPosition = 1;
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"newartists\">\n" TR);
         tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
