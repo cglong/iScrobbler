@@ -844,6 +844,16 @@ didFinishLoadingExit:
     }
 }
 
+- (BOOL)networkAvailable
+{
+    return (isNetworkAvailable);
+}
+
+- (void)setNetworkAvailable:(NSNumber*)available
+{
+    [self setIsNetworkAvailable:[available boolValue]];
+}
+
 #define IsNetworkUp(flags) \
 ( ((flags) & kSCNetworkFlagsReachable) && (0 == ((flags) & kSCNetworkFlagsConnectionRequired) || \
   ((flags) & kSCNetworkFlagsConnectionAutomatic)) )
@@ -892,24 +902,64 @@ didFinishLoadingExit:
     return (NO);
 }
 
+- (void)checkNetReachInBackground:(NSValue*)reachRef
+{
+    if ([reachRef pointerValue] != netReachRef)
+        return;
+    
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    SCNetworkConnectionFlags flags;
+    BOOL canReach;
+    BOOL resetMonitor = NO;
+    if ((canReach = SCNetworkReachabilityGetFlags(netReachRef, &flags)) && IsNetworkUp(flags)) {
+        canReach = YES;
+    } else {
+        if (!canReach) {
+            resetMonitor = YES;
+        } else
+            canReach = NO;
+    }
+    
+    ScrobTrace(@"Connection flags: %x.", flags);
+    
+    LEOPARD_BEGIN
+    [self performSelectorOnMainThread:@selector(setNetworkAvailable:)
+        withObject:[NSNumber numberWithBool:canReach] waitUntilDone:YES];
+    if (resetMonitor)
+        [self performSelectorOnMainThread:@selector(registerNetMonitor) withObject:nil waitUntilDone:YES];
+    [pool release];
+    return;
+    LEOPARD_END
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    // Tiger
+    [self setIsNetworkAvailable:canReach];
+    if (resetMonitor)
+        [self performSelector:@selector(registerNetMonitor) withObject:nil afterDelay:1.0]; // avoid recursion
+    [pool release];
+    #endif
+}
+
 - (void)checkNetReach:(BOOL)force
 {
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
     if (!force && now < (lastNetCheck+900.0))
         return;
-    lastNetCheck = now;
     
-    SCNetworkConnectionFlags connectionFlags;
-    Boolean flagsOK;
-    if ((flagsOK = SCNetworkReachabilityGetFlags(netReachRef, &connectionFlags)) && IsNetworkUp(connectionFlags)) {
-        [self setIsNetworkAvailable:YES];
-    } else {
-        [self setIsNetworkAvailable:NO];
-        if (!flagsOK) {
-            // avoid recursion
-            [self performSelector:@selector(registerNetMonitor) withObject:nil afterDelay:1.0];
-        }
-    }
+    lastNetCheck = now;
+    isNetworkAvailable = !isNetworkAvailable;
+    LEOPARD_BEGIN
+    [self performSelectorInBackground:@selector(checkNetReachInBackground:)
+        withObject:[NSValue valueWithPointer:netReachRef]];
+    return;
+    LEOPARD_END
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    // perform check on main thread in Tiger
+    ScrobLog(SCROB_LOG_TRACE, @"Performing network check on main thread.");
+    [self checkNetReachInBackground:[NSValue valueWithPointer:netReachRef]];
+    #endif
 }
 
 - (void)didWake:(NSNotification*)note
