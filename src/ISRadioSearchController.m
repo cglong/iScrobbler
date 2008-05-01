@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 9/20/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007,2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -638,14 +638,12 @@
     BOOL busyShowing = nil != [busyView window];
     if (!busyShowing  && busy && !windowClosing) {
         [busyView setFrame:[cview frame]];
-        [cview addSubview:busyView];
+        [[cview animator] addSubview:busyView];
         LEOPARD_BEGIN
         [sourceList setEnabled:NO];
         LEOPARD_END
-        [busyIndicator startAnimation:nil];
     } else if (busyShowing && (!busy || windowClosing)) {
-        [busyIndicator stopAnimation:nil];
-        [busyView removeFromSuperview];
+        [[busyView animator] removeFromSuperview];
         LEOPARD_BEGIN
         [sourceList setEnabled:YES];
         LEOPARD_END
@@ -700,28 +698,26 @@
         name:NSOutlineViewSelectionDidChangeNotification object:sourceList];
     
     LEOPARD_BEGIN
-    CIFilter *filter = [CIFilter filterWithName:@"CIDissolveTransition"];
-    CATransition *effect = [CATransition animation];
-    [effect setType:kCATransitionFade];
-    [effect setFillMode:kCAFillModeRemoved];
-    [effect setFilter:filter];
-    [effect setDuration:0.75];
     [[[self window] contentView] setWantsLayer:YES];
+    CIFilter *filter = [CIFilter filterWithName:@"CIDissolveTransition"];
+    CATransition *inEffect = [CATransition animation];
+    [inEffect setType:kCATransitionFade];
+    [inEffect setFillMode:kCAFillModeForwards];
+    [inEffect setFilter:filter];
+    [inEffect setDuration:0.75];
+    CATransition *outEffect = [CATransition animation];
+    [outEffect setType:kCATransitionFade];
+    [outEffect setFillMode:kCAFillModeRemoved];
+    [outEffect setFilter:filter];
+    [outEffect setDuration:0.75];
     viewAnimations = [[NSDictionary alloc] initWithObjectsAndKeys:
-        effect, NSAnimationTriggerOrderIn,
-        effect, NSAnimationTriggerOrderOut,
+        inEffect, NSAnimationTriggerOrderIn,
+        outEffect, NSAnimationTriggerOrderOut,
         nil];
     [placeholderView setWantsLayer:YES];
     [placeholderView setAnimations:viewAnimations];
     [searchView setWantsLayer:YES];
     [searchView setAnimations:viewAnimations];
-    [busyView setWantsLayer:YES];
-    [busyView setAlphaValue:0.0];
-    [busyView setAnimations:viewAnimations];
-    filter = [CIFilter filterWithName:@"CIGaussianBlur" keysAndValues:
-        kCIInputRadiusKey, [NSNumber numberWithFloat:2.0], nil];
-    [busyView setBackgroundFilters:[NSArray arrayWithObject:filter]];
-    [[busyView layer] setOpacity:1.0];
     LEOPARD_END
 }
 
