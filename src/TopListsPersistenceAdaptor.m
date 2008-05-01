@@ -200,16 +200,24 @@ artistComparisonData = nil; \
     ClearExtendedData();
 }
 
+- (void)finalizeSessionLoad:(id)arg
+{
+    [topArtistsController rearrangeObjects];
+    [topTracksController rearrangeObjects];
+    [topAlbumsController rearrangeObjects];
+}
+
+- (void)sessionDidLoad:(id)arg
+{
+    [self setValue:[NSNumber numberWithBool:NO] forKey:@"loading"];
+    [self performSelector:@selector(finalizeSessionLoad:) withObject:arg afterDelay:0.0];
+}
+
 - (void)displayEntries:(NSArray*)entries withController:(id)controller
 {
     if (![controller isSearchInProgress]) {
         if ([entries count]) {
             [controller addObjects:entries];
-        } else {
-            // load finished
-            // The load thread can send us thousands of entries and bog the main thread down
-            // with the controller re-sorting to often
-            [controller rearrangeObjects]; 
         }
     } else {
          // Can't alter the arrangedObjects array when a search is active
@@ -584,7 +592,7 @@ loadExit:
         lastLoadCount = NSUIntegerMax; // force a MOC reset on the next load
     }
     
-    [self performSelectorOnMainThread:@selector(setLoadingWithBool:) withObject:[NSNumber numberWithBool:NO] waitUntilDone:NO];
+    [self performSelectorOnMainThread:@selector(sessionDidLoad:) withObject:nil waitUntilDone:NO];
 }
 
 - (void)loadExtendedSessionData:(NSManagedObjectID*)sessionID // profile report data not seen in the GUI
