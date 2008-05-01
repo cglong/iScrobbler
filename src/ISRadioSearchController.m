@@ -13,6 +13,7 @@
 #import "ISRadioController.h"
 #import "ASXMLFile.h"
 #import "ASWebServices.h"
+#import "ISBusyView.h"
 
 // XXX: We don't atually search for anything currently, for now we just attempt to play what every the user enters
 #define PLAY_NOT_SEARCH
