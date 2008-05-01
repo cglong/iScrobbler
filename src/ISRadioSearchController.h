@@ -11,6 +11,7 @@
 #import <Cocoa/Cocoa.h>
 
 @class ASXMLFile;
+@class ISBusyView;
 
 @interface ISRadioSearchController : NSWindowController {
     IBOutlet NSSplitView *splitView;
@@ -23,8 +24,7 @@
     IBOutlet NSButton *searchButton;
     IBOutlet NSProgressIndicator *searchProgress;
     IBOutlet NSButton *searchOption;
-    IBOutlet NSView *busyView;
-    IBOutlet NSProgressIndicator *busyIndicator;
+    IBOutlet ISBusyView *busyView;
     
     NSDictionary *viewAnimations;
     
