@@ -27,6 +27,7 @@
 #import "DBEditController.h"
 #import "ISThreadMessenger.h"
 #import "ISPluginController.h"
+#import "ISBusyView.h"
 
 #import "Persistence.h"
 #import "PersistentSessionManager.h"
@@ -69,82 +70,6 @@ static NSMutableArray *topHours = nil;
 @end
 
 @implementation TopListsController
-
-// singleton support
-+ (BOOL)willCreateNewProfile
-{
-    // XXX this belongs in the persistence plugin, but it's here so we don't have to load the plugin to test
-    // whether a new profile will be created or not.
-    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
-    #else
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    #endif
-    if (!metadata) {
-        url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB_21X];
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
-        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
-        #else
-        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-        #endif
-    }
-    #if 0
-    // while technically indicating a new profile, the last check is also true while an import is in progress
-    // and [iScrobblerController applicationShouldTerminate:] would break in this case.
-    return (!metadata || (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]);
-    #endif
-    
-    return (!metadata && NO == [[NSFileManager defaultManager] fileExistsAtPath:PERSISTENT_STORE_XML]);
-}
-
-+ (TopListsController*)sharedInstance
-{
-    if (g_topLists)
-        return (g_topLists);
-    
-    return ((g_topLists = [[TopListsController alloc] initWithWindowNibName:@"TopLists"]));
-}
-
-+ (id)allocWithZone:(NSZone *)zone
-{
-    @synchronized(self) {
-        if (g_topLists == nil) {
-            return ([super allocWithZone:zone]);
-        }
-    }
-
-    return (g_topLists);
-}
-
-+ (BOOL)isActive
-{
-    return (g_topLists != nil);
-}
-
-- (id)copyWithZone:(NSZone *)zone
-{
-    return (self);
-}
-
-- (id)retain
-{
-    return (self);
-}
-
-- (NSUInteger)retainCount
-{
-    return (NSUIntegerMax);  //denotes an object that cannot be released
-}
-
-- (void)release
-{
-}
-
-- (id)autorelease
-{
-    return (self);
-}
 
 // session support
 - (PersistentProfile*)persistence
@@ -254,11 +179,45 @@ static NSMutableArray *topHours = nil;
 }
 
 #define PLAY_TIME_FORMAT @"%u:%02u:%02u:%02u"
+
 - (void)songDidQueuedHandler:(NSNotification*)note
 {
     SongData *s = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
     if (![s banned] && ![s skipped])
         [persistence addSongPlay:s];
+}
+
+- (void)forceBusyViewOut
+{
+    if ([busyView window] != nil) {
+        NSView *cv = [[self window] contentView];
+        [[busyView animator] removeFromSuperview];
+        [cv setWantsLayer:NO];
+        [cv addSubview:busyProgress];
+    }
+}
+
+- (void)transitionBusyView
+{
+    LEOPARD_BEGIN
+    NSView *cv = [[self window] contentView];
+    if ([[self valueForKey:@"loading"] boolValue]) {
+        if (![busyView window]) {
+            [busyProgress removeFromSuperview];
+            // We set this here instead of [awakeFromNib:] because NSTableView uses cell transitions when
+            // a layer is active and with a large number of rows, this SEVERLY slows down the table display.
+            [cv setWantsLayer:YES];
+            NSRect r = [cv frame];
+            NSInsetRect(r, 20, 20);
+            [busyView setFrame:r];
+            [[cv animator] addSubview:busyView];
+        }
+    } else if ([busyView window] != nil) {
+        [[busyView animator] removeFromSuperview];
+        [cv setWantsLayer:NO];
+        [cv addSubview:busyProgress];
+    }
+    LEOPARD_END
 }
 
 - (void)persistentProfileDidInitialize:(NSNotification*)note
@@ -277,18 +236,30 @@ static NSMutableArray *topHours = nil;
     
     NSString *msg;
     if (!imported) {
+        #ifndef busy_overlay_during_load
+        [self forceBusyViewOut];
+        #endif
         msg = NSLocalizedString(@"Import finished.", "");
         [self willChangeValueForKey:@"loading"];
         [self didChangeValueForKey:@"loading"];
     } else if ([imported unsignedIntValue] > 0)
         msg = [NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "import progress"), imported, total];
     else {
+        #ifndef busy_overlay_during_load
+        [self transitionBusyView];
+        #endif
         msg = NSLocalizedString(@"Reading iTunes library.", "");
         [self willChangeValueForKey:@"loading"];
         [self didChangeValueForKey:@"loading"];
     }
     
-    [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Import Progress", "") message:msg];
+    if ([[self window] isVisible] && busyView && [busyView window]) {
+        if ([imported unsignedIntValue] > 0)
+            [busyView setStringValue:[NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"Importing", ""), msg]];
+        else
+            [busyView setStringValue:msg];
+    } else
+        [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Local Charts Import Progress", "") message:msg];
 }
 
 - (void)persistentProfileDidMigrate:(NSNotification*)note
@@ -457,13 +428,6 @@ static NSMutableArray *topHours = nil;
     return (nil);
 }
 
-#if 0
-- (BOOL)detailsOpen
-{
-    return ([[artistDetails valueForKey:@"detailsOpen"] boolValue]);
-}
-#endif
-
 - (IBAction)hideDetails:(id)sender
 {
 #ifdef obsolete
@@ -503,6 +467,7 @@ static NSMutableArray *topHours = nil;
 }
 
 #define OPEN_HIST_WINDOW_AT_LAUNCH @"History Window Open"
+
 - (IBAction)showWindow:(id)sender
 {
     if (!persistence) {
@@ -616,7 +581,7 @@ static NSMutableArray *topHours = nil;
 }
 
 - (void)awakeFromNib
-{    
+{
     [super setWindowFrameAutosaveName:@"Top Lists"];
     
     NSString *title = [NSString stringWithFormat:@"%@ - %@", [[super window] title],
@@ -662,6 +627,19 @@ static NSMutableArray *topHours = nil;
     [topTracksTable setDoubleAction:@selector(handleDoubleClick:)];
     [topAlbumsTable setTarget:self];
     [topAlbumsTable setDoubleAction:@selector(handleDoubleClick:)];
+    
+    
+    [busyProgress retain];
+    [busyView retain];
+    if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) {
+        // This is disabled because NSTableView uses cell transitions when
+        // a layer is active and with a large number of rows, this SEVERLY slows down the table display.
+        // I can't figure out how to turn off the table view transistions
+        #ifdef busy_overlay_during_load
+        [self addObserver:self forKeyPath:@"loading" options:0 context:nil];
+        #endif
+    } else
+        busyView = nil;
     
     [self hideDetails:nil];
     
@@ -768,6 +746,16 @@ static NSMutableArray *topHours = nil;
     
     rpcreqs = [[NSMutableArray alloc] init];
 }
+
+#ifdef busy_overlay_during_load
+- (void)observeValueForKeyPath:(NSString *)key ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([key isEqualToString:@"loading"]) {
+        //[self performSelector:@selector(transitionBusyView) withObject:nil afterDelay:0.0];
+        [self transitionBusyView];
+    }
+}
+#endif
 
 // ================= Toolbar support ================= //
 
@@ -1171,9 +1159,86 @@ exit:
     return (@"Top Lists Details");
 }
 
++ (BOOL)willCreateNewProfile
+{
+    // XXX this belongs in the persistence plugin, but it's here so we don't have to load the plugin to test
+    // whether a new profile will be created or not.
+    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
+    #else
+    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+    #endif
+    if (!metadata) {
+        url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB_21X];
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
+        #else
+        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
+        #endif
+    }
+    #if 0
+    // while technically indicating a new profile, the last check is also true while an import is in progress
+    // and [iScrobblerController applicationShouldTerminate:] would break in this case.
+    return (!metadata || (nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]);
+    #endif
+    
+    return (!metadata && NO == [[NSFileManager defaultManager] fileExistsAtPath:PERSISTENT_STORE_XML]);
+}
+
++ (BOOL)isActive
+{
+    return (g_topLists != nil);
+}
+
+// singleton support
++ (TopListsController*)sharedInstance
+{
+    if (g_topLists)
+        return (g_topLists);
+    
+    return ((g_topLists = [[TopListsController alloc] initWithWindowNibName:@"TopLists"]));
+}
+
++ (id)allocWithZone:(NSZone *)zone
+{
+    @synchronized(self) {
+        if (g_topLists == nil) {
+            return ([super allocWithZone:zone]);
+        }
+    }
+
+    return (g_topLists);
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return (self);
+}
+
+- (id)retain
+{
+    return (self);
+}
+
+- (NSUInteger)retainCount
+{
+    return (NSUIntegerMax);  //denotes an object that cannot be released
+}
+
+- (void)release
+{
+}
+
+- (id)autorelease
+{
+    return (self);
+}
+
 @end
 
 #define PROFILE_DATE_FORMAT @"%Y-%m-%d %I:%M:%S %p"
+
 @implementation TopListsController (ISProfileReportAdditions)
 
 - (void)generateProfileReport

@@ -13,6 +13,7 @@
 @class ISThreadMessenger;
 @class PersistentProfile;
 @class ISSearchArrayController;
+@class ISBusyView;
 
 @interface TopListsController : NSWindowController
 {
@@ -24,6 +25,8 @@
     IBOutlet NSTableView *topTracksTable;
     IBOutlet NSTableView *topAlbumsTable;
     IBOutlet NSTabView *tabView;
+    IBOutlet ISBusyView *busyView;
+    IBOutlet NSProgressIndicator *busyProgress;
     
     NSMutableDictionary *toolbarItems;
     NSMutableArray *rpcreqs;
