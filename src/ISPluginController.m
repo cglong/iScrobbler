@@ -46,7 +46,11 @@ static NSMutableArray *allPlugins = nil;
                 } else
                     @throw ([NSException exceptionWithName:NSObjectInaccessibleException reason:@"Failed to instantiate plugin" userInfo:nil]);
             } else {
-                NSString *reason = [NSString stringWithFormat:@"Plugin class %@ does not conform to protocol", NSStringFromClass(c)];
+                NSString *reason;
+                if (c)
+                    reason = [NSString stringWithFormat:@"Plugin class %@ does not conform to protocol", NSStringFromClass(c)];
+                else
+                    reason = @"Failed to load bundle class.";
                 @throw ([NSException exceptionWithName:NSObjectNotAvailableException reason:reason userInfo:nil]);
             }
         } else
@@ -55,7 +59,6 @@ static NSMutableArray *allPlugins = nil;
         ScrobLog(SCROB_LOG_ERR, @"exception loading plugin '%@': %@", path, e);
     }
     
-    ISASSERT(plug != nil, "plugin failed to load");
     return (plug);
 }
 
