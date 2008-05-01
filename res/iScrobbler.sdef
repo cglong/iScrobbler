@@ -55,6 +55,9 @@
 			<responds-to name="recreate local charts">
 				<cocoa method=""/>
 			</responds-to>
+			<responds-to name="reset network monitor">
+				<cocoa method=""/>
+			</responds-to>
 		</class>
 		<class name="radio" code="cRdC" description="last.fm radio controller">
 			<cocoa class="ISRadioController"/>
@@ -128,6 +131,9 @@
 		</command>
 		<command name="recreate local charts" code="iSCbRclC" description="Recreate the local charts database. Requires a relaunch.">
 			<cocoa class="ISChartsScriptCommand"/>
+		</command>
+		<command name="reset network monitor" code="iSCbRsnM" description="Reset the network monitor.">
+			<cocoa class="ISAppScriptCommand"/>
 		</command>
 	</suite>
 </dictionary>

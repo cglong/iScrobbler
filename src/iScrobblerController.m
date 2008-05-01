@@ -2265,6 +2265,9 @@ exit:
                     [[NSApp delegate] performSelector:@selector(skipTrack:) withObject:item afterDelay:0.0];
             }
         break;
+        case (FourCharCode)'RsnM': // reset network monitor
+            [[ProtocolManager sharedInstance] performSelector:@selector(registerNetMonitor) withObject:nil afterDelay:0.0];
+        break;
         default:
             ScrobLog(SCROB_LOG_TRACE, @"ISAppScriptCommand: unknown aevt code: %c", [[self commandDescription] appleEventCode]);
         break;
