@@ -1028,8 +1028,11 @@
     // in the future we may decide to delete ancient archived sessions (> 1yr)
     
     if (save) {
-        (void)[[PersistentProfile sharedInstance] save:moc];
-        [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"DBLastScrub"];
+        if ([[PersistentProfile sharedInstance] save:moc]) {
+            NSDate *now = [NSDate date];
+            [[NSUserDefaults standardUserDefaults] setObject:now forKey:@"DBLastScrub"];
+            [[PersistentProfile sharedInstance] setStoreMetadata:now forKey:@"ISLastScrub" moc:moc];
+        }
     }
     
     ScrobLog(SCROB_LOG_TRACE, @"scrub finished");
