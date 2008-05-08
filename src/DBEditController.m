@@ -387,7 +387,8 @@
     
     NSMutableArray *allDates = [NSMutableArray array];
     @try {
-    NSString *s = [[dateText stringValue] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    NSString *s = [[[dateText stringValue] stringByReplacingOccurrencesOfString:@"\n" withString:@""]
+        stringByReplacingOccurrencesOfString:@"\r" withString:@""];
     NSArray *components = [s componentsSeparatedByString:@","];
     NSEnumerator *en = [components objectEnumerator];
     while ((s = [en nextObject])) {
