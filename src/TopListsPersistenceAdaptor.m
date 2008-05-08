@@ -545,13 +545,18 @@ artistComparisonData = nil; \
             continue;
         }
         
+        NSDate *lastPlayed = [[[allSongPlays valueForKeyPath:@"submitted"]
+            sortedArrayUsingSelector:@selector(compare:)] lastObject];
+        lastPlayed = [NSDate dateWithTimeIntervalSince1970:
+            [lastPlayed timeIntervalSince1970] + [[rootObj valueForKey:@"duration"] unsignedIntValue]];
+        
         mAlbum = [rootObj valueForKey:@"album"];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             [rootObj valueForKeyPath:@"artist.name"], @"Artist",
             [allSongPlays valueForKeyPath:@"playCount.@sum.unsignedIntValue"], @"Play Count",
             [allSongPlays valueForKeyPath:@"playTime.@sum.unsignedLongLongValue"], @"Total Duration",
             [rootObj valueForKey:@"name"], @"Track",
-            [rootObj valueForKey:@"lastPlayed"], @"Last Played",
+            lastPlayed, @"Last Played",
             // these can be used to get further info, such as the complete play time history
             [rootObj objectID], @"objectID",
             [allSongPlays valueForKeyPath:@"objectID"], @"sessionInstanceIDs",
