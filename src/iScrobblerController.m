@@ -2726,10 +2726,10 @@ void ISDurationsFromTime(unsigned int tSeconds, unsigned int *days, unsigned int
 void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsigned int *hours,
     unsigned int *minutes, unsigned int *seconds)
 {
-    *days = (unsigned int)(tSeconds / 86400U);
-    *hours = (unsigned int)(tSeconds % 86400U) / 3600U;
-    *minutes = (unsigned int)((tSeconds % 86400U) % 3600U) / 60U;
-    *seconds = (unsigned int)((tSeconds % 86400U) % 3600U) % 60U;
+    *days = (unsigned int)(tSeconds / 86400ULL);
+    *hours = (unsigned int)(tSeconds % 86400ULL) / 3600U;
+    *minutes = (unsigned int)((tSeconds % 86400ULL) % 3600U) / 60U;
+    *seconds = (unsigned int)((tSeconds % 86400ULL) % 3600U) % 60U;
 }
 
 static void iokpm_callback (void *myData, io_service_t service, natural_t message, void *arg)
