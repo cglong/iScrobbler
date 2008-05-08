@@ -1196,7 +1196,7 @@
             message:NSLocalizedString(@"iScrobbler is creating a new local chart, you may see increased CPU usage for the next few minutes.", "")];
         
         NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
-        session = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc];
+        session = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [session setValue:ITEM_SESSION forKey:@"itemType"];
         [session setValue:sname forKey:@"name"];
         NSDate *dbEpoch = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
