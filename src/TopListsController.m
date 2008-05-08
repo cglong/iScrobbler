@@ -133,7 +133,8 @@ static NSMutableArray *topHours = nil;
         return ([NSMutableArray array]);
         
     NSMutableArray *arrangedSessions = [NSMutableArray arrayWithObjects:
-        @"lastfm", @"pastday", @"yesterday", @"pastweek", @"pastmonth", @"past3months", @"pastsixmonths", @"pastyear", @"all", nil];
+        @"lastfm", @"pastday", @"yesterday", @"pastweek", @"monthtodate", @"pastmonth", @"past3months",
+        @"pastsixmonths", @"yeartodate", @"pastyear", @"all", nil];
     NSEnumerator *en = [[persistence allSessions] objectEnumerator];
     id s;
     NSUInteger i;

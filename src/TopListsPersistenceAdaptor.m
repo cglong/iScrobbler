@@ -294,24 +294,35 @@ artistComparisonData = nil; \
     }
 }
 
+- (NSString*)rootNameOfSession:(NSManagedObject*)session
+{
+    // XXX: internal knowledge of archive naming convention
+    NSString *sname = [session valueForKey:@"name"];
+    NSRange r = [sname rangeOfString:@"-"];
+    if (r.location != NSNotFound)
+        return ([sname substringToIndex:r.location]);
+    
+    return (sname);
+}
+
 - (NSDictionary*)artistCountsForSessionPreviousTo:(NSManagedObject*)session
 {
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing thread moc!");
-
+    
+    NSCalendarDate *sEpoch = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
+    NSCalendarDate *sTerm = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"term"] timeIntervalSince1970]];
+    NSInteger limit = (NSInteger)round([sTerm timeIntervalSinceDate:sEpoch] / 86400.0);
+    NSCalendarDate *fromDate = [sEpoch dateByAddingYears:0 months:0 days:-(limit + [sEpoch dayOfWeek])
+        hours:-([sEpoch hourOfDay]) minutes:-([sEpoch minuteOfHour]) seconds:-([sEpoch secondOfMinute])];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:
+        @"(itemType == %@) AND (self != %@) AND (archive != NULL) AND (epoch < %@) AND (epoch >= %@) AND (name BEGINSWITH %@)",
+        ITEM_SESSION, session, [sEpoch GMTDate], [fromDate GMTDate], [self rootNameOfSession:session]];
+    
     NSError *error = nil;
     NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    NSPredicate *predicate;
-    NSCalendarDate *now = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
-    // just before midnight of the first day of the current week
-    NSInteger limit = 1;
-    NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
-        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-(ABS([now secondOfMinute] - 2))];
-    // XXX: we only archive lastfm weeklies currently, but if that changes then we need a '(name contains)' condition 
-    predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (self != %@) AND (archive != NULL) AND (epoch < %@) AND (epoch > %@)",
-        ITEM_SESSION, session, [now GMTDate], [fromDate GMTDate]];
     [request setPredicate:predicate];
     LEOPARD_BEGIN
     [request setReturnsObjectsAsFaults:NO];
@@ -650,9 +661,11 @@ loadExit:
     if (cancelLoad > 0)
         goto loadExit;
     
-    // Attempt to get the data to compute artist movements. We only do this for archived last.fm sessions.
+    // Attempt to get the data to compute artist movements. We only do this for archived time-bounded sessions.
     NSDictionary *artistComparison;
-    if (nil != [session valueForKey:@"archive"] && [[session valueForKey:@"name"] hasPrefix:@"lastfm"]) {
+    NSString *sname = [session valueForKey:@"name"];
+    if (nil != [session valueForKey:@"archive"]
+        && ([sname hasPrefix:@"lastfm"] || [sname hasPrefix:@"monthtodate"] || [sname hasPrefix:@"yeartodate"])) {
         artistComparison = [self artistCountsForSessionPreviousTo:session];
     } else
         artistComparison = nil;

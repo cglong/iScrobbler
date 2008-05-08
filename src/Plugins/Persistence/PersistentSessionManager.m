@@ -31,6 +31,8 @@
 - (void)addSongPlaysDidFinish:(id)obj;
 - (id)storeMetadataForKey:(NSString*)key moc:(NSManagedObjectContext*)moc;
 - (void)setStoreMetadata:(id)object forKey:(NSString*)key moc:(NSManagedObjectContext*)moc;
+- (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg;
+- (void)displayWarningWithTitle:(NSString*)title message:(NSString*)msg;
 @end
 
 @interface PersistentSessionManager (Private)
@@ -66,13 +68,17 @@
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     NSPredicate *predicate;
+    BOOL fetchFixedPeriodArchives = NO;
+    NSCalendarDate *fromDate;
+    NSCalendarDate *now = [NSCalendarDate date];
     if (limit > 0) {
-        NSCalendarDate *now = [NSCalendarDate date];
         // just before midnight of the first day of the current week
-        NSCalendarDate *fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
-            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-(ABS([now secondOfMinute] - 2))];
-        predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL) AND (epoch > %@)",
-            ITEM_SESSION, [fromDate GMTDate]];
+        fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
+            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        predicate = [NSPredicate predicateWithFormat:
+            @"(itemType == %@) AND (archive != NULL) AND (epoch >= %@) AND (name BEGINSWITH %@)",
+            ITEM_SESSION, [fromDate GMTDate], @"lastfm"];
+        fetchFixedPeriodArchives = YES;
     } else
         predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL)", ITEM_SESSION];
     [request setPredicate:predicate];
@@ -83,6 +89,35 @@
     [[moc persistentStoreCoordinator] lock];
     NSArray *results = [moc executeFetchRequest:request error:&error];
     [[moc persistentStoreCoordinator] unlock];
+    
+    if (fetchFixedPeriodArchives) {
+        fromDate = [now dateByAddingYears:0 months:0 days:-([now dayOfMonth])
+            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        predicate = [NSPredicate predicateWithFormat:
+            @"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (name BEGINSWITH %@)",
+            ITEM_SESSION, [fromDate GMTDate], @"monthtodate"];
+        [request setPredicate:predicate];
+        NSArray *mtdArchives = [moc executeFetchRequest:request error:&error];
+        if ([mtdArchives count] > 0) {
+            mtdArchives = [results sortedArrayUsingDescriptors:
+                [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
+            results = [results arrayByAddingObject:[mtdArchives objectAtIndex:0]];
+        }
+    
+        fromDate = [now dateByAddingYears:0 months:-([now monthOfYear]-1) days:-([now dayOfMonth])
+            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        predicate = [NSPredicate predicateWithFormat:
+            @"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (name BEGINSWITH %@)",
+            ITEM_SESSION, [fromDate GMTDate], @"yeartodate"];
+        [request setPredicate:predicate];
+        NSArray *ytdArchives = [moc executeFetchRequest:request error:&error];
+        if ([ytdArchives count] > 0) {
+            ytdArchives = [results sortedArrayUsingDescriptors:
+                [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
+            results = [results arrayByAddingObject:[ytdArchives objectAtIndex:0]];
+        }
+    }
+    
     return (results);
 }
 
@@ -1147,6 +1182,104 @@
     }
 }
 
+#if IS_STORE_V2
+- (BOOL)updateFixedPeriodSession:(NSDictionary*)args moc:(NSManagedObjectContext*)moc
+{
+    NSString *sname = [args objectForKey:@"name"];
+    NSCalendarDate *epoch = [args objectForKey:@"epoch"];
+    NSCalendarDate *term = [args objectForKey:@"term"];
+    
+    NSManagedObject *session;
+    if (nil == (session = [self sessionWithName:sname moc:moc])) {
+        [[PersistentProfile sharedInstance] displayWarningWithTitle:
+            NSLocalizedString(@"Local Chart Creation", "")
+            message:NSLocalizedString(@"iScrobbler is creating a new local chart, you may see increased CPU usage for the next few minutes.", "")];
+        
+        NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
+        session = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc];
+        [session setValue:ITEM_SESSION forKey:@"itemType"];
+        [session setValue:sname forKey:@"name"];
+        NSDate *dbEpoch = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
+        if ([dbEpoch isGreaterThan:epoch])
+            epoch = [NSCalendarDate dateWithTimeIntervalSince1970:[dbEpoch timeIntervalSince1970]];
+        [session setValue:epoch forKey:@"epoch"];
+        [session setValue:term forKey:@"term"];
+        [session setValue:[args objectForKey:@"localizedName"] forKey:@"localizedName"];
+        
+        // add in songs from current year
+        entity = [NSEntityDescription entityForName:@"PSessionSong" inManagedObjectContext:moc];
+        NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
+        [request setEntity:entity];
+        NSManagedObject *obj = [self sessionWithName:@"pastyear" moc:moc];
+        [request setPredicate:
+            [NSPredicate predicateWithFormat:@"(session = %@) AND (submitted >= %@)", obj, [epoch GMTDate]]];
+        [request setReturnsObjectsAsFaults:NO];
+        [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", nil]];
+        
+        NSError *error = nil;
+        NSManagedObject *sessionSong;
+        NSArray *results = [moc executeFetchRequest:request error:&error];
+        ScrobLog(SCROB_LOG_TRACE, @"Importing %lu songs into %@ session", [results count], sname);
+        for (obj in results) {
+            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+            
+            sessionSong = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
+            [sessionSong setValue:ITEM_SONG forKey:@"itemType"];
+            [sessionSong setValue:[obj valueForKey:@"item"] forKey:@"item"];
+            [sessionSong setValue:[obj valueForKey:@"submitted"] forKey:@"submitted"];
+            [sessionSong setValue:[obj valueForKey:@"rating"] forKey:@"rating"];
+            [sessionSong setValue:[obj valueForKey:@"playCount"] forKey:@"playCount"];
+            [sessionSong setValue:[obj valueForKey:@"playTime"] forKey:@"playTime"];
+            
+            if (![self addSessionSong:sessionSong toSession:session moc:moc]) 
+                [moc deleteObject:sessionSong];
+            
+            [pool release];
+        }
+        
+        return (YES);
+    } else if ([[epoch GMTDate] isGreaterThan:[[session valueForKey:@"term"] GMTDate]]) {
+        // archive and return
+        [self destroySession:session archive:YES newEpoch:epoch moc:moc];
+        // fetch the newly created session
+        session = [self sessionWithName:sname moc:moc];
+        ISASSERT(session != nil, "missing session!");
+        [session setValue:term forKey:@"term"];
+        return (YES);
+    } else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
+        // this could occcur if a time zone switch occurs
+        [session setValue:term forKey:@"term"];
+        return (YES);
+    }
+    
+    return (NO);
+}
+
+- (BOOL)updateMonthToDateSessionWithEpoch:(NSCalendarDate*)epoch moc:(NSManagedObjectContext*)moc
+{
+    NSCalendarDate *term = [epoch dateByAddingYears:0 months:1 days:0 hours:0 minutes:0 seconds:-1];
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+        epoch, @"epoch",
+        term, @"epoch",
+        @"monthtodate", @"name",
+        NSLocalizedString(@"Month-to-date", ""), @"localizedName",
+        nil];
+    [self updateFixedPeriodSession:args moc:moc];
+}
+
+- (BOOL)updateYearToDateSessionWithEpoch:(NSCalendarDate*)epoch moc:(NSManagedObjectContext*)moc
+{
+    NSCalendarDate *term = [epoch dateByAddingYears:1 months:0 days:0 hours:0 minutes:0 seconds:-1];
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+        epoch, @"epoch",
+        term, @"epoch",
+        @"yeartodate", @"name",
+        NSLocalizedString(@"Year-to-date", ""), @"localizedName",
+        nil];
+    [self updateFixedPeriodSession:args moc:moc];
+}
+#endif // IS_STORE_V2
+
 - (void)updateSessions:(NSTimer*)t
 {
     if (!t)
@@ -1194,6 +1327,18 @@
     NSCalendarDate *lastYear = [midnight dateByAddingYears:-1 months:0 days:0 hours:0 minutes:0 seconds:0];
     if ([self removeSongsBefore:lastYear inSession:@"pastyear" moc:moc])
         didRemove = YES;
+    
+    #if IS_STORE_V2
+    NSCalendarDate *mtd = [midnight dateByAddingYears:0
+        months:0 days:-([midnight dayOfMonth]-1) hours:0 minutes:0 seconds:0];
+    if ([self updateMonthToDateSessionWithEpoch:mtd moc:moc])
+        didRemove = YES;
+    
+    NSCalendarDate *ytd = [midnight dateByAddingYears:0
+        months:-([midnight monthOfYear]-1) days:-([midnight dayOfMonth]-1) hours:0 minutes:0 seconds:0];
+    if ([self updateYearToDateSessionWithEpoch:ytd moc:moc])
+        didRemove = YES;
+    #endif
     
 #ifndef REAP_DEBUG
     midnight = [midnight dateByAddingYears:0 months:0 days:0 hours:24 minutes:0 seconds:0];
