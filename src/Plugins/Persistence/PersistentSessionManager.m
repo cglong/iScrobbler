@@ -71,12 +71,13 @@
     BOOL fetchFixedPeriodArchives = NO;
     NSCalendarDate *fromDate;
     NSCalendarDate *now = [NSCalendarDate date];
+    now = [now dateByAddingYears:0 months:0 days:0
+        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
     if (limit > 0) {
         // just before midnight of the first day of the current week
-        fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek])
-            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek]) hours:0 minutes:0 seconds:-1];
         predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (archive != NULL) AND (epoch >= %@) AND (name BEGINSWITH %@)",
+            @"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (name BEGINSWITH %@)",
             ITEM_SESSION, [fromDate GMTDate], @"lastfm"];
         fetchFixedPeriodArchives = YES;
     } else
@@ -91,31 +92,48 @@
     [[moc persistentStoreCoordinator] unlock];
     
     if (fetchFixedPeriodArchives) {
-        fromDate = [now dateByAddingYears:0 months:0 days:-([now dayOfMonth])
-            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        fromDate = [now dateByAddingYears:0 months:0 days:-([now dayOfMonth]-1) hours:0 minutes:0 seconds:-10];
         predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (name BEGINSWITH %@)",
+            @"(itemType == %@) AND (archive != NULL) AND (term > %@) AND (name BEGINSWITH %@)",
             ITEM_SESSION, [fromDate GMTDate], @"monthtodate"];
         [request setPredicate:predicate];
         NSArray *mtdArchives = [moc executeFetchRequest:request error:&error];
         if ([mtdArchives count] > 0) {
-            mtdArchives = [results sortedArrayUsingDescriptors:
+            mtdArchives = [mtdArchives sortedArrayUsingDescriptors:
                 [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
             results = [results arrayByAddingObject:[mtdArchives objectAtIndex:0]];
         }
+        #ifdef ISDEBUG
+        else {
+            predicate = [NSPredicate predicateWithFormat:
+                @"(itemType == %@) AND (archive != NULL) AND (name BEGINSWITH %@)",
+                ITEM_SESSION, @"monthtodate"];
+            [request setPredicate:predicate];
+            mtdArchives = [moc executeFetchRequest:request error:&error];
+        }
+        #endif
     
-        fromDate = [now dateByAddingYears:0 months:-([now monthOfYear]-1) days:-([now dayOfMonth])
-            hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+        fromDate = [now dateByAddingYears:0 months:-([now monthOfYear]-1) days:-([now dayOfMonth]-1)
+            hours:0 minutes:0 seconds:-10];
         predicate = [NSPredicate predicateWithFormat:
-            @"(itemType == %@) AND (archive != NULL) AND (epoch > %@) AND (name BEGINSWITH %@)",
+            @"(itemType == %@) AND (archive != NULL) AND (term > %@) AND (name BEGINSWITH %@)",
             ITEM_SESSION, [fromDate GMTDate], @"yeartodate"];
         [request setPredicate:predicate];
         NSArray *ytdArchives = [moc executeFetchRequest:request error:&error];
         if ([ytdArchives count] > 0) {
-            ytdArchives = [results sortedArrayUsingDescriptors:
+            ytdArchives = [ytdArchives sortedArrayUsingDescriptors:
                 [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
             results = [results arrayByAddingObject:[ytdArchives objectAtIndex:0]];
         }
+        #ifdef ISDEBUG
+        else {
+            predicate = [NSPredicate predicateWithFormat:
+                @"(itemType == %@) AND (archive != NULL) AND (name BEGINSWITH %@)",
+                ITEM_SESSION, @"yeartodate"];
+            [request setPredicate:predicate];
+            ytdArchives = [moc executeFetchRequest:request error:&error];
+        }
+        #endif
     }
     
     return (results);
@@ -500,11 +518,43 @@
     return (updated);
 }
 
+- (BOOL)archiveSession:(NSManagedObject*)session epoch:(NSDate*)newEpoch moc:(NSManagedObjectContext*)moc
+{
+    ISASSERT(nil == [session valueForKey:@"archive"], "session is already archived!");
+    @try {
+    
+    NSString *archiveName = [[session valueForKey:@"name"] stringByAppendingFormat:@"-%@", [session valueForKey:@"epoch"]];
+    [session setValue:archiveName forKey:@"name"];
+    NSCalendarDate *sDate = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
+    archiveName = [NSString stringWithFormat:@"%@: %@ (%@)", NSLocalizedString(@"Archive", @""),
+        [session valueForKey:@"localizedName"],
+        [sDate descriptionWithCalendarFormat:@"%a, %Y-%m-%d"]];
+    [session setValue:archiveName forKey:@"localizedName"];
+    if (newEpoch) {
+        sDate = [NSCalendarDate dateWithTimeIntervalSince1970:[newEpoch timeIntervalSince1970]-1.0];
+        [session setValue:sDate forKey:@"term"];
+    }
+    
+    } @catch (NSException *e) {
+        ScrobTrace(@"exception: %@", e);
+        return (NO);
+    }
+    
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionArchive" inManagedObjectContext:moc];
+    NSManagedObject *obj = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc];
+    [session setValue:obj forKey:@"archive"];
+    [obj setValue:[NSDate date] forKey:@"created"];
+    [obj release];
+    
+    return (YES);
+}
+
 - (void)destroySession:(NSManagedObject*)session archive:(BOOL)archive newEpoch:(NSDate*)newEpoch moc:(NSManagedObjectContext*)moc
 {
     NSString *sessionName = [[[session valueForKey:@"name"] retain] autorelease];
     if (archive) {
         [[moc persistentStoreCoordinator] lock];
+        
         // Create a new session to replace the one being archived
         NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSession" inManagedObjectContext:moc];
         id obj = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc];
@@ -514,30 +564,14 @@
         [obj setValue:[session valueForKey:@"localizedName"] forKey:@"localizedName"];
         [obj release];
         
-        // Archive the old session
-        ISASSERT(nil == [session valueForKey:@"archive"], "session is already archived!");
-        @try {
+        BOOL good = [self archiveSession:session epoch:newEpoch moc:moc];
         
-        NSString *archiveName = [sessionName stringByAppendingFormat:@"-%@", [session valueForKey:@"epoch"]];
-        [session setValue:archiveName forKey:@"name"];
-        NSCalendarDate *sDate = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
-        archiveName = [NSString stringWithFormat:@"%@: %@ (%@)", NSLocalizedString(@"Archive", @""),
-            [session valueForKey:@"localizedName"],
-            [sDate descriptionWithCalendarFormat:@"%a, %Y-%m-%d"]];
-        [session setValue:archiveName forKey:@"localizedName"];
-        sDate = [NSCalendarDate dateWithTimeIntervalSince1970:[newEpoch timeIntervalSince1970]-1.0];
-        [session setValue:sDate forKey:@"term"];
-        
-        } @catch (id e) {
-            ScrobTrace(@"exception: %@", e);
-        }
-        
-        entity = [NSEntityDescription entityForName:@"PSessionArchive" inManagedObjectContext:moc];
-        obj = [[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc];
-        [session setValue:obj forKey:@"archive"];
-        [obj setValue:[NSDate date] forKey:@"created"];
-        [obj release];
         [[moc persistentStoreCoordinator] unlock];
+        
+        if (!good) {
+            [moc rollback];
+            return;
+        }
         
         // we've replaced a session object, it's important other threads and class clients are notified ASAP
         [[PersistentProfile sharedInstance] save:moc withNotification:NO];
@@ -1188,6 +1222,7 @@
     NSString *sname = [args objectForKey:@"name"];
     NSCalendarDate *epoch = [args objectForKey:@"epoch"];
     NSCalendarDate *term = [args objectForKey:@"term"];
+    ISASSERT(sname && epoch && term, "invalid args!");
     
     NSManagedObject *session;
     if (nil == (session = [self sessionWithName:sname moc:moc])) {
@@ -1212,7 +1247,8 @@
         [request setEntity:entity];
         NSManagedObject *obj = [self sessionWithName:@"pastyear" moc:moc];
         [request setPredicate:
-            [NSPredicate predicateWithFormat:@"(session = %@) AND (submitted >= %@)", obj, [epoch GMTDate]]];
+            [NSPredicate predicateWithFormat:@"(session = %@) AND (submitted >= %@) AND (submitted <= %@)",
+            obj, [epoch GMTDate], [term GMTDate]]];
         [request setReturnsObjectsAsFaults:NO];
         [request setRelationshipKeyPathsForPrefetching:[NSArray arrayWithObjects:@"item", nil]];
         
@@ -1260,11 +1296,11 @@
     NSCalendarDate *term = [epoch dateByAddingYears:0 months:1 days:0 hours:0 minutes:0 seconds:-1];
     NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
         epoch, @"epoch",
-        term, @"epoch",
+        term, @"term",
         @"monthtodate", @"name",
         NSLocalizedString(@"Month-to-date", ""), @"localizedName",
         nil];
-    [self updateFixedPeriodSession:args moc:moc];
+    return ([self updateFixedPeriodSession:args moc:moc]);
 }
 
 - (BOOL)updateYearToDateSessionWithEpoch:(NSCalendarDate*)epoch moc:(NSManagedObjectContext*)moc
@@ -1272,11 +1308,11 @@
     NSCalendarDate *term = [epoch dateByAddingYears:1 months:0 days:0 hours:0 minutes:0 seconds:-1];
     NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
         epoch, @"epoch",
-        term, @"epoch",
+        term, @"term",
         @"yeartodate", @"name",
         NSLocalizedString(@"Year-to-date", ""), @"localizedName",
         nil];
-    [self updateFixedPeriodSession:args moc:moc];
+    return ([self updateFixedPeriodSession:args moc:moc]);
 }
 #endif // IS_STORE_V2
 
