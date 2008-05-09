@@ -131,19 +131,19 @@ static NSMutableArray *topHours = nil;
 {
     if (!persistenceTh || ![persistenceTh isKindOfClass:[ISThreadMessenger class]])
         return ([NSMutableArray array]);
-        
+    
+    PersistentSessionManager *psm = [persistence sessionManager];
+    NSManagedObjectContext *moc = [persistence valueForKey:@"mainMOC"];
+    
     NSMutableArray *arrangedSessions = [NSMutableArray arrayWithObjects:
         @"lastfm", @"pastday", @"yesterday", @"pastweek", @"monthtodate", @"pastmonth", @"past3months",
         @"pastsixmonths", @"yeartodate", @"pastyear", @"all", nil];
-    NSEnumerator *en = [[persistence allSessions] objectEnumerator];
+    NSEnumerator *en = [[psm activeSessionsWithMOC:moc] objectEnumerator];
     id s;
     NSUInteger i;
-    NSMutableArray *archivedSessions = [NSMutableArray array];
     while ((s = [en nextObject])) {
         if (NSNotFound != (i = [arrangedSessions indexOfObject:[s valueForKey:@"name"]]))
             [arrangedSessions replaceObjectAtIndex:i withObject:s];
-        else if (nil != [s valueForKey:@"archive"])
-            [archivedSessions addObject:s];
     }
     
     // make sure we only return actual session objects
@@ -156,6 +156,7 @@ static NSMutableArray *topHours = nil;
     [arrangedSessions removeObjectsInArray:rem];
     
     // finally, sort the archived sessions by ascending date and then add them
+    NSArray *archivedSessions = [psm archivedSessionsWithMOC:moc weekLimit:10];
     if ([archivedSessions count] > 0) {
         #ifdef notyet
         // this works, but the item is selectable and I'm not sure how to make it not selectable
@@ -163,11 +164,8 @@ static NSMutableArray *topHours = nil;
         [arrangedSessions addObject:[NSDictionary dictionaryWithObject:[[NSMenuItem separatorItem] title] forKey:@"localizedName"]];
         #endif
         
-        [archivedSessions sortUsingDescriptors:
+        archivedSessions = [archivedSessions sortedArrayUsingDescriptors:
             [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
-        if ([archivedSessions count] > 10) { // make into a pref?
-            [archivedSessions removeObjectsInRange:NSMakeRange(10, [archivedSessions count]-10)];
-        }
         [arrangedSessions addObjectsFromArray:archivedSessions];
     }
     
