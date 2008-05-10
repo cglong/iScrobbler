@@ -307,6 +307,8 @@
     
     NSString *importFilePath = [importArgs objectForKey:@"xmlFile"];
     PersistentSessionManager *smgr = [profile sessionManager];
+    [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISWillImportiTunesLibrary" moc:moc];
+    
     #if IS_STORE_V2
     if (importFilePath) {
         // we are going to assume that this is an import of an XML dump from a failed migration, so
@@ -322,7 +324,6 @@
     }
     #endif
     
-    [profile setStoreMetadata:[NSNumber numberWithBool:YES] forKey:@"ISWillImportiTunesLibrary" moc:moc];
     [profile setImportInProgress:YES];
     @try {
     

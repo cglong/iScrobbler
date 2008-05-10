@@ -1226,7 +1226,8 @@
     
     NSManagedObject *session;
     if (nil == (session = [self sessionWithName:sname moc:moc])) {
-        [[PersistentProfile sharedInstance] displayWarningWithTitle:
+        PersistentProfile *profile = [PersistentProfile sharedInstance];
+        [profile displayWarningWithTitle:
             NSLocalizedString(@"Local Chart Creation", "")
             message:NSLocalizedString(@"iScrobbler is creating a new local chart, you may see increased CPU usage for the next few minutes.", "")];
         
@@ -1234,9 +1235,12 @@
         session = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [session setValue:ITEM_SESSION forKey:@"itemType"];
         [session setValue:sname forKey:@"name"];
-        NSDate *dbEpoch = [[PersistentProfile sharedInstance] storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
-        if ([dbEpoch isGreaterThan:epoch])
-            epoch = [NSCalendarDate dateWithTimeIntervalSince1970:[dbEpoch timeIntervalSince1970]];
+        BOOL importing = [[profile storeMetadataForKey:@"ISWillImportiTunesLibrary" moc:moc] boolValue];
+        if (NO == importing) {
+            NSDate *dbEpoch = [profile storeMetadataForKey:(NSString*)kMDItemContentCreationDate moc:moc];
+            if ([dbEpoch isGreaterThan:epoch])
+                epoch = [NSCalendarDate dateWithTimeIntervalSince1970:[dbEpoch timeIntervalSince1970]];
+        }
         [session setValue:epoch forKey:@"epoch"];
         [session setValue:term forKey:@"term"];
         [session setValue:[args objectForKey:@"localizedName"] forKey:@"localizedName"];
@@ -1385,15 +1389,17 @@
     sUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[midnight timeIntervalSinceNow]
         target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
     
-    (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
-    if (didRemove) {
+    PersistentProfile *profile = [PersistentProfile sharedInstance];
+    (void)[profile save:moc withNotification:NO];
+    BOOL importing = [[profile storeMetadataForKey:@"ISWillImportiTunesLibrary" moc:moc] boolValue];
+    if (didRemove && !importing) {
         [[PersistentProfile sharedInstance] backupDatabase];
         @try {
         [moc reset];
         } @catch (NSException *e) {
             ScrobLog(SCROB_LOG_WARN, @"updateSessions: exception during reset: %@", e);
         }
-        [[PersistentProfile sharedInstance] performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
+        [profile performSelectorOnMainThread:@selector(resetMain) withObject:nil waitUntilDone:NO];
     }
 }
 
