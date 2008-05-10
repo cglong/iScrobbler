@@ -419,10 +419,6 @@ artistComparisonData = nil; \
     BOOL isV2 = [persistence isVersion2];
     NSDate *firstPlayed;
     while ((mobj = [en nextObject])) {
-        OSMemoryBarrier();
-        if ((loadCanceled = (cancelLoad > 0)))
-            break;
-        
         secs = [[mobj valueForKey:@"playTime"] unsignedLongLongValue];
         ISDurationsFromTime64(secs, &days, &hours, &minutes, &seconds);
         playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
@@ -447,6 +443,10 @@ artistComparisonData = nil; \
             [entryPool release];
             entryPool = [[NSAutoreleasePool alloc] init];
             chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
+            
+            OSMemoryBarrier();
+            if ((loadCanceled = (cancelLoad > 0)))
+                break;
         }
     }
     if (!loadCanceled && [chartEntries count] > 0)
@@ -472,11 +472,7 @@ artistComparisonData = nil; \
     entryPool = [[NSAutoreleasePool alloc] init];
     chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK]; // alloc in loop pool!
     i = 0;
-    while ((mobj = [en nextObject])) {
-        OSMemoryBarrier();
-        if ((loadCanceled = (cancelLoad > 0)))
-            break;
-        
+    while ((mobj = [en nextObject])) {        
         secs = [[mobj valueForKey:@"playTime"] unsignedLongLongValue];
         ISDurationsFromTime64(secs, &days, &hours, &minutes, &seconds);
         playTime = [NSString stringWithFormat:PLAY_TIME_FORMAT, days, hours, minutes, seconds];
@@ -498,6 +494,10 @@ artistComparisonData = nil; \
             [entryPool release];
             entryPool = [[NSAutoreleasePool alloc] init];
             chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
+            
+            OSMemoryBarrier();
+            if ((loadCanceled = (cancelLoad > 0)))
+                break;
         }
     }
     if (!loadCanceled && [chartEntries count] > 0)
@@ -525,6 +525,7 @@ artistComparisonData = nil; \
     sessionSongs = [moc executeFetchRequest:request error:&error];
     [request setSortDescriptors:nil];
     
+    BOOL overallSession = [@"all" isEqualToString:[session valueForKey:@"name"]];
     NSManagedObject *mAlbum;
     NSMutableArray *allSongPlays = [NSMutableArray array]; // alloc outside of loop pool!
     // tracks however, have a session entry for each play and the GUI displays all track plays merged as one
@@ -535,20 +536,20 @@ artistComparisonData = nil; \
     i = 1;
     [allSongPlays addObject:[en nextObject]];
     while ((mobj = [en nextObject])) {
-        OSMemoryBarrier();
-        if ((loadCanceled = (cancelLoad > 0)))
-            break;
-        
         rootObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
         if ([[mobj valueForKey:@"item"] isEqualTo:rootObj]) {
             [allSongPlays addObject:mobj];
             continue;
         }
         
-        NSDate *lastPlayed = [[[allSongPlays valueForKeyPath:@"submitted"]
-            sortedArrayUsingSelector:@selector(compare:)] lastObject];
-        lastPlayed = [NSDate dateWithTimeIntervalSince1970:
-            [lastPlayed timeIntervalSince1970] + [[rootObj valueForKey:@"duration"] unsignedIntValue]];
+        NSDate *lastPlayed;
+        if (!overallSession) {
+            lastPlayed = [[[allSongPlays valueForKeyPath:@"submitted"]
+                sortedArrayUsingSelector:@selector(compare:)] lastObject];
+            lastPlayed = [NSDate dateWithTimeIntervalSince1970:
+                [lastPlayed timeIntervalSince1970] + [[rootObj valueForKey:@"duration"] unsignedIntValue]];
+        } else
+            lastPlayed = [rootObj valueForKey:@"lastPlayed"];
         
         mAlbum = [rootObj valueForKey:@"album"];
         entry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -573,6 +574,10 @@ artistComparisonData = nil; \
             [entryPool release];
             entryPool = [[NSAutoreleasePool alloc] init];
             chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK];
+            
+            OSMemoryBarrier();
+            if ((loadCanceled = (cancelLoad > 0)))
+                break;
         }
     }
     if ([allSongPlays count] > 0) {
