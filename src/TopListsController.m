@@ -1399,7 +1399,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     NSDate *startDate = [[self selectedSession] valueForKey:@"epoch"];
     NSDate *endDate;
     NSManagedObject *session = [self currentSession];
-    if (!(endDate = [session valueForKey:@"term"]))
+    if (!(endDate = [session valueForKey:@"term"]) || [endDate isGreaterThan:[NSDate date]])
         endDate = [NSDate date];
     
     NSTimeInterval elapsedSeconds =  [endDate timeIntervalSince1970] - [startDate timeIntervalSince1970];
