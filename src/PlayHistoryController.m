@@ -260,7 +260,21 @@ static PlayHistoryController *sharedController = nil;
     if (currentTrackInfo && [oid isEqualTo:[currentTrackInfo objectForKey:@"objectID"]]) {
         NSManagedObject *obj = [moc objectRegisteredForID:oid];
         [obj refreshSelf];
-        [self loadHistoryForTrack:[[currentTrackInfo retain] autorelease]];
+        
+        @try {
+        
+        NSString *what = [[note userInfo] objectForKey:@"what"];
+        if (!what || NO == [what isEqualToString:@"remove"]) {
+            [self loadHistoryForTrack:[[currentTrackInfo retain] autorelease]];
+        } else {
+            NSMutableDictionary *trackInfo = [[currentTrackInfo mutableCopy] autorelease];
+            [trackInfo removeObjectForKey:@"objectID"];
+            [self loadHistoryForTrack:trackInfo];
+        }
+        
+        } @catch (NSException *e) {
+            ScrobDebug(@"exception: %@", e);
+        }
     }
 }
 
