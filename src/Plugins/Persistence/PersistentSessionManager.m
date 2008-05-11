@@ -2035,6 +2035,7 @@
 }
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(ISDEBUG)
+// XXX: this needs further review, there may be issues with session albums
 - (NSError*)mergeObject:(NSManagedObjectID*)fromID intoObject:(NSManagedObjectID*)toID mergeCounts:(NSNumber*)mergeCounts
 {
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
@@ -2103,13 +2104,17 @@
             if ((sAlbum = [self sessionAlbumForSessionSong:event])) {
                 [sAlbum decrementPlayCount:eventPlaycount];
                 [sAlbum decrementPlayTime:[event valueForKey:@"playTime"]];
+                if (0 == [[sAlbum valueForKey:@"playCount"] unsignedIntValue]) {
+                    ISASSERT(0 == [[sAlbum valueForKey:@"playTime"] unsignedIntValue], "invalid playTime!");
+                    [moc deleteObject:sAlbum];
+                }
             }
         }
         
         [event setValue:to forKey:@"item"];
         
         if (newAlbum) {
-            if ((sAlbum != [self sessionAlbumForSessionSong:event])) {
+            if (nil == (sAlbum = [self sessionAlbumForSessionSong:event])) {
                 // there's no alias for the "new" album, we have to create it
                 NSEntityDescription *entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
                 sAlbum = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
