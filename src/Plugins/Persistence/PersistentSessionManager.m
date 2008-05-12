@@ -604,6 +604,11 @@
     ISASSERT([filterResults count] <= 1, "mulitple session albums!");
     NSManagedObject *sAlbum;
     if ([filterResults count] > 0) {
+        if ([filterResults count] > 1) {
+            ScrobLog(SCROB_LOG_WARN, @"Multiple session entries found for album '%@'", [sessionSong valueForKeyPath:@"item.album.name"]);
+            filterResults = [filterResults sortedArrayUsingDescriptors:
+                [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"playCount" ascending:YES] autorelease]]];
+        }
         sAlbum = [filterResults objectAtIndex:0];
         ISASSERT([[sAlbum valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.album.name"]], "album names don't match!");
         ISASSERT([[sAlbum valueForKeyPath:@"item.artist.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
@@ -1643,23 +1648,12 @@
     [artist incrementPlayTimeWithObject:sessionSong];
     
     if ([sessionSong valueForKeyPath:@"item.album"]) {
-        // Update the album
-        aliases = [sessionSong valueForKeyPath:@"item.album.sessionAliases"];
-        result = [[aliases allObjects] filteredArrayUsingPredicate:
-            [NSPredicate predicateWithFormat:@"session.name == %@", sessionName]];
-        if (1 == [result count]) {
-            album = [result objectAtIndex:0];
-            ISASSERT([[album valueForKeyPath:@"item.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.album.name"]], "album names don't match!");
-            ISASSERT([[album valueForKeyPath:@"item.artist.name"] isEqualTo:[sessionSong valueForKeyPath:@"item.artist.name"]], "artist names don't match!");
-        } else if (0 == [result count]) {
+        if (!(album = [self sessionAlbumForSessionSong:sessionSong])) {
             entity = [NSEntityDescription entityForName:@"PSessionAlbum" inManagedObjectContext:moc];
             album = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
             [album setValue:ITEM_ALBUM forKey:@"itemType"];
             [album setValue:[sessionSong valueForKeyPath:@"item.album"] forKey:@"item"];
             [album setValue:session forKey:@"session"];
-        } else {
-            ISASSERT(0, "multiple artist albums found in session!");
-            @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"multiple session albums!" userInfo:nil]);
         }
         
         [album incrementPlayCountWithObject:sessionSong];
