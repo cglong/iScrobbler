@@ -39,9 +39,6 @@ enum {
     kTBItemDisabledForFeedback    = 0x00000008,
 };
 
-// From iScrobblerController.m
-void ISDurationsFromTime(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
-
 static TopListsController *g_topLists = nil;
 static NSMutableDictionary *topRatings = nil;
 static NSMutableDictionary *artistComparisonData = nil;
