@@ -177,7 +177,8 @@ int main(int argc, const char *argv[])
 
 @end
 
-void ISDurationsFromTime64(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
+void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsigned int *hours,
+    unsigned int *minutes, unsigned int *seconds);
 
 @implementation ISSessionStatsToString
 
@@ -199,14 +200,14 @@ void ISDurationsFromTime64(unsigned int, unsigned int*, unsigned int*, unsigned 
     
     NSNumber *playCount = [value valueForKey:@"playCount"];
     NSNumber *playTime = [value valueForKey:@"playTime"];
-    unsigned days, hours, mins, secs;
-    ISDurationsFromTime64([playTime unsignedLongLongValue], &days, &hours, &mins, &secs);
+    unsigned int days, hours, minutes, seconds;
+    ISDurationsFromTime64([playTime unsignedLongLongValue], &days, &hours, &minutes, &seconds);
     NSString *timeStr = [NSString stringWithFormat:@"%u %@, %u:%02u",
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
-        hours, mins];
+        hours, minutes];
     
     NSString *s = [NSString stringWithFormat:NSLocalizedString(@"%@ tracks played for %@", "session play count and time"),
-            playCount, timeStr];
+        playCount, timeStr];
     return (s);
 }
 
