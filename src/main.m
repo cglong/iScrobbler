@@ -40,6 +40,10 @@
 }
 @end
 
+@interface ISSessionStatsToString : NSValueTransformer {
+}
+@end
+
 int main(int argc, const char *argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -52,6 +56,9 @@ int main(int argc, const char *argv[])
     
     [NSValueTransformer setValueTransformer:[[[ISSessionDatesToString alloc] init] autorelease]
         forName:@"ISDateToString"];
+    
+    [NSValueTransformer setValueTransformer:[[[ISSessionStatsToString alloc] init] autorelease]
+        forName:@"ISSessionStatsToString"];
     
     #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
     if (sandbox_init)
@@ -165,6 +172,41 @@ int main(int argc, const char *argv[])
     else
         s = [NSString stringWithFormat:NSLocalizedString(@"Since %@", "session date range"),
             [dateFormat stringFromDate:epoch]];
+    return (s);
+}
+
+@end
+
+void ISDurationsFromTime64(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*);
+
+@implementation ISSessionStatsToString
+
++ (Class)transformedValueClass
+{
+    return [NSString class];
+}
+
++ (BOOL)allowsReverseTransformation
+{
+    return (NO);   
+}
+
+- (id)transformedValue:(id)value
+{
+    NSDate *epoch = [value valueForKey:@"epoch"];
+    if (NO == [epoch isKindOfClass:[NSDate class]])
+        return (@"");
+    
+    NSNumber *playCount = [value valueForKey:@"playCount"];
+    NSNumber *playTime = [value valueForKey:@"playTime"];
+    unsigned days, hours, mins, secs;
+    ISDurationsFromTime64([playTime unsignedLongLongValue], &days, &hours, &mins, &secs);
+    NSString *timeStr = [NSString stringWithFormat:@"%u %@, %u:%02u",
+        days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
+        hours, mins];
+    
+    NSString *s = [NSString stringWithFormat:NSLocalizedString(@"%@ tracks played for %@", "session play count and time"),
+            playCount, timeStr];
     return (s);
 }
 
