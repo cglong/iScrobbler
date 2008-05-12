@@ -1207,6 +1207,7 @@ So for now, this is disabled.
 #ifdef ISDEBUG
 - (void)log:(NSString*)msg
 {
+    msg = [msg stringByAppendingString:@"\n"];
     [mLog writeData:[msg dataUsingEncoding:NSUTF8StringEncoding]];
 }
 #endif
