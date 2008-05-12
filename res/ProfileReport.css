@@ -512,10 +512,11 @@ table.topn {
 
 table.topn td.delta {
     width:50px;
-    font-size:6pt;
+    font-size:9px;
     text-align:left;
     color:grey;
     border:0px;
+    white-space:nowrap;
 }
 
 table.topn td.position {
