@@ -39,6 +39,7 @@
 - (BOOL)removeSongsBefore:(NSDate*)epoch inSession:(NSString*)sessionName moc:(NSManagedObjectContext*)moc;
 - (void)recreateHourCacheForSession:(NSManagedObject*)session songs:(NSArray*)songs moc:(NSManagedObjectContext*)moc;
 - (void)setNeedsScrub:(BOOL)needsScrub;
+- (void)updateSong:(NSManagedObject*)song withDate:(NSDate*)date;
 @end
 
 @implementation PersistentSessionManager
@@ -959,6 +960,14 @@
         [self validatePlayHistory:[mobj valueForKey:@"item"]];
         #endif
         
+        #ifdef notyet
+        NSArray *history = [[mobj valueForKeyPath:@"item.playHistory"] allObjects];
+        if ([history count] > 1) {
+            history = [[history valueForKey:@"lastPlayed"] sortedArrayUsingSelector:@selector(compare:)];
+            [self updateSong:[mobj valueForKey:@"item"] withDate:[history objectAtIndex:0]];
+        }
+        #endif
+        
         if ([count unsignedIntValue] > 0) {        
             [mobj setValue:count forKey:@"playCount"];
             [mobj setValue:ptime forKey:@"playTime"];
@@ -1541,13 +1550,13 @@
     NSManagedObject *mobj = [psong valueForKey:@"artist"];
     [mobj incrementPlayCount:count];
     [mobj incrementPlayTime:secs];
-    if ([[songLastPlayed GMTDate] isGreaterThan:[[mobj valueForKey:@"lastPlayed"] GMTDate]])
+    if ([songLastPlayed isGreaterThan:[mobj valueForKey:@"lastPlayed"]])
         [mobj setValue:songLastPlayed forKey:@"lastPlayed"];
     if ((mobj = [psong valueForKey:@"album"])) {
         [mobj incrementPlayCount:count];
         [mobj incrementPlayTime:secs];
         #if IS_STORE_V2
-        if ([[songLastPlayed GMTDate] isGreaterThan:[[mobj valueForKey:@"lastPlayed"] GMTDate]])
+        if ([songLastPlayed isGreaterThan:[mobj valueForKey:@"lastPlayed"]])
             [mobj setValue:songLastPlayed forKey:@"lastPlayed"];
         #endif
     }
@@ -2144,6 +2153,22 @@
 }
 #endif
 
+- (void)updateSong:(NSManagedObject*)song withDate:(NSDate*)date
+{
+    if ([date isLessThan:[song valueForKey:@"firstPlayed"]])
+        [song setValue:date forKey:@"firstPlayed"];
+    
+    #if IS_STORE_V2
+    NSManagedObject *mobj = [song valueForKey:@"artist"];
+    if ([date isLessThan:[mobj valueForKey:@"firstPlayed"]])
+        [mobj setValue:date forKey:@"firstPlayed"];
+    if ((mobj = [song valueForKey:@"album"])) {
+        if ([date isLessThan:[mobj valueForKey:@"firstPlayed"]])
+            [mobj setValue:date forKey:@"firstPlayed"];
+    }
+    #endif
+}
+
 - (NSError*)addHistoryEvents:(NSArray*)playDates forObject:(NSManagedObjectID*)moid
 {
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
@@ -2161,6 +2186,13 @@
         NSManagedObject *event = [[[NSManagedObject alloc] initWithEntity:entity insertIntoManagedObjectContext:moc] autorelease];
         [event setValue:playDate forKey:@"lastPlayed"];
         [event setValue:mobj forKey:@"song"];
+    }
+    NSUInteger count = [playDates count];
+    if (count > 0) {
+        if (count > 1) {
+            playDates = [playDates sortedArrayUsingSelector:@selector(compare:)];
+        }
+        [self updateSong:mobj withDate:[playDates objectAtIndex:0]];
     }
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO error:&err];
     return (err);
