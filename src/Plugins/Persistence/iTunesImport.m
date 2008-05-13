@@ -649,7 +649,25 @@
         //@throw ([NSException exceptionWithName:NSGenericException reason:@"missing play date" userInfo:nil]);
     }
     
-    obj = [NSCalendarDate dateWithTimeIntervalSince1970:[obj timeIntervalSince1970]];
+    // XXX: iTunes does not keep track of time zones. The 'Play Date' key is the number of seconds
+    // since 1904/1/1 local time (Mac OS 9 epoch), but without a reference of what that local time is
+    // the time can be off if the user played the track in a different time zone from the current time zone
+    // (the time will be the same in all time zones).
+    // 'Play Date GMT' is simply 'Play Date' adjusted for the GMT offset of the current time zone. Since
+    // it's calculated from 'Play Date' and is not absolute GMT, it too suffers from this problem.
+    NSTimeInterval seconds = [obj timeIntervalSince1970];
+    LEOPARD_BEGIN
+    if (nil != [track objectForKey:@"Play Date"]) {
+        NSTimeZone *tz = [NSTimeZone defaultTimeZone];
+        BOOL isDSTNow = [tz isDaylightSavingTime];
+        BOOL isPlayDateDST = [tz isDaylightSavingTimeForDate:obj];
+        // adjust for DST difference
+        if (isDSTNow && !isPlayDateDST) {
+            seconds += [tz daylightSavingTimeOffset];
+        }
+    }
+    LEOPARD_END
+    obj = [NSCalendarDate dateWithTimeIntervalSince1970:seconds];
     [self setLastPlayed:obj];
     
     [self setType:trackTypeFile];
