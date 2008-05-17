@@ -32,6 +32,8 @@
 #import "Persistence.h"
 #import "PersistentSessionManager.h"
 
+#define OPEN_HIST_WINDOW_AT_LAUNCH @"History Window Open"
+
 enum {
     kTBItemRequiresSelection      = 0x00000001,
     kTBItemRequiresTrackSelection = 0x00000002,
@@ -220,6 +222,10 @@ static NSMutableArray *topHours = nil;
 {
     persistenceTh = (id)[NSNull null]; // just to prevent any race while the thread is initializing
     [NSThread detachNewThreadSelector:@selector(persistenceManagerThread:) toTarget:self withObject:nil];
+    
+    if ([[self window] isVisible] && [[NSUserDefaults standardUserDefaults] boolForKey:OPEN_HIST_WINDOW_AT_LAUNCH]) {
+        [self performSelector:@selector(showTrackHistory:) withObject:nil afterDelay:0.1];
+    }
 }
 
 - (void)persistentProfileImportProgress:(NSNotification*)note
@@ -462,8 +468,6 @@ static NSMutableArray *topHours = nil;
     }
 }
 
-#define OPEN_HIST_WINDOW_AT_LAUNCH @"History Window Open"
-
 - (IBAction)showWindow:(id)sender
 {
     if (!persistence) {
@@ -480,13 +484,13 @@ static NSMutableArray *topHours = nil;
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
     
     [super showWindow:sender];
-    
-    if (!artistDetails)
-        [self loadDetails];
-    
+     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:OPEN_HIST_WINDOW_AT_LAUNCH]) {
         [self performSelector:@selector(showTrackHistory:) withObject:nil afterDelay:0.1];
     }
+    
+    if (!artistDetails)
+        [self loadDetails];
 }
 
 - (void)windowWillClose:(NSNotification *)aNotification
@@ -1016,7 +1020,7 @@ exit:
 
 - (IBAction)showTrackHistory:(id)sender
 {
-    if (![PlayHistoryController sharedController]) {
+    if (persistenceTh && ![PlayHistoryController sharedController]) {
         PlayHistoryController *hc = [[PlayHistoryController alloc] init];
         [hc showWindow:nil];
         NSArray *selection;
