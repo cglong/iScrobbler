@@ -922,7 +922,7 @@ exitHistory:
     NSString *s = [cmd directParameter];
     ScrobDebug(@"%@", s);
     @try {
-        [self tuneStationWithName:nil url:[NSURL URLWithString:s]];
+        [self tuneStationWithName:nil url:s];
     } @catch (id e) {}
     return (nil);
 }
