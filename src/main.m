@@ -206,8 +206,13 @@ void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsi
         days, (1 == days ? NSLocalizedString(@"day","") : NSLocalizedString(@"days", "")),
         hours, minutes];
     
+    static NSNumberFormatter *format = nil;
+    if (!format) {
+        format = [[NSNumberFormatter alloc] init];
+        [format setNumberStyle:NSNumberFormatterDecimalStyle];
+    }
     NSString *s = [NSString stringWithFormat:NSLocalizedString(@"%@ tracks played for %@", "session play count and time"),
-        playCount, timeStr];
+        [format stringFromNumber:playCount], timeStr];
     return (s);
 }
 
