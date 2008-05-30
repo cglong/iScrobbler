@@ -93,7 +93,7 @@
     [[moc persistentStoreCoordinator] unlock];
     
     if (fetchFixedPeriodArchives) {
-        fromDate = [now dateByAddingYears:0 months:0 days:-([now dayOfMonth]-1) hours:0 minutes:0 seconds:-10];
+        fromDate = [now dateByAddingYears:0 months:-1 days:-([now dayOfMonth]-1) hours:0 minutes:0 seconds:-10];
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (archive != NULL) AND (term > %@) AND (name BEGINSWITH %@)",
             ITEM_SESSION, [fromDate GMTDate], @"monthtodate"];
@@ -102,7 +102,7 @@
         if ([mtdArchives count] > 0) {
             mtdArchives = [mtdArchives sortedArrayUsingDescriptors:
                 [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
-            results = [results arrayByAddingObject:[mtdArchives objectAtIndex:0]];
+            results = [results arrayByAddingObjectsFromArray:mtdArchives];
         }
         #ifdef ISDEBUG
         else {
@@ -114,7 +114,7 @@
         }
         #endif
     
-        fromDate = [now dateByAddingYears:0 months:-([now monthOfYear]-1) days:-([now dayOfMonth]-1)
+        fromDate = [now dateByAddingYears:-1 months:-([now monthOfYear]-1) days:-([now dayOfMonth]-1)
             hours:0 minutes:0 seconds:-10];
         predicate = [NSPredicate predicateWithFormat:
             @"(itemType == %@) AND (archive != NULL) AND (term > %@) AND (name BEGINSWITH %@)",
@@ -124,7 +124,7 @@
         if ([ytdArchives count] > 0) {
             ytdArchives = [ytdArchives sortedArrayUsingDescriptors:
                 [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"epoch" ascending:NO] autorelease]]];
-            results = [results arrayByAddingObject:[ytdArchives objectAtIndex:0]];
+            results = [results arrayByAddingObjectsFromArray:ytdArchives];
         }
         #ifdef ISDEBUG
         else {
