@@ -1298,6 +1298,7 @@
         // fetch the newly created session
         session = [self sessionWithName:sname moc:moc];
         ISASSERT(session != nil, "missing session!");
+        [session setValue:epoch forKey:@"epoch"];
         [session setValue:term forKey:@"term"];
         return (YES);
     } else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
