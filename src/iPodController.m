@@ -783,6 +783,9 @@ bad_song_data:
             [self setTrackNumber:trackNum];
         [self setPlayCount:[data objectAtIndex:14]];
         [self setPlayerUUID:[data objectAtIndex:15]];
+        NSNumber *newYear= [data objectAtIndex:16];
+        if (newYear && [newYear unsignedIntValue] > 0)
+            [self setYear:newYear];
     } @catch (NSException *exception) {
         ScrobLog(SCROB_LOG_WARN, @"Exception generated while processing iPodUpdate track data: %@\n", exception);
         goto bad_song_data;

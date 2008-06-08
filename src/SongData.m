@@ -116,6 +116,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [copy setBanned:(BOOL)banned];
     [copy setTrackNumber:[self trackNumber]];
     [copy setPlayCount:[self playCount]];
+    [copy setYear:[self year]];
     [copy setPlayerUUID:[self playerUUID]];
     [copy setLastFmAuthCode:[self lastFmAuthCode]];
     
@@ -1073,6 +1074,18 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     trackNumber = [number unsignedIntValue];
 }
 
+- (NSNumber*)year
+{
+    return (year);
+}
+
+- (void)setYear:(NSNumber*)newYear
+{
+    (void)[newYear retain];
+    [year release];
+    year = newYear;
+}
+
 - (void)loadAlbumArtFromURL:(NSURL*)url
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreArtwork"] || [artworkCache objectForKey:MakeAlbumCacheKey()])
@@ -1148,6 +1161,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     [mbid release];
     [playCount release];
     [playerUUID release];
+    [year release];
     [lastFmAuthCode release];
     [persistentID release];
     [super dealloc];

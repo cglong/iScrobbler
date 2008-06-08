@@ -48,6 +48,7 @@ ISEXPORT_CLASS
     NSString *playerUUID;
     NSMutableData *albumArtData;
     NSString *lastFmAuthCode;
+    NSNumber *year;
     NSURLConnection *conn;
     NSManagedObjectID *persistentID;
     TrackType_t trackType;
@@ -214,6 +215,9 @@ ISEXPORT_CLASS
 
 - (NSNumber*)trackNumber;
 - (void)setTrackNumber:(NSNumber*)number;
+
+- (NSNumber*)year;
+- (void)setYear:(NSNumber*)newYear;
 
 - (void)loadAlbumArtFromURL:(NSURL*)url;
 
