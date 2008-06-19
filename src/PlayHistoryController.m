@@ -180,6 +180,7 @@ static PlayHistoryController *sharedController = nil;
     NSMutableArray *content = [NSMutableArray array];
     [historyController setContent:content];
     [totalPlayCount setStringValue:@"0"];
+    [totalPlayCount setToolTip:nil];
     
     NSManagedObjectID *mid = [trackInfo objectForKey:@"objectID"];
     if (!mid) {
@@ -214,9 +215,12 @@ static PlayHistoryController *sharedController = nil;
         [content addObject:entry];
     }
     
-    [totalPlayCount setStringValue:[NSString stringWithFormat:@"%@ of %@",
+    [totalPlayCount setStringValue:[NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "play counts"),
         [[historyController arrangedObjects] valueForKey:@"@count"],
         [song valueForKey:@"playCount"]]];
+    [totalPlayCount setToolTip:[NSString stringWithFormat:@"%@: %@",
+        NSLocalizedString(@"Artist Plays", ""),
+        [song valueForKeyPath:@"artist.playCount"]]];
     
     [moc reset];
     
