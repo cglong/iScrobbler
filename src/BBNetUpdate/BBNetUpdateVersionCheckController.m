@@ -65,7 +65,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    
    if (!gVCInstance->bundleName) {
        if (!appName)
-          gVCInstance->bundleName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+          gVCInstance->bundleName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleName"];
        else
           gVCInstance->bundleName = appName;
        (void)[gVCInstance->bundleName retain];
