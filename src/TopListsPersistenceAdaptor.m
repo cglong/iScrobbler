@@ -313,8 +313,18 @@ artistComparisonData = nil; \
     NSCalendarDate *sEpoch = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"epoch"] timeIntervalSince1970]];
     NSCalendarDate *sTerm = [NSCalendarDate dateWithTimeIntervalSince1970:[[session valueForKey:@"term"] timeIntervalSince1970]];
     NSInteger limit = (NSInteger)round([sTerm timeIntervalSinceDate:sEpoch] / 86400.0);
-    NSCalendarDate *fromDate = [sEpoch dateByAddingYears:0 months:0 days:-(limit + [sEpoch dayOfWeek])
-        hours:-([sEpoch hourOfDay]) minutes:-([sEpoch minuteOfHour]) seconds:-([sEpoch secondOfMinute])];
+    if (limit > 7) {
+        if (limit <= 31) {
+            static const int daysInMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
+            int i = [sEpoch monthOfYear] - 1; // -1 to index into our table
+            if ((i -= 1) < 0) // -1 one more to get previous month
+                i = 11;
+            limit = daysInMonth[i];
+        } else 
+            limit += 1; // account for leap-years
+    }
+    NSCalendarDate *fromDate = [sEpoch dateByAddingYears:0 months:0 days:-(limit)
+        hours:-([sEpoch hourOfDay]) minutes:-([sEpoch minuteOfHour]) seconds:-([sEpoch secondOfMinute]+1)];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:
         @"(itemType == %@) AND (self != %@) AND (archive != NULL) AND (epoch < %@) AND (epoch >= %@) AND (name BEGINSWITH %@)",
         ITEM_SESSION, session, [sEpoch GMTDate], [fromDate GMTDate], [self rootNameOfSession:session]];
