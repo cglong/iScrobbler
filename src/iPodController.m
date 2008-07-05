@@ -104,7 +104,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 
 // =========== iPod Core ============
 
-#define IPOD_SYNC_VALUE_COUNT 16
+#define IPOD_SYNC_VALUE_COUNT 17
 
 - (BOOL)setSongPlayTimes:(SongData*)song findingTimeinGaps:(NSMutableArray*)playGaps
 {
