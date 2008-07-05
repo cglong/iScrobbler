@@ -35,6 +35,10 @@
 - (BOOL)scrobWindowShouldClose;
 @end
 
+@interface NSCalendarDate (ISAdditions)
+- (NSNumber*)GMTOffset;
+@end
+
 NS_INLINE NSString* ISCPUArchitectureString() {
 return (
 #ifdef __ppc__
