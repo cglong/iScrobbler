@@ -215,12 +215,15 @@ static PlayHistoryController *sharedController = nil;
         [content addObject:entry];
     }
     
+    NSNumberFormatter *format = [[[NSNumberFormatter alloc] init] autorelease];
+    [format setNumberStyle:NSNumberFormatterDecimalStyle];
+    
     [totalPlayCount setStringValue:[NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "play counts"),
         [[historyController arrangedObjects] valueForKey:@"@count"],
         [song valueForKey:@"playCount"]]];
     [totalPlayCount setToolTip:[NSString stringWithFormat:@"%@: %@",
         NSLocalizedString(@"Artist Plays", ""),
-        [song valueForKeyPath:@"artist.playCount"]]];
+        [format stringFromNumber:[song valueForKeyPath:@"artist.playCount"]]]];
     
     [moc reset];
     
