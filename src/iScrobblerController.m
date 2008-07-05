@@ -2295,8 +2295,8 @@ exit:
     NSNumber *irating, *iduration, *itrackNumber;
 #ifdef notyet
     NSString *composer;
-    NSNumber *year;
 #endif
+    NSNumber *iyear;
     NSTimeInterval durationInSeconds;
     
     iname = [dict objectForKey:@"Name"];
@@ -2307,6 +2307,7 @@ exit:
     iduration = [dict objectForKey:@"Total Time"];
     igenre = [dict objectForKey:@"Genre"];
     itrackNumber = [dict objectForKey:@"Track Number"];
+    iyear = [dict objectForKey:@"Year"];
     
     if (ipath) {
         @try {
@@ -2343,6 +2344,8 @@ exit:
         [self setGenre:igenre];
     if (itrackNumber)
         [self setTrackNumber:itrackNumber];
+    if (iyear)
+        [self setYear:iyear];
 
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
@@ -2695,6 +2698,21 @@ resolvePath:
 }
 
 @end
+
+@implementation NSCalendarDate (ISAdditions)
+
+- (NSNumber*)GMTOffset
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    return ([NSNumber numberWithInteger:[[self timeZone] secondsFromGMT]]);
+    #else
+    return ([NSNumber numberWithInt:[[self timeZone] secondsFromGMT]]);
+    #endif
+}
+
+@end
+
+
 
 #if 0
 @implementation NSScriptCommand (ISExtensions)
