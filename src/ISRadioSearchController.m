@@ -799,6 +799,11 @@
 }
 #endif
 
+- (BOOL)outlineView:(NSOutlineView*)sender shouldSelectItem:(id)item
+{
+    return ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue] ? NO : YES);
+}
+
 #define SearchPanelMaxRatio 0.80
 - (CGFloat)splitView:(NSSplitView *)sender constrainMaxCoordinate:(CGFloat)proposedMax ofSubviewAt:(NSInteger)offset
 {
