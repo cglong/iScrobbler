@@ -822,7 +822,8 @@ didFinishLoadingExit:
             // XXX: if g_PM is nil, then we are being called from [init].
             // As the QM has probably not been created yet, this will cause an infite recursion
             // of new instances of us and the QM.
-            if (g_PM && [[QueueManager sharedInstance] count])
+            if (g_PM && [[QueueManager sharedInstance] count]
+                && (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"ForcePlayCache"]))
                 [self submit:nil];
         } else {
             msg = [self netDiagnostic];
