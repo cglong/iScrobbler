@@ -32,7 +32,9 @@
 
 - (BOOL)importInProgress;
 - (BOOL)initDatabase:(NSError**)failureReason;
+// versions are cumulative, so [isVersion2] will be true for for a V3 DB
 - (BOOL)isVersion2;
+- (BOOL)isVersion3;
 
 // write
 - (void)addSongPlay:(SongData*)song; // adds the song, and updates all sessions
@@ -88,9 +90,7 @@
 #define PERSISTENT_STORE_DB_LOCATION_VERSION @"22X"
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-#define IS_CURRENT_STORE_VERSION @"2"
 #define IS_STORE_V2 1
 #else
-#define IS_CURRENT_STORE_VERSION @"1"
 #define IS_STORE_V2 0
 #endif

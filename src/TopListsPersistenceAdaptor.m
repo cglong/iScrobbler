@@ -378,6 +378,8 @@ artistComparisonData = nil; \
     // if our last session load was large, reset the MOC so we reclaim some memory
     static NSUInteger lastLoadCount = 0;
     
+    NSMutableDictionary *didLoadInfo = [NSMutableDictionary dictionary]; 
+    
     @try {
     
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
@@ -397,7 +399,10 @@ artistComparisonData = nil; \
     ScrobDebug(@"%@", [session valueForKey:@"name"]);
     NSDate *sessionEpoch = [[session valueForKey:@"epoch"] GMTDate];
     BOOL isRollingSession = NO == [[session valueForKey:@"name"] isEqualToString:@"all"];
-
+    
+    BOOL isV2 = [persistence isVersion2];
+    BOOL isV3 = [persistence isVersion3];
+    
     NSError *error = nil;
     NSEntityDescription *entity;
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
@@ -426,7 +431,6 @@ artistComparisonData = nil; \
     NSAutoreleasePool *entryPool = [[NSAutoreleasePool alloc] init];
     NSMutableArray *chartEntries = [NSMutableArray arrayWithCapacity:IMPORT_CHUNK]; // alloc in loop pool!
     BOOL loadCanceled = NO;
-    BOOL isV2 = [persistence isVersion2];
     NSDate *firstPlayed;
     while ((mobj = [en nextObject])) {
         secs = [[mobj valueForKey:@"playTime"] unsignedLongLongValue];
@@ -520,6 +524,10 @@ artistComparisonData = nil; \
         goto loadExit;
     
     //// SONGS ////
+    NSCountedSet *yearCounts = [NSCountedSet set];
+    if (isV3)
+        [didLoadInfo setObject:yearCounts forKey:@"yearCounts"];
+    
     // pre-fetch the songs
     entity = [NSEntityDescription entityForName:@"PSong" inManagedObjectContext:moc];
     [request setEntity:entity];
@@ -547,8 +555,12 @@ artistComparisonData = nil; \
     [allSongPlays addObject:[en nextObject]];
     while ((mobj = [en nextObject])) {
         rootObj = [[allSongPlays objectAtIndex:0] valueForKey:@"item"];
+        NSNumber *rootYear = isV3 ? [rootObj valueForKey:@"year"] : nil;
         if ([[mobj valueForKey:@"item"] isEqualTo:rootObj]) {
             [allSongPlays addObject:mobj];
+            
+            if (isV3)
+                [yearCounts addObject:rootYear];
             continue;
         }
         
@@ -623,7 +635,7 @@ loadExit:
         lastLoadCount = NSUIntegerMax; // force a MOC reset on the next load
     }
     
-    [self performSelectorOnMainThread:@selector(sessionDidLoad:) withObject:nil waitUntilDone:NO];
+    [self performSelectorOnMainThread:@selector(sessionDidLoad:) withObject:didLoadInfo waitUntilDone:NO];
 }
 
 - (void)loadExtendedSessionData:(NSManagedObjectID*)sessionID // profile report data not seen in the GUI

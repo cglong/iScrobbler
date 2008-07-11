@@ -13,6 +13,8 @@
 #import "ISThreadMessenger.h"
 #import "SongData.h"
 
+__private_extern__ BOOL version3;
+
 @interface SongData (PersistentAdditions)
 - (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum;
 - (NSManagedObject*)createPersistentSongWithContext:(NSManagedObjectContext*)moc;
@@ -1551,14 +1553,19 @@
     NSManagedObject *mobj = [psong valueForKey:@"artist"];
     [mobj incrementPlayCount:count];
     [mobj incrementPlayTime:secs];
-    if ([songLastPlayed isGreaterThan:[mobj valueForKey:@"lastPlayed"]])
+    if ([songLastPlayed isGreaterThan:[mobj valueForKey:@"lastPlayed"]]) {
         [mobj setValue:songLastPlayed forKey:@"lastPlayed"];
+        if (version3)
+            [mobj setValue:[psong valueForKey:@"lastPlayedTZO"] forKey:@"lastPlayedTZO"];
+    }
     if ((mobj = [psong valueForKey:@"album"])) {
         [mobj incrementPlayCount:count];
         [mobj incrementPlayTime:secs];
         #if IS_STORE_V2
         if ([songLastPlayed isGreaterThan:[mobj valueForKey:@"lastPlayed"]])
             [mobj setValue:songLastPlayed forKey:@"lastPlayed"];
+        if (version3)
+            [mobj setValue:[psong valueForKey:@"lastPlayedTZO"] forKey:@"lastPlayedTZO"];
         #endif
     }
 }
@@ -2350,16 +2357,26 @@
     NSCalendarDate *myLastPlayed = [NSCalendarDate dateWithTimeIntervalSince1970:
         [[self postDate] timeIntervalSince1970] + [[self duration] unsignedIntValue]];
     
+    NSNumber *tzoffset = [myLastPlayed GMTOffset];
     NSManagedObject *moSong = [self persistentSongWithContext:moc];
     if (moSong) {
         [moSong setValue:[self postDate] forKey:@"submitted"];
         [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
-        
+        if (version3)
+            [moSong setValue:tzoffset forKey:@"lastPlayedTZO"];
+            
         NSString *mymbid = [self mbid];
         if ([mymbid length] > 0) {
             NSString *pmbid;
             if (!(pmbid = [moSong valueForKey:@"mbid"]) || NSOrderedSame != [mymbid caseInsensitiveCompare:pmbid])
                 [moSong setValue:mymbid forKey:@"mbid"];
+        }
+        
+        if (version3) {
+            NSNumber *dbYear = [moSong valueForKey:@"year"];
+            NSNumber *iTunesYear = [self year];
+            if (iTunesYear && (!dbYear || [dbYear isNotEqualTo:iTunesYear]))
+                [moSong setValue:iTunesYear forKey:@"year"];
         }
         
         return (moSong);
@@ -2383,6 +2400,14 @@
     [moSong setValue:[self postDate] forKey:@"submitted"];
     [moSong setValue:myLastPlayed forKey:@"firstPlayed"];
     [moSong setValue:myLastPlayed forKey:@"lastPlayed"];
+    if (version3) {
+        [moSong setValue:tzoffset forKey:@"lastPlayedTZO"];
+        [moSong setValue:tzoffset forKey:@"firstPlayedTZO"];
+        NSNumber *dbYear = [self year];
+        if (dbYear)
+            [moSong setValue:dbYear forKey:@"year"];
+    }
+    
     [moSong setValue:[self rating] forKey:@"rating"];
     if ([[self trackNumber] intValue] > 0)
         [moSong setValue:[self trackNumber] forKey:@"trackNumber"];
@@ -2405,6 +2430,8 @@
         [moArtist setValue:[self artist] forKey:@"name"];
         #if IS_STORE_V2
         [moArtist setValue:myLastPlayed forKey:@"firstPlayed"];
+        if (version3)
+            [moArtist setValue:tzoffset forKey:@"firstPlayedTZO"];
         #endif
     } else {
         ScrobLog(SCROB_LOG_CRIT, @"Multiple artists found in database! {{%@}}", result);
@@ -2433,6 +2460,8 @@
             [moAlbum setValue:moArtist forKey:@"artist"];
             #if IS_STORE_V2
             [moAlbum setValue:myLastPlayed forKey:@"firstPlayed"];
+            if (version3)
+                [moAlbum setValue:tzoffset forKey:@"firstPlayedTZO"];
             #endif
         } else {
             ScrobLog(SCROB_LOG_CRIT, @"Multiple artists found in database! {{%@}}", result);

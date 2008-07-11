@@ -244,6 +244,9 @@
         [moSong setValue:[song rating] forKey:@"rating"];
         if ([[song trackNumber] intValue] > 0)
             [moSong setValue:[song trackNumber] forKey:@"trackNumber"];
+        if (version3) {
+            [moSong setValue:[song year] forKey:@"year"];
+        }
         if ([[song mbid] length] > 0)
             [moSong setValue:[song mbid] forKey:@"mbid"];
         [moSong setValue:playCount forKey:@"importedPlayCount"];
@@ -410,8 +413,15 @@
         [[moc persistentStoreCoordinator] lock];
         NSManagedObject *psong = [self importSong:song withPlayCount:[track objectForKey:@"Play Count"]];
         #if IS_STORE_V2
-        if (psong)
+        if (psong) {
+            if (version3) {
+                NSNumber *year = [psong valueForKey:@"year"];
+                NSNumber *iTunesYear = [track objectForKey:@"Year"];
+                if (iTunesYear && (!year || [year isNotEqualTo:iTunesYear]))
+                    [psong setValue:iTunesYear forKey:@"year"];
+            }
             [self createSessionEntriesForSong:psong withHistory:[track objectForKey:@"org.iScrobbler.PlayHistory"]];
+        }
         #else
         #pragma unused (psong)
         #endif
@@ -552,13 +562,20 @@
             NSNumber *playTime = [NSNumber numberWithUnsignedLongLong:
                 (u_int64_t)[playCount unsignedIntValue] * (u_int64_t)[[psong valueForKey:@"duration"] unsignedIntValue]];
             
+            if (version3) {
+                NSNumber *year = [psong valueForKey:@"year"];
+                NSNumber *iTunesYear = [track objectForKey:@"Year"];
+                if (iTunesYear && (!year || [year isNotEqualTo:iTunesYear]))
+                    [psong setValue:iTunesYear forKey:@"year"];
+            }
+            
             BOOL dupe = [processedSongs containsObject:psong];
             if ([playCount isNotEqualTo:[psong valueForKey:@"playCount"]]
                 || [playTime isNotEqualTo:[psong valueForKey:@"playTime"]] || dupe) {
                 ScrobLog(SCROB_LOG_TRACE, @"%@ counts don't match: iTunes count=%@, DB count=%@, iTunes time=%@, DB time=%@",
                     [song brief], playCount, [psong valueForKey:@"playCount"], playTime, [psong valueForKey:@"playTime"]);
                 
-                if ([[[song lastPlayed] GMTDate] isGreaterThan:[[psong valueForKey:@"lastPlayed"] GMTDate]])
+                if ([[song lastPlayed] isGreaterThan:[psong valueForKey:@"lastPlayed"]])
                     [psong setValue:[song lastPlayed] forKey:@"lastPlayed"];
                 
                 if (NO == dupe) {
@@ -656,9 +673,10 @@
     // 'Play Date GMT' is simply 'Play Date' adjusted for the GMT offset of the current time zone. Since
     // it's calculated from 'Play Date' and is not absolute GMT, it too suffers from this problem.
     NSTimeInterval seconds = [obj timeIntervalSince1970];
+    NSTimeZone *tz;
     LEOPARD_BEGIN
     if (nil != [track objectForKey:@"Play Date"]) {
-        NSTimeZone *tz = [NSTimeZone defaultTimeZone];
+        tz = [NSTimeZone defaultTimeZone];
         BOOL isDSTNow = [tz isDaylightSavingTime];
         BOOL isPlayDateDST = [tz isDaylightSavingTimeForDate:obj];
         // adjust for DST difference
@@ -667,7 +685,15 @@
         }
     }
     LEOPARD_END
+    
     obj = [NSCalendarDate dateWithTimeIntervalSince1970:seconds];
+    LEOPARD_BEGIN
+    NSNumber *value = [track objectForKey:@"org.iScrobbler.lastPlayedTZO"];
+    if (value) {
+        if ((tz = [NSTimeZone timeZoneForSecondsFromGMT:[value integerValue]]))
+            [obj setTimeZone:tz];
+    }
+    LEOPARD_END
     [self setLastPlayed:obj];
     
     [self setType:trackTypeFile];
@@ -685,6 +711,9 @@
     if (!(obj = [track objectForKey:@"Genre"]))
         obj = @"";
     [self setGenre:obj];
+    if ((obj = [track objectForKey:@"Year"]))
+        [self setYear:obj];
+    
     [self setIsPlayeriTunes:YES];
     obj = [NSNumber numberWithUnsignedLongLong:[[track objectForKey:@"Total Time"] unsignedLongLongValue] / 1000];
     [self setDuration:obj];

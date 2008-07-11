@@ -64,3 +64,4 @@
 #define ITEM_SESSION @"s"
 #define ITEM_RATING_CCH @"r"
 #define ITEM_HOUR_CCH @"h"
+#define ITEM_TAG @"t"
