@@ -583,10 +583,11 @@ didFinishLoadingExit:
     subConn = nil;
     
     @try {
-    if (0 != notify_post)
-        notify_post("org.bergstrand.iscrobbler.didsubmit");
+    
+    notify_post("org.bergstrand.iscrobbler.didsubmit");
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_COMPLETE object:self
         userInfo:[self subNotificationUserInfo]];
+    
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }
@@ -739,9 +740,8 @@ didFinishLoadingExit:
     resubmitTimer = nil;
     
     @try {
-    if (0 != notify_post)
         notify_post("org.bergstrand.iscrobbler.willsubmit");
-    [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_START object:self];
+        [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_SUBMIT_START object:self];
     } @catch (id e) {
         ScrobDebug(@"exception: %@", e);
     }

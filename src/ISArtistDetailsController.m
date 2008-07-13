@@ -207,7 +207,7 @@ static NSImage *artistImgPlaceholder = nil;
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"detailsOpen"];
 }
 
-- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(unsigned)charIndex
+- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(NSUInteger)charIndex
 {
     BOOL handled = NO;
     @try {

@@ -12,13 +12,13 @@
 
 @implementation ISCrashReporter
 
-- (void)windowWillClose:(NSNotificationCenter*)note
+- (void)windowWillClose:(NSNotification*)note
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self autorelease];
 }
 
-- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(unsigned)charIndex
+- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(NSUInteger)charIndex
 {
     BOOL handled = NO;
     @try {

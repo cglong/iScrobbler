@@ -27,7 +27,7 @@
         [[ISRadioController sharedInstance] tuneStationWithName:[selection valueForKeyPath:@"name"] url:url];
 }
 
-- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(unsigned)charIndex
+- (BOOL)textView:(NSTextView*)textView clickedOnLink:(id)url atIndex:(NSUInteger)charIndex
 {
     BOOL handled = NO;
     ScrobDebug(@"%@", url);

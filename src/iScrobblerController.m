@@ -1041,7 +1041,7 @@ player_info_exit:
 - (void)applicationWillTerminate:(NSNotification *)note
 {
     if ([[note name] isEqualToString:NSWorkspaceWillPowerOffNotification]) {
-        (void)[self applicationShouldTerminate:[NSWorkspace sharedWorkspace]];
+        (void)[self applicationShouldTerminate:(id)[NSWorkspace sharedWorkspace]];
         // XXX: we have no way to prevent this
         // if (NSTerminateNow != reply)
         // return;
