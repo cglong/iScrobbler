@@ -13,6 +13,10 @@
 #import <IOKit/pwr_mgt/IOPMLib.h>
 #import <Carbon/Carbon.h>
 
+#if defined(__ppc__) && !defined(__LP64__)
+#import <sys/sysctl.h>
+#endif
+
 #import "iScrobblerController.h"
 #import "PreferenceController.h"
 #import "SongData.h"
@@ -1094,6 +1098,13 @@ player_info_exit:
             // Disable this so the TopListsController is not allocated (which begins the import)
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
             
+            #if defined(__ppc__) && !defined(__LP64__)
+            // Local Charts are too much for G4's
+            u_int32_t has64bit = 0;
+            size_t len = sizeof(has64bit);
+            if (0 == sysctlbyname("hw.optional.64bitops", &has64bit, &len, NULL, 0) && has64bit > 0) {
+            #endif
+            
             NSString *msg;
             msg = NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil);
             NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
@@ -1106,6 +1117,12 @@ player_info_exit:
                 nil]];
             
             [self presentError:error withDidEndHandler:@selector(enableLocalChartsDidEnd:returnCode:contextInfo:)];
+            
+            #if defined(__ppc__) && !defined(__LP64__)
+            } else {
+                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Disable Local Lists"];
+            }
+            #endif
         } else
             [self createTopListsController];
     }
