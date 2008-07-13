@@ -1049,7 +1049,7 @@
 				BuildIndependentTargetsInParallel = YES;
 			};
 			buildConfigurationList = D328478208566B30009B4D14 /* Build configuration list for PBXProject "iScrobbler" */;
-			compatibilityVersion = "Xcode 3.0";
+			compatibilityVersion = "Xcode 3.1";
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
