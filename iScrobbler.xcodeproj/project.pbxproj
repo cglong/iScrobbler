@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 44;
+	objectVersion = 45;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -327,9 +327,9 @@
 		D317911F0A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateAsk.nib; sourceTree = "<group>"; };
 		D31791210A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateDownload.nib; sourceTree = "<group>"; };
 		D31791230A6A9B5C00B0F081 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/BBNetUpdateVersionCheck.nib; sourceTree = "<group>"; };
-		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
+		D31791300A6A9B5C00B0F081 /* BBNetUpdateConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = BBNetUpdateConfig.plist; sourceTree = "<group>"; };
 		D318A6C30D1FC534003068D5 /* Persistence-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Persistence-Info.plist"; sourceTree = "<group>"; };
-		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
+		D3191CC807E3A51700821D03 /* Info-iScrobbler.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-iScrobbler.plist"; sourceTree = "<group>"; };
 		D3191CC907E3A51700821D03 /* iScrobbler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iScrobbler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D323AAED0DC85DE70076C708 /* ISBusyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISBusyView.h; path = src/ISBusyView.h; sourceTree = "<group>"; };
 		D323AAEE0DC85DE70076C708 /* ISBusyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISBusyView.m; path = src/ISBusyView.m; sourceTree = "<group>"; };
@@ -352,7 +352,7 @@
 		D37605560CB18BF700C04863 /* ISPluginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISPluginController.m; path = src/ISPluginController.m; sourceTree = "<group>"; };
 		D37606340CB2307F00C04863 /* ChatStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatStatus.m; sourceTree = "<group>"; };
 		D376063A0CB230A900C04863 /* ChatStatus.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatStatus.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
-		D376063B0CB230A900C04863 /* ChatStatus-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "ChatStatus-Info.plist"; sourceTree = "<group>"; };
+		D376063B0CB230A900C04863 /* ChatStatus-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ChatStatus-Info.plist"; sourceTree = "<group>"; };
 		D37606AC0CB236CD00C04863 /* InstantMessage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InstantMessage.framework; path = /System/Library/Frameworks/InstantMessage.framework; sourceTree = "<absolute>"; };
 		D3760C640CB421A400C04863 /* Persistence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Persistence.h; sourceTree = "<group>"; };
 		D3760CC90CB4241900C04863 /* Persistence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Persistence.m; sourceTree = "<group>"; };
@@ -465,7 +465,7 @@
 		EB5069B403FBC574005DC01B /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		EB607518042A747B005DC01B /* SongData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; path = SongData.h; sourceTree = "<group>"; };
 		EB607519042A747B005DC01B /* SongData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = SongData.m; sourceTree = "<group>"; };
-		EBBB2F1E03F7C3F2005DC01B /* defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; lineEnding = 0; path = defaults.plist; sourceTree = "<group>"; };
+		EBBB2F1E03F7C3F2005DC01B /* defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; lineEnding = 0; path = defaults.plist; sourceTree = "<group>"; };
 		F575CE9702FE0E8801A80164 /* iScrobblerController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = iScrobblerController.m; sourceTree = "<group>"; };
 		F575CE9802FE0E8801A80164 /* iScrobblerController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = iScrobblerController.h; sourceTree = "<group>"; };
 		F575CEAA02FF7F3501A80164 /* PreferenceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = PreferenceController.m; sourceTree = "<group>"; };
@@ -1532,6 +1532,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = 4.2;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
@@ -1540,7 +1542,7 @@
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
-				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				SDKROOT = macosx10.5;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
@@ -1564,6 +1566,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = 4.2;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
@@ -1573,7 +1577,7 @@
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OTHER_CFLAGS = "";
 				PREBINDING = NO;
-				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				SDKROOT = macosx10.5;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;
@@ -1597,6 +1601,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = 4.2;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
@@ -1605,7 +1611,7 @@
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
-				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				SDKROOT = macosx10.5;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = "Debug-Internal";
