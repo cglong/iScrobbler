@@ -55,7 +55,7 @@ int main(int argc, const char *argv[])
         forName:@"ISDateToString"];
     
     [NSValueTransformer setValueTransformer:[[[ISSessionDatesToString alloc] init] autorelease]
-        forName:@"ISDateToString"];
+        forName:@"ISSessionDatesToString"];
     
     [NSValueTransformer setValueTransformer:[[[ISSessionStatsToString alloc] init] autorelease]
         forName:@"ISSessionStatsToString"];
