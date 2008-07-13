@@ -1555,7 +1555,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         NSBeep();
 }
 
-- (void)badCredentialsDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
+- (void)badCredentialsDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
     if (returnCode == NSAlertDefaultReturn)
 		[self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.0];
@@ -1629,6 +1629,14 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         otherButton:[info objectForKey:@"alternateButton"]
         informativeTextWithFormat:
         [info objectForKey:NSLocalizedDescriptionKey], nil];
+    
+    LEOPARD_BEGIN
+    if ([info objectForKey:@"supressionButton"]) {
+        [a setShowsSuppressionButton:YES];
+        [[a suppressionButton] setTitle:[info objectForKey:@"supressionButton"]];
+    }
+    LEOPARD_END
+    
     [a beginSheetModalForWindow:w modalDelegate:delegate didEndSelector:selector contextInfo:w];
     
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"NSWindowResizeTime"];
@@ -2562,6 +2570,8 @@ exit:
         //[sProxy setProtocolForProxy:@protocol(ISProxyClientProtocol)];
         [[sProxy connectionForProxy] setReplyTimeout:ISPROXY_TIMEOUT];
         [[sProxy connectionForProxy] setRequestTimeout:ISPROXY_TIMEOUT];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"proxyStart" object:sProxy];
     }
 }
 

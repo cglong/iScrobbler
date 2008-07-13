@@ -160,5 +160,11 @@
         
 	<key>version</key>
 	<string>2.2</string>
+    
+    <key>Apple MobileDevice Framework</key>
+    <string>/System/Library/PrivateFrameworks/MobileDevice.framework/MobileDevice</string>
+    
+    <key>SupressiPodWarning</key>
+    <false />
 </dict>
 </plist>

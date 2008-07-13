@@ -17,6 +17,8 @@
 #pragma weak sandbox_init
 #endif
 
+#import "MobileDeviceSupport.h"
+
 @implementation ISProxy
 
 - (NSDictionary*)runScriptWithURL:(in NSURL*)url handler:(in NSString*)handler args:(in NSArray*)args;
@@ -45,6 +47,11 @@
     }
     
     return (nil);
+}
+
+- (oneway void)initializeMobileDeviceSupport:(NSString*)path
+{
+    (void)IntializeMobileDeviceSupport([path UTF8String], NULL);
 }
 
 - (oneway void)kill

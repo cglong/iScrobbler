@@ -90,6 +90,8 @@
 		D323AAEF0DC85DE70076C708 /* ISBusyView.m in Sources */ = {isa = PBXBuildFile; fileRef = D323AAEE0DC85DE70076C708 /* ISBusyView.m */; };
 		D32906A40CDB458400CAAB66 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EC73100804F73B00392110 /* Growl.framework */; };
 		D332B0DE0DAA44BB00BAEBDE /* DBRemove.xib in Resources */ = {isa = PBXBuildFile; fileRef = D332B0DC0DAA44BB00BAEBDE /* DBRemove.xib */; };
+		D33E27790E28F6DE001F8D23 /* MobileDeviceSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = D3A5817B0E27D60F00C602B0 /* MobileDeviceSupport.m */; };
+		D33E27960E28FB6E001F8D23 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
 		D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */; };
 		D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
@@ -137,6 +139,7 @@
 		D39902600D5B463B0050C17C /* MsgWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = D399025F0D5B463B0050C17C /* MsgWindowController.m */; };
 		D39903770D5B9A7A0050C17C /* MsgWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = D39902630D5B527A0050C17C /* MsgWindow.xib */; };
 		D39A88350BE68D4000F65AF5 /* ProtocolManager_v12.m in Sources */ = {isa = PBXBuildFile; fileRef = D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */; };
+		D3A5817C0E27D60F00C602B0 /* MobileDeviceSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = D3A5817B0E27D60F00C602B0 /* MobileDeviceSupport.m */; };
 		D3B19F470B517381008F54BF /* iTunesGetCurrentTrackInfo.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F480B517381008F54BF /* iTunesGetPlaylists.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3CB14FC07755151009236FF /* iTunesGetPlaylists.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D3B19F490B517381008F54BF /* iTunesGetArtworkForTrack.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D3EC7B8108082DED00392110 /* iTunesGetArtworkForTrack.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
@@ -393,6 +396,8 @@
 		D39A88340BE68D4000F65AF5 /* ProtocolManager_v12.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ProtocolManager_v12.m; path = src/ProtocolManager_v12.m; sourceTree = "<group>"; };
 		D39A88360BE68D6E00F65AF5 /* ProtocolManager_v12.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProtocolManager_v12.h; path = src/ProtocolManager_v12.h; sourceTree = "<group>"; };
 		D39C15FB0800716200F3816B /* iTunesGetCurrentTrackInfo.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesGetCurrentTrackInfo.applescript; sourceTree = "<group>"; };
+		D3A5817B0E27D60F00C602B0 /* MobileDeviceSupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MobileDeviceSupport.m; path = src/MobileDeviceSupport.m; sourceTree = "<group>"; };
+		D3A5818F0E27D64000C602B0 /* MobileDeviceSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MobileDeviceSupport.h; path = src/MobileDeviceSupport.h; sourceTree = "<group>"; };
 		D3A612450DD9B3EC0085A53A /* iScrobblerV3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = iScrobblerV3.xcdatamodel; sourceTree = "<group>"; };
 		D3B1A0CD0B51A1B2008F54BF /* ASXMLRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASXMLRPC.h; path = src/ASXMLRPC.h; sourceTree = "<group>"; };
 		D3B1A0CE0B51A1B2008F54BF /* ASXMLRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASXMLRPC.m; path = src/ASXMLRPC.m; sourceTree = "<group>"; };
@@ -513,6 +518,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D33E27960E28FB6E001F8D23 /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -790,6 +796,8 @@
 				EB50662F03FBB284005DC01B /* keychain.h */,
 				EB50662D03FBB239005DC01B /* keychain.m */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
+				D3A5817B0E27D60F00C602B0 /* MobileDeviceSupport.m */,
+				D3A5818F0E27D64000C602B0 /* MobileDeviceSupport.h */,
 				D3EE9CC50A144A470024A013 /* MBID.c */,
 				D3EE9CC60A144A470024A013 /* MBID.h */,
 				D3D3924109BAA3E6004E215A /* NSWorkspace+ISAdditions.m */,
@@ -1188,6 +1196,7 @@
 				D3F71FA80D33E42500C0E22F /* iPodController.m in Sources */,
 				D323AAEF0DC85DE70076C708 /* ISBusyView.m in Sources */,
 				D35A0EA00DFC39F700AFEB9F /* iScrobblerV2toV3.xcmappingmodel in Sources */,
+				D3A5817C0E27D60F00C602B0 /* MobileDeviceSupport.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1227,6 +1236,7 @@
 				D398024A0CE0FF54008CB4C8 /* KFAppleScriptHandlerAdditionsCore.m in Sources */,
 				D398024D0CE0FF55008CB4C8 /* KFASHandlerAdditions-TypeTranslation.m in Sources */,
 				D398025F0CE0FFB9008CB4C8 /* ISProxy.m in Sources */,
+				D33E27790E28F6DE001F8D23 /* MobileDeviceSupport.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -18,6 +18,12 @@
 #import "ProtocolManager.h"
 #import "ISiTunesLibrary.h"
 
+#ifdef IS_SCRIPT_PROXY
+#import "ISProxyProtocol.h"
+#else
+#import "MobileDeviceSupport.h"
+#endif
+
 static iPodController *sharedController = nil;
 
 // this is used to trigger a copy of the iTunes library
@@ -27,6 +33,7 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
 @interface iPodController (Private)
 - (void)volumeDidMount:(NSNotification*)notification;
 - (void)volumeDidUnmount:(NSNotification*)notification;
+- (void)presentiPodWarning;
 @end
 
 @interface SongData (iScrobblerControllerPrivateAdditions)
@@ -91,6 +98,31 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
                 IOObjectRelease(iomedia);
         } else
             ScrobLog(SCROB_LOG_ERR, @"Failed to register for system media addition events.");
+    }
+    
+    iPodMounts = [[NSMutableDictionary alloc] init];
+    
+    // iPhone/iPod Touch support
+    NSString *framework = [[NSUserDefaults standardUserDefaults] stringForKey:@"Apple MobileDevice Framework"];
+    if ([framework UTF8String]) {
+        // subscribe
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(amdsDidFail:) name:@"org.bergstrand.amds.intializeDidFail" object:nil];
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(amdsDidFinishSync:) name:@"org.bergstrand.amds.syncDidFinish" object:nil];
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(amdsDidStartSync:) name:@"org.bergstrand.amds.syncDidStart" object:nil];
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(amdsDidConnect:) name:@"org.bergstrand.amds.connect" object:nil];
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(amdsDidDisconnect:) name:@"org.bergstrand.amds.disconnect" object:nil];
+    
+        #ifdef IS_SCRIPT_PROXY
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(proxyDidStart:) name:@"proxyStart" object:nil];
+        #else
+        (void)IntializeMobileDeviceSupport([framework UTF8String], NULL);
+        #endif
     }
     
     return (self);
@@ -666,8 +698,6 @@ sync_exit_with_note:
     BOOL isDir = NO;
     if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
         [self setValue:mountPath forKey:@"iPodMountPath"];
-        if (!iPodMounts)
-            iPodMounts = [[NSMutableDictionary alloc] init];
         [iPodMounts setObject:[NSDate date] forKey:mountPath];
         
         ISASSERT(iPodIcon == nil, "iPodIcon exists!");
@@ -693,21 +723,16 @@ sync_exit_with_note:
     }
 }
 
-- (void)volumeDidUnmount:(NSNotification*)notification
+- (void)syncDevice:(NSString*)device
 {
-    NSDictionary *info = [notification userInfo];
-	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
-	
-    ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.", info);
-    
-    if ([iPodMounts objectForKey:mountPath]) {
+    if ([iPodMounts objectForKey:device]) {
         NSString *curPath = [self valueForKey:@"iPodMountPath"];
-        if ([curPath isEqualToString:mountPath]) {
+        if ([curPath isEqualToString:device]) {
             curPath = nil;
             [iPodIcon release];
             iPodIcon = nil;
         } else
-            [self setValue:mountPath forKey:@"iPodMountPath"]; // temp for syncIPod
+            [self setValue:device forKey:@"iPodMountPath"]; // temp for syncIPod
         
         [self beginiPodSync:nil]; // now that we're sure iTunes synced, we can sync...
         
@@ -717,7 +742,7 @@ sync_exit_with_note:
         --iPodMountCount;
         [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
-        [iPodMounts removeObjectForKey:mountPath];
+        [iPodMounts removeObjectForKey:device];
         
         // beginiPodSync is async and will return before updating actually begins so,
         // add a "fake" count while we wait for the lib to load so plays are still queued until we are done.
@@ -726,7 +751,93 @@ sync_exit_with_note:
     }
 }
 
+- (void)volumeDidUnmount:(NSNotification*)notification
+{
+    NSDictionary *info = [notification userInfo];
+	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
+	
+    ScrobLog(SCROB_LOG_TRACE, @"Volume unmounted: %@.", info);
+    
+    [self syncDevice:mountPath];
+}
+
 // =========== iPod Core ============
+
+// =========== iPhone/iPod Touch support ===========
+
+- (void)amdsDidStartSync:(NSNotification*)note
+{
+    ScrobLog(SCROB_LOG_TRACE, @"Mobile Device sync start: %@", [note userInfo]);
+
+    [self setValue:[note object] forKey:@"iPodMountPath"];
+    [iPodMounts setObject:[NSDate date] forKey:[note object]];
+    
+    [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
+    ++iPodMountCount;
+    [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
+    ISASSERT(iPodMountCount > -1, "negative ipod count!");
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
+        [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
+            message:NSLocalizedString(@"An iPod has been detected. All track plays will be queued until the iPod is ejected.", "")];
+    }
+}
+
+- (void)amdsDidFinishSync:(NSNotification*)note
+{
+    ScrobLog(SCROB_LOG_TRACE, @"Mobile Device sync done: %@", [note userInfo]);
+    
+    [self syncDevice:[note object]];
+}
+
+- (void)amdsDidConnect:(NSNotification*)note
+{
+    ScrobLog(SCROB_LOG_TRACE, @"Mobile Device attached: %@", [note userInfo]);
+
+    [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
+}
+
+- (void)amdsDidDisconnect:(NSNotification*)note
+{
+    ScrobLog(SCROB_LOG_TRACE, @"Mobile Device ejected: %@", [note userInfo]);
+    
+    [self syncDevice:[note object]]; // just in case a sync end note was missed (or not sent)
+    
+    [self presentiPodWarning];
+}
+
+- (void)amdsDidFail:(NSNotification*)note
+{
+    ScrobLog(SCROB_LOG_ERR, @"Failed to initialize iPhone/iPod Touch support: %@", [note object]);
+    [[NSApp delegate] displayErrorWithTitle:NSLocalizedString(@"Failed to initialize iPhone/iPod Touch support.", "") message:nil];
+}
+
+// =========== iPhone/iPod Touch support ===========
+
+- (void)presentiPodWarning
+{
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"SupressiPodWarning"])
+        return;
+
+    // warn user of possible lost scrobbles
+    NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
+    [NSDictionary dictionaryWithObjectsAndKeys:
+        NSLocalizedString(@"iPod Scrobbling Help", nil), NSLocalizedFailureReasonErrorKey,
+        NSLocalizedString(@"An iPod has been ejected. If any song is played on your computer and submitted to Last.fm before you sync your iPod again, some or all iPod submissions may be lost. To avoid this, please sync your iPod before playing any music on your computer (via iTunes, Last.fm Radio, etc).", nil),
+            NSLocalizedDescriptionKey,
+        NSLocalizedString(@"OK", nil), @"defaultButton",
+        NSLocalizedString(@"Don't show this message again.", nil), @"supressionButton",
+        nil]];
+    [[NSApp delegate] presentError:error modalDelegate:self didEndHandler:@selector(iPodWarningDidEnd:returnCode:contextInfo:)];
+}
+
+- (void)iPodWarningDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
+{
+    LEOPARD_BEGIN
+    if ([alert showsSuppressionButton] && NSOnState == [[alert suppressionButton] state])
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SupressiPodWarning"];
+    LEOPARD_END
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
@@ -742,6 +853,15 @@ sync_exit_with_note:
         }
     }
 }
+
+#ifdef IS_SCRIPT_PROXY
+- (void)proxyDidStart:(NSNotification*)note
+{
+    NSDistantObject<ISProxyProtocol> *proxy = [note object];
+    NSString *framework = [[NSUserDefaults standardUserDefaults] stringForKey:@"Apple MobileDevice Framework"];
+    [proxy initializeMobileDeviceSupport:framework];
+}
+#endif
 
 @end
 
@@ -809,8 +929,6 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter)
         kr = IORegistryEntryCreateCFProperties(iomedia, &properties, kCFAllocatorDefault, 0);
         if (kr == 0 && [[(NSDictionary*)properties objectForKey:@kIOMediaWholeKey] boolValue]) {
             // We could get fancy and make sure the media is an iPod, but for now we'll just copy blindly.
-            // XXX - This means that multiple plays won't work with the "Fake iPod" method to sync to Touch/iPhones
-            // since the image is mounted after the library is updated.
             ScrobDebug(@"");
             [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
         }
