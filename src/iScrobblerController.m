@@ -326,11 +326,12 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 // End PM Notifications
 
-- (BOOL)updateInfoForSong:(SongData*)song
+- (BOOL)updateInfoForSong:(SongData*)song retry:(BOOL*)retry
 {
     // Run the script to get the info not included in the dict
     NSDictionary *errInfo = nil;
-    NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo] ;
+    NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo];
+    *retry = YES;
     if (result) {
         if ([result numberOfItems] > 1) {
             TrackType_t trackType = trackTypeUnknown;
@@ -382,8 +383,15 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
                 [song setPlayerUUID:trackUUID];
                 return (YES);
             } else {
-                ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%ld:%llu:%@).",
-                    trackType, trackiTunesDatabaseID, trackPosition);
+                if (-1001 == trackType) {
+                    // this will occur in iTunes 7.7 when an Album is played via the iPhone 2.0 Remote
+                    // this appears to be a bug in iTunes
+                    *retry = NO;
+                    ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo runtime error");
+                } else {
+                    ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%ld:%llu:%@).",
+                        trackType, trackiTunesDatabaseID, trackPosition);
+                }
             }
         } else {
             ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad item count: %ld.", [result numberOfItems]);
@@ -474,9 +482,10 @@ if (currentSong) { \
         isPlayeriTunes = NO;
     
     BOOL didInfoUpdate;
+    BOOL retry;
     if (isPlayeriTunes)
-        didInfoUpdate = [self updateInfoForSong:song];
-    else {
+        didInfoUpdate = [self updateInfoForSong:song retry:&retry];
+    if (!isPlayeriTunes || !retry) {
         // player is PandoraBoy, etc
         [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
@@ -1071,8 +1080,6 @@ player_info_exit:
     }
 }
 
-#define LOCAL_CHARTS_MSG \
-NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil)
 - (void)applicationWillFinishLaunching:(NSNotification*)note
 {
     if ([ISCrashReporter crashReporter])
@@ -1087,10 +1094,12 @@ NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your co
             // Disable this so the TopListsController is not allocated (which begins the import)
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:OPEN_TOPLISTS_WINDOW_AT_LAUNCH];
             
+            NSString *msg;
+            msg = NSLocalizedString(@"iScrobbler has a sophisticated chart system to track your complete play history. Many interesting statistics are available with the charts. However, iScrobbler must first import your iTunes library; this can take many of hours of intense CPU time and you will not be able to quit iScrobbler while the import is in progress. Would you like to begin the import?", nil);
             NSError *error = [NSError errorWithDomain:@"iscrobbler" code:0 userInfo:
             [NSDictionary dictionaryWithObjectsAndKeys:
                 NSLocalizedString(@"Enable Local Charts?", nil), NSLocalizedFailureReasonErrorKey,
-                LOCAL_CHARTS_MSG, NSLocalizedDescriptionKey,
+                msg, NSLocalizedDescriptionKey,
                 NSLocalizedString(@"Begin Import", nil), @"defaultButton",
                 NSLocalizedString(@"Ask Me Again", nil), @"alternateButton",
                 NSLocalizedString(@"Disable Local Charts", nil), @"otherButton",

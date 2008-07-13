@@ -1,4 +1,5 @@
 -- TrackType_t enum in SongData.h
+property trackTypeScriptError : -1001
 property trackTypeUnknown : 0
 property trackTypeFile : 1
 property trackTypeShared : 2
@@ -73,6 +74,8 @@ tell application "iTunes"
 		try
 			set trackPersistentID to persistent ID of theTrack
 		end try
+	on error
+		set trackType to trackTypeScriptError
 	end try
 	
 end tell
