@@ -14,17 +14,22 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.2.0 (BDB)
+- Integrated support for iPhone and iPod Touch.
 - Album chart data is now displayed in the Local Charts window.
-- Enhanced Local Charts profile report, including artist movements for Last.fm weekly archives.
-- Pref to ignore iTunes Store podcasts has been exposed in the GUI.
+- Leopard only: New Local Charts: Month-to-date and Year-to-date.
+- Enhanced Local Charts profile report, including artist movements for Last.fm, Month-to-date, and Year-to-date archives.
 - Application Support files are now located in the Application Support/iScrobbler sub-folder.
 - The Local Charts database is backed up once per day instead of at application launch.
-- The New Artists section of the Local Charts profile report is not shown if there are no new artists.
-- Leopard only: Corrupted Local Charts databases are now automatically recovered and re-imported into a new database when migrating from the v2.0 format to the v2.1 format.
+- Leopard only: Corrupted Local Charts databases are now automatically recovered and re-imported into a new database when migrating from the v2.0 format to the v2.2 format.
+- Leopard only: Faster launch time.
+- Pref to ignore iTunes Store podcasts has been exposed in the GUI.
+- Added 'reset network monitor' Applescript command.
+- Bug Fix: The Last Played time in the Local Charts is now the latest time within the period of the chart instead of the last played time of the song itself.
 - Bug Fix: Regression - The menu color and stats window would not update properly if a connection to last.fm failed.
 - Bug Fix: iScrobbler attempts to use the iLife prefs to find the iTunes XML file (to support non-standard library locations).
-- Bug Fix: Switch from ST to DST would cause 100% CPU usage for one hour.
 - Bug Fix: Regression - Possible 'this class is not key value coding-compliant for the key iPodMounts' error in the console log.
+- Bug Fix: Failure to tune a radio station via Applescript.
+- Bug Fix: Switch from ST to DST would cause 100% CPU usage for one hour.
 
 v2.1.2 (BDB)
 - A minimal stats window is back.

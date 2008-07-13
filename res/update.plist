@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.2.0b2</string>
+        <string>2.2.0b3</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b2.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b3.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -18,7 +18,15 @@
         <key>Notes</key>
         <dict>
 			<key>English</key>
-			<string>2.2b2:
+			<string>
+2.2b3:
+- Integrated iPhone/iPod Touch support.
+- Leopard only: New Local Charts: Month-to-date and Year-to-date.
+- Leopard only: Faster launch time.
+- Added 'reset network monitor' Applescript command.
+- Bug Fixes (mainly relating to the Local Charts).
+
+2.2b2:
 - Pref to ignore iTunes Store podcasts has been exposed in the GUI.
 - Leopard only: Corrupted Local Charts databases are now automatically recovered and re-imported into a new database when migrating from the v2.0 format to the v2.1 format.
 - Bug fixes.
