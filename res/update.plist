@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.2.0b3</string>
+        <string>2.2.0b4</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b3.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b4.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -19,6 +19,9 @@
         <dict>
 			<key>English</key>
 			<string>
+2.2b4:
+- Bug Fix: prefs window failed to initialize properly.
+
 2.2b3:
 - Integrated iPhone/iPod Touch support.
 - Leopard only: New Local Charts: Month-to-date and Year-to-date.

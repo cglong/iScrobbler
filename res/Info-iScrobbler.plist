@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>BBNetUpdateVersion</key>
-    <string>2.2.0b3</string>
-    <key>CFBundleDevelopmentRegion</key>
+	<string>2.2.0b4</string>
+	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
@@ -20,49 +20,49 @@
 	<string>iScrobbler</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-        <key>CFBundleURLName</key>
-        <string>Last.fm</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>lastfm</string>
-        </array>
-        </dict>
-    </array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Last.fm</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>lastfm</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>2.2</string>
 	<key>CFBundleSignature</key>
 	<string>iSCb</string>
 	<key>CFBundleVersion</key>
 	<string>svn</string>
-    <key>LSArchitecturePriority</key>
-    <array>
+	<key>LSArchitecturePriority</key>
+	<array>
 		<string>x86_64</string>
-        <string>i386</string>
+		<string>i386</string>
 		<string>ppc</string>
 	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.4.9</string>
-    <key>LSMinimumSystemVersionByArchitecture</key>
-    <dict>
-        <key>x86_64</key>
-        <string>10.5.0</string>
-        <key>i386</key>
-        <string>10.4.9</string>
-        <key>ppc</key>
-        <string>10.4.9</string>
-    </dict>
+	<key>LSMinimumSystemVersionByArchitecture</key>
+	<dict>
+		<key>x86_64</key>
+		<string>10.5.0</string>
+		<key>i386</key>
+		<string>10.4.9</string>
+		<key>ppc</key>
+		<string>10.4.9</string>
+	</dict>
 	<key>LSUIElement</key>
 	<string>1</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-    <key>NSAppleScriptEnabled</key>
-    <string>YES</string>
-    <key>OSAScriptingDefinition</key>
-    <string>iScrobbler.sdef</string>
+	<key>NSAppleScriptEnabled</key>
+	<string>YES</string>
+	<key>OSAScriptingDefinition</key>
+	<string>iScrobbler.sdef</string>
 </dict>
 </plist>
