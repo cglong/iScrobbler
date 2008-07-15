@@ -2360,6 +2360,18 @@ exit:
         return (nil);
     }
     
+    // XXX: because of the change made in r1698 to support the iPhone "Remote" playlist
+    // ITMS preview tracks are no longer blocked because the GetTrackInfo script fails.
+    // We do some hackery here to detect previews and block them.
+    // Unfortunately, this will also block 30 second tracks played from a Shared Library and
+    // will break if ITMS previews are not exactly 30 seconds.
+    if (!location && iduration && [iduration intValue] == 30000
+        && [[dict objectForKey:@"Store URL"] hasPrefix:@"itms"]) {
+            [self autorelease];
+            ScrobLog(SCROB_LOG_VERBOSE, @"Track %@ detected as iTMS preview - skipping", iname);
+            return (nil);
+    }
+    
     [self setTitle:iname];
     [self setArtist:iartist];
     if (iduration) {
