@@ -155,6 +155,9 @@ static void CFHandleCallback(CFNotificationCenterRef center, void *observer, CFS
 
 static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info)
 {
+    if (!info)
+        return;
+
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     @try {
     
@@ -173,14 +176,14 @@ static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info)
     // CopyValue requires a connection to the device
     AMDeviceCopyValue copyVal = dlsym(libHandle, "AMDeviceCopyValue");
     CFStringRef kAMDDeviceName = dlsym(libHandle, "kAMDDeviceName");
-    if (copyVal && kAMDDeviceName)
+    if (copyVal && kAMDDeviceName && info->device)
         deviceName = [(id)copyVal(info->device, 0, kAMDDeviceName) autorelease];
     else
     #endif
         deviceName = @"";
     
     NSString *serial;
-    if (copyID && (serial = (id)copyID(info->device))) {
+    if (copyID && info->device && (serial = (id)copyID(info->device))) {
         serial = [[serial autorelease] lowercaseString];
     } else {
         serial = info->device ? [[NSString stringWithUTF8String:info->device->serial] lowercaseString] : @"";
