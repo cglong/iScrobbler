@@ -1,12 +1,12 @@
 bplist00“_WebMainResource_WebSubresources‘	
-^WebResourceURL_WebResourceTextEncodingName_WebResourceMIMEType_WebResourceData_file:///index.htmlUUTF-8Ytext/htmlO07<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+^WebResourceURL_WebResourceTextEncodingName_WebResourceMIMEType_WebResourceData_file:///index.htmlUUTF-8Ytext/htmlO/‘<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="Content-Style-Type" content="text/css">
   <title></title>
   <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="949.27">
+  <meta name="CocoaVersion" content="949.33">
   <style type="text/css">
     p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
     p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
@@ -119,9 +119,9 @@ bplist00“_WebMainResource_WebSubresources‘
 <p class="p2"><br></p>
 <p class="p1"><b>3. iPod Support</b></p>
 <p class="p2"><br></p>
-<p class="p1">iScrobbler supports iPod submissions from any Classic, Mini, Nano or Shuffle iPod. The iPod Touch and iPhone are not officially supported, but can be made to work with minimal effort; the iScrobbler forum has instructions: http://www.last.fm/group/iScrobbler.</p>
+<p class="p1">iScrobbler supports iPod submissions from any iPod, including Shuffles (gen 1 &amp; 2) and the iPhone / iPod Touch.</p>
 <p class="p2"><br></p>
-<p class="p1">Multiple plays of the same track on the iPod are supported on all iPods except for the Shuffle for automatic mode only.</p>
+<p class="p1">Multiple plays of the same track on the iPod are supported on all iPods except for the Shuffle. Multiple plays are not supported if your iPod is set to manual mode.</p>
 <p class="p2"><br></p>
 <p class="p1">In order to prevent server SPAM warnings, and make iPod support manageable, the following limitations are in place:</p>
 <p class="p2"><br></p>
@@ -1356,4 +1356,4 @@ E§◊°§í"
 ÓπØø°ˆ;‡≠ƒëC€Î˜ã¥Û]åŒÃã„ôD]mB›˝oÚ™6µ`Jq˙˛=^KwﬂV√∑cÕ¢-´Û«'≈VÿyV˝n€/fofˆ∫‹L_ùÈr3?] ¥£izÅ√âÿ.ïƒK¸}Àõ£~^F]W€Ä∫®üçÇ»íògÛ~?±>∂∞+C‚%æ9Úñ…;÷áõá√^±£≈éå#ÊÔqˆq≈QÅÖ“Jºƒ7˛/‘µÙˆtÿÚ÷Á˝–Ã>¶πÄNŒTéƒK|s·7pˆ	µ‘v≈ûC3±0Úß	!ﬁ ÷‰cØƒTéƒK¸˝Œjˆ!GNl∑u¨öÿfæ≥ªÏ˙: #!‰*Äq ~ÉÈ	>>±7q‡lÂHºƒﬂÀ|%Ä£ ∆BÚ`Ú%ÊÅ´â.X˚üXÙqpgπôˇÃª≠‰®õ›fˇWhk˛œ>∆f	ÍfÀÏè$í‹Î¬ù‘™e˝gœN◊¿˙ΩUò(aœjS∞~Ø˚›VÏºÁ‡‹ÚI>cÂ¨Ô◊`Ì–‹Û3€°π=gõõ^‚%æ©å£±?µ∞vLˆáyå›Ûu4ñÊÌ8Zm≈6êOc(üÒ÷cnvAßfÚülÛ}óxâˇßx∂YˇŸ≠™ê£≥o‹∆ìœèò·Øï‘'Í'≥è´ê1∞ÓJ≥)gÌcÁÀùlkH\‚%˛ü‚Ÿc]∂s≤ª€‹÷öÎ‡\á+?ﬁVô-éZh°Wy-L≠,”2≥◊À9˘1-≥Õ|˝˜Íâï¯Ê…≥éÒæ÷ò=.f;6€øj!ÏÇ"‰–|Öa+cúíqdôŸH∂Ss9Óÿô=÷ê;‚Ωv“%˛˛ÂŸΩQn∑õ€23éÕc?÷…ÙXπ≥›l=ºéÕÁ–‹1ﬂáqd∂±å3≥≈ŒÉqd¶efØ„¨œù∞)ùHâóxf?Ûü€õe¸ÜÎ»Ï÷Ÿ»Ÿ∂◊KfÎ≥H}&≈òLòeÏI0¶n∂ër‘Õàs[ÁÜ∂–íH“îD»°ÖZivÀÃS;’’fDÃÚIÆqÑÛaG|t1g∫ÿ@ù3◊Äﬂ©Å;'D‚%æ)Ò|≠3w÷õ˝õ¥Ω	2>ÁGch°Ó6∑EÂ‡ç∞nôŸ≠9`›ÌfÎ'o°±<·9&ÒﬂTx∂ ¸?a1ªŒm©˘&∆∏˙¨ÑÎ–\£¯úöÌòLZ¶ıeÚ`úòô<„Îj≥[h{ÁhüƒK|S„ŸŒÃvnv´Õn©kX«∏c|ç*Õ9fgü„˛¿≥1.¨tå√≥ü
 ¯öÜÌC%˜Úâîxâg0∂Û±ùS®[ÕOs”Ÿ8ÆêÿÎrÌ„sn¶Öf∫⁄å£
 =≥m©‚+–—1âó¯íßy˛s?‹15˜)2ˆ1GqÊ›VLÏq07`=ª´Œ84ç∫…0¬J«7{sL‚%˛nÒB ∑{ÃSs[_Ó>ß[g@‹Ô–|¬F`=pg;)˚i0v>2÷vS99/ÒıÂ˘æ≥íΩ∆ÅØ≈Ê€oØe∂ÒOg~áÊ
-{≤ãQŒ~õ {Bå}‡N®9“]ëxâˇ'yÊ∫gÚ≤◊Á:ØΩ	1∂}º"Êg+p∂Öåg∑≤‹ó€›œ∂$í‹/¬Á|b€^æ<lƒôYn∂S≥[aæ….ÆÛÚÌ„ﬁùΩ+Jºƒﬂº=áfoÛµ \ﬁ°8* ücrˇãŸf∫„ŒËfÀ?›ÖíxâwñÍ"ãupnZæˇ6"∆Hæ.≤Xwîè$í‹œbo‹[_∂€Rãu,!g¥7.Ê∂ |∫ÏÈøÔ /ÒÀ◊%ª-&-Ø8k∞ΩVVL,µÃí4GrD1-∏=ﬁF‰éì‘KÏÄô hË›≥!"ÒßyÓ‰ﬂ1Gy:mgcµòb'◊$ë§9ã#mËçÊéµ–íH"â≠4ÿa%ëDI$ëDí{Q˛ˆ+.$∏=^Q    IENDÆB`Ç        1  :  I  g  }  è  §  ™  ¥ 0Ô 0˙ 1 1 1" 5; 5B 5[ H H H  L< LC L\ ¨Û ¨˙ ≠\c|†††9˘ˆ˘˝˙2,232GK°K®Kø             ,             ®ô
+{≤ãQŒ~õ {Bå}‡N®9“]ëxâˇ'yÊ∫gÚ≤◊Á:ØΩ	1∂}º"Êg+p∂Öåg∑≤‹ó€›œ∂$í‹/¬Á|b€^æ<lƒôYn∂S≥[aæ….ÆÛÚÌ„ﬁùΩ+Jºƒﬂº=áfoÛµ \ﬁ°8* ücrˇãŸf∫„ŒËfÀ?›ÖíxâwñÍ"ãupnZæˇ6"∆Hæ.≤Xwîè$í‹œbo‹[_∂€Rãu,!g¥7.Ê∂ |∫ÏÈøÔ /ÒÀ◊%ª-&-Ø8k∞ΩVVL,µÃí4GrD1-∏=ﬁF‰éì‘KÏÄô hË›≥!"ÒßyÓ‰ﬂ1Gy:mgcµòb'◊$ë§9ã#mËçÊéµ–íH"â≠4ÿa%ëDI$ëDí{Q˛ˆ+.$∏=^Q    IENDÆB`Ç        1  :  I  g  }  è  §  ™  ¥ 0å 0ó 0û 0µ 0ø 4ÿ 4ﬂ 4¯ Gû G• GΩ KŸ K‡ K˘ ¨ê ¨ó ¨Æ˘ ü¥üªü÷˘ì˘ö˘∂1…1–1‰K>KEK\             ,             ®6
