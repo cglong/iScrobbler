@@ -31,7 +31,7 @@
     id s = [[tagData mutableCopy] autorelease];
     [s replaceOccurrencesOfString:@", " withString:@"," options:0 range:NSMakeRange(0, [s length])];
     
-    NSMutableArray *array = [[s componentsSeparatedByString:@","] mutableCopy];
+    NSMutableArray *array = [[[s componentsSeparatedByString:@","] mutableCopy] autorelease];
     NSMutableArray *empty = [NSMutableArray array];
     NSEnumerator *en = [array objectEnumerator];
     while ((s = [en nextObject])) {

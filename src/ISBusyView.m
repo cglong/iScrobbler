@@ -55,7 +55,7 @@
     [outEffect setFillMode:kCAFillModeRemoved];
     [outEffect setFilter:filter];
     [outEffect setDuration:transitionDuration];
-    NSDictionary *viewAnimations = [[NSDictionary alloc] initWithObjectsAndKeys:
+    NSDictionary *viewAnimations = [NSDictionary dictionaryWithObjectsAndKeys:
         inEffect, NSAnimationTriggerOrderIn,
         outEffect, NSAnimationTriggerOrderOut,
         nil];

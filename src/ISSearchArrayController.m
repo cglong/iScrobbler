@@ -28,6 +28,12 @@
     [tableView registerForDraggedTypes:[NSArray arrayWithObjects:NSTabularTextPboardType, NSStringPboardType, nil]];
 }
 
+- (void)dealloc
+{
+    [searchString release];
+    [super dealloc];
+}
+
 - (IBAction)search:(id)sender
 {
     [self setSearchString:[sender stringValue]];

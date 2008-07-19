@@ -1341,7 +1341,7 @@ player_info_exit:
     }
     
     if (addedSongs) {
-        if (songActionMenu && (song = [self nowPlaying])) {
+        if (songActionMenu && nil != [self nowPlaying]) {
             // Setup the action menu for the currently playing song  
             [self createActionMenuForItem:[theMenu itemAtIndex:0]];
         }
@@ -1780,7 +1780,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 {
     SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
     [req setMethod:@"loveTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
@@ -1801,7 +1801,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
     }
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
     [req setMethod:@"banTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
@@ -1818,7 +1818,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     [song setBanned:NO];
     [self performSelector:@selector(updateMenu) withObject:nil afterDelay:0.0];
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
     [req setMethod:@"unBanTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
@@ -1844,7 +1844,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 {
     ISRecommendController *rc = [note object];
     if ([rc send]) {
-        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
         NSMutableArray *p = [req standardParams];
         SongData *song = [rc representedObject];
         
@@ -1892,7 +1892,7 @@ exit:
 {
     SongData *song = [sender representedObject];
     
-    ISRecommendController *rc = [[ISRecommendController alloc] init];
+    ISRecommendController *rc = [[ISRecommendController alloc] init]; // released in [recommendSheetDidEnd:]
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recommendSheetDidEnd:)
         name:ISRecommendDidEnd object:rc];
     [rc setRepresentedObject:song];
@@ -1907,7 +1907,7 @@ exit:
     ISTagController *tc = [note object];
     NSArray *tags = [tc tags];
     if (tags && [tc send]) {
-        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
         NSMutableArray *p = [req standardParams];
         SongData *song = [tc representedObject];
         NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
@@ -1952,7 +1952,7 @@ exit:
 {
     SongData *song = [sender representedObject];
     
-    ISTagController *tc = [[ISTagController alloc] init];
+    ISTagController *tc = [[ISTagController alloc] init]; // released in [tagSheetDidEnd:]
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tagSheetDidEnd:)
         name:ISTagDidEnd object:tc];
     [tc setRepresentedObject:song];
@@ -1994,7 +1994,7 @@ exit:
         method, [request representedObject]);
     
     if (tag && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTagLovedBanned"]) {
-        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
+        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init]; // released in delegate handlers
         NSMutableArray *p = [tagReq standardParams];
         SongData *song = [request representedObject];
         [tagReq setMethod:@"tagTrack"];
