@@ -812,7 +812,7 @@ player_info_exit:
         
         // "Play" - http://sbooth.org/Play/
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
-            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.sbooth.Play.playerState"
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.sbooth.Play.playerInfo"
             object:nil];
         
         #ifdef notyet
