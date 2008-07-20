@@ -11,6 +11,7 @@
 #import <Cocoa/Cocoa.h>
 
 @class SongData;
+@class ISThreadMessenger;
 
 enum {kqSuccess, kqIsQueued, kqFailed};
 typedef NSInteger QueueResult_t;
@@ -19,6 +20,7 @@ typedef NSInteger QueueResult_t;
 @private
 	NSString *queuePath;
     SongData *lastSongQueued;
+    ISThreadMessenger *qThread;
     id songQueue;
     unsigned totalSubmissions;
     unsigned totalSubmissionSeconds;
@@ -55,7 +57,6 @@ typedef NSInteger QueueResult_t;
 - (unsigned)submissionAttemptsCount;
 - (unsigned)successfulSubmissionsCount;
 
-- (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomic;
 - (void)syncQueue:(id)sender;
 
 - (SongData*)lastSongQueued;
