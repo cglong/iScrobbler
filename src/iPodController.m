@@ -686,40 +686,19 @@ sync_exit_with_note:
     }
 }
 
-// NSWorkSpace mount notifications
-- (void)volumeDidMount:(NSNotification*)notification
+- (void)deviceWillSync:(NSString*)device
 {
-    NSDictionary *info = [notification userInfo];
-	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
-    NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
-	
-    ScrobLog(SCROB_LOG_TRACE, @"Volume mounted: %@", info);
+    [self setValue:device forKey:@"iPodMountPath"];
+    [iPodMounts setObject:[NSDate date] forKey:device];
     
-    BOOL isDir = NO;
-    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
-        [self setValue:mountPath forKey:@"iPodMountPath"];
-        [iPodMounts setObject:[NSDate date] forKey:mountPath];
-        
-        ISASSERT(iPodIcon == nil, "iPodIcon exists!");
-        // The iPod icon is no longer used as of 2.1.
-        // In addition there's been at least 2 crash reports in 10.5.2 due to what looks like corrupted iPod icons and a problem in NSImage.
-        #ifdef notyet
-        if ([[NSFileManager defaultManager] fileExistsAtPath:
-            [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
-            iPodIcon = [[NSImage alloc] initWithContentsOfFile:
-                [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
-            [iPodIcon setName:IPOD_ICON_NAME];
-        }
-        #endif
-        [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
-        ++iPodMountCount;
-        [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
-        ISASSERT(iPodMountCount > -1, "negative ipod count!");
-        
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
-            [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
-                message:NSLocalizedString(@"An iPod has been detected. All track plays will be queued until the iPod is ejected.", "")];
-        }
+    [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
+    ++iPodMountCount;
+    [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
+    ISASSERT(iPodMountCount > -1, "negative ipod count!");
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
+        [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
+            message:NSLocalizedString(@"An iPod has been detected. All track plays will be queued until the iPod is ejected.", "")];
     }
 }
 
@@ -751,6 +730,32 @@ sync_exit_with_note:
     }
 }
 
+// NSWorkSpace mount notifications
+- (void)volumeDidMount:(NSNotification*)notification
+{
+    NSDictionary *info = [notification userInfo];
+	NSString *mountPath = [info objectForKey:@"NSDevicePath"];
+    NSString *iPodControlPath = [mountPath stringByAppendingPathComponent:@"iPod_Control"];
+	
+    ScrobLog(SCROB_LOG_TRACE, @"Volume mounted: %@", info);
+    
+    BOOL isDir = NO;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:iPodControlPath isDirectory:&isDir] && isDir) {
+        // The iPod icon is no longer used as of 2.1.
+        // In addition there's been at least 2 crash reports in 10.5.2 due to what looks like corrupted iPod icons and a problem in NSImage.
+        #ifdef notyet
+        ISASSERT(iPodIcon == nil, "iPodIcon exists!");
+        if ([[NSFileManager defaultManager] fileExistsAtPath:
+            [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]]) {
+            iPodIcon = [[NSImage alloc] initWithContentsOfFile:
+                [mountPath stringByAppendingPathComponent:@".VolumeIcon.icns"]];
+            [iPodIcon setName:IPOD_ICON_NAME];
+        }
+        #endif
+        [self deviceWillSync:mountPath];
+    }
+}
+
 - (void)volumeDidUnmount:(NSNotification*)notification
 {
     NSDictionary *info = [notification userInfo];
@@ -768,19 +773,6 @@ sync_exit_with_note:
 - (void)amdsDidStartSync:(NSNotification*)note
 {
     ScrobLog(SCROB_LOG_TRACE, @"Mobile Device sync start: %@", [note userInfo]);
-
-    [self setValue:[note object] forKey:@"iPodMountPath"];
-    [iPodMounts setObject:[NSDate date] forKey:[note object]];
-    
-    [[NSApp delegate] willChangeValueForKey:@"isIPodMounted"]; // update our binding
-    ++iPodMountCount;
-    [[NSApp delegate] didChangeValueForKey:@"isIPodMounted"];
-    ISASSERT(iPodMountCount > -1, "negative ipod count!");
-    
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"QueueSubmissionsIfiPodIsMounted"]) {
-        [[NSApp delegate] displayWarningWithTitle:NSLocalizedString(@"Queuing Submissions", "")
-            message:NSLocalizedString(@"An iPod has been detected. All track plays will be queued until the iPod is ejected.", "")];
-    }
 }
 
 - (void)amdsDidFinishSync:(NSNotification*)note
@@ -793,7 +785,10 @@ sync_exit_with_note:
 - (void)amdsDidConnect:(NSNotification*)note
 {
     ScrobLog(SCROB_LOG_TRACE, @"Mobile Device attached: %@", [note userInfo]);
-
+    
+    // sync message does not occur until after iTunes media has been synced, so do the sync setup here
+    [self deviceWillSync:[note object]];
+    
     [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
 }
 

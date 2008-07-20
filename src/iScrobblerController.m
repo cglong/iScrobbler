@@ -493,8 +493,9 @@ if (currentSong) { \
         // player is PandoraBoy, etc
         [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
-        if (trackTypeUnknown == [song type])
-            [song setType:trackTypeShared];
+        // XXX: for the Local Charts database, consider all non-iTunes tracks as external
+        // this way, the database does not try to verify track play counts.
+        [song setType:trackTypeShared];
     }
     
     if (didInfoUpdate) {
