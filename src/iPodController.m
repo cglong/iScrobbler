@@ -460,7 +460,8 @@ validate:
                 if ([[[lastSubmission lastPlayed] GMTDate] isLessThan:iPodMountEpochGMT])
                     break;
             }
-        }
+        } else
+            lastSubmission = nil;
         if (!lastSubmission)
             lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
         NSDate *requestDate;
