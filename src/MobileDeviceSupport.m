@@ -75,6 +75,10 @@ static void *libHandle = nil;
 
 static void CFHandleCallback(CFNotificationCenterRef center, void *observer, CFStringRef name,
     const void *object, CFDictionaryRef userInfo);
+
+NSMutableDictionary *devicesAttachedBeforeLaunch = nil;
+static NSMutableDictionary* FindAttachedDevices(void);
+
 #endif
 
 __private_extern__
@@ -87,6 +91,8 @@ int IntializeMobileDeviceSupport(const char *path, void **handle)
             *handle = NULL;
         return (0);
     }
+    
+    devicesAttachedBeforeLaunch = [FindAttachedDevices() retain];
     
     if ((libHandle = dlopen(path, RTLD_LAZY|RTLD_LOCAL))) {
         AMDeviceNotificationSubscribe subscribe;
@@ -193,8 +199,13 @@ static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info)
     if (!productName)
         productName = @"Unknown Mobile Device";
     
+    BOOL connectedBeforeLaunch = nil != [devicesAttachedBeforeLaunch objectForKey:serial];
+    if (connectedBeforeLaunch)
+        [devicesAttachedBeforeLaunch removeObjectForKey:serial];
+    
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
         serial, @"serial",
+        [NSNumber numberWithBool:connectedBeforeLaunch], @"connectedBeforeLaunch",
         deviceName, @"name",
         productName, @"product",
         productID, @"productID",
@@ -229,16 +240,16 @@ static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info)
     [pool release];
 }
 
-#ifdef obsolete
-static BOOL ISMountableDevice(io_object_t entry)
+static BOOL IsMassStorageDevice(io_object_t entry)
 {
     io_iterator_t i;
     BOOL canMount = NO;
-    kern_return_t kr = IORegistryEntryGetChildIterator(entry, kIOUSBPlane, &i);
-     if (0 == kr && 0 != i) {
+    kern_return_t kr = IORegistryEntryGetChildIterator(entry, kIOServicePlane, &i);
+    if (0 == kr && 0 != i) {
         io_object_t iobj;
         while ((iobj = IOIteratorNext(i))) {
-            if (IOObjectConformsTo(iobj, "IOUSBMassStorageClass")) {
+            // the iterator is for 1st generation children only, to get all descendants we have to go recursive
+            if (IOObjectConformsTo(iobj, "IOUSBMassStorageClass") || IsMassStorageDevice(iobj)) {
                 canMount = YES;
                 IOObjectRelease(iobj);
                 break;
@@ -249,11 +260,12 @@ static BOOL ISMountableDevice(io_object_t entry)
         
         IOObjectRelease(i);
      }
-     return (NO);
+     return (canMount);
 }
 
-static void FindConnectedDevices(void)
+static NSMutableDictionary* FindAttachedDevices(void)
 {
+    NSMutableDictionary *devices = [NSMutableDictionary dictionary];
     io_iterator_t i;
     kern_return_t kr = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching(kIOUSBDeviceClassName), &i);
     if (0 == kr && 0 != i) {
@@ -268,9 +280,9 @@ static void FindConnectedDevices(void)
                 NSString *productID = [properties objectForKey:@"idProduct"];
                 NSString *serial = [[properties objectForKey:@"USB Serial Number"] lowercaseString];
                 
-                if (productID != nil && (NSOrderedSame == [productName caseInsensitiveCompare:@"iPhone"]
+                if (productID && productName && (NSOrderedSame == [productName caseInsensitiveCompare:@"iPhone"]
                     || (NSOrderedSame == [productName caseInsensitiveCompare:@"iPod"]
-                        && NO == ISMountableDevice(iobj)))) {
+                        && NO == IsMassStorageDevice(iobj)))) {
                             
                     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
                         productName, @"product",
@@ -278,9 +290,7 @@ static void FindConnectedDevices(void)
                         productID, @"productID",
                         nil];
                     
-                    [connectedDevices setObject:d forKey:serial];
-                    [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.connect"
-                        object:serial userInfo:d];
+                    [devices setObject:d forKey:serial];
                 }
                 
                 [properties release];
@@ -291,8 +301,8 @@ static void FindConnectedDevices(void)
         
         IOObjectRelease(i);
     }
-
     
+    return (devices);
 }
-#endif // obsolete
+
 #endif // LP64
