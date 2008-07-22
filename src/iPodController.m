@@ -460,10 +460,7 @@ validate:
                 if ([[[lastSubmission lastPlayed] GMTDate] isLessThan:iPodMountEpochGMT])
                     break;
             }
-        } else
-            lastSubmission = nil;
-        if (!lastSubmission)
-            lastSubmission = [[QueueManager sharedInstance] lastSongQueued];
+        }
         if (!lastSubmission)
             lastSubmission = [[ProtocolManager sharedInstance] lastSongSubmitted];
         NSDate *requestDate;
@@ -773,6 +770,9 @@ sync_exit_with_note:
 - (void)amdsDidStartSync:(NSNotification*)note
 {
     ScrobLog(SCROB_LOG_TRACE, @"Mobile Device sync start: %@", [note userInfo]);
+    
+    if (nil == [iPodMounts objectForKey:[note object]])
+        [self deviceWillSync:[note object]];
 }
 
 - (void)amdsDidFinishSync:(NSNotification*)note
