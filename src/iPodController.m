@@ -786,8 +786,13 @@ sync_exit_with_note:
 {
     ScrobLog(SCROB_LOG_TRACE, @"Mobile Device attached: %@", [note userInfo]);
     
+    BOOL connectedBeforeLaunch = [[[note userInfo] objectForKey:@"connectedBeforeLaunch"] boolValue];
+    
     // sync message does not occur until after iTunes media has been synced, so do the sync setup here
-    [self deviceWillSync:[note object]];
+    if (!connectedBeforeLaunch
+        || NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreMobileDevicesConnectedBeforeLaunch"]) {
+        [self deviceWillSync:[note object]];
+    }
     
     [[ISiTunesLibrary sharedInstance] copyToPath:ISCOPY_OF_ITUNES_LIB];
 }
