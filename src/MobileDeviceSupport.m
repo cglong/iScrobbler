@@ -25,10 +25,18 @@ enum {
     kDeviceNotificationDisconnected = 2,
 };
 
+// XXX: AMDevice.productID may be two 16 bit ints instead 1 32bit int,
+// as the numbers appear shifted up by 16 bits on PPC
 enum {
+#if BYTE_ORDER == LITTLE_ENDIAN
     kProduct_iPhone = 4752,
     kProduct_iPodTouch = 4753,
-    // kDevice_iPhone3g = ???,
+    kProduct_iPhone3G = 4754,
+#elif BYTE_ORDER == BIG_ENDIAN
+    kProduct_iPhone = 4752 << 16,
+    kProduct_iPodTouch = 4753 << 16,
+    kProduct_iPhone3G = 4754 << 16,
+#endif
 };
 
 struct AMDevice {
@@ -172,6 +180,7 @@ static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info)
     NSDictionary *productNameMap = [NSDictionary dictionaryWithObjectsAndKeys:
         @"iPhone", [NSNumber numberWithUnsignedInt:kProduct_iPhone],
         @"iPod Touch", [NSNumber numberWithUnsignedInt:kProduct_iPodTouch],
+        @"iPhone 3G", [NSNumber numberWithUnsignedInt:kProduct_iPhone3G],
         nil];
     
     NSString *deviceName;
