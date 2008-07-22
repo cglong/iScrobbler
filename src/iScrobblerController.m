@@ -334,7 +334,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 {
     // Run the script to get the info not included in the dict
     NSDictionary *errInfo = nil;
+    ScrobLog(SCROB_LOG_TRACE, @"Running GetTrackInfo script");
     NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo];
+    ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo script finished");
     *retry = YES;
     if (result) {
         if ([result numberOfItems] > 1) {
