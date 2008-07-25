@@ -14,6 +14,7 @@
 #import "ProtocolManager.h"
 #import "iPodController.h"
 #import "ISRadioController.h"
+#import "ISThreadMessenger.h"
 
 static QueueManager *g_QManager = nil;
 
@@ -259,15 +260,26 @@ static QueueManager *g_QManager = nil;
 
 #define CACHE_SIG_KEY @"Persistent Cache Sig"
 
-- (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomic
+- (void)writeQueuedSongs:(NSArray*)songs
+{
+    NSData *data = [NSPropertyListSerialization dataFromPropertyList:songs
+        format:NSPropertyListBinaryFormat_v1_0
+        errorDescription:nil];
+    if (data && [data writeToFile:queuePath atomically:YES]) {
+        NSString *md5 = [[NSApp delegate] md5hash:data];
+        [[NSUserDefaults standardUserDefaults] setObject:md5 forKey:CACHE_SIG_KEY];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    } else {
+        ScrobLog(SCROB_LOG_ERR, @"Failed to create queue file: %@!\n", queuePath);
+    }
+}
+
+- (void)writeQueue:(NSString*)path
 {
     NSMutableArray *songs = [NSMutableArray array];
     NSDictionary *songData;
     SongData *song;
     NSEnumerator *en = [songQueue objectEnumerator];
-    
-    if (0 == [songQueue count])
-        return (NO);
     
     while ((song = [en nextObject])) {
         if ((songData = [song songData]))
@@ -276,17 +288,22 @@ static QueueManager *g_QManager = nil;
             ScrobLog(SCROB_LOG_ERR, @"Failed to add '%@' to persitent store.\n", [song brief]);
     }
     
-    NSData *data = [NSPropertyListSerialization dataFromPropertyList:songs
-        format:NSPropertyListBinaryFormat_v1_0
-        errorDescription:nil];
-    if (data && [data writeToFile:path atomically:atomic]) {
-        NSString *md5 = [[NSApp delegate] md5hash:data];
-        [[NSUserDefaults standardUserDefaults] setObject:md5 forKey:CACHE_SIG_KEY];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-        return (YES);
+    [ISThreadMessenger makeTarget:qThread performSelector:@selector(writeQueuedSongs:) withObject:songs];
+}
+
+- (void)syncQueue:(id)sender
+{
+    if (0 == [songQueue count]) {
+        [ISThreadMessenger makeTarget:qThread performSelector:@selector(removeQueue:) withObject:nil];
+    } else {
+        [self writeQueue:queuePath];
     }
-    
-    return (NO);
+}
+
+- (void)removeQueue:(id)arg
+{
+    [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:CACHE_SIG_KEY];
+    [[NSFileManager defaultManager] removeFileAtPath:queuePath handler:nil];
 }
 
 - (NSArray*)restoreQueueWithPath:(NSString*)path
@@ -317,14 +334,26 @@ static QueueManager *g_QManager = nil;
     return (pCache);
 }
 
-- (void)syncQueue:(id)sender
+- (void)queueManagerThread:(id)arg
 {
-    if (0 == [songQueue count]) {
-        [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:CACHE_SIG_KEY];
-        [[NSFileManager defaultManager] removeFileAtPath:queuePath handler:nil];
-    } else if (NO == [self writeToFile:queuePath atomically:YES]) {
-        ScrobLog(SCROB_LOG_ERR, @"Failed to create queue file: %@!\n", queuePath);
-    }
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    qThread = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
+    
+    do {
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
+        @try {
+        [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+        } @catch (id e) {
+            ScrobLog(SCROB_LOG_TRACE, @"[queueManagerThread:] uncaught exception: %@", e);
+        }
+    } while (1);
+    
+    ISASSERT(0, "queueManagerThread run loop exited!");
+    [qThread release];
+    qThread = nil;
+    [pool release];
 }
 
 - (id)init
@@ -372,6 +401,10 @@ static QueueManager *g_QManager = nil;
         }
 
         songQueue = [[NSMutableArray alloc] init];
+        
+        // create a thread to write the queue to disk in the background so we don't have to wait on a slow disk
+        // (for instance, if the queue is written while a compile is in progress on a MacBook, iScrobbler can beachball)
+        [NSThread detachNewThreadSelector:@selector(queueManagerThread:) toTarget:self withObject:nil];
         
         // Read in the persistent cache
         if (queuePath) {

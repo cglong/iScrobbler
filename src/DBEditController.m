@@ -262,7 +262,7 @@
         [playEvents removeObjects:[playEvents content]];
         
     // Setup our sort descriptors
-    NSSortDescriptor *byDate = [[NSSortDescriptor alloc] initWithKey:@"playDate" ascending:NO];
+    NSSortDescriptor *byDate = [[[NSSortDescriptor alloc] initWithKey:@"playDate" ascending:NO] autorelease];
     [playEvents setSortDescriptors:[NSArray arrayWithObjects:byDate, nil]];
 }
 

@@ -1125,7 +1125,7 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
 {
     [conn autorelease];
     conn = nil;
-    NSImage *img = [[NSImage alloc] initWithData:albumArtData];
+    NSImage *img = [[[NSImage alloc] initWithData:albumArtData] autorelease];
     if (img) {
         ScrobDebug(@"loaded", MakeAlbumCacheKey());
         [self cacheArtwork:img withScore:artScorePerHit*SCORBOARD_NET_BOOST /*since it's from the net, give it a cache boost*/];

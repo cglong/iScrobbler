@@ -347,7 +347,7 @@ static NSImage *artistImgPlaceholder = nil;
         NSURL *url = [NSURL URLWithString:picture];
         if (url) {
             ScrobLog(SCROB_LOG_TRACE, @"Requesting %@", url);
-            NSMutableURLRequest *request = request = [NSMutableURLRequest requestWithURL:url
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                     timeoutInterval:60.0];
             if ((imageRequest = [[NSURLDownload alloc] initWithRequest:request delegate:self]))

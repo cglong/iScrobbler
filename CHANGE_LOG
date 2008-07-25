@@ -1,7 +1,7 @@
 KNOWN ISSUES:
 
 - If you are burning a CD or editing a song's information or your computer is very busy, then iTunes may not be able to process Apple Events. Since iScrobbler communicates with iTunes via Apple Events, this can cause iScrobbler to miss songs that should be submitted.
-- The Top Tracks Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
+- The Local Charts Last Played date may not be in sync with the iTunes Last Played date as pause time is not considered. This is not a bug, just the way things work.
 - There seems to be a conflict with Cocoa Gestures. If you have CG installed the iScrobbler menu items may be unusable.
 - If you have submissions paused, then un-pause them and sync your iPod, all songs played in iTunes and on the iPod while paused will be submitted.
 
@@ -14,7 +14,7 @@ CHANGE HISTORY:
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
 v2.2.0 (BDB)
-- Integrated support for iPhone and iPod Touch.
+- Integrated support for iPhone and iPod Touch (thanks to glgray, einsteinbqat, and everyone else who donated).
 - Album chart data is now displayed in the Local Charts window.
 - Leopard only: New Local Charts: Month-to-date and Year-to-date.
 - Enhanced Local Charts profile report, including artist movements for Last.fm, Month-to-date, and Year-to-date archives.
@@ -24,12 +24,15 @@ v2.2.0 (BDB)
 - Leopard only: Faster launch time.
 - Pref to ignore iTunes Store podcasts has been exposed in the GUI.
 - Added 'reset network monitor' Applescript command.
+- Bug Fix: Regression - if a song played in iTunes was queued while an iPod sync was in progress, the iPod sync would fail to find any songs.
 - Bug Fix: The Last Played time in the Local Charts is now the latest time within the period of the chart instead of the last played time of the song itself.
 - Bug Fix: Regression - The menu color and stats window would not update properly if a connection to last.fm failed.
 - Bug Fix: iScrobbler attempts to use the iLife prefs to find the iTunes XML file (to support non-standard library locations).
 - Bug Fix: Regression - Possible 'this class is not key value coding-compliant for the key iPodMounts' error in the console log.
 - Bug Fix: Failure to tune a radio station via Applescript.
+- Bug Fix: Regression - Play media player works with iScrobbler once more.
 - Bug Fix: Switch from ST to DST would cause 100% CPU usage for one hour.
+- Bug Fix: several memory leaks were plugged
 
 v2.1.2 (BDB)
 - A minimal stats window is back.

@@ -243,7 +243,7 @@ static PlayHistoryController *sharedController = nil;
 - (IBAction)addHistoryEvent:(id)sender
 {
     if (currentTrackInfo) {
-        DBEditController *ec = [[DBAddHistoryController alloc] init];
+        DBEditController *ec = [[DBAddHistoryController alloc] init]; // released when closed by self
         [ec setObject:currentTrackInfo];
         [ec showWindow:nil];
     } else

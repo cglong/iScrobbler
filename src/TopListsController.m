@@ -513,11 +513,11 @@ static NSMutableArray *topHours = nil;
         DBEditController *ec;
         switch (ch) {
             case NSF1FunctionKey:
-                ec = [[DBRenameController alloc] init];
+                ec = [[DBRenameController alloc] init]; // released when closed by self
             break;
             case NSF2FunctionKey:
                 if (data == topTracksController && [persistence isVersion2])
-                    ec = [[DBRemoveController alloc] init];
+                    ec = [[DBRemoveController alloc] init]; // released when closed by self
                 else
                     return;
             break;
@@ -788,7 +788,7 @@ static NSMutableArray *topHours = nil;
     if (!artist || !title)
         return;
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[[ASXMLRPC alloc] init] autorelease];
     [req setMethod:method];
     NSMutableArray *p = [req standardParams];
     [p addObject:artist];
@@ -841,7 +841,7 @@ static NSMutableArray *topHours = nil;
         if (!artist)
             goto exit;
         
-        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        ASXMLRPC *req = [[[ASXMLRPC alloc] init] autorelease];
         NSMutableArray *p = [req standardParams];
         
         NSString *title;
@@ -938,7 +938,7 @@ exit:
             if (!artist)
                 continue;
             
-            ASXMLRPC *req = [[ASXMLRPC alloc] init];
+            ASXMLRPC *req = [[[ASXMLRPC alloc] init] autorelease];
             NSMutableArray *p = [req standardParams];
             NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
             switch ([tc type]) {
@@ -1021,7 +1021,7 @@ exit:
 - (IBAction)showTrackHistory:(id)sender
 {
     if (persistenceTh && ![PlayHistoryController sharedController]) {
-        PlayHistoryController *hc = [[PlayHistoryController alloc] init];
+        PlayHistoryController *hc = [[PlayHistoryController alloc] init]; // released when closed by self
         [hc showWindow:nil];
         NSArray *selection;
         if ((selection = [topTracksController selectedObjects]) && [selection count] > 0)
@@ -1056,7 +1056,7 @@ exit:
         && [obj isKindOfClass:[NSDictionary class]]
         && (artist = [obj objectForKey:@"Artist"])
         && (title = [obj objectForKey:@"Track"])) {
-        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
+        ASXMLRPC *tagReq = [[[ASXMLRPC alloc] init] autorelease];
         NSMutableArray *p = [tagReq standardParams];
         [tagReq setMethod:@"tagTrack"];
         [p addObject:artist];
@@ -1487,7 +1487,6 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     basePlayTime = [[artists valueForKeyPath:@"Total Duration.@max.unsignedIntValue"] floatValue];
     float secondaryBasePlayCount = basePlayCount / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
     float secondaryTotalPlayCount = [totalPlays floatValue] / (elapsedDays > 14.0 ? (elapsedDays / 7.0) : elapsedDays);
-    BOOL newThisSession;
     NSNumber *previousRank;
     NSMutableArray *newArtists = [NSMutableArray array];
     position = 0;
@@ -1497,7 +1496,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         artist = [[entry objectForKey:@"Artist"] stringByConvertingCharactersToHTMLEntities];
         playCount = [entry objectForKey:@"Play Count"];
         timeStr = [entry objectForKey:@"Play Time"];
-        if ((newThisSession = [[entry objectForKey:@"New This Session"] boolValue]))
+        if ([[entry objectForKey:@"New This Session"] boolValue])
             [newArtists addObject:artist];
         
         HAdd(d, (absPosition & 0x0000001) ? TR : TRALT);
@@ -1558,7 +1557,6 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     
     //// NEWARTISTS ////
     if ([persistence isVersion2]) {
-        absPosition = 1;
         HAdd(d, @"<div class=\"modbox\">" @"<table class=\"topn\" id=\"newartists\">\n" TR);
         tmp = [NSString stringWithFormat:@"<span title=\"%@: %lu\">%@</span>",
             NSLocalizedString(@"Total", ""), [newArtists count], NEW_ARTISTS_TITLE];
@@ -1566,6 +1564,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         HAdd(d, TRCLOSE);
         en = [[newArtists sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] objectEnumerator];
         #if 0
+        absPosition = 1;
         if (elapsedDays > 14.0) {
             // 1 artist per row with date
             while ((entry = [en nextObject])) {

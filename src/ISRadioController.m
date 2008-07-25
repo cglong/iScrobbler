@@ -162,6 +162,7 @@
             [item release];
             
             [rootMenu setSubmenu:m];
+            [m release];
             
             if ([[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTuneLastRadioStation"])
                 [ws handshake];

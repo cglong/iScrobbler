@@ -1585,10 +1585,7 @@
 		D32906770CDA8D9700CAAB66 /* Debug-Internal */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					i386,
-					x86_64,
-				);
+				ARCHS = "$(NATIVE_ARCH)";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = stabs;
 				GCC_C_LANGUAGE_STANDARD = gnu99;

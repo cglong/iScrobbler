@@ -187,7 +187,7 @@
     }
     #endif
     
-    return ([[ISCrashReporter alloc] initWithReportPath:path] != nil);
+    return ([[ISCrashReporter alloc] initWithReportPath:path] != nil); // released when closed by self
 }
 
 @end

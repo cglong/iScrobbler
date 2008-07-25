@@ -334,7 +334,9 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 {
     // Run the script to get the info not included in the dict
     NSDictionary *errInfo = nil;
+    ScrobLog(SCROB_LOG_TRACE, @"Running GetTrackInfo script");
     NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo];
+    ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo script finished");
     *retry = YES;
     if (result) {
         if ([result numberOfItems] > 1) {
@@ -493,7 +495,9 @@ if (currentSong) { \
         // player is PandoraBoy, etc
         [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
-        if (trackTypeUnknown == [song type])
+        // XXX: for the Local Charts database, consider all non-iTunes tracks as external.
+        // This way, the database does not try to verify track play counts.
+        if (!frontRowActive || trackTypeUnknown == [song type])
             [song setType:trackTypeShared];
     }
     
@@ -812,7 +816,7 @@ player_info_exit:
         
         // "Play" - http://sbooth.org/Play/
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
-            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.sbooth.Play.playerState"
+            selector:@selector(iTunesPlayerInfoHandler:) name:@"org.sbooth.Play.playerInfo"
             object:nil];
         
         #ifdef notyet
@@ -1341,7 +1345,7 @@ player_info_exit:
     }
     
     if (addedSongs) {
-        if (songActionMenu && (song = [self nowPlaying])) {
+        if (songActionMenu && nil != [self nowPlaying]) {
             // Setup the action menu for the currently playing song  
             [self createActionMenuForItem:[theMenu itemAtIndex:0]];
         }
@@ -1780,7 +1784,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 {
     SongData *song = [sender isKindOfClass:[SongData class]] ? sender : [sender representedObject];
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
     [req setMethod:@"loveTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
@@ -1801,7 +1805,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
     }
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
     [req setMethod:@"banTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
@@ -1818,7 +1822,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     [song setBanned:NO];
     [self performSelector:@selector(updateMenu) withObject:nil afterDelay:0.0];
     
-    ASXMLRPC *req = [[ASXMLRPC alloc] init];
+    ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
     [req setMethod:@"unBanTrack"];
     NSMutableArray *p = [req standardParams];
     [p addObject:[song artist]];
@@ -1844,7 +1848,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
 {
     ISRecommendController *rc = [note object];
     if ([rc send]) {
-        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
         NSMutableArray *p = [req standardParams];
         SongData *song = [rc representedObject];
         
@@ -1892,7 +1896,7 @@ exit:
 {
     SongData *song = [sender representedObject];
     
-    ISRecommendController *rc = [[ISRecommendController alloc] init];
+    ISRecommendController *rc = [[ISRecommendController alloc] init]; // released in [recommendSheetDidEnd:]
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recommendSheetDidEnd:)
         name:ISRecommendDidEnd object:rc];
     [rc setRepresentedObject:song];
@@ -1907,7 +1911,7 @@ exit:
     ISTagController *tc = [note object];
     NSArray *tags = [tc tags];
     if (tags && [tc send]) {
-        ASXMLRPC *req = [[ASXMLRPC alloc] init];
+        ASXMLRPC *req = [[ASXMLRPC alloc] init]; // released in delegate handlers
         NSMutableArray *p = [req standardParams];
         SongData *song = [tc representedObject];
         NSString *mode = [tc editMode] == tt_overwrite ? @"set" : @"append";
@@ -1952,7 +1956,7 @@ exit:
 {
     SongData *song = [sender representedObject];
     
-    ISTagController *tc = [[ISTagController alloc] init];
+    ISTagController *tc = [[ISTagController alloc] init]; // released in [tagSheetDidEnd:]
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tagSheetDidEnd:)
         name:ISTagDidEnd object:tc];
     [tc setRepresentedObject:song];
@@ -1994,7 +1998,7 @@ exit:
         method, [request representedObject]);
     
     if (tag && [[NSUserDefaults standardUserDefaults] boolForKey:@"AutoTagLovedBanned"]) {
-        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init];
+        ASXMLRPC *tagReq = [[ASXMLRPC alloc] init]; // released in delegate handlers
         NSMutableArray *p = [tagReq standardParams];
         SongData *song = [request representedObject];
         [tagReq setMethod:@"tagTrack"];
@@ -2358,6 +2362,18 @@ exit:
             ScrobLog(SCROB_LOG_ERR, @"Invalid song data: track name, artist, or duration is missing.");
         [self autorelease];
         return (nil);
+    }
+    
+    // XXX: because of the change made in r1698 to support the iPhone "Remote" playlist
+    // ITMS preview tracks are no longer blocked because the GetTrackInfo script fails.
+    // We do some hackery here to detect previews and block them.
+    // Unfortunately, this will also block 30 second tracks played from a Shared Library and
+    // will break if ITMS previews are not exactly within our range.
+    if (!location && iduration && [iduration intValue] >= 29999 && [iduration intValue] <= 30001
+        && [[dict objectForKey:@"Store URL"] hasPrefix:@"itms"]) {
+            [self autorelease];
+            ScrobLog(SCROB_LOG_VERBOSE, @"Track %@ detected as iTMS preview - skipping", iname);
+            return (nil);
     }
     
     [self setTitle:iname];
