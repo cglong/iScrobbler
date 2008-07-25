@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.2.0b4</string>
+        <string>2.2.0b5</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b4.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b5.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -19,6 +19,12 @@
         <dict>
 			<key>English</key>
 			<string>
+2.2b5:
+- Updated iPhone/iPod touch support
+- Bug Fix: Regression - iTunes store previews were being scrobbled.
+- Bug Fix: Regression - Play media player works with iScrobbler once more
+- Bug Fix: possible crash
+
 2.2b4:
 - Bug Fix: prefs window failed to initialize properly.
 
