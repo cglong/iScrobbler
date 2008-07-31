@@ -1088,11 +1088,11 @@ __private_extern__ BOOL version3 = NO;
         
         [mainMOC save:nil];
     } else {
+        psc = [mainMOC persistentStoreCoordinator];
         #if IS_STORE_V2
         if ([@"3" isEqualToString:[metadata objectForKey:(NSString*)kMDItemVersion]]
             || [[NSUserDefaults standardUserDefaults] boolForKey:@"WantsV3Charts"])
             [self switchToV3];
-        psc = [mainMOC persistentStoreCoordinator];
         if (![[psc managedObjectModel] isConfiguration:nil compatibleWithStoreMetadata:metadata]) {
         #else
         if (![[metadata objectForKey:(NSString*)kMDItemVersion] isEqualTo:[self currentStoreVersion]]) {
