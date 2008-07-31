@@ -1097,6 +1097,15 @@ player_info_exit:
             [[[NSUserDefaults standardUserDefaults] objectForKey:@"BBNetUpdateLastCheck"] GMTDate]);
     }
     
+    // Register to handle URLs
+    [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
+        forEventClass:kInternetEventClass andEventID:kAEGetURL];
+    
+    (void)[ISPluginController sharedInstance]; // load plugins
+    
+    if (NO == [GrowlApplicationBridge isGrowlRunning])
+        msgWindowPlugin = (ISMsgWindow*)[[ISPluginController sharedInstance] loadCorePlugin:@"MsgWindow"];
+    
     if (isTopListsActive) {
         if ([TopListsController willCreateNewProfile]) {
             // Disable this so the TopListsController is not allocated (which begins the import)
@@ -1130,15 +1139,6 @@ player_info_exit:
         } else
             [self createTopListsController];
     }
-            
-    // Register to handle URLs
-    [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(getUrl:withReplyEvent:)
-        forEventClass:kInternetEventClass andEventID:kAEGetURL];
-    
-    (void)[ISPluginController sharedInstance]; // load plugins
-    
-    if (NO == [GrowlApplicationBridge isGrowlRunning])
-        msgWindowPlugin = (ISMsgWindow*)[[ISPluginController sharedInstance] loadCorePlugin:@"MsgWindow"];
     
     #ifdef IS_SCRIPT_PROXY
     [self loadProxy];
