@@ -925,10 +925,11 @@ didFinishLoadingExit:
     ScrobTrace(@"Connection flags: %x.", flags);
     
     LEOPARD_BEGIN
-    [self performSelectorOnMainThread:@selector(setNetworkAvailable:)
-        withObject:[NSNumber numberWithBool:canReach] waitUntilDone:YES];
-    if (resetMonitor)
-        [self performSelectorOnMainThread:@selector(registerNetMonitor) withObject:nil waitUntilDone:YES];
+    if (!resetMonitor)
+        [self performSelectorOnMainThread:@selector(setNetworkAvailable:)
+            withObject:[NSNumber numberWithBool:canReach] waitUntilDone:NO];
+    else
+        [self performSelectorOnMainThread:@selector(registerNetMonitor) withObject:nil waitUntilDone:NO];
     [pool release];
     return;
     LEOPARD_END
