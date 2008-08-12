@@ -505,13 +505,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
         didMove = [fm movePath:bbTmpFile toPath:_file handler:nil];
     
     if (!didMove) {
-        if (!error) {
-            NSDictionary *info = [NSDictionary dictionaryWithObject:
-                NSLocalizedString(@"Failed to move the temporary download file.", @"")
-                forKey:NSLocalizedDescriptionKey];
-            
-            error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
-        }
+        NSDictionary *info = [NSDictionary dictionaryWithObject:
+            NSLocalizedString(@"Failed to move the temporary download file.", @"")
+            forKey:NSLocalizedDescriptionKey];
+        
+        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:info];
         [self download:download didFailWithError:error];
         return;
     }
