@@ -8,6 +8,8 @@
 //  Released under the GPL, license details available in res/gpl.txt
 //
 
+#import <libkern/OSAtomic.h>
+
 #import "QueueManager.h"
 #import "SongData.h"
 #import "iScrobblerController.h"
@@ -334,11 +336,15 @@ static QueueManager *g_QManager = nil;
     return (pCache);
 }
 
+static int32_t initFlag = 0;
+
 - (void)queueManagerThread:(id)arg
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     qThread = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
+    
+    OSAtomicIncrement32Barrier(&initFlag);
     
     do {
         [pool release];
@@ -405,6 +411,16 @@ static QueueManager *g_QManager = nil;
         // create a thread to write the queue to disk in the background so we don't have to wait on a slow disk
         // (for instance, if the queue is written while a compile is in progress on a MacBook, iScrobbler can beachball)
         [NSThread detachNewThreadSelector:@selector(queueManagerThread:) toTarget:self withObject:nil];
+        
+        int32_t threadRunning;
+        do {
+            OSMemoryBarrier();
+            threadRunning = initFlag;
+            if (threadRunning)
+                break;
+            else
+                usleep(100000);
+        } while (1);
         
         // Read in the persistent cache
         if (queuePath) {
