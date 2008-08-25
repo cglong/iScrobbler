@@ -59,7 +59,7 @@ tell application "iTunes"
 			set trackLastPlayed to played date
 		end try
 		set trackPlaylistID to index of the container of theTrack
-		set trackSource to name of the container of the container of theTrack as Unicode text
+		set trackSource to name of the container of theTrack as Unicode text
 		try
 			if podcast of theTrack is true then
 				set trackPodcast to 1
