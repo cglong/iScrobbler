@@ -801,7 +801,13 @@
 
 - (BOOL)outlineView:(NSOutlineView*)sender shouldSelectItem:(id)item
 {
-    return ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue] ? NO : YES);
+    LEOPARD_BEGIN
+    return (![[[item representedObject] objectForKey:@"isSourceGroup"] boolValue]);
+    LEOPARD_END
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+    return (YES);
+    #endif
 }
 
 #define SearchPanelMaxRatio 0.80
