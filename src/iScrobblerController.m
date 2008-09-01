@@ -82,7 +82,6 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 @interface iScrobblerController (Private)
 - (void)presentError:(NSError*)error withDidEndHandler:(SEL)selector;
-- (void)retryInfoHandler:(NSTimer*)timer;
 - (NSImage*)aeImageConversionHandler:(NSAppleEventDescriptor*)aeDesc;
 // iPod
 - (void)restoreITunesLastPlayedTime;
@@ -330,14 +329,16 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 // End PM Notifications
 
-- (BOOL)updateInfoForSong:(SongData*)song retry:(BOOL*)retry
+static NSTimeInterval updateInfoDelay = 3.0;
+
+- (BOOL)updateInfoForSong:(SongData*)song
 {
+    static int retryCount = 0;
     // Run the script to get the info not included in the dict
     NSDictionary *errInfo = nil;
     ScrobLog(SCROB_LOG_TRACE, @"Running GetTrackInfo script");
     NSAppleEventDescriptor *result = [currentTrackInfoScript executeAndReturnError:&errInfo];
     ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo script finished");
-    *retry = YES;
     if (result) {
         if ([result numberOfItems] > 1) {
             TrackType_t trackType = trackTypeUnknown;
@@ -367,6 +368,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
             if (IsTrackTypeValid(trackType) && trackiTunesDatabaseID >= 0 && [trackPosition intValue] >= 0) {
                 [song setType:trackType];
                 [song setiTunesDatabaseID:trackiTunesDatabaseID];
+                trackPosition = [NSNumber numberWithInt:[trackPosition intValue] + (int)updateInfoDelay];
                 [song setPosition:trackPosition];
                 
                 @try {
@@ -392,7 +394,6 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
                 if (-1001 == trackType) {
                     // this will occur in iTunes 7.7 when an Album is played via the iPhone 2.0 Remote
                     // this appears to be a bug in iTunes
-                    *retry = NO;
                     ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo runtime error");
                 } else {
                     ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script invalid result: bad type, db id, or position (%ld:%llu:%@).",
@@ -406,6 +407,19 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
         ScrobLog(SCROB_LOG_ERR, @"GetTrackInfo script execution error: %@.", errInfo);
     }
     
+    if (retryCount < 2) {
+        retryCount++;
+        updateInfoDelay = 3.0;
+        [self performSelector:@selector(updateInfoForSong:) withObject:song afterDelay:updateInfoDelay];
+        ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error (%d). Trying again in %0.1f seconds.",
+            retryCount, updateInfoDelay);
+        return (NO);
+    } else {
+        ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error after %d retries. Giving up.", retryCount);
+    }
+    retryCount = 0;
+    
+    [song setIsPlayeriTunes:NO];
     return (NO);
 }
 
@@ -448,10 +462,9 @@ if (currentSong) { \
 
 - (void)iTunesPlayerInfoHandler:(NSNotification*)note
 {
-    static int retryCount = 0;
-    // Invalidate any possible outstanding error handler
-    [getTrackInfoTimer invalidate];
-    getTrackInfoTimer = nil;
+    // Invalidate any outstanding info update
+    if (currentSong)
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateInfoForSong:) object:currentSong];
     
     NSDictionary *info = [note userInfo];
     static BOOL isiTunesPlaying = NO;
@@ -487,11 +500,8 @@ if (currentSong) { \
     if ([song isLastFmRadio])
         isPlayeriTunes = NO;
     
-    BOOL didInfoUpdate;
-    BOOL retry;
-    if (isPlayeriTunes)
-        didInfoUpdate = [self updateInfoForSong:song retry:&retry];
-    if (!isPlayeriTunes || !retry) {
+    BOOL didInfoUpdate = NO;
+    if (!isPlayeriTunes) {
         // player is PandoraBoy, etc
         [song setIsPlayeriTunes:NO];
         didInfoUpdate = YES;
@@ -501,44 +511,33 @@ if (currentSong) { \
             [song setType:trackTypeShared];
     }
     
-    if (didInfoUpdate) {
-        @try {
-        if ([song ignore]) {
-            ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
-            [song release];
-            song = nil;
-            ReleaseCurrentSong();
-            goto player_info_exit;
-        }
-        } @catch (NSException *exception) {
-            ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", song, exception);
-        }
-    } else if (isPlayeriTunes) {
-        if (retryCount < 3) {
-            retryCount++;
-            [getTrackInfoTimer invalidate];
-            getTrackInfoTimer = [NSTimer scheduledTimerWithTimeInterval:2.5
-                                    target:self
-                                    selector:@selector(retryInfoHandler:)
-                                    userInfo:note
-                                    repeats:NO];
-            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error (%d). Trying again in %0.1f seconds.",
-                retryCount, 2.5);
-        } else {
-            ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error after %d retries. Giving up.", retryCount);
-            retryCount = 0;
-            isiTunesPlaying = NO;
-            ReleaseCurrentSong();
-        }
+    @try {
+    if ([song ignore]) {
+        ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
+        [song release];
+        song = nil;
+        ReleaseCurrentSong();
         goto player_info_exit;
     }
-    retryCount = 0;
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", song, exception);
+    }
     
-    ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,P,D) = (%@,%@,%@,%@,%@)",
-        [song title], [song album], [song artist], [song position], [song duration]);
+    ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,D) = (%@,%@,%@,%@)",
+        [song title], [song album], [song artist], [song duration]);
     
     if (currentSong && [currentSong isEqualToSong:song]) {
-        // The pause data needs to be update before a repeat check
+        // We need the extra info right now
+        if (isPlayeriTunes) {
+            updateInfoDelay = 0.0;
+            didInfoUpdate = [self updateInfoForSong:song];
+            if (!didInfoUpdate) {
+                [song setIsPlayeriTunes:NO];
+                isPlayeriTunes = NO;
+            }
+        }
+        
+        // The pause data needs to be updated before a repeat check
         if (isiTunesPlaying && !wasiTunesPlaying) { // and a resume
             currentSongPaused = NO;
             if (![currentSong hasQueued])
@@ -549,14 +548,6 @@ if (currentSong) { \
         float pos = [song isPlayeriTunes] ? [[song position] floatValue] : [[song elapsedTime] floatValue];
         if (![song isLastFmRadio] && (pos + [SongData songTimeFudge]) <  [[currentSong elapsedTime] floatValue]
              && (pos <= [SongData songTimeFudge])
-             // The following condition does not work with iTunes 4.7, since we are not
-             // constantly updating the song's position by polling iTunes. With 4.7 we update
-             // when the song first plays, when it's ready for submission or if the user
-             // changes some song metadata -- that's it.
-        #if 0
-              // Could be a new play, or they could have seek'd back in time. Make sure it's not the latter.
-             && (([[firstSongInList duration] floatValue] - [[firstSongInList position] floatValue])
-        #endif
              && ([currentSong hasQueued] || [currentSong canSubmit])) {
             ScrobLog(SCROB_LOG_TRACE, @"Repeat play detected: '%@'", [currentSong brief]);
             ReleaseCurrentSong();
@@ -585,22 +576,6 @@ if (currentSong) { \
             
             goto player_info_exit;
         }
-    }
-    
-    /* Workaround for iTunes bug (as of 4.7):
-       If the script is run at the exact moment a track switch on an Audio CD occurs,
-       the new track will have the previous track's duration set as its current position.
-       Since the notification happens at that moment we are always hit by the bug.
-       Note: This seems to only affect Audio CD's, encoded files aren't affected. (Shared tracks?)
-       Note 2: It would be possible for our conditions to occur while not on a track switch if for
-       instance the user changed some song meta-data. However this should be a very rare occurence.
-       */
-    if (currentSong && ![currentSong isEqualToSong:song] &&
-            ([[currentSong duration] isEqualToNumber:[song position]] ||
-            [[song position] isGreaterThan:[song duration]])) {
-        [song setPosition:[NSNumber numberWithUnsignedInt:0]];
-        // Reset the start time too, since it will be off
-        [song setStartTime:[NSDate date]];
     }
     
     if (isiTunesPlaying) {
@@ -634,6 +609,11 @@ if (currentSong) { \
         
         [self updateMenu];
         [self displayNowPlaying];
+        
+        if (isPlayeriTunes && NO == didInfoUpdate) {
+            updateInfoDelay = 3.0;
+            [self performSelector:@selector(updateInfoForSong:) withObject:currentSong afterDelay:updateInfoDelay];
+        }
     }
     
 player_info_exit:
@@ -667,12 +647,6 @@ player_info_exit:
 {
     [self setValue:[NSNumber numberWithBool:NO] forKey:@"frontRowActive"];
     ScrobDebug(@"");
-}
-
-- (void)retryInfoHandler:(NSTimer*)timer
-{
-    getTrackInfoTimer = nil;
-    [self iTunesPlayerInfoHandler:[timer userInfo]];
 }
 
 - (void)enableStatusItemMenu:(BOOL)enable

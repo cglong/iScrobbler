@@ -43,9 +43,6 @@
 
     NSNotificationCenter *nc;
     
-    // GetTrackInfo error timer
-    NSTimer *getTrackInfoTimer;
-    
     NSDate *iTunesLastPlayedTime;
     NSArray *iTunesPlaylists;
     
