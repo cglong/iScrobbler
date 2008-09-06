@@ -46,6 +46,8 @@
     NSDate *iTunesLastPlayedTime;
     NSArray *iTunesPlaylists;
     
+    NSString *lastfmCredential;
+    
     // Growl replacement
     ISMsgWindow *msgWindowPlugin;
     
@@ -94,6 +96,8 @@
 // Services
 - (IBAction)loveTrack:(id)sender;
 - (IBAction)banTrack:(id)sender;
+
+- (NSString*)lastfmCredential;
 
 -(NSString *)md5hash:(id)input;
 
@@ -157,8 +161,6 @@ enum {
     MSTATION_MYNEIGHBORHOOD,
     MSTATION_SEARCH
 };
-
-
 
 #define IS_GROWL_NOTIFICATION_ALERTS @"Alerts"
 

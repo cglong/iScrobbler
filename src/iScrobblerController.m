@@ -87,6 +87,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 - (void)restoreITunesLastPlayedTime;
 - (void)setiTunesLastPlayedTime:(NSDate*)date;
 - (void)iTunesPlaylistUpdate:(NSTimer*)timer;
+- (void)authDidChange:(NSNotification*)note;
 @end
 
 // See iTunesPlayerInfoHandler: for why this is needed
@@ -698,12 +699,6 @@ player_info_exit:
     
     [SongData setSongTimeFudge:5.0f];
 	
-    // Request the password and lease it, this will force it to ask
-    // permission when loading, so it doesn't annoy you halfway through
-    // a song.
-    (void)[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
-        account:[prefs stringForKey:@"username"]];
-	
 	// Create an instance of the preferenceController
     if(!preferenceController)
         preferenceController=[[PreferenceController alloc] init];
@@ -831,6 +826,11 @@ player_info_exit:
                 selector:@selector(submitStartHandler:)
                 name:PM_NOTIFICATION_SUBMIT_START
                 object:nil];
+        
+        // Request the password during launch, so any confirmation prompt is shown now.
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(authDidChange:) name:iScrobblerAuthenticationDidChange object:nil];
+        (void)[self lastfmCredential];
         
         // Create queue mgr
         (void)[QueueManager sharedInstance];
@@ -1126,9 +1126,7 @@ player_info_exit:
         [self openTopLists:nil];
     }
     
-    if (0 == [[prefs stringForKey:@"username"] length] || 0 == 
-        [[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
-            account:[prefs stringForKey:@"username"]] length]) {
+    if (0 == [[prefs stringForKey:@"username"] length] || 0 == [[self lastfmCredential] length]) {
         // No clue why, but calling this method directly here causes the status item
         // to permantly stop functioning. Maybe something to do with the run-loop
         // not having run yet?
@@ -1451,6 +1449,21 @@ player_info_exit:
 - (SongData*)nowPlaying
 {
     return (!currentSongPaused ? [[currentSong retain] autorelease] : nil);
+}
+
+- (NSString*)lastfmCredential
+{
+    if (nil == lastfmCredential) {
+        lastfmCredential = [[self md5hash:[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
+            account:[prefs stringForKey:@"username"]]] retain];
+    }
+    return (lastfmCredential);
+}
+
+- (void)authDidChange:(NSNotification*)note
+{
+    [lastfmCredential autorelease];
+    lastfmCredential = nil;
 }
 
 // App services

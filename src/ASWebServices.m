@@ -77,14 +77,13 @@ static ASXMLFile *xspfReq = nil;
     NSString *escapedusername=[(NSString*)
         CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[[ProtocolManager sharedInstance] userName],
             NULL, (CFStringRef)@"&+", kCFStringEncodingUTF8) autorelease];
-    NSString *pass = [[KeyChain defaultKeyChain]  genericPasswordForService:@"iScrobbler"
-        account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
+    NSString *challenge = [[NSApp delegate] lastfmCredential];
     NSString *url = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WS ROOT"]
         stringByAppendingFormat:@"radio/handshake.php?version=%@&platform=%@&username=%@&passwordmd5=%@&language=%@",
             WS_VERSION,
             WS_PLATFORM,
             escapedusername,
-            [[NSApp delegate] md5hash:pass],
+            challenge,
             WS_LANG];
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]

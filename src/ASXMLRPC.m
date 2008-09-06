@@ -39,9 +39,8 @@
     [params addObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
     [params addObject:[NSString stringWithFormat:@"%llu", (u_int64_t)[[NSDate date] timeIntervalSince1970]]];
     
-    NSString *challenge = [[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
-        account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
-    challenge = [[[NSApp delegate] md5hash:challenge] stringByAppendingString:[params objectAtIndex:1]];
+    NSString *challenge = [[NSApp delegate] lastfmCredential];
+    challenge = [challenge stringByAppendingString:[params objectAtIndex:1]];
     [params addObject:[[NSApp delegate] md5hash:challenge]];
     
     return ([params autorelease]);

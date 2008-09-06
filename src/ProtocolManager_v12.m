@@ -35,9 +35,8 @@
     NSString *timestamp = [NSString stringWithFormat:@"%qu", (u_int64_t)[[NSDate date] timeIntervalSince1970]];
     url = [url stringByAppendingFormat:@"&t=%@", timestamp];
     
-    NSString *challenge = [[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
-        account:[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]];
-    challenge = [[[NSApp delegate] md5hash:challenge] stringByAppendingString:timestamp];
+    NSString *challenge = [[NSApp delegate] lastfmCredential];
+    challenge = [challenge stringByAppendingString:timestamp];
     challenge = [[NSApp delegate] md5hash:challenge];
     url = [url stringByAppendingFormat:@"&a=%@", challenge];
     
