@@ -389,7 +389,12 @@ static NSTimeInterval updateInfoDelay = 3.0;
                 if (trackComment)
                     [song setComment:trackComment];
                 [song setPlayCount:trackPlayCount];
-                [song setPlayerUUID:trackUUID];
+                #ifdef DEBUG
+                if ([song playerUUID])
+                    ISASSERT([trackUUID isEqualTo:[song playerUUID]], "UUID mismatch!");
+                #endif
+                if (![song playerUUID]) // this will already have been set if iTunes 8 is running
+                    [song setPlayerUUID:trackUUID];
                 return (YES);
             } else {
                 if (-1001 == trackType) {
@@ -2315,24 +2320,20 @@ exit:
 {
     self = [self init];
     
-    NSString *iname, *ialbum, *iartist, *ipath, *igenre;
     NSURL *location = nil;
-    NSNumber *irating, *iduration, *itrackNumber;
-#ifdef notyet
-    NSString *composer;
-#endif
-    NSNumber *iyear;
     NSTimeInterval durationInSeconds;
     
-    iname = [dict objectForKey:@"Name"];
-    ialbum = [dict objectForKey:@"Album"];
-    iartist = [dict objectForKey:@"Artist"];
-    ipath = [dict objectForKey:@"Location"];
-    irating = [dict objectForKey:@"Rating"];
-    iduration = [dict objectForKey:@"Total Time"];
-    igenre = [dict objectForKey:@"Genre"];
-    itrackNumber = [dict objectForKey:@"Track Number"];
-    iyear = [dict objectForKey:@"Year"];
+    NSString *iname = [dict objectForKey:@"Name"];
+    NSString *ialbum = [dict objectForKey:@"Album"];
+    NSString *iartist = [dict objectForKey:@"Artist"];
+    NSString *ipath = [dict objectForKey:@"Location"];
+    NSNumber *irating = [dict objectForKey:@"Rating"];
+    NSNumber *iduration = [dict objectForKey:@"Total Time"];
+    NSString *igenre = [dict objectForKey:@"Genre"];
+    NSNumber *itrackNumber = [dict objectForKey:@"Track Number"];
+    NSNumber *iyear = [dict objectForKey:@"Year"];
+    // iTunes 8 only - 64bit
+    NSNumber *ipid = [dict objectForKey:@"PersistentID"];
     
     if (ipath) {
         @try {
@@ -2383,14 +2384,18 @@ exit:
         [self setTrackNumber:itrackNumber];
     if (iyear)
         [self setYear:iyear];
-
+    if (ipid) {
+        [self setPlayerUUID:[NSString stringWithFormat:@"%016llX", [ipid unsignedLongLongValue]]];
+        ScrobLog(SCROB_LOG_TRACE, @"<%@> UUID = %@", [self brief], [self playerUUID]);
+    }
     [self setPostDate:[NSCalendarDate date]];
     [self setHasQueued:NO];
     
     if (isLastFmRadio) {
         ISRadioController *isr = [ISRadioController sharedInstance];
         [self setType:trackTypeShared];
-        [self setPlayerUUID:[isr playerUUIDOfCurrentTrack]];
+        if (!ipid)
+            [self setPlayerUUID:[isr playerUUIDOfCurrentTrack]];
         
         iduration = [isr durationForTrackUUID:[self playerUUID]];
         if (iduration) {
@@ -2750,8 +2755,6 @@ resolvePath:
 }
 
 @end
-
-
 
 #if 0
 @implementation NSScriptCommand (ISExtensions)
