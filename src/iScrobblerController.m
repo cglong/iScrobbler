@@ -330,7 +330,8 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 
 // End PM Notifications
 
-static NSTimeInterval updateInfoDelay = 3.0;
+static const NSTimeInterval kUpdateInfoDelay = 2.0;
+static NSTimeInterval updateInfoDelay = kUpdateInfoDelay;
 
 - (BOOL)updateInfoForSong:(SongData*)song
 {
@@ -415,7 +416,7 @@ static NSTimeInterval updateInfoDelay = 3.0;
     
     if (retryCount < 2) {
         retryCount++;
-        updateInfoDelay = 3.0;
+        updateInfoDelay = kUpdateInfoDelay;
         [self performSelector:@selector(updateInfoForSong:) withObject:song afterDelay:updateInfoDelay];
         ScrobLog(SCROB_LOG_TRACE, @"GetTrackInfo execution error (%d). Trying again in %0.1f seconds.",
             retryCount, updateInfoDelay);
@@ -617,7 +618,7 @@ if (currentSong) { \
         [self displayNowPlaying];
         
         if (isPlayeriTunes && NO == didInfoUpdate) {
-            updateInfoDelay = 3.0;
+            updateInfoDelay = kUpdateInfoDelay;
             [self performSelector:@selector(updateInfoForSong:) withObject:currentSong afterDelay:updateInfoDelay];
         }
     }
