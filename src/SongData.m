@@ -791,12 +791,6 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         return (image);
     }
     
-    if (![self sourceName]) {
-        if (![self isLastFmRadio])
-            ScrobLog(SCROB_LOG_WARN, @"Can't get track artwork '%@' -- missing iTunes library info.", [self brief]);
-        return (nil);
-    }
-    
     BOOL cache = YES;
     static NSImage *genericImage = nil;
     if (!genericImage) {
@@ -808,7 +802,10 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
         cache = NO; // Don't cache the generic image because the user could update the image later.
         if (trackTypeFile == [self type] || trackTypeShared == [self type]) {
             // shared library artwork is supported for the currently playing track only
-            image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:[self sourceName],
+            NSString *source = [self sourceName];
+            if (!source)
+                source = @"";
+            image = [iTunesArtworkScript executeHandler:@"GetArtwork" withParameters:source,
                 [self artist], [self album], nil];
             if (image && !([image isEqual:[NSNull null]])) {
                 if ([image isValid])

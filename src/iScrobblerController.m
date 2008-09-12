@@ -331,7 +331,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 // End PM Notifications
 
 static const NSTimeInterval kUpdateInfoDelay = 2.0;
-static NSTimeInterval updateInfoDelay = kUpdateInfoDelay;
+static NSTimeInterval updateInfoDelay = 2.0;
 
 - (BOOL)updateInfoForSong:(SongData*)song
 {

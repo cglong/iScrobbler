@@ -1,7 +1,12 @@
 on GetArtwork(theSource, theArtist, theAlbum)
 	tell application "iTunes"
+		if theSource is "" then
+			try
+				set theSource to name of the container of the current playlist as Unicode text
+			end try
+		end if
 		tell source theSource
-			-- just use any master lists in the source and don't worry about thePlaylistID
+			-- just use any master list in the source
 			set thePlaylists to (every library playlist)
 			with timeout of 20 seconds
 				repeat with pl in thePlaylists
@@ -40,6 +45,6 @@ on run
 		set theArtist to the artist of ct
 	end tell
 	set starttime to current date
-	set theresult to my GetArtwork("Library", theArtist, theAlbum)
+	set theresult to my GetArtwork("", theArtist, theAlbum)
 	log "run time: " & ((current date) - starttime) & " seconds."
 end run
