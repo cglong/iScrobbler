@@ -128,10 +128,13 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     Gestalt(gestaltSystemVersionMinor, &minorVer);
     Gestalt(gestaltSystemVersionBugFix, &bugFixVer);
     
+    NSMutableString *name = [[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"] mutableCopy] autorelease];
+    [name replaceOccurrencesOfString:@" " withString:@"_" options:0 range:NSMakeRange(0, [name length])];
+    
     NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X %d_%d_%d;) %@/%@(r%@)",
         arch,
         majorVer, minorVer, bugFixVer,
-        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"],
+        name,
         ver, build];
         
     return (agent);
