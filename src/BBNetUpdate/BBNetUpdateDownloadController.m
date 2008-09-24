@@ -434,7 +434,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             remainingTime /= 60.0;
         
         s = [NSString stringWithFormat:
-            NSLocalizedStringFromTable(@"%.1f %@ of %.1f %@ (%.1f %@/sec), About %.1f %@ remaining", @"BBNetUpdate", @"received of total (received/second), About time remaining"),
+            NSLocalizedString(@"%.1f %@ of %.1f %@ (%.1f %@/sec), About %.1f %@ remaining", @"received of total (received/second), About time remaining"),
             recvdSize, byteMonikers[ri], totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
             remainingTime, timeMonikers[timei]];
     } else if (installSelf && roundtol(totalBytes) == roundtol(recvdBytes)) {
@@ -531,7 +531,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     // Create a unique name incase the user somehow ended up with duplicate URL's.
     char tmp[] = "bbdlXXXXXX";
-    (void)mktemp(tmp);
+    (void*)mktemp(tmp);
     NSString *path = NSTemporaryDirectory();
     path = [path stringByAppendingPathComponent:
         ([path respondsToSelector:@selector(stringWithCString:encoding:)] ?

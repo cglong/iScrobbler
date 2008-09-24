@@ -316,15 +316,15 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
          if (NSFoundationVersionNumber < requiredVer) {
             display = _interact; // only display the dialog if the user initiated the check
             [buttonDownload setTitle:@"OK"];
-            title = NSLocalizedStringFromTable(@"Mac OS X Update Needed", @"BBNetUpdate", "");
+            title = NSLocalizedString(@"Mac OS X Update Needed", "");
             curVer = [verInfo objectForKey:@"MinSysVer"];
             if (netVer && curVer) {
                 newVer = [NSString stringWithFormat:
-                    NSLocalizedStringFromTable(@"A new version is available (%@), but it requires Mac OS X %@ or later to install.", @"BBNetUpdate", ""),
+                    NSLocalizedString(@"A new version is available (%@), but it requires Mac OS X %@ or later to install.", ""),
                     netVer,
                     curVer];
             } else
-                newVer = NSLocalizedStringFromTable(@"A new version is available, but it requires a later version of Mac OS X to install.", @"BBNetUpdate", "");
+                newVer = NSLocalizedString(@"A new version is available, but it requires a later version of Mac OS X to install.", "");
 
             [verInfo release]; verInfo = nil;
          } else if (curVer && netVer &&
