@@ -66,6 +66,7 @@
                 if (0 == (err = LSSharedFileListItemResolve(item, kLSSharedFileListNoUserInteraction|kLSSharedFileListDoNotMountVolumes,
                     (CFURLRef*)&url, NULL))) {
                     itemPath = [url path];
+                    [url autorelease];
                     if ([itemPath isEqualToString:path]) {
                         exists = YES;
                         break;
