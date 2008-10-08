@@ -531,7 +531,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     // Create a unique name incase the user somehow ended up with duplicate URL's.
     char tmp[] = "bbdlXXXXXX";
-    (void*)mktemp(tmp);
+    (void)mktemp(tmp);
     NSString *path = NSTemporaryDirectory();
     path = [path stringByAppendingPathComponent:
         ([path respondsToSelector:@selector(stringWithCString:encoding:)] ?
