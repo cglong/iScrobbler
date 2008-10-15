@@ -1833,8 +1833,12 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         [song setSkipped:YES];
         [self performSelector:@selector(playerNextTrack) withObject:nil afterDelay:0.0];
         return;
+    } else if ([[self nowPlaying] isLastFmRadio]) {
+        // this should only occur via AppleScript
+        [[ISRadioController sharedInstance] skip];
+        return;
     }
-    ISASSERT(0, "local skip called with radio track!");
+    ISASSERT(0, "skip called with invalid track!");
 }
 
 - (void)recommendSheetDidEnd:(NSNotification*)note
