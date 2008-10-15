@@ -30,6 +30,7 @@ v2.2.0 (BDB)
 - Bug Fix: iScrobbler attempts to use the iLife prefs to find the iTunes XML file (to support non-standard library locations).
 - Bug Fix: Regression - Possible 'this class is not key value coding-compliant for the key iPodMounts' error in the console log.
 - Bug Fix: Failure to tune a radio station via Applescript.
+- Bug Fix: Failure to skip a radio track via Applescript.
 - Bug Fix: Regression - Play media player works with iScrobbler once more.
 - Bug Fix: Switch from ST to DST would cause 100% CPU usage for one hour.
 - Bug Fix: several memory leaks were plugged

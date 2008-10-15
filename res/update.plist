@@ -8,9 +8,9 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.2.0b5</string>
+        <string>2.2.0</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0b5.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0.dmg</string>
         <key>MinFoundationVer</key>
         <real>567.28</real>
         <key>MinSysVer</key>
@@ -18,34 +18,9 @@
         <key>Notes</key>
         <dict>
 			<key>English</key>
-			<string>
-2.2b5:
-- Updated iPhone/iPod touch support
-- Bug Fix: Regression - iTunes store previews were being scrobbled.
-- Bug Fix: Regression - Play media player works with iScrobbler once more
-- Bug Fix: possible crash
-
-2.2b4:
-- Bug Fix: prefs window failed to initialize properly.
-
-2.2b3:
-- Integrated iPhone/iPod Touch support.
-- Leopard only: New Local Charts: Month-to-date and Year-to-date.
-- Leopard only: Faster launch time.
-- Added 'reset network monitor' Applescript command.
-- Bug Fixes (mainly relating to the Local Charts).
-
-2.2b2:
-- Pref to ignore iTunes Store podcasts has been exposed in the GUI.
-- Leopard only: Corrupted Local Charts databases are now automatically recovered and re-imported into a new database when migrating from the v2.0 format to the v2.1 format.
-- Bug fixes.
-
-2.2b1:
-- Album chart data is now displayed in the Local Charts window.
-- Enhanced Local Charts profile report, including artist movements for Last.fm weekly archives.
-- Application Support files are now located in the Application Support/iScrobbler sub-folder.
-- The Local Charts database is backed up once per day instead of at application launch.
-- Bug fixes.
+			<string>Integrated support for iPhone and iPod Touch.
+Many enhancements to the Local Charts.
+Many bug fixes.
 			</string>
         </dict>
 </dict>
