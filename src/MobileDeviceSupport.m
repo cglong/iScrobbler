@@ -112,7 +112,8 @@ int IntializeMobileDeviceSupport(const char *path, void **handle)
             // so rely on sync services notifications.
             // XXX: do these occur if the user turned off all shared data syncing (mail/contacts/etc)?
             CFNotificationCenterAddObserver(CFNotificationCenterGetDistributedCenter(), NULL,
-                CFHandleCallback, CFSTR("com.apple.syncservices.iPodSync.SyncStatusChangedNotification"), NULL, 0);
+                CFHandleCallback, CFSTR("com.apple.syncservices.iPodSync.SyncStatusChangedNotification"), NULL,
+                CFNotificationSuspensionBehaviorDeliverImmediately);
         } else {
             dlclose(libHandle);
             libHandle = NULL;
