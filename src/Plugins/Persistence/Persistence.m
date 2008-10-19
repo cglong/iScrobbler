@@ -114,7 +114,7 @@ __private_extern__ BOOL version3 = NO;
 
 - (void)profileDidChangeWithUpdatedObjects:(NSSet*)updatedObjects
 {   
-    // we assume all chnages are done from a bg thread
+    // we assume all changes are done from a bg thread
     // refault sessions
     [[self allSessions] makeObjectsPerformSelector:@selector(refreshSelf)];
     (void)[self allSessions]; // fault the data back in
