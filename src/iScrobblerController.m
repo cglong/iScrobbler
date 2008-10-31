@@ -518,18 +518,6 @@ if (currentSong) { \
             [song setType:trackTypeShared];
     }
     
-    @try {
-    if ([song ignore]) {
-        ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
-        [song release];
-        song = nil;
-        ReleaseCurrentSong();
-        goto player_info_exit;
-    }
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", song, exception);
-    }
-    
     ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,D) = (%@,%@,%@,%@)",
         [song title], [song album], [song artist], [song duration]);
     
