@@ -1,170 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>AS Artist Root URL</key>
-    <string>http://www.last.fm/music/</string>
-    
-    <key>AS Artist-Track Path Separator</key>
-    <string>/_/</string>
-    
-    <key>ASS URL</key>
+	<key>AS Artist Root URL</key>
+	<string>http://www.last.fm/music/</string>
+	<key>AS Artist-Track Path Separator</key>
+	<string>/_/</string>
+	<key>ASS URL</key>
 	<string>http://ws.audioscrobbler.com/ass/</string>
-    
-    <key>AutoTuneLastRadioStation</key>
-    <false />
-    
-    <key>AutoTagLovedBanned</key>
-    <false />
-    
-    <key>AutoLoveTracksRatedHigherThan</key>
-    <integer>1000000</integer>
-    
-    <key>BannedSongs</key>
-    <dict>
-    </dict>
-    
-    <key>BBNetUpdateDontAskConnect</key>
-    <true />
-    
-    <key>CheckDefaultRadioPlayer</key>
-    <true />
-    
-    <key>DBNeedsScrub</key>
-    <false />
-    
+	<key>AutoTuneLastRadioStation</key>
+	<false/>
+	<key>AutoTagLovedBanned</key>
+	<false/>
+	<key>AutoLoveTracksRatedHigherThan</key>
+	<integer>1000000</integer>
+	<key>BannedSongs</key>
+	<dict/>
+	<key>BBNetUpdateDontAskConnect</key>
+	<true/>
+	<key>CheckDefaultRadioPlayer</key>
+	<true/>
+	<key>DBNeedsScrub</key>
+	<false/>
 	<key>Number of Songs to Save</key>
 	<integer>5</integer>
-    
-    <key>Log Level</key>
+	<key>Log Level</key>
 	<string>VERB</string>
-    
-    <key>Artist Detail</key>
-    <true />
-    
-    <key>CheckForFileMBIDs</key>
-    <true />
-    
-    <key>Disable Local Lists</key>
-    <false />
-    
-    <key>DisplayErrors</key>
-    <true />
-    
-    <key>DisplayWarnings</key>
-    <true />
-    
-    <key>ForcePlayCache</key>
-    <false />
-    
-    <key>GrowlPlays</key>
-    <true />
-    
-    <key>GrowlOnResume</key>
-    <false />
-    
-    <key>GrowlPlayTitle</key>
-    <string>%t</string>
-    
-    <key>GrowlPlayFormat</key>
-    <string>%d%n%a%n%A%n%r</string>
-    
-    <key>GrowlLastFMCommunications</key>
-    <false />
-    
-    <key>iTunesImportSkipDisabledTrack</key>
-    <false />
-    
-    <key>LastFM User URL</key>
-    <string>http://www.last.fm/user/</string>
-    
-    <key>LocalChartsSessionName</key>
-    <string>lastfm</string>
-    
-    <key>MenuNPInfoDelay</key>
-    <integer>1000</integer>
-    
-    <key>Sync iPod</key>
-    <true />
-    
-    <key>iPod Submission Playlist</key>
-    <string>Recently Played</string>
-    
-    <key>QueueSubmissionsIfiPodIsMounted</key>
-    <true />
-    
-    <key>BBNetUpdateDontAutoCheckVersion</key>
-    <false />
-    
-    <key>DontShowGrowlMissingWarning</key>
-    <false />
-    
-    <key>Use Batch Submission</key>
-    <true />
-    
-    <key>Shared Music Submission</key>
-    <true />
-    
-    <key>Display Control Menu</key>
-    <true/>
-    
-    <key>IgnoreNetworkMonitor</key>
-    <false />
-    
-    <key>IgnoreArtwork</key>
-    <false />
-    
-    <key>IgnorePodcasts</key>
-    <true />
-    
-    <key>Now Playing Detail</key>
-    <true />
-    
-    <key>RadioPlaylist</key>
-    <string>iScrobbler Radio</string>
-    
-    <key>RadioStationHistory</key>
-    <array>
-    </array>
-    
-    <key>Top Lists Search</key>
-    <array>
-    </array>
-    
+	<key>Artist Detail</key>
+	<true/>
+	<key>CheckForFileMBIDs</key>
+	<true/>
+	<key>Disable Local Lists</key>
+	<false/>
+	<key>DisplayErrors</key>
+	<true/>
+	<key>DisplayWarnings</key>
+	<true/>
+	<key>ForcePlayCache</key>
+	<false/>
+	<key>GrowlPlays</key>
+	<true/>
+	<key>GrowlOnResume</key>
+	<false/>
+	<key>GrowlPlayTitle</key>
+	<string>%t</string>
+	<key>GrowlPlayFormat</key>
+	<string>%d%n%a%n%A%n%r</string>
+	<key>GrowlLastFMCommunications</key>
+	<false/>
+	<key>iTunesImportSkipDisabledTrack</key>
+	<false/>
+	<key>LastFM User URL</key>
+	<string>http://www.last.fm/user/</string>
+	<key>LocalChartsSessionName</key>
+	<string>lastfm</string>
+	<key>MenuNPInfoDelay</key>
+	<integer>1000</integer>
+	<key>Sync iPod</key>
+	<true/>
+	<key>iPod Submission Playlist</key>
+	<string>Recently Played</string>
+	<key>QueueSubmissionsIfiPodIsMounted</key>
+	<true/>
+	<key>BBNetUpdateDontAutoCheckVersion</key>
+	<false/>
+	<key>DontShowGrowlMissingWarning</key>
+	<false/>
+	<key>Use Batch Submission</key>
+	<true/>
+	<key>Shared Music Submission</key>
+	<true/>
+	<key>Display Control Menu</key>
+	<true/>
+	<key>IgnoreNetworkMonitor</key>
+	<false/>
+	<key>IgnoreArtwork</key>
+	<false/>
+	<key>IgnorePodcasts</key>
+	<true/>
+	<key>Now Playing Detail</key>
+	<true/>
+	<key>RadioPlaylist</key>
+	<string>iScrobbler Radio</string>
+	<key>RadioStationHistory</key>
+	<array/>
+	<key>Top Lists Search</key>
+	<array/>
 	<key>url</key>
 	<string>http://post.audioscrobbler.com/</string>
-    
-    <key>WarnIfSubmissionsDisabled</key>
-    <false />
-    
-    <key>WS URL</key>
+	<key>WarnIfSubmissionsDisabled</key>
+	<false/>
+	<key>WS URL</key>
 	<string>http://ws.audioscrobbler.com/1.0/</string>
-    
-    <key>WS ROOT</key>
+	<key>WS ROOT</key>
 	<string>http://ws.audioscrobbler.com/</string>
-    
-    <key>RadioPlaysScrobbled</key>
-    <true />
-    
+	<key>RadioPlaysScrobbled</key>
+	<true/>
 	<key>clientid</key>
 	<string>osx</string>
-	
 	<key>protocol</key>
 	<string>1.2</string>
-        
 	<key>useragent</key>
-	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.2</string>
-        
+	<string>Mozilla/5.0 (Macintosh; U; -arch- Mac OS X; compatible) iScrobbler/2.2.1</string>
 	<key>username</key>
 	<string></string>
-        
 	<key>version</key>
-	<string>2.2</string>
-    
-    <key>Apple MobileDevice Framework</key>
-    <string>/System/Library/PrivateFrameworks/MobileDevice.framework/MobileDevice</string>
-    
-    <key>SupressiPodWarning</key>
-    <false />
+	<string>2.2.1</string>
+	<key>Apple MobileDevice Framework</key>
+	<string>/System/Library/PrivateFrameworks/MobileDevice.framework/MobileDevice</string>
+	<key>SupressiPodWarning</key>
+	<false/>
 </dict>
 </plist>
