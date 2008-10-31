@@ -2053,17 +2053,25 @@ exit:
 
 - (void)iPodSyncEnd:(NSNotification*)note
 {
-    NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
-    if (!msg)
-        msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
-    [GrowlApplicationBridge
-        notifyWithTitle:NSLocalizedString(@"iPod Sync Finished", "")
-        description:msg
-        notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
-        iconData:nil
-        priority:0
-        isSticky:NO
-        clickContext:nil];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisplayWarnings"]) {
+        NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
+        if (!msg)
+            msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
+        
+        NSString *title = NSLocalizedString(@"iPod Sync Finished", "");
+        if ([GrowlApplicationBridge isGrowlRunning]) {
+            [GrowlApplicationBridge
+                notifyWithTitle:title
+                description:msg
+                notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
+                iconData:nil
+                priority:0
+                isSticky:NO
+                clickContext:nil];
+        } else {
+            [msgWindowPlugin message:msg withTitle:title withImage:nil];
+        }
+    }
 }
 
 #define ONE_DAY 86400.0
