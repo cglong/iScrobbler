@@ -2,7 +2,7 @@
 //  MobileDeviceSupport.m
 //  iScrobbler
 //
-//  Created by Brian Bergstrand on 7/12/2007.
+//  Created by Brian Bergstrand on 7/12/2008.
 //  Copyright 2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
@@ -86,7 +86,6 @@ static void CFHandleCallback(CFNotificationCenterRef center, void *observer, CFS
 
 NSMutableDictionary *devicesAttachedBeforeLaunch = nil;
 static NSMutableDictionary* FindAttachedDevices(void);
-
 #endif
 
 __private_extern__

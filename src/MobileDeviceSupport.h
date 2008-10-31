@@ -2,7 +2,7 @@
 //  MobileDeviceSupport.h
 //  iScrobbler
 //
-//  Created by Brian Bergstrand on 7/12/2007.
+//  Created by Brian Bergstrand on 7/12/2008.
 //  Copyright 2008 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
