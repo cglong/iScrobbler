@@ -74,8 +74,8 @@ __private_extern__ BOOL version3;
     BOOL fetchFixedPeriodArchives = NO;
     NSCalendarDate *fromDate;
     NSCalendarDate *now = [NSCalendarDate date];
-    now = [now dateByAddingYears:0 months:0 days:0
-        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+    now = [NSCalendarDate dateWithYear:[now yearOfCommonEra] month:[now monthOfYear] day:[now dayOfMonth]
+        hour:0 minute:0 second:0 timeZone:[NSTimeZone defaultTimeZone]];
     if (limit > 0) {
         // just before midnight of the first day of the current week
         fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek]) hours:0 minutes:0 seconds:-1];
@@ -453,7 +453,7 @@ __private_extern__ BOOL version3;
     
     @try {
     
-    NSCalendarDate *yesterday = [newEpoch dateByAddingYears:0 months:0 days:0 hours:-24 minutes:0 seconds:0];
+    NSCalendarDate *yesterday = [newEpoch dateByAddingYears:0 months:0 days:-1 hours:0 minutes:0 seconds:0];
     NSManagedObject *sYesterday = [self sessionWithName:@"yesterday" moc:moc];
     NSManagedObject *sToday = [self sessionWithName:@"pastday" moc:moc];
     NSEntityDescription *entity;
@@ -1210,15 +1210,6 @@ __private_extern__ BOOL version3;
     BOOL didRemove = [self removeSongsBefore:localEpoch inSession:@"lastfm" moc:moc];
     
     epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
-    #ifdef obsolete
-    NSCalendarDate *now = [NSCalendarDate date];
-    if ([epoch isLessThan:now]) {
-        // last week was standard time and the current time is DST, check again at nearest 1/2 hour
-        NSInteger mAdj = [now minuteOfHour];
-        mAdj = mAdj >= 30 ? (59 - mAdj) : (29 - mAdj);
-        epoch = [now dateByAddingYears:0 months:0 days:0 hours:0 minutes:mAdj seconds:(60 - [now secondOfMinute])];
-    }
-    #endif
     
     lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
         target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
@@ -1310,9 +1301,6 @@ __private_extern__ BOOL version3;
         // this could occcur if a time zone switch occurs
         [session setValue:term forKey:@"term"];
         return (YES);
-    } else {
-    [session setValue:epoch forKey:@"epoch"];
-    return (YES);
     }
     
     return (NO);
