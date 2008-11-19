@@ -353,7 +353,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
                 [buttonDownload setTitle:NSLocalizedString(@"Download", @"")];
          } else {
             title = NSLocalizedString(@"You Have the Latest Version", @"");
-            newVer = NSLocalizedString(@"You are using the latest version.", @"");
+            newVer = @"";
             
             [buttonDownload setTitle:@"OK"];
             [verInfo release]; verInfo = nil;
