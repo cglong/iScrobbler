@@ -151,6 +151,7 @@ static QueueManager *g_QManager = nil;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"]) {
         [songQueue removeAllObjects];
         submit = NO;
+        [[ProtocolManager sharedInstance] performSelector:@selector(setLastSongSubmitted:) withObject:song];
     }
     
     if (submit) {
