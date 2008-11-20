@@ -61,7 +61,7 @@
         [attrs release];
         attrs = [[NSDictionary dictionaryWithObjectsAndKeys:
             // If we don't specify this, the font defaults to Helvitica 12
-            [NSFont systemFontOfSize:[NSFont systemFontSize]], NSFontAttributeName,
+            [NSFont menuBarFontOfSize:[NSFont systemFontSize]], NSFontAttributeName,
             [sitem defaultStatusColor], NSForegroundColorAttributeName,
             nil] retain];
         [self display];
