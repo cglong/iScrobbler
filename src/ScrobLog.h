@@ -34,7 +34,7 @@ extern void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
         ScrobLogMsg(SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
     } \
 } while (0)
-#ifdef ISDEBUG
+#if defined(ISDEBUG) || defined(DEBUG)
 #define ScrobDebug(fmt, ...) do { \
     NSString *newfmt = [NSString stringWithFormat:@"%s:%ld -- %@", __PRETTY_FUNCTION__, __LINE__, (fmt)]; \
     ScrobLogMsg(SCROB_LOG_TRACE, newfmt, ## __VA_ARGS__); \
