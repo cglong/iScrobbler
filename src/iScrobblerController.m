@@ -797,6 +797,9 @@ player_info_exit:
                 name:PM_NOTIFICATION_NETWORK_STATUS
                 object:nil];
         
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"])
+            ScrobLog(SCROB_LOG_WARN, @"Submissions are disabled.");
+        
         (void)[ProtocolManager sharedInstance];
         
         // Register for PM notifications
@@ -1447,7 +1450,7 @@ player_info_exit:
 
 - (NSString*)lastfmCredential
 {
-    if (nil == lastfmCredential) {
+    if (nil == lastfmCredential && NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"]) {
         lastfmCredential = [[self md5hash:[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
             account:[prefs stringForKey:@"username"]]] retain];
     }
