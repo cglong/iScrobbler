@@ -211,7 +211,7 @@ void ISDurationsFromTime64(unsigned long long tSeconds, unsigned int *days, unsi
         format = [[NSNumberFormatter alloc] init];
         [format setNumberStyle:NSNumberFormatterDecimalStyle];
     }
-    NSString *s = [NSString stringWithFormat:NSLocalizedString(@"%@ plays during a %@ period", "session play count and time"),
+    NSString *s = [NSString stringWithFormat:NSLocalizedString(@"%@ plays with a duration of %@", "session play count and time"),
         [format stringFromNumber:playCount], timeStr];
     return (s);
 }
