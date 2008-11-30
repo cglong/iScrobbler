@@ -13,6 +13,13 @@ CHANGE HISTORY:
 (Uses AppleScriptHandlerAdditions, Copyright 2003-2004 Ken Ferry)
 (Uses CD.png icon from the Clutter project, Copyright 2003-2005 Sprote Rsrch.)
 
+v2.2.1 (BDB)
+- Bug Fix: The iPod Sync message window is no longer displaed if "Display informational notifications" is disabled.
+- Bug Fix: Regression - Podcast and track filters were not working.
+- Bug Fix: "My Radio" is now available for non-subscribers.
+- Bug Fix: More Local Charts issues with DST time switch.
+- Bug Fix: Version check no longer nags if it gets a connection error during an auto-check.
+
 v2.2.0 (BDB)
 - Integrated support for iPhone and iPod Touch (thanks to glgray, einsteinbqat, and everyone else who donated).
 - Album chart data is now displayed in the Local Charts window.
