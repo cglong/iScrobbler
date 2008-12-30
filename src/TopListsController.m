@@ -1418,8 +1418,20 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Tracks Played:", "")));
     
     NSTimeInterval elapsedDays = (elapsedSeconds / 86400.0);
-    NSString *tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %.1f tracks per day.", ""),
+    NSString *tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %.0f tracks per day", ""),
         elapsedDays >= 1.0 ? round([totalPlays doubleValue] / elapsedDays) : [totalPlays doubleValue]];
+    if (elapsedDays > 7.0) {
+        tmp = [tmp stringByAppendingFormat:NSLocalizedString(@", %.0f tracks per week", ""),
+            round([totalPlays doubleValue] / (elapsedDays / 7.0))];
+        if (elapsedDays > 30.0) {
+            tmp = [tmp stringByAppendingFormat:NSLocalizedString(@", %.0f tracks per month", ""),
+                round([totalPlays doubleValue] / (elapsedDays / 30.0))];
+            if (elapsedDays > 365.0) {
+                tmp = [tmp stringByAppendingFormat:NSLocalizedString(@", %.0f tracks per year", ""),
+                    round([totalPlays doubleValue] / (elapsedDays / 365.0))];
+            }
+        }
+    }
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%@ %@)</span>",
         tmp,
         [NSString stringWithFormat:NSLocalizedString(@"%@ plays from %lu artists", ""), totalPlays, [artists count]],
@@ -1427,7 +1439,7 @@ NS_INLINE NSString* DIVEntry(NSString *type, float width, NSString *title, id ob
         [startDate descriptionWithCalendarFormat:@"%B %e, %Y %I:%M %p" timeZone:nil locale:nil]]));
     HAdd(d, TRCLOSE TRALT);
     
-    tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %0.2f hours per day.", ""),
+    tmp = [NSString stringWithFormat:NSLocalizedString(@"That's an average of %0.2f hours per day", ""),
         ([totalTime doubleValue] / 3600.0) / elapsedDays];
     HAdd(d, TDEntry(@"<td class=\"att\">", NSLocalizedString(@"Time Played:", "")));
     HAdd(d, TDEntry(TD, [NSString stringWithFormat:@"<span title=\"%@\">%@ (%0.2f%% %@ %@ %@)</span>",
