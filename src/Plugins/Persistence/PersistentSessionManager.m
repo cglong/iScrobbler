@@ -1315,8 +1315,24 @@ __private_extern__ BOOL version3;
         [session setValue:epoch forKey:@"epoch"];
         [session setValue:term forKey:@"term"];
         return (YES);
+    } else {
+        BOOL updated = NO;
+        NSDate *oldDate = [session valueForKey:@"epoch"];
+        if (![[epoch GMTDate] isEqualToDate:[oldDate GMTDate]]) {
+            [session setValue:epoch forKey:@"epoch"];
+            updated = YES;
+            ScrobLog(SCROB_LOG_TRACE, @"Changed '%@' epoch from %@ to %@", sname, oldDate, epoch);
+        }
+        oldDate = [session valueForKey:@"term"];
+        if (![[term GMTDate] isEqualToDate:[oldDate GMTDate]]) {
+            [session setValue:epoch forKey:@"term"];
+            updated = YES;
+            ScrobLog(SCROB_LOG_TRACE, @"Changed '%@' term from %@ to %@", sname, oldDate, term);
+        }
+        
+        return (updated);
     }
-    #ifdef obsolete
+    #ifdef obsolete // final condition
     else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
         // this could occcur if a time zone switch occurs
         [session setValue:term forKey:@"term"];
