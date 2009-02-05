@@ -1325,7 +1325,7 @@ __private_extern__ BOOL version3;
         }
         oldDate = [session valueForKey:@"term"];
         if (![[term GMTDate] isEqualToDate:[oldDate GMTDate]]) {
-            [session setValue:epoch forKey:@"term"];
+            [session setValue:term forKey:@"term"];
             updated = YES;
             ScrobLog(SCROB_LOG_TRACE, @"Changed '%@' term from %@ to %@", sname, oldDate, term);
         }
