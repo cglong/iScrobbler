@@ -252,6 +252,24 @@ __private_extern__ BOOL version3;
         NSManagedObject *s;
         while ((s = [en nextObject])) {
             [self recreateHourCacheForSession:s songs:[pp songsForSession:s] moc:moc];
+            
+            #ifdef notyet
+            #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+            NSCalendarDate *date = [NSCalendarDate dateWithTimeIntervalSince1970:
+                [[s valueForKey:@"epoch"] timeIntervalSince1970]];
+            date = [date dateByAddingYears:0 months:0 days:0 hours:0 minutes:0 seconds:
+                (NSInteger)[lastTZOffset longLongValue] - tzOffset];
+            [s setValue:date forKey:@"epoch"];
+            if ([s valueForKey:@"term"]) {
+                date = [NSCalendarDate dateWithTimeIntervalSince1970:
+                    [[s valueForKey:@"term"] timeIntervalSince1970]];
+                date = [date dateByAddingYears:0 months:0 days:0 hours:0 minutes:0 seconds:
+                    (NSInteger)[lastTZOffset longLongValue] - tzOffset];
+                [s setValue:date forKey:@"term"];
+            }
+            #endif
+            #endif
+            
             ScrobLog(SCROB_LOG_VERBOSE, @"'%@' session updated for time zone change.", [s valueForKey:@"name"]);
         }
         
@@ -1297,11 +1315,14 @@ __private_extern__ BOOL version3;
         [session setValue:epoch forKey:@"epoch"];
         [session setValue:term forKey:@"term"];
         return (YES);
-    } else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
+    }
+    #ifdef obsolete
+    else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
         // this could occcur if a time zone switch occurs
         [session setValue:term forKey:@"term"];
         return (YES);
     }
+    #endif
     
     return (NO);
 }
