@@ -85,6 +85,27 @@
     return (menuIsShowing);
 }
 
+#ifdef notyet
+- (BOOL)accessibilityIsIgnored {
+    return NO;
+}
+
+- (id)accessibilityAttributeValue:(NSString *)attribute 
+{
+    if ([attribute isEqualToString:NSAccessibilityRoleAttribute]) {
+        return (NSAccessibilityMenuButtonRole);
+    } else if ([attribute isEqualToString:NSAccessibilityRoleDescriptionAttribute]) {
+        return NSAccessibilityRoleDescriptionForUIElement(self);
+    } else if ([attribute isEqualToString:NSAccessibilityDescriptionAttribute]) {
+        return (@"iScrobbler");
+    } else if ([attribute isEqualToString:NSAccessibilityChildrenAttribute]) {
+        return (NSAccessibilityUnignoredChildren([NSArray arrayWithObject:menu]));
+    }
+    
+    return ([super accessibilityAttributeValue:attribute]);
+}
+#endif
+
 - (void)drawRect:(NSRect)r
 {
     NSDictionary *d;
