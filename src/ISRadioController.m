@@ -63,7 +63,7 @@
                 [rootMenu setToolTip:NSLocalizedString(@"Radio not connected", "")];
             }
             
-            item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"My Radio", "") // sub only
+            item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"My Radio", "")
                 action:@selector(playStation:) keyEquivalent:@""];
             [item setTarget:self];
             [item setTag:MSTATION_MYRADIO];
@@ -619,13 +619,13 @@ exitHistory:
     [[m itemWithTag:MSTATION_MYPLAYLIST] setEnabled:YES];
     [[m itemWithTag:MACTION_SCROBRADIO] setEnabled:YES];
     [[m itemWithTag:MSTATION_SEARCH] setEnabled:YES];
+    [[m itemWithTag:MSTATION_MYRADIO] setEnabled:YES];
     
     item = [m itemWithTag:MSTATION_LASTTUNED];
     if ([item representedObject])
         [item setEnabled:YES];
     
     if ([asws subscriber]) {
-        [[m itemWithTag:MSTATION_MYRADIO] setEnabled:YES];
         [[m itemWithTag:MSTATION_MYLOVED] setEnabled:YES];
         [[m itemWithTag:MACTION_DISCOVERY] setEnabled:YES];
         [self setDiscoveryMode:nil];

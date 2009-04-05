@@ -8,6 +8,8 @@
 	<string>/_/</string>
 	<key>ASS URL</key>
 	<string>http://ws.audioscrobbler.com/ass/</string>
+	<key>DisableSubmissions</key>
+	<false/>
 	<key>AutoTuneLastRadioStation</key>
 	<false/>
 	<key>AutoTagLovedBanned</key>

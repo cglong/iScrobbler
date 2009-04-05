@@ -72,8 +72,8 @@ __private_extern__ BOOL version3;
     BOOL fetchFixedPeriodArchives = NO;
     NSCalendarDate *fromDate;
     NSCalendarDate *now = [NSCalendarDate date];
-    now = [now dateByAddingYears:0 months:0 days:0
-        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+    now = [NSCalendarDate dateWithYear:[now yearOfCommonEra] month:[now monthOfYear] day:[now dayOfMonth]
+        hour:0 minute:0 second:0 timeZone:[NSTimeZone defaultTimeZone]];
     if (limit > 0) {
         // just before midnight of the first day of the current week
         fromDate = [now dateByAddingYears:0 months:0 days:-((limit * 7) + [now dayOfWeek]) hours:0 minutes:0 seconds:-1];
@@ -242,6 +242,24 @@ __private_extern__ BOOL version3;
         NSManagedObject *s;
         while ((s = [en nextObject])) {
             [self recreateHourCacheForSession:s songs:[pp songsForSession:s] moc:moc];
+            
+            #ifdef notyet
+            #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+            NSCalendarDate *date = [NSCalendarDate dateWithTimeIntervalSince1970:
+                [[s valueForKey:@"epoch"] timeIntervalSince1970]];
+            date = [date dateByAddingYears:0 months:0 days:0 hours:0 minutes:0 seconds:
+                (NSInteger)[lastTZOffset longLongValue] - tzOffset];
+            [s setValue:date forKey:@"epoch"];
+            if ([s valueForKey:@"term"]) {
+                date = [NSCalendarDate dateWithTimeIntervalSince1970:
+                    [[s valueForKey:@"term"] timeIntervalSince1970]];
+                date = [date dateByAddingYears:0 months:0 days:0 hours:0 minutes:0 seconds:
+                    (NSInteger)[lastTZOffset longLongValue] - tzOffset];
+                [s setValue:date forKey:@"term"];
+            }
+            #endif
+            #endif
+            
             ScrobLog(SCROB_LOG_VERBOSE, @"'%@' session updated for time zone change.", [s valueForKey:@"name"]);
         }
         
@@ -437,7 +455,7 @@ __private_extern__ BOOL version3;
     
     @try {
     
-    NSCalendarDate *yesterday = [newEpoch dateByAddingYears:0 months:0 days:0 hours:-24 minutes:0 seconds:0];
+    NSCalendarDate *yesterday = [newEpoch dateByAddingYears:0 months:0 days:-1 hours:0 minutes:0 seconds:0];
     NSManagedObject *sYesterday = [self sessionWithName:@"yesterday" moc:moc];
     NSManagedObject *sToday = [self sessionWithName:@"pastday" moc:moc];
     NSEntityDescription *entity;
@@ -1183,21 +1201,15 @@ __private_extern__ BOOL version3;
     else
         epoch = [epoch dateByAddingYears:0 months:0 days:0
             hours:(11 - [gmtNow hourOfDay]) minutes:(59 - [gmtNow minuteOfHour]) seconds:(60 - [gmtNow secondOfMinute])];
-    epoch = [epoch dateWithCalendarFormat:nil timeZone:[NSTimeZone defaultTimeZone]];
     
-    BOOL didRemove = [self removeSongsBefore:epoch inSession:@"lastfm" moc:moc];
+    NSCalendarDate *localEpoch = [epoch dateWithCalendarFormat:nil timeZone:[NSTimeZone defaultTimeZone]];
+    BOOL didRemove = [self removeSongsBefore:localEpoch inSession:@"lastfm" moc:moc];
     
     epoch = [epoch dateByAddingYears:0 months:0 days:7 hours:0 minutes:0 seconds:0];
-    NSCalendarDate *now = [NSCalendarDate date];
-    if ([epoch isLessThan:now]) {
-        // last week was standard time and the current time is DST, check again at nearest 1/2 hour
-        NSInteger mAdj = [now minuteOfHour];
-        mAdj = mAdj >= 30 ? (59 - mAdj) : (29 - mAdj);
-        epoch = [now dateByAddingYears:0 months:0 days:0 hours:0 minutes:mAdj seconds:(60 - [now secondOfMinute])];
-    }
     
     lfmUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[epoch timeIntervalSinceNow]
         target:self selector:@selector(updateLastfmSession:) userInfo:nil repeats:NO] retain];
+    ScrobLog(SCROB_LOG_TRACE, @"last.fm session will update on %@", [lfmUpdateTimer fireDate]);
     
     (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
     if (didRemove) {
@@ -1281,11 +1293,30 @@ __private_extern__ BOOL version3;
         [session setValue:epoch forKey:@"epoch"];
         [session setValue:term forKey:@"term"];
         return (YES);
-    } else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
+    } else {
+        BOOL updated = NO;
+        NSDate *oldDate = [session valueForKey:@"epoch"];
+        if (![[epoch GMTDate] isEqualToDate:[oldDate GMTDate]]) {
+            [session setValue:epoch forKey:@"epoch"];
+            updated = YES;
+            ScrobLog(SCROB_LOG_TRACE, @"Changed '%@' epoch from %@ to %@", sname, oldDate, epoch);
+        }
+        oldDate = [session valueForKey:@"term"];
+        if (![[term GMTDate] isEqualToDate:[oldDate GMTDate]]) {
+            [session setValue:term forKey:@"term"];
+            updated = YES;
+            ScrobLog(SCROB_LOG_TRACE, @"Changed '%@' term from %@ to %@", sname, oldDate, term);
+        }
+        
+        return (updated);
+    }
+    #ifdef obsolete // final condition
+    else if ([self removeSongsBefore:epoch inSession:sname moc:moc]) {
         // this could occcur if a time zone switch occurs
         [session setValue:term forKey:@"term"];
         return (YES);
     }
+    #endif
     
     return (NO);
 }
@@ -1330,11 +1361,14 @@ __private_extern__ BOOL version3;
     ISASSERT(moc != nil, "missing moc");
     BOOL didRemove = NO;
     NSCalendarDate *now = [NSCalendarDate calendarDate];
-    NSCalendarDate *midnight = [now dateByAddingYears:0 months:0 days:0
+    
+    NSCalendarDate *midnight;
 #ifndef REAP_DEBUG
-        hours:-([now hourOfDay]) minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
+    midnight = [NSCalendarDate dateWithYear:[now yearOfCommonEra] month:[now monthOfYear] day:[now dayOfMonth]
+        hour:0 minute:0 second:0 timeZone:[NSTimeZone defaultTimeZone]];
 #else
 #warning "REAP_DEBUG set"
+    midnight = [now dateByAddingYears:0 months:0 days:0
         hours:0 minutes:-([now minuteOfHour]) seconds:-([now secondOfMinute])];
 #endif
     if ([self archiveDailySessionWithEpoch:midnight moc:moc])
@@ -1376,13 +1410,14 @@ __private_extern__ BOOL version3;
     #endif
     
 #ifndef REAP_DEBUG
-    midnight = [midnight dateByAddingYears:0 months:0 days:0 hours:24 minutes:0 seconds:0];
+    midnight = [midnight dateByAddingYears:0 months:0 days:1 hours:0 minutes:0 seconds:0];
 #else
     midnight = [now dateByAddingYears:0 months:0 days:0 hours:1 minutes:0 seconds:0];
 #endif
     
     sUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:[midnight timeIntervalSinceNow]
         target:self selector:@selector(updateSessions:) userInfo:nil repeats:NO] retain];
+    ScrobLog(SCROB_LOG_TRACE, @"sessions will update on %@", [sUpdateTimer fireDate]);
     
     PersistentProfile *profile = [PersistentProfile sharedInstance];
     (void)[profile save:moc withNotification:NO];

@@ -377,7 +377,7 @@ validate:
     return ([sorted autorelease]);
 }
 
-- (void)beginiPodSync:(id)sender
+- (BOOL)beginiPodSync
 {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Sync iPod"] && ![[[NSApp delegate] valueForKey:@"submissionsDisabled"] boolValue]) {
         NSString *path = [self valueForKey:@"iPodMountPath"];
@@ -392,7 +392,10 @@ validate:
             nil];
         [[ISiTunesLibrary sharedInstance] loadInBackgroundFromPath:ISCOPY_OF_ITUNES_LIB
             withDelegate:self didFinishSelector:@selector(synciPodWithiTunesLibrary:) context:d];
+        return (YES);
     }
+    
+    return (NO);
 }
 
 - (void)synciPodWithiTunesLibrary:(NSDictionary*)arg
@@ -711,7 +714,7 @@ sync_exit_with_note:
         } else
             [self setValue:device forKey:@"iPodMountPath"]; // temp for syncIPod
         
-        [self beginiPodSync:nil]; // now that we're sure iTunes synced, we can sync...
+        BOOL syncStarted = [self beginiPodSync]; // now that we're sure iTunes synced, we can sync...
         
         [self setValue:curPath forKey:@"iPodMountPath"];
         
@@ -721,10 +724,12 @@ sync_exit_with_note:
         ISASSERT(iPodMountCount > -1, "negative ipod count!");
         [iPodMounts removeObjectForKey:device];
         
-        // beginiPodSync is async and will return before updating actually begins so,
-        // add a "fake" count while we wait for the lib to load so plays are still queued until we are done.
-        // This is done outside of a binding update so the GUI does not notice it.
-        ++iPodMountCount;
+        if (syncStarted) {
+            // beginiPodSync is async and will return before updating actually begins so,
+            // add a "fake" count while we wait for the lib to load so plays are still queued until we are done.
+            // This is done outside of a binding update so the GUI does not notice it.
+            ++iPodMountCount;
+        }
     }
 }
 

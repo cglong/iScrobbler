@@ -144,7 +144,7 @@
     [[didEnd target] performSelectorOnMainThread:[didEnd selector] withObject:upcallArg waitUntilDone:NO];
 }
 
-- (void)readiTunesLibThread:(id)arg
+- (void)iTunesLibThread:(id)arg
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
@@ -189,7 +189,7 @@
         }
     }
     if (createth) {
-        [NSThread detachNewThreadSelector:@selector(readiTunesLibThread:) toTarget:self withObject:self];
+        [NSThread detachNewThreadSelector:@selector(iTunesLibThread:) toTarget:self withObject:self];
         useconds_t uWait = 0;
         id msg;
         do {

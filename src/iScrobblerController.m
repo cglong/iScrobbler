@@ -514,18 +514,6 @@ if (currentSong) { \
             [song setType:trackTypeShared];
     }
     
-    @try {
-    if ([song ignore]) {
-        ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [song brief]);
-        [song release];
-        song = nil;
-        ReleaseCurrentSong();
-        goto player_info_exit;
-    }
-    } @catch (NSException *exception) {
-        ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", song, exception);
-    }
-    
     ScrobLog(SCROB_LOG_TRACE, @"iTunes Data: (T,Al,Ar,D) = (%@,%@,%@,%@)",
         [song title], [song album], [song artist], [song duration]);
     
@@ -804,6 +792,9 @@ player_info_exit:
                 selector:@selector(networkStatusHandler:)
                 name:PM_NOTIFICATION_NETWORK_STATUS
                 object:nil];
+        
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"])
+            ScrobLog(SCROB_LOG_WARN, @"Submissions are disabled.");
         
         (void)[ProtocolManager sharedInstance];
         
@@ -1450,7 +1441,7 @@ player_info_exit:
 
 - (NSString*)lastfmCredential
 {
-    if (nil == lastfmCredential) {
+    if (nil == lastfmCredential && NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"]) {
         lastfmCredential = [[self md5hash:[[KeyChain defaultKeyChain] genericPasswordForService:@"iScrobbler"
             account:[prefs stringForKey:@"username"]]] retain];
     }
@@ -2022,17 +2013,25 @@ exit:
 
 - (void)iPodSyncEnd:(NSNotification*)note
 {
-    NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
-    if (!msg)
-        msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
-    [GrowlApplicationBridge
-        notifyWithTitle:NSLocalizedString(@"iPod Sync Finished", "")
-        description:msg
-        notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
-        iconData:nil
-        priority:0
-        isSticky:NO
-        clickContext:nil];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisplayWarnings"]) {
+        NSString *msg = [[note userInfo] objectForKey:IPOD_SYNC_KEY_SCRIPT_MSG];
+        if (!msg)
+            msg = [NSString stringWithFormat:@"%@ %@", [[note userInfo] objectForKey:IPOD_SYNC_KEY_TRACK_COUNT], NSLocalizedString(@"tracks submitted", "")];
+        
+        NSString *title = NSLocalizedString(@"iPod Sync Finished", "");
+        if ([GrowlApplicationBridge isGrowlRunning]) {
+            [GrowlApplicationBridge
+                notifyWithTitle:title
+                description:msg
+                notificationName:IS_GROWL_NOTIFICATION_IPOD_DID_SYNC
+                iconData:nil
+                priority:0
+                isSticky:NO
+                clickContext:nil];
+        } else {
+            [msgWindowPlugin message:msg withTitle:title withImage:nil];
+        }
+    }
 }
 
 #define ONE_DAY 86400.0

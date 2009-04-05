@@ -1142,10 +1142,17 @@ static int npDelays = 0;
         good = (good && ![self banned] && ![self skipped]);
     }
     
+    @try {
+    
     if (good && [self ignore]) {
         // Song should be ignored, but slipped through the upper layers
         [self setHasQueued:YES];
         good = NO;
+        ScrobLog(SCROB_LOG_VERBOSE, @"Song '%@' filtered.\n", [self brief]);
+    }
+    
+    } @catch (NSException *exception) {
+        ScrobLog(SCROB_LOG_ERR, @"Exception filtering track (%@): %@\n", self, exception);
     }
     
     if ([[self artist] length] > 0 && [[self title] length] > 0)

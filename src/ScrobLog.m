@@ -9,7 +9,7 @@
 #import <sys/stat.h>
 #import "ScrobLog.h"
 
-static NSFileHandle *scrobLogFile = nil;
+__private_extern__ NSFileHandle *scrobLogFile = nil;
 
 //Log Level
 static NSDictionary *string_to_scrob_level = nil;
@@ -62,8 +62,7 @@ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
     NSFileHandle *fh = nil;
     BOOL bom = NO;
     
-    results = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-    NSUserDomainMask, YES);
+    results = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     if ([results count]) {
         unsigned char utf8bom[] = {0xEF, 0xBB, 0xBF};
 
@@ -103,7 +102,11 @@ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
         NSData *d = nil;
         if (bom) {
             //Write UTF-8 BOM
-            d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE];
+            if ((d = [NSData dataWithBytes:utf8bom length:UTF8_BOM_SIZE])) {
+                @try {
+                [fh writeData:d];
+                } @finally {}
+            }
         }
         if (flags & SCROB_LOG_OPT_SESSION_MARKER) {
             d = [[NSString stringWithFormat:@"  **** New Session %@/%@ - Mac OS X %@ (%@) ****\n",
@@ -112,11 +115,11 @@ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
                     [[NSProcessInfo processInfo] operatingSystemVersionString],
                     ISCPUArchitectureString()]
                 dataUsingEncoding:NSUTF8StringEncoding];
-        }
-        if (d) {
-            @try {
-            [fh writeData:d];
-            } @finally {}
+            if (d) {
+                @try {
+                [fh writeData:d];
+                } @finally {}
+            }
         }
     }
     

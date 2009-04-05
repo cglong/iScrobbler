@@ -2,7 +2,7 @@
 //  SubStatsController.m
 //  iScrobbler Plugin
 //
-//  Copyright 2008 Brian Bergstrand.
+//  Copyright 2008,2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -21,9 +21,13 @@
 
 - (void)protocolMsgCompleteHandler:(NSNotification*)note
 {
+    NSNumberFormatter *format = [[[NSNumberFormatter alloc] init] autorelease];
+    [format setNumberStyle:NSNumberFormatterDecimalStyle];
+
     NSDictionary *info = [note userInfo];
     [subCount setStringValue:[NSString stringWithFormat:@"%@ (%@)", 
-        [info valueForKey:@"successfulSubmissions"], [info objectForKey:@"submissionAttempts"]]];
+        [format stringFromNumber:[info valueForKey:@"successfulSubmissions"]],
+        [format stringFromNumber:[info objectForKey:@"submissionAttempts"]]]];
     [queueCount setStringValue:[NSString stringWithFormat:@"%@", [info objectForKey:@"queueCount"]]];
     [lastfmResponse setStringValue:[info objectForKey:@"lastServerRepsonse"]];
     NSString *s = [info objectForKey:@"lastSongSubmitted"];

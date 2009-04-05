@@ -148,6 +148,12 @@ static QueueManager *g_QManager = nil;
         ScrobDebug(@"exception: %@");
     }
     
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"]) {
+        [songQueue removeAllObjects];
+        submit = NO;
+        [[ProtocolManager sharedInstance] performSelector:@selector(setLastSongSubmitted:) withObject:song];
+    }
+    
     if (submit) {
         [song setPostDate:[song startTime]];
         [self submit];
