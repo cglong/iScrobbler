@@ -15,7 +15,7 @@ CHANGE HISTORY:
 
 v2.2.1 (BDB)
 - Bug Fix: The iPod Sync message window is no longer displaed if "Display informational notifications" is disabled.
-- Bug Fix: Regression - Podcast and track filters were not working.
+- Bug Fix: Regression - Podcast and track filters are working once more.
 - Bug Fix: "My Radio" is now available for non-subscribers.
 - Bug Fix: More Local Charts issues with DST time switch.
 - Bug Fix: Version check no longer nags if it gets a connection error during an auto-check.
