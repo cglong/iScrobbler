@@ -48,7 +48,7 @@
 
 - (oneway void)initializeMobileDeviceSupport:(NSString*)path
 {
-    (void)IntializeMobileDeviceSupport([path UTF8String], NULL);
+    (void)InitializeMobileDeviceSupport([path UTF8String], NULL);
 }
 
 - (oneway void)kill

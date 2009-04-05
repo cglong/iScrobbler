@@ -2,8 +2,8 @@
 //  MobileDeviceSupport.m
 //  iScrobbler
 //
-//  Created by Brian Bergstrand on 7/12/2007.
-//  Copyright 2008 Brian Bergstrand.
+//  Created by Brian Bergstrand on 7/12/2008.
+//  Copyright 2008,2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -18,6 +18,7 @@
 #import <Foundation/Foundation.h>
 
 // Private MobileDevice framework support
+#import "MobileDeviceSupport.h"
 
 // Device notification types
 enum {
@@ -76,7 +77,6 @@ typedef void* (*AMDeviceCopyValue)(struct AMDevice *, int unknown, CFStringRef s
 
 // Private MobileDevice framework support
 
-#if !defined(__LP64__)
 static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info);
 
 static void *libHandle = nil;
@@ -87,13 +87,10 @@ static void CFHandleCallback(CFNotificationCenterRef center, void *observer, CFS
 NSMutableDictionary *devicesAttachedBeforeLaunch = nil;
 static NSMutableDictionary* FindAttachedDevices(void);
 
-#endif
-
 __private_extern__
-int IntializeMobileDeviceSupport(const char *path, void **handle)
+int InitializeMobileDeviceSupport(const char *path, void **handle)
 {
     int err;
-    #if !defined(__LP64__)
     if (libHandle) {
         if (handle)
             *handle = NULL;
@@ -102,6 +99,7 @@ int IntializeMobileDeviceSupport(const char *path, void **handle)
     
     devicesAttachedBeforeLaunch = [FindAttachedDevices() retain];
     
+    // XXX: version prior to iTunes 8 do not contain a 64bit Mobile Device library
     if ((libHandle = dlopen(path, RTLD_LAZY|RTLD_LOCAL))) {
         AMDeviceNotificationSubscribe subscribe;
         if (subscribe = dlsym(libHandle, "AMDeviceNotificationSubscribe")) {
@@ -124,18 +122,14 @@ int IntializeMobileDeviceSupport(const char *path, void **handle)
     
     if (handle)
         *handle = NULL; // XXX: for now don't publish the handle
-    #else
-    err = cfragFragmentFormatErr; // MobileDevice framework is 32bit only (as of iTunes 7.7)
-    #endif
     
     if (err) {
-        [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.intializeDidFail"
+        [[MDSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.intializeDidFail"
             object:[NSNumber numberWithInt:err]];
     }
     return (err);
 }
 
-#if !defined(__LP64__)
 static NSMutableDictionary *connectedDevices = nil;
 
 static void CFHandleCallback(CFNotificationCenterRef center, void *observer, CFStringRef name,
@@ -153,11 +147,11 @@ static void CFHandleCallback(CFNotificationCenterRef center, void *observer, CFS
         NSString *state = [(id)userInfo objectForKey:@"State"];
         
         if ([state isEqualToString:@"Finished"]) {
-            [[NSDistributedNotificationCenter defaultCenter]
+            [[MDSNotificationCenter defaultCenter]
                 postNotificationName:@"org.bergstrand.amds.syncDidFinish"
                 object:serial userInfo:d];
         } else if ([state isEqualToString:@"Starting"]) {
-            [[NSDistributedNotificationCenter defaultCenter]
+            [[MDSNotificationCenter defaultCenter]
                 postNotificationName:@"org.bergstrand.amds.syncDidStart"
                 object:serial userInfo:d];
         }
@@ -225,20 +219,20 @@ static void DeviceNotificationCallback_(struct AMDeviceCallbackInfo *info)
         nil];
     
     #if defined(ISDEBUG) || defined(DEBUG)
-    [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.debug"
+    [[MDSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.debug"
         object:serial userInfo:d];
     #endif
     
     switch (info->type) {
         case kDeviceNotificationConnected:
             [connectedDevices setObject:d forKey:serial];
-            [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.connect"
+            [[MDSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.connect"
                 object:serial userInfo:d];
         break;
         
         case kDeviceNotificationDisconnected:
             [connectedDevices removeObjectForKey:serial];
-            [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.disconnect"
+            [[MDSNotificationCenter defaultCenter] postNotificationName:@"org.bergstrand.amds.disconnect"
                 object:serial userInfo:d];
         break;
         
@@ -314,5 +308,3 @@ static NSMutableDictionary* FindAttachedDevices(void)
     
     return (devices);
 }
-
-#endif // LP64

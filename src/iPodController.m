@@ -106,22 +106,22 @@ static void IOMediaAddedCallback(void *refcon, io_iterator_t iter);
     NSString *framework = [[NSUserDefaults standardUserDefaults] stringForKey:@"Apple MobileDevice Framework"];
     if ([framework UTF8String]) {
         // subscribe
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        [[MDSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(amdsDidFail:) name:@"org.bergstrand.amds.intializeDidFail" object:nil];
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        [[MDSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(amdsDidFinishSync:) name:@"org.bergstrand.amds.syncDidFinish" object:nil];
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        [[MDSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(amdsDidStartSync:) name:@"org.bergstrand.amds.syncDidStart" object:nil];
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        [[MDSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(amdsDidConnect:) name:@"org.bergstrand.amds.connect" object:nil];
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+        [[MDSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(amdsDidDisconnect:) name:@"org.bergstrand.amds.disconnect" object:nil];
     
         #ifdef IS_SCRIPT_PROXY
         [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(proxyDidStart:) name:@"proxyStart" object:nil];
         #else
-        (void)IntializeMobileDeviceSupport([framework UTF8String], NULL);
+        (void)InitializeMobileDeviceSupport([framework UTF8String], NULL);
         #endif
     }
     
