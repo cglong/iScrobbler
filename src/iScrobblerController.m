@@ -229,11 +229,7 @@ static void iokpm_callback (void *, io_service_t, natural_t, void*);
 - (void)songDidQueueHandler:(NSNotification*)note
 {
     SongData *song = [[note userInfo] objectForKey:QM_NOTIFICATION_USERINFO_KEY_SONG];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     NSInteger r = [[song scaledRating] integerValue];
-    #else
-    NSInteger r = (NSInteger)[[song scaledRating] intValue];
-    #endif
     if (![song loved] && ![song banned] && ![song skipped] && 
         r > [[NSUserDefaults standardUserDefaults] integerForKey:@"AutoLoveTracksRatedHigherThan"]) {
         ScrobLog(SCROB_LOG_TRACE, @"Auto-loving: %@", song);
@@ -883,13 +879,8 @@ player_info_exit:
     
     if (NO == [[NSFileManager defaultManager] fileExistsAtPath:[[NSFileManager defaultManager] iscrobblerSupportFolder]]) {
         // 2.2.0 organizes support files in one sub-folder
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         (void)[[NSFileManager defaultManager] createDirectoryAtPath:[[NSFileManager defaultManager] iscrobblerSupportFolder]
             withIntermediateDirectories:NO attributes:nil error:nil];
-        #else
-        (void)[[NSFileManager defaultManager] createDirectoryAtPath:[[NSFileManager defaultManager] iscrobblerSupportFolder]
-            attributes:nil];
-        #endif
     }
     
     songList = [[NSMutableArray alloc ] init];
@@ -1473,20 +1464,6 @@ player_info_exit:
 }
 
 // App services
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-#define IS_CC_MD5 CC_MD5
-#else
-// CC_MD5 is only available on Leopard, this is probably exactly what it does internally,
-// so we won't worry about testing for it at runtime.
-unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
-{
-    CC_MD5_CTX ctx;
-    CC_MD5_Init(&ctx);
-    CC_MD5_Update(&ctx, bytes, len);
-    CC_MD5_Final(md, &ctx);
-    return (md);
-}
-#endif
 
 - (NSString *)md5hash:(id)input
 {
@@ -1496,7 +1473,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         return (nil);
     
     unsigned char digest[CC_MD5_DIGEST_LENGTH];
-    unsigned char *hash = IS_CC_MD5((unsigned char*)[input bytes], [input length], digest);
+    unsigned char *hash = CC_MD5((unsigned char*)[input bytes], [input length], digest);
 	NSMutableString *hashString = [NSMutableString string];
     // Convert the binary hash into a string
     for (int i = 0; i < CC_MD5_DIGEST_LENGTH; ++i)
@@ -1634,9 +1611,7 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
     (void)ChangeWindowAttributes ([w windowRef], kWindowIgnoreClicksAttribute, kWindowNoAttributes);
     #endif
     [w setIgnoresMouseEvents:YES]; // For Cocoa apps
-    LEOPARD_BEGIN
     [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
-    LEOPARD_END
     // [w setDelegate:self];
     [w center];
     
@@ -1652,14 +1627,8 @@ unsigned char* IS_CC_MD5(unsigned char *bytes, CC_LONG len, unsigned char *md)
         otherButton:[info objectForKey:@"alternateButton"]
         informativeTextWithFormat:
         [info objectForKey:NSLocalizedDescriptionKey], nil];
-    
-    LEOPARD_BEGIN
-    if ([info objectForKey:@"supressionButton"]) {
-        [a setShowsSuppressionButton:YES];
-        [[a suppressionButton] setTitle:[info objectForKey:@"supressionButton"]];
-    }
-    LEOPARD_END
-    
+    [a setShowsSuppressionButton:YES];
+    [[a suppressionButton] setTitle:[info objectForKey:@"supressionButton"]];
     [a beginSheetModalForWindow:w modalDelegate:delegate didEndSelector:selector contextInfo:w];
     
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"NSWindowResizeTime"];
@@ -2681,11 +2650,7 @@ resolvePath:
 
 - (NSInteger)integerValue
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     return ([[self stringValue] integerValue]);
-    #else
-    return ((NSInteger)[[self stringValue] intValue]);
-    #endif
 }
 
 @end
@@ -2735,13 +2700,6 @@ resolvePath:
 
 - (BOOL)scrobWindowShouldClose
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_4) {
-        // 10.4 has some bugs that are triggered by a delayed close.
-        // For instance if the fade timer fires while a menu is tracking, the app will likely crash.
-        return (YES);
-    }
-    #endif
     [[self window] fadeOutAndClose];
     return (NO);
 }
@@ -2752,11 +2710,7 @@ resolvePath:
 
 - (NSNumber*)GMTOffset
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     return ([NSNumber numberWithInteger:[[self timeZone] secondsFromGMT]]);
-    #else
-    return ([NSNumber numberWithInt:[[self timeZone] secondsFromGMT]]);
-    #endif
 }
 
 @end

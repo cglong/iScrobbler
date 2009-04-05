@@ -51,12 +51,7 @@
 {
     NSString *path = [self pathToXMLFile];
     NSDictionary *attrs;
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
-    #else
-    attrs = [[NSFileManager defaultManager] fileAttributesAtPath:path traverseLink:YES];
-    #endif
-        
     return (attrs);
 }
 #endif

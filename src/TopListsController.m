@@ -197,7 +197,6 @@ static NSMutableArray *topHours = nil;
 
 - (void)transitionBusyView
 {
-    LEOPARD_BEGIN
     NSView *cv = [[self window] contentView];
     if ([[self valueForKey:@"loading"] boolValue]) {
         if (![busyView window]) {
@@ -215,7 +214,6 @@ static NSMutableArray *topHours = nil;
         [cv setWantsLayer:NO];
         [cv addSubview:busyProgress];
     }
-    LEOPARD_END
 }
 
 - (void)persistentProfileDidInitialize:(NSNotification*)note
@@ -332,14 +330,7 @@ static NSMutableArray *topHours = nil;
 {
     if ((self = [super initWithWindowNibName:windowNibName])) {
         // load the persistence plugin
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         persistence = (PersistentProfile*)[[ISPluginController sharedInstance] loadCorePlugin:@"Persistence"];
-        #else
-        if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4)
-            persistence = (PersistentProfile*)[[ISPluginController sharedInstance] loadCorePlugin:@"Persistence"];
-        else
-            persistence = (PersistentProfile*)[[ISPluginController sharedInstance] loadCorePlugin:@"TigerPersistence"];
-        #endif
         
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SeenTopListsUpdateAlert"]
             && [[self class] willCreateNewProfile]) {
@@ -1163,19 +1154,11 @@ exit:
 {
     // XXX this belongs in the persistence plugin, but it's here so we don't have to load the plugin to test
     // whether a new profile will be created or not.
-    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+    NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB]; 
     NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
-    #else
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    #endif
     if (!metadata) {
-        url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB_21X];
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
+        url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB_21X]; 
         metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
-        #else
-        metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-        #endif
     }
     #if 0
     // while technically indicating a new profile, the last check is also true while an import is in progress

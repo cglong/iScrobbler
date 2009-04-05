@@ -62,10 +62,7 @@
 - (void)awakeFromNib
 {
     NSUInteger style = NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask;
-    LEOPARD_BEGIN
-    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
-    LEOPARD_END
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[statsView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     [w setLevel:NSNormalWindowLevel];

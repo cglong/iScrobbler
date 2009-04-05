@@ -21,11 +21,6 @@ Simple CoreDate overview: http://cocoadevcentral.com/articles/000086.php
 Important CoreData behaviors:
 http://www.cocoadev.com/index.pl?CoreDataInheritanceIssues
 http://www.cocoadev.com/index.pl?CoreDataQuestions
-
-Tiger note:
-Performance of the SQL store can be SEVERLY impacted by a slow hard disk (e.g. 4200RPM laptop drive)
-On import, setting "com.apple.CoreData.SQLiteDebugSynchronous" to 1 or 0 should help a lot
-(at the risk of data corruption if the machine crashes or loses power).
 **/
 
 __private_extern__ BOOL version3 = NO;
@@ -61,12 +56,8 @@ __private_extern__ BOOL version3 = NO;
 @implementation PersistentProfile
 
 - (NSString*)currentStoreVersion
-{
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5    
+{    
     return ([self isVersion3] ? @"3" : @"2");
-    #else
-    return (@"1");
-    #endif
 }
 
 - (void)displayErrorWithTitle:(NSString*)title message:(NSString*)msg
@@ -309,9 +300,7 @@ __private_extern__ BOOL version3 = NO;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
             ITEM_SONG, session]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -324,9 +313,7 @@ __private_extern__ BOOL version3 = NO;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
             ITEM_RATING_CCH, session]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -339,9 +326,7 @@ __private_extern__ BOOL version3 = NO;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
             ITEM_HOUR_CCH, session]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -441,9 +426,7 @@ __private_extern__ BOOL version3 = NO;
 - (void)persistentProfileDidEditObject:(NSNotification*)note
 {
     ISASSERT(mainMOC != nil, "missing thread moc!");
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     NSManagedObject *obj = [mainMOC objectRegisteredForID:oid];
@@ -525,9 +508,7 @@ __private_extern__ BOOL version3 = NO;
 
 - (void)databaseDidInitialize:(NSDictionary*)metadata
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(persistentProfileDidEditObject:)
@@ -541,11 +522,9 @@ __private_extern__ BOOL version3 = NO;
     id ver = [metadata objectForKey:(NSString*)kMDItemCreator];
     ScrobLog(SCROB_LOG_TRACE, @"Local Charts creator is '%@'", ver ? ver : @"pre-2.1.1");
     
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ver = [metadata objectForKey:(NSString*)kMDItemEditors];
     ScrobLog(SCROB_LOG_TRACE, @"Local Charts were last opened by '%@'", ver ? ver : @"pre-2.1.1");
     [self setStoreMetadata:[NSArray arrayWithObject:[mProxy applicationVersion]] forKey:(NSString*)kMDItemEditors moc:mainMOC];
-    #endif
     
     if (NO == [[metadata objectForKey:@"ISDidImportiTunesLibrary"] boolValue]) {
         // Import from our XML dump (from a failed migration)?
@@ -566,20 +545,16 @@ __private_extern__ BOOL version3 = NO;
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
         selector:@selector(didWake:) name:NSWorkspaceDidWakeNotification object:nil];
     
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     CFURLRef url = (CFURLRef)[NSURL fileURLWithPath:[PERSISTENT_STORE_DB stringByAppendingString:@"-backup-1"]];
     if (NO == CSBackupIsItemExcluded(url, NULL))
         (void)CSBackupSetItemExcluded(url, YES, YES);
-    #endif
     
     [self postNote:PersistentProfileDidFinishInitialization];
 }
 
 - (void)databaseDidFailInitialize:(id)arg
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     [mainMOC release];
     mainMOC = nil;
@@ -957,18 +932,10 @@ __private_extern__ BOOL version3 = NO;
     NSString *oldPath = PERSISTENT_STORE_DB_21X;
     
     NSURL *url = [NSURL fileURLWithPath:oldPath];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:nil URL:url error:nil];
-    #else
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    #endif
     if (metadata && nil == [metadata objectForKey:@"ISStoreLocationVersion"]) {
         NSString *newPath = PERSISTENT_STORE_DB;
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         BOOL good = [[NSFileManager defaultManager] moveItemAtPath:oldPath toPath:newPath error:nil];
-        #else
-        BOOL good = [[NSFileManager defaultManager] movePath:oldPath toPath:newPath handler:nil];
-        #endif
         if (good) {
             // move the most recent backup and create a symlink for the old file
             NSString *backup = [oldPath stringByAppendingString:@"-backup"];
@@ -977,28 +944,17 @@ __private_extern__ BOOL version3 = NO;
                 [[newPath stringByDeletingLastPathComponent] lastPathComponent],
                 [newPath lastPathComponent]];
             
-            #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
             (void)[[NSFileManager defaultManager] moveItemAtPath:backup toPath:newBackup error:nil];
             (void)[[NSFileManager defaultManager] removeItemAtPath:[backup stringByAppendingString:@"-1"] error:nil];
             (void)[[NSFileManager defaultManager] createSymbolicLinkAtPath:oldPath withDestinationPath:symlinkDest error:nil];
-            #else
-            (void)[[NSFileManager defaultManager] movePath:backup toPath:newBackup handler:nil];
-            (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
-            (void)[[NSFileManager defaultManager] createSymbolicLinkAtPath:oldPath pathContent:symlinkDest];
-            #endif
             
             return (YES);
         }
     } else if (metadata) {
         // remove stale backups
         NSString *backup = [oldPath stringByAppendingString:@"-backup"];
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         (void)[[NSFileManager defaultManager] removeItemAtPath:backup error:nil];
         (void)[[NSFileManager defaultManager] removeItemAtPath:[backup stringByAppendingString:@"-1"] error:nil];
-        #else
-        (void)[[NSFileManager defaultManager] removeFileAtPath:backup handler:nil];
-        (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
-        #endif
     }
     
     return (NO);
@@ -1048,11 +1004,7 @@ __private_extern__ BOOL version3 = NO;
     
     NSURL *url = [NSURL fileURLWithPath:PERSISTENT_STORE_DB];
     // NSXMLStoreType is slow and keeps the whole object graph in mem, but great for looking at the DB internals (debugging)
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
     NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:NSSQLiteStoreType URL:url error:nil];
-    #else
-    NSDictionary *metadata = [NSPersistentStoreCoordinator metadataForPersistentStoreWithURL:url error:nil];
-    #endif
     if (metadata && nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]) {
         // import was interrupted, reset everything
         ScrobLog(SCROB_LOG_ERR, @"The iTunes import failed, removing corrupt database.");
@@ -1126,15 +1078,9 @@ __private_extern__ BOOL version3 = NO;
         NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:
             [NSNumber numberWithUnsignedInt:ccode], NSFileHFSCreatorCode,
             nil];
-        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 
         if (0 == [[[[NSFileManager defaultManager] attributesOfItemAtPath:[url path] error:nil] objectForKey:NSFileHFSCreatorCode] intValue]) {
             (void)[[NSFileManager defaultManager] setAttributes:attrs ofItemAtPath:[url path] error:nil];
         }
-        #else
-        if (0 == [[[[NSFileManager defaultManager] fileAttributesAtPath:[url path] traverseLink:YES] objectForKey:NSFileHFSCreatorCode] intValue]) {
-            (void)[[NSFileManager defaultManager] changeFileAttributes:attrs atPath:[url path]];
-        }
-        #endif
     }
     
     [self databaseDidInitialize:metadata];
@@ -1231,9 +1177,7 @@ static PersistentProfile *shared = nil;
 
 - (BOOL)performSelectorOnSessionMgrThread:(SEL)selector withObject:(id)object
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread mainThread], "wrong thread!");
-    #endif
     
     if (![sessionMgr threadMessenger])
         return (NO);

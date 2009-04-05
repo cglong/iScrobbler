@@ -8,19 +8,17 @@
         	<string></string>
         </dict>
         <key>Version</key>
-        <string>2.2.0</string>
+        <string>2.3.0b1</string>
         <key>File</key>
-        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.2.0.dmg</string>
+        <string>http://www.bergstrand.org/brian/software/bin/iscrobbler.2.3.0b1.dmg</string>
         <key>MinFoundationVer</key>
-        <real>567.28</real>
+        <real>600.00</real>
         <key>MinSysVer</key>
-        <string>10.4.9</string>
+        <string>10.5.0</string>
         <key>Notes</key>
         <dict>
 			<key>English</key>
-			<string>Integrated support for iPhone and iPod Touch.
-Many enhancements to the Local Charts.
-Many bug fixes.
+			<string>
 			</string>
         </dict>
 </dict>

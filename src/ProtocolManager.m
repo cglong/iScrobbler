@@ -924,7 +924,6 @@ didFinishLoadingExit:
     
     ScrobTrace(@"Connection flags: %x.", flags);
     
-    LEOPARD_BEGIN
     if (!resetMonitor)
         [self performSelectorOnMainThread:@selector(setNetworkAvailable:)
             withObject:[NSNumber numberWithBool:canReach] waitUntilDone:NO];
@@ -932,15 +931,6 @@ didFinishLoadingExit:
         [self performSelectorOnMainThread:@selector(registerNetMonitor) withObject:nil waitUntilDone:NO];
     [pool release];
     return;
-    LEOPARD_END
-    
-    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    // Tiger
-    [self setIsNetworkAvailable:canReach];
-    if (resetMonitor)
-        [self performSelector:@selector(registerNetMonitor) withObject:nil afterDelay:1.0]; // avoid recursion
-    [pool release];
-    #endif
 }
 
 - (void)checkNetReach:(BOOL)force
@@ -951,17 +941,9 @@ didFinishLoadingExit:
     
     lastNetCheck = now;
     isNetworkAvailable = !isNetworkAvailable;
-    LEOPARD_BEGIN
     [self performSelectorInBackground:@selector(checkNetReachInBackground:)
         withObject:[NSValue valueWithPointer:netReachRef]];
     return;
-    LEOPARD_END
-    
-    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    // perform check on main thread in Tiger
-    ScrobLog(SCROB_LOG_TRACE, @"Performing network check on main thread.");
-    [self checkNetReachInBackground:[NSValue valueWithPointer:netReachRef]];
-    #endif
 }
 
 - (void)didWake:(NSNotification*)note

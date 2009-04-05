@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>BBNetUpdateVersion</key>
-	<string>2.2.0</string>
+	<string>2.3.0b1</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>iScrobbler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>2.2</string>
+	<string>2.3</string>
 	<key>CFBundleIconFile</key>
 	<string>iscrobbler</string>
 	<key>CFBundleIdentifier</key>
@@ -32,7 +32,7 @@
 		</dict>
 	</array>
 	<key>CFBundleShortVersionString</key>
-	<string>2.2</string>
+	<string>2.3</string>
 	<key>CFBundleSignature</key>
 	<string>iSCb</string>
 	<key>CFBundleVersion</key>
@@ -44,15 +44,15 @@
 		<string>ppc</string>
 	</array>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.4.9</string>
+	<string>10.5.0</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>
 	<dict>
 		<key>x86_64</key>
 		<string>10.5.0</string>
 		<key>i386</key>
-		<string>10.4.9</string>
+		<string>10.5.0</string>
 		<key>ppc</key>
-		<string>10.4.9</string>
+		<string>10.5.0</string>
 	</dict>
 	<key>LSUIElement</key>
 	<string>1</string>

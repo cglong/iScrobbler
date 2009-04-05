@@ -55,14 +55,6 @@ return (
 );
 }
 
-#if defined(__LP64__) || (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
-#define LEOPARD_BEGIN
-#define LEOPARD_END
-#else
-#define LEOPARD_BEGIN if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) {
-#define LEOPARD_END }
-#endif
-
 extern CGFloat isUtilityWindowAlpha;
 #define IS_UTIL_WINDOW_ALPHA isUtilityWindowAlpha
 
@@ -90,6 +82,8 @@ extern CGFloat isUtilityWindowAlpha;
 #ifdef __LP64__
 #define IS_SCRIPT_PROXY 1
 #endif
+
+// Debug
 
 #ifdef ISDEBUG
 

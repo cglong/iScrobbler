@@ -334,9 +334,7 @@ artistComparisonData = nil; \
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     [request setPredicate:predicate];
-    LEOPARD_BEGIN
     [request setReturnsObjectsAsFaults:NO];
-    LEOPARD_END
     
     NSArray *results = [moc executeFetchRequest:request error:&error];
     if ([results count] > 0) {

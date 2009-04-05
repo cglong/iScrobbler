@@ -41,10 +41,7 @@ static PlayHistoryController *sharedController = nil;
 - (void)awakeFromNib
 {
     NSUInteger style = NSTitledWindowMask|NSUtilityWindowMask|NSClosableWindowMask|NSResizableWindowMask;
-    LEOPARD_BEGIN
-    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
-    LEOPARD_END
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     [w setLevel:NSNormalWindowLevel];
@@ -319,11 +316,7 @@ static PlayHistoryController *sharedController = nil;
     return (([[self window] styleMask] & NSHUDWindowMask) ? [NSColor lightGrayColor] : [NSColor blackColor]);
     #endif
     // window may not be set when the binding calls us
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     return ([NSColor lightGrayColor]);
-    #else
-    return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor lightGrayColor] : [NSColor blackColor]);
-    #endif
 }
 
 @end

@@ -126,12 +126,7 @@ static NSImage *artistImgPlaceholder = nil;
     return (([[self window] styleMask] & NSHUDWindowMask) ? [NSColor grayColor] : [NSColor blackColor]);
     #endif
     // window may not be set when the binding calls us
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     return ([NSColor grayColor]);
-    #else
-    return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor grayColor] : [NSColor blackColor]);
-    #endif
-    
 }
 
 - (void)setViewTextAttributes:(NSView*)v
@@ -152,10 +147,7 @@ static NSImage *artistImgPlaceholder = nil;
     }
     
     NSUInteger style = NSTitledWindowMask|NSUtilityWindowMask|NSClosableWindowMask|NSResizableWindowMask;
-    LEOPARD_BEGIN
-    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
-    LEOPARD_END
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[[detailsDrawer contentView] frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     [w setLevel:NSNormalWindowLevel];
@@ -187,10 +179,8 @@ static NSImage *artistImgPlaceholder = nil;
     [obj release];
     [similarArtistsTable setAutosaveName:[[delegate detailsFrameSaveName] stringByAppendingString:@"Artist Details"]];
     
-    LEOPARD_BEGIN
     [artistImage setWantsLayer:YES];
     [artistImage setImageScaling:NSImageScaleProportionallyUpOrDown];
-    LEOPARD_END
     
     [self setDetails:nil];
 }
@@ -705,13 +695,6 @@ static NSImage *artistImgPlaceholder = nil;
 {
     // return ([self scrobWindowShouldClose]);
     // XXX: we don't inherit from NSWindowController, so we need a copy of scrobWindowShouldClose
-    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_4) {
-        // 10.4 has some bugs that are triggered by a delayed close.
-        // For instance if the fade timer fires while a menu is tracking, the app will likely crash.
-        return (YES);
-    }
-    #endif
     [[self window] fadeOutAndClose];
     return (NO);
 }

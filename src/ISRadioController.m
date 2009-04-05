@@ -495,11 +495,7 @@ exitHistory:
                     [activeRadioTracks setObject:track forKey:uuid];
                 } else
                     ScrobLog(SCROB_LOG_ERR, @"Radio: failed to add track to iTunes: %@ (peristent id missing).", track);
-                #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
                 (void)[[NSFileManager defaultManager] removeItemAtPath:path error:nil];
-                #else
-                (void)[[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
-                #endif
             } else
                 ScrobLog(SCROB_LOG_ERR, @"Radio: failed to add track to iTunes: %@ (m3u creation failed).", track);
         } @catch (NSException *exception) {

@@ -71,10 +71,8 @@
     [tv setRichText:YES];
     [tv setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
     
-    LEOPARD_BEGIN
     [tv setGrammarCheckingEnabled:NO];
     [w setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces];
-    LEOPARD_END
     
     NSString *preamble = [@"\n" stringByAppendingFormat:@"%@ %@", bundleName,
         // XXX: iScrobbler specific

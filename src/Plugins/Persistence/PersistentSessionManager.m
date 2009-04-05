@@ -54,9 +54,7 @@ __private_extern__ BOOL version3;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive == NULL) AND (name != %@)",
         ITEM_SESSION, @"temp"]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *results = [moc executeFetchRequest:request error:&error];
@@ -86,9 +84,7 @@ __private_extern__ BOOL version3;
     } else
         predicate = [NSPredicate predicateWithFormat:@"(itemType == %@) AND (archive != NULL)", ITEM_SESSION];
     [request setPredicate:predicate];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *results = [moc executeFetchRequest:request error:&error];
@@ -150,9 +146,7 @@ __private_extern__ BOOL version3;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType = %@) AND (name == %@)",
         ITEM_SESSION, name]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     
     [[moc persistentStoreCoordinator] lock];
     NSArray *result = [moc executeFetchRequest:request error:&error];
@@ -177,9 +171,7 @@ __private_extern__ BOOL version3;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
             ITEM_ARTIST, session]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -191,9 +183,7 @@ __private_extern__ BOOL version3;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
             ITEM_ALBUM, session]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     return ([moc executeFetchRequest:request error:&error]);
 }
 
@@ -268,14 +258,12 @@ __private_extern__ BOOL version3;
     }
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 - (void)timeZoneDidChange:(NSNotification*)note
 {
     ScrobDebug(@"mainThread: %d", [NSThread isMainThread]);
     [ISThreadMessenger makeTarget:[self threadMessenger] performSelector:@selector(updateDBTimeZone:)
         withObject:[NSNumber numberWithBool:YES]];
 }
-#endif
 
 - (void)sessionManagerThread:(id)mainProfile
 {
@@ -292,12 +280,10 @@ __private_extern__ BOOL version3;
     thMsgr = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
     
     [self updateDBTimeZone:nil];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     // XXX: NSSystemTimeZoneDidChangeNotification is supposed to be sent, but it does not seem to work
     // with the app or distributed center
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(timeZoneDidChange:)
         name:@"NSSystemTimeZoneDidChangeDistributedNotification" object:nil];
-    #endif
     
     lfmUpdateTimer = sUpdateTimer = nil;
     @try {
@@ -312,7 +298,7 @@ __private_extern__ BOOL version3;
     pool = [[NSAutoreleasePool alloc] init];
     do {
         @try {
-        [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+        [[NSRunLoop currentRunLoop] acceptInputForMode:NSRunLoopCommonModes beforeDate:[NSDate distantFuture]];
         
         [self performSelector:@selector(scrub:) withObject:nil];
         } @catch (NSException *e) {
@@ -331,9 +317,7 @@ __private_extern__ BOOL version3;
 
 - (void)sessionManagerUpdate
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread mainThread], "wrong thread!");
-    #endif
     [self performSelector:@selector(updateLastfmSession:) withObject:nil];
     [self performSelector:@selector(updateSessions:) withObject:nil];
 }
@@ -844,9 +828,7 @@ __private_extern__ BOOL version3;
     [request setEntity:entity];
     [request setPredicate:[NSPredicate predicateWithFormat:@"(itemType == %@) AND (session == %@)",
             ITEM_SONG, session]];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     [request setSortDescriptors:
         [NSArray arrayWithObjects:
             [[[NSSortDescriptor alloc] initWithKey:@"item" ascending:NO] autorelease],
@@ -893,7 +875,6 @@ __private_extern__ BOOL version3;
     return ([rem count] > 0);
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 // This is not a general use method as we don't know for sure which play history events are valid
 // I wrote it to clean up my personal db
 #ifdef ISDEBUG
@@ -1074,12 +1055,11 @@ __private_extern__ BOOL version3;
 #endif
     return (YES);
 }
-#endif
 
 - (void)performScrub:(id)arg
 {
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(ISDEBUG)
+    #if defined(ISDEBUG)
     if (!moc && [NSThread isMainThread])
         moc = [[PersistentProfile sharedInstance] mainMOC];
     #endif
@@ -1097,7 +1077,6 @@ __private_extern__ BOOL version3;
         return;
     }
     
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     if (save)
         (void)[[PersistentProfile sharedInstance] save:moc withNotification:NO];
     
@@ -1108,7 +1087,6 @@ __private_extern__ BOOL version3;
         [moc rollback];
         ScrobLog(SCROB_LOG_ERR, @"scrub: exception while recreating caches: %@", e);
     }
-    #endif
     
     // in the future we may decide to delete ancient archived sessions (> 1yr)
     
@@ -1423,9 +1401,7 @@ __private_extern__ BOOL version3;
 - (void)processSongPlays:(NSArray*)queue
 {
     NSManagedObjectContext *moc;
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread mainThread], "wrong thread!");
-    #endif
     
     moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing thread MOC!");
@@ -1468,8 +1444,6 @@ __private_extern__ BOOL version3;
 
 - (void)synchronizeDatabaseWithiTunes
 {
-    // We require the extended scrubbing of the 10.5 plugin
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     PersistentProfile *pp = [PersistentProfile sharedInstance];
     if ([pp importInProgress]) {
         ScrobLog(SCROB_LOG_WARN, @"synchronizeWithiTunes: The database is busy");
@@ -1481,9 +1455,6 @@ __private_extern__ BOOL version3;
     [pp setImportInProgress:NO];
     [self setNeedsScrub:YES];
     [self scrub:nil];
-    #else
-    ScrobLog(SCROB_LOG_WARN, @"synchronizeWithiTunes: not supported with this OS version");
-    #endif
 }
 
 // singleton support
@@ -1916,7 +1887,6 @@ __private_extern__ BOOL version3;
     return (err);
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 - (void)updateSongPlayCountsWithRemovedSessionInstance:(NSManagedObject*)sessionSong
 {
     NSManagedObject *song = [sessionSong valueForKey:@"item"];
@@ -1977,14 +1947,11 @@ __private_extern__ BOOL version3;
         [self removeSongs:[NSArray arrayWithObject:s] fromSession:session moc:moc];
     }
 }
-#endif
 
 - (NSError*)removeObject:(NSManagedObjectID*)moid
 {
     ScrobDebug(@"");
     
-    // We require the extended scrubbing of the 10.5 plugin
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     NSManagedObjectContext *moc = [[[NSThread currentThread] threadDictionary] objectForKey:@"moc"];
     ISASSERT(moc != nil, "missing moc");
     NSError *err = nil;
@@ -2040,12 +2007,9 @@ __private_extern__ BOOL version3;
     
     [profile setImportInProgress:NO];
     return (err);
-    #else
-    @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"removeObject: not supported with this OS version" userInfo:nil]);
-    #endif
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && defined(ISDEBUG)
+#if defined(ISDEBUG)
 // XXX: this needs further review, there may be issues with session albums
 - (NSError*)mergeObject:(NSManagedObjectID*)fromID intoObject:(NSManagedObjectID*)toID mergeCounts:(NSNumber*)mergeCounts
 {
@@ -2289,9 +2253,7 @@ __private_extern__ BOOL version3;
     [request setEntity:entity];
     NSPredicate *predicate = [self matchingPredicateWithTrackNum:YES];
     [request setPredicate:predicate];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     [request setReturnsObjectsAsFaults:NO];
-    #endif
     NSArray *result = [moc executeFetchRequest:request error:&error];
     if ([result count] > 1) {
         #ifdef ISINTERNAL

@@ -16,7 +16,6 @@
 			dependencies = (
 				D31E803B0D20072E00D47F2B /* PBXTargetDependency */,
 				D31E803D0D20073400D47F2B /* PBXTargetDependency */,
-				D38835C10D200AE0005B6D1D /* PBXTargetDependency */,
 				D39902370D5B44690050C17C /* PBXTargetDependency */,
 			);
 			name = "Copy Core Plugins";
@@ -93,7 +92,6 @@
 		D33E27790E28F6DE001F8D23 /* MobileDeviceSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = D3A5817B0E27D60F00C602B0 /* MobileDeviceSupport.m */; };
 		D33E27960E28FB6E001F8D23 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30BBF9C0CCF5EE0005DCFA2 /* IOKit.framework */; };
 		D33ECBFE0D27A38400AE7771 /* iScrobbler.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D33ECBFD0D27A38400AE7771 /* iScrobbler.xcdatamodeld */; };
-		D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = D37610AC0CB5314900C04863 /* iScrobbler.xcdatamodel */; };
 		D33ECC410D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = D33ECC400D27BC9500AE7771 /* iScrobblerV1toV2.xcmappingmodel */; };
 		D33ED50B0D2E866100AE7771 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D33ED50A0D2E866100AE7771 /* QuartzCore.framework */; };
 		D33ED7550D2FAD3100AE7771 /* DBEditController.m in Sources */ = {isa = PBXBuildFile; fileRef = D33ED7540D2FAD3100AE7771 /* DBEditController.m */; };
@@ -111,10 +109,6 @@
 		D376EC6C0CA8E21900C04863 /* ISStatusItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EC6A0CA8E21900C04863 /* ISStatusItem.m */; };
 		D376EE950CA9153E00C04863 /* ISStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = D376EE930CA9153E00C04863 /* ISStatusItemView.m */; };
 		D376FC6A0CAD00A000C04863 /* iScrobbler.sdef in Resources */ = {isa = PBXBuildFile; fileRef = D376FC690CAD00A000C04863 /* iScrobbler.sdef */; };
-		D38835990D200A5D005B6D1D /* Persistence.m in Sources */ = {isa = PBXBuildFile; fileRef = D3760CC90CB4241900C04863 /* Persistence.m */; };
-		D388359A0D200A5D005B6D1D /* PersistentSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F4A4E70CC56EA9000DCBB6 /* PersistentSessionManager.m */; };
-		D388359D0D200A5D005B6D1D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
-		D38835BC0D200AD6005B6D1D /* TigerPersistence.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */; };
 		D38AC7510CEF31FA00DB5648 /* ISCrashReporter.m in Sources */ = {isa = PBXBuildFile; fileRef = D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */; };
 		D38EA3950CF5A65100126BC2 /* iTunesLastfmRadio.applescript in AppleScript */ = {isa = PBXBuildFile; fileRef = D38EA3940CF5A65100126BC2 /* iTunesLastfmRadio.applescript */; settings = {ATTRIBUTES = (Debug, ); }; };
 		D38F6CD00B53514400230DBE /* ISRecommendController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F6CCE0B53514400230DBE /* ISRecommendController.m */; };
@@ -217,20 +211,6 @@
 			remoteGlobalIDString = D37005BA0D2002B40057EFBD;
 			remoteInfo = "Copy Core Plugins";
 		};
-		D38835970D200A5D005B6D1D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D3191C9707E3A51700821D03;
-			remoteInfo = iScrobbler;
-		};
-		D38835C00D200AE0005B6D1D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D38835950D200A5D005B6D1D;
-			remoteInfo = TigerPersistence;
-		};
 		D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -269,7 +249,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				D37005BE0D2003040057EFBD /* Persistence.plugin in CopyFiles */,
-				D38835BC0D200AD6005B6D1D /* TigerPersistence.plugin in CopyFiles */,
 				D39902380D5B446F0050C17C /* MsgWindow.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -363,7 +342,6 @@
 		D376EE920CA9153E00C04863 /* ISStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISStatusItemView.h; sourceTree = "<group>"; };
 		D376EE930CA9153E00C04863 /* ISStatusItemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISStatusItemView.m; sourceTree = "<group>"; };
 		D376FC690CAD00A000C04863 /* iScrobbler.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; path = iScrobbler.sdef; sourceTree = "<group>"; };
-		D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TigerPersistence.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		D38AC74F0CEF31FA00DB5648 /* ISCrashReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISCrashReporter.h; path = src/ISCrashReporter.h; sourceTree = "<group>"; };
 		D38AC7500CEF31FA00DB5648 /* ISCrashReporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ISCrashReporter.m; path = src/ISCrashReporter.m; sourceTree = "<group>"; };
 		D38EA3940CF5A65100126BC2 /* iTunesLastfmRadio.applescript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.applescript; path = iTunesLastfmRadio.applescript; sourceTree = "<group>"; };
@@ -506,14 +484,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D388359C0D200A5D005B6D1D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D388359D0D200A5D005B6D1D /* Cocoa.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		D398023E0CE0FE41008CB4C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -584,7 +554,6 @@
 				D3191CC907E3A51700821D03 /* iScrobbler.app */,
 				D39802400CE0FE41008CB4C8 /* iScrobblerProxy */,
 				D3712C490D1A3B810011F980 /* Persistence.plugin */,
-				D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */,
 				D399020F0D5B43760050C17C /* MsgWindow.plugin */,
 				D3D8E4BB0D8FE3930051DA80 /* SubStats.plugin */,
 				D376063A0CB230A900C04863 /* ChatStatus.plugin */,
@@ -972,23 +941,6 @@
 			productReference = D376063A0CB230A900C04863 /* ChatStatus.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		D38835950D200A5D005B6D1D /* TigerPersistence */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D388359E0D200A5D005B6D1D /* Build configuration list for PBXNativeTarget "TigerPersistence" */;
-			buildPhases = (
-				D38835980D200A5D005B6D1D /* Sources */,
-				D388359C0D200A5D005B6D1D /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D38835960D200A5D005B6D1D /* PBXTargetDependency */,
-			);
-			name = TigerPersistence;
-			productName = iPod;
-			productReference = D38835A20D200A5D005B6D1D /* TigerPersistence.plugin */;
-			productType = "com.apple.product-type.bundle";
-		};
 		D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D39802450CE0FEA4008CB4C8 /* Build configuration list for PBXNativeTarget "iScrobblerProxy" */;
@@ -1067,7 +1019,6 @@
 				D3191C9707E3A51700821D03 /* iScrobbler */,
 				D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */,
 				D3712C480D1A3B810011F980 /* Persistence */,
-				D38835950D200A5D005B6D1D /* TigerPersistence */,
 				D39902020D5B43760050C17C /* MsgWindow */,
 				D3D8E4BA0D8FE3930051DA80 /* SubStats */,
 				D37005BA0D2002B40057EFBD /* Copy Core Plugins */,
@@ -1219,16 +1170,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D38835980D200A5D005B6D1D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D38835990D200A5D005B6D1D /* Persistence.m in Sources */,
-				D388359A0D200A5D005B6D1D /* PersistentSessionManager.m in Sources */,
-				D33ECC010D27A43100AE7771 /* iScrobbler.xcdatamodel in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		D398023D0CE0FE41008CB4C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1285,16 +1226,6 @@
 			isa = PBXTargetDependency;
 			target = D37005BA0D2002B40057EFBD /* Copy Core Plugins */;
 			targetProxy = D37005D30D20032B0057EFBD /* PBXContainerItemProxy */;
-		};
-		D38835960D200A5D005B6D1D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D3191C9707E3A51700821D03 /* iScrobbler */;
-			targetProxy = D38835970D200A5D005B6D1D /* PBXContainerItemProxy */;
-		};
-		D38835C10D200AE0005B6D1D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D38835950D200A5D005B6D1D /* TigerPersistence */;
-			targetProxy = D38835C00D200AE0005B6D1D /* PBXContainerItemProxy */;
 		};
 		D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1532,14 +1463,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = 4.2;
+				GCC_VERSION = 4.2;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
 				IBC_NOTICES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
@@ -1566,15 +1495,13 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = 4.2;
+				GCC_VERSION = 4.2;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				IBC_NOTICES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_CFLAGS = "";
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
@@ -1598,14 +1525,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/ISPrefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = 4.2;
+				GCC_VERSION = 4.2;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_SHADOW = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
 				IBC_NOTICES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_CFLAGS = "-DISDEBUG";
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
@@ -1813,82 +1738,12 @@
 			};
 			name = Release;
 		};
-		D388359F0D200A5D005B6D1D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					i386,
-					ppc,
-				);
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
-				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = TigerPersistence;
-				WRAPPER_EXTENSION = plugin;
-			};
-			name = Debug;
-		};
-		D38835A00D200A5D005B6D1D /* Debug-Internal */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = i386;
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
-				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = TigerPersistence;
-				WRAPPER_EXTENSION = plugin;
-			};
-			name = "Debug-Internal";
-		};
-		D38835A10D200A5D005B6D1D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					i386,
-					ppc,
-				);
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/iScrobbler.app/Contents/MacOS/iScrobbler";
-				GCC_DYNAMIC_NO_PIC = NO;
-				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = TigerPersistence;
-				WRAPPER_EXTENSION = plugin;
-			};
-			name = Release;
-		};
 		D39802420CE0FE42008CB4C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = stabs;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
@@ -1896,7 +1751,6 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INSTALL_PATH = /usr/local/bin;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -1915,13 +1769,11 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = stabs;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INSTALL_PATH = /usr/local/bin;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -1940,13 +1792,11 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = stabs;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INSTALL_PATH = /usr/local/bin;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -1966,7 +1816,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/MsgWindow/MsgWindow-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -1986,7 +1835,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/MsgWindow/MsgWindow-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -2006,7 +1854,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/MsgWindow/MsgWindow-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -2135,16 +1982,6 @@
 				D376063D0CB230AA00C04863 /* Debug */,
 				D32906790CDA8D9700CAAB66 /* Debug-Internal */,
 				D376063E0CB230AA00C04863 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D388359E0D200A5D005B6D1D /* Build configuration list for PBXNativeTarget "TigerPersistence" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D388359F0D200A5D005B6D1D /* Debug */,
-				D38835A00D200A5D005B6D1D /* Debug-Internal */,
-				D38835A10D200A5D005B6D1D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

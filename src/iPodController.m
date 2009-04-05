@@ -834,10 +834,8 @@ sync_exit_with_note:
 
 - (void)iPodWarningDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
-    LEOPARD_BEGIN
     if ([alert showsSuppressionButton] && NSOnState == [[alert suppressionButton] state])
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"SupressiPodWarning"];
-    LEOPARD_END
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification

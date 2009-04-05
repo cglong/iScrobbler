@@ -300,10 +300,8 @@
     moc = [[NSManagedObjectContext alloc] init];
     [moc setPersistentStoreCoordinator:[[profile valueForKey:@"mainMOC"] persistentStoreCoordinator]];
     [moc setUndoManager:nil];
-    LEOPARD_BEGIN
     if (![NSThread isMainThread])
         [[[NSThread currentThread] threadDictionary] setObject:moc forKey:@"moc"];
-    LEOPARD_END
     
     double pri = [NSThread threadPriority];
     [NSThread setThreadPriority:pri - (pri * 0.20)];
@@ -674,7 +672,6 @@
     // it's calculated from 'Play Date' and is not absolute GMT, it too suffers from this problem.
     NSTimeInterval seconds = [obj timeIntervalSince1970];
     NSTimeZone *tz;
-    LEOPARD_BEGIN
     if (nil != [track objectForKey:@"Play Date"]) {
         tz = [NSTimeZone defaultTimeZone];
         BOOL isDSTNow = [tz isDaylightSavingTime];
@@ -684,16 +681,13 @@
             seconds += [tz daylightSavingTimeOffset];
         }
     }
-    LEOPARD_END
     
     obj = [NSCalendarDate dateWithTimeIntervalSince1970:seconds];
-    LEOPARD_BEGIN
     NSNumber *value = [track objectForKey:@"org.iScrobbler.lastPlayedTZO"];
     if (value) {
         if ((tz = [NSTimeZone timeZoneForSecondsFromGMT:[value integerValue]]))
             [obj setTimeZone:tz];
     }
-    LEOPARD_END
     [self setLastPlayed:obj];
     
     [self setType:trackTypeFile];

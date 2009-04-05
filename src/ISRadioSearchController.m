@@ -138,10 +138,8 @@
     [v setSelectable:YES];
     [v setSelectable:YES];
     [v setDelegate:self];
-    LEOPARD_BEGIN
     [v setWantsLayer:YES];
     [v setAnimations:viewAnimations];
-    LEOPARD_END
     
     NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
@@ -275,10 +273,8 @@
     [v setSelectable:YES];
     [v setSelectable:YES];
     [v setDelegate:self];
-    LEOPARD_BEGIN
     [v setWantsLayer:YES];
     [v setAnimations:viewAnimations];
-    LEOPARD_END
     
     NSFont *font = [NSFont userFontOfSize:[NSFont systemFontSize]];
     NSColor *textColor = [NSColor blueColor];
@@ -640,14 +636,10 @@
     if (!busyShowing  && busy && !windowClosing) {
         [busyView setFrame:[cview frame]];
         [[cview animator] addSubview:busyView];
-        LEOPARD_BEGIN
         [sourceList setEnabled:NO];
-        LEOPARD_END
     } else if (busyShowing && (!busy || windowClosing)) {
         [[busyView animator] removeFromSuperview];
-        LEOPARD_BEGIN
         [sourceList setEnabled:YES];
-        LEOPARD_END
     }
 }
 
@@ -698,7 +690,6 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(selectionDidChange:)
         name:NSOutlineViewSelectionDidChangeNotification object:sourceList];
     
-    LEOPARD_BEGIN
     [[[self window] contentView] setWantsLayer:YES];
     CIFilter *filter = [CIFilter filterWithName:@"CIDissolveTransition"];
     CATransition *inEffect = [CATransition animation];
@@ -719,7 +710,6 @@
     [placeholderView setAnimations:viewAnimations];
     [searchView setWantsLayer:YES];
     [searchView setAnimations:viewAnimations];
-    LEOPARD_END
 }
 
 - (void)windowWillClose:(NSNotification*)note
@@ -754,9 +744,7 @@
 
 - (void)awakeFromNib
 {
-    LEOPARD_BEGIN
     [sourceList setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
-    LEOPARD_END
     [sourceList setDelegate:self];
     [super setWindowFrameAutosaveName:@"RadioSearch"];
     if ([[sourceListController content] count])
@@ -781,33 +769,17 @@
 }
 
 - (void)outlineView:(NSOutlineView *)sender willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
-    LEOPARD_BEGIN
     if ([[[item representedObject] objectForKey:@"isSourceGroup"] boolValue]) {
         NSMutableAttributedString *uc = [[cell attributedStringValue] mutableCopy];
         [uc replaceCharactersInRange:NSMakeRange(0,[uc length]) withString:[[uc string] uppercaseString]];
         [cell setAttributedStringValue:uc];
         [uc release];
     }
-    LEOPARD_END
 }
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-- (BOOL)selectionShouldChangeInOutlineView:(NSOutlineView *)outlineView
-{
-    // Tiger table views don't disable/enable, so we have to block clicks
-    return (NO == [[ISRadioController sharedInstance] isBusy]);
-}
-#endif
 
 - (BOOL)outlineView:(NSOutlineView*)sender shouldSelectItem:(id)item
 {
-    LEOPARD_BEGIN
     return (![[[item representedObject] objectForKey:@"isSourceGroup"] boolValue]);
-    LEOPARD_END
-    
-    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    return (YES);
-    #endif
 }
 
 #define SearchPanelMaxRatio 0.80

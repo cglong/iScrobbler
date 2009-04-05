@@ -39,7 +39,6 @@
 
 - (void)awakeFromNib
 {
-    LEOPARD_BEGIN
     [self setWantsLayer:YES];
     [spinner setAlphaValue:.80];
     transitionDuration = .75;
@@ -73,7 +72,6 @@
             [NSColor colorWithCalibratedWhite:1.0 alpha:0.10],
             [NSColor colorWithCalibratedWhite:0.20 alpha:0.05],
             nil]];
-    LEOPARD_END
     
     [busyText setStringValue:@""];
     [busyText setTextColor:[NSColor colorWithCalibratedWhite:0.20 alpha:0.85]];
@@ -89,11 +87,9 @@
 
 - (void)drawRect:(NSRect)rect
 {
-    LEOPARD_BEGIN
     //[[NSColor colorWithCalibratedWhite:0.0 alpha:0.15] set];
     //NSRectFill(rect);
     [gradient drawInRect:rect angle:270.0];
-    LEOPARD_END
 }
 
 @end

@@ -31,10 +31,7 @@
     NSUInteger style = NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask;
     if ([self isKindOfClass:[DBRemoveController class]])
         style |= NSResizableWindowMask;
-    LEOPARD_BEGIN
-    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
-    style |= NSHUDWindowMask;
-    LEOPARD_END
+    style |= NSHUDWindowMask; // this does not affect some of the window subviews (NSTableView)
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[contentView frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
     [w setLevel:NSNormalWindowLevel];
@@ -150,9 +147,7 @@
 
 - (void)persistentProfileFailedEditObject:(NSNotification*)note
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     if (NO == [oid isEqualTo:moid])
@@ -170,11 +165,7 @@
     return (([[self window] styleMask] & NSHUDWindowMask) ? [NSColor darkGrayColor] : [NSColor blackColor]);
     #endif
     // window may not be set when the binding calls us
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     return ([NSColor darkGrayColor]);
-    #else
-    return ((floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_4) ? [NSColor darkGrayColor] : [NSColor blackColor]);
-    #endif
 }
 
 @end
@@ -212,9 +203,7 @@
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     if (NO == [oid isEqualTo:moid])
@@ -334,9 +323,7 @@
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     if (NO == [oid isEqualTo:moid]) {
@@ -414,9 +401,7 @@
 
 - (void)persistentProfileDidEditObject:(NSNotification*)note
 {
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     ISASSERT([NSThread isMainThread], "!mainThread!");
-    #endif
     
     NSManagedObjectID *oid = [[note userInfo] objectForKey:@"oid"];
     if (NO == [oid isEqualTo:moid])

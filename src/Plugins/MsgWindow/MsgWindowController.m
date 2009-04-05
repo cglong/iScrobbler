@@ -103,10 +103,7 @@ static NSPoint mwLastWhere = {0.0,0.0};
 - (void)awakeFromNib
 {
     NSUInteger style = NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask;
-    LEOPARD_BEGIN
-    // this does not affect some of the window subviews (NSTableView) - how do we get HUD style controls?
     style |= NSHUDWindowMask;
-    LEOPARD_END
     NSView *cv = wantsIconView ? iconView : textView;
     NSWindow *w = [[NSPanel alloc] initWithContentRect:[cv frame] styleMask:style backing:NSBackingStoreBuffered defer:NO];
     [w setHidesOnDeactivate:NO];
@@ -122,10 +119,8 @@ static NSPoint mwLastWhere = {0.0,0.0};
     [w setDelegate:self]; // setWindow: does not do this for us (why?)
     [w autorelease];
     
-    LEOPARD_BEGIN
     [iconControl setWantsLayer:YES];
     [iconControl setImageScaling:NSImageScaleProportionallyUpOrDown];
-    LEOPARD_END
 }
 
 - (NSColor*)textFieldColor
