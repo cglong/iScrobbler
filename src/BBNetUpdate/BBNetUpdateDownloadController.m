@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2006-2008 Brian Bergstrand.
+* Copyright 2002,2006-2009 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -173,8 +173,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
         title = [NSString stringWithFormat:NSLocalizedString(@"Downloading %@ Update", @""),
             [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"]];
     }
-    [[self window] setTitle:title];
-    [[self window] setHidesOnDeactivate:NO];
+    NSWindow *w =[self window];
+    [w setTitle:title];
+    [w setHidesOnDeactivate:NO];
+    if ([w respondsToSelector:@selector(setFloatingPanel:)])
+        [(NSPanel*)w setFloatingPanel:NO];
 }
 
 - (BOOL)hashFile:(NSString*)path using:(NSDictionary*)hashInfo
@@ -437,7 +440,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
             NSLocalizedString(@"%.1f %@ of %.1f %@ (%.1f %@/sec), About %.1f %@ remaining", @"received of total (received/second), About time remaining"),
             recvdSize, byteMonikers[ri], totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
             remainingTime, timeMonikers[timei]];
-    } else if (installSelf && roundtol(totalBytes) == roundtol(recvdBytes)) {
+    } else if (installSelf && totalBytes > 0.0 && roundtol(totalBytes) == roundtol(recvdBytes)) {
         s = NSLocalizedString(@"The new version has finished downloading and is now being installed.", @"");
     } else if (installSelf && totalBytes < 0.0) {
         s = NSLocalizedString(@"The new version has been installed.", @"");
