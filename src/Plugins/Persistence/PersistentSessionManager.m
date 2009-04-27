@@ -244,7 +244,6 @@ __private_extern__ BOOL version3;
             [self recreateHourCacheForSession:s songs:[pp songsForSession:s] moc:moc];
             
             #ifdef notyet
-            #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
             NSCalendarDate *date = [NSCalendarDate dateWithTimeIntervalSince1970:
                 [[s valueForKey:@"epoch"] timeIntervalSince1970]];
             date = [date dateByAddingYears:0 months:0 days:0 hours:0 minutes:0 seconds:
@@ -257,7 +256,6 @@ __private_extern__ BOOL version3;
                     (NSInteger)[lastTZOffset longLongValue] - tzOffset];
                 [s setValue:date forKey:@"term"];
             }
-            #endif
             #endif
             
             ScrobLog(SCROB_LOG_VERBOSE, @"'%@' session updated for time zone change.", [s valueForKey:@"name"]);
@@ -316,7 +314,7 @@ __private_extern__ BOOL version3;
     pool = [[NSAutoreleasePool alloc] init];
     do {
         @try {
-        [[NSRunLoop currentRunLoop] acceptInputForMode:NSRunLoopCommonModes beforeDate:[NSDate distantFuture]];
+        [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
         
         [self performSelector:@selector(scrub:) withObject:nil];
         } @catch (NSException *e) {
@@ -1124,7 +1122,7 @@ __private_extern__ BOOL version3;
 - (void)scrub:(NSTimer*)t
 {
     NSManagedObjectContext *moc = nil;
-    #ifndef ISDEBUG
+    #ifndef SCRUB_TEST
     BOOL forcedScrub;
     static NSTimeInterval nextScrub = 0.0;
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
