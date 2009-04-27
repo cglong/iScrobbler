@@ -20,9 +20,8 @@
 
 #ifdef IS_SCRIPT_PROXY
 #import "ISProxyProtocol.h"
-#else
-#import "MobileDeviceSupport.h"
 #endif
+#import "MobileDeviceSupport.h"
 
 static iPodController *sharedController = nil;
 
