@@ -1,5 +1,5 @@
 /*
-* Copyright 2002,2007,2008 Brian Bergstrand.
+* Copyright 2002,2007-2009 Brian Bergstrand.
 *
 * Redistribution and use in source and binary forms, with or without modification, 
 * are permitted provided that the following conditions are met:
@@ -21,7 +21,6 @@
 * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* $Id$
 */
 
 #import <Cocoa/Cocoa.h>
@@ -52,9 +51,8 @@
 
 - (IBAction)download:(id)sender;
 
-- (void)connect:(id)sender; // Don't call directly
-
 @end
 
 // Download finished notification
 __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck;
+__private_extern__ NSString *BBNetUpdateWillInstallUpdateAndRelaunch;

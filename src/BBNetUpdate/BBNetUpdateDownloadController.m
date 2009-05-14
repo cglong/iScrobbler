@@ -21,7 +21,6 @@
 * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* $Id$
 */
 
 #import <AvailabilityMacros.h>
@@ -58,6 +57,7 @@ extern int CC_SHA512_Final(unsigned char *md, CC_SHA512_CTX *c)  __attribute__((
 #import "BBNetUpdateDownloadController.h"
 
 __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck;
+__private_extern__ NSString *BBNetUpdateWillInstallUpdateAndRelaunch = @"BBNetUpdateWillInstallUpdateAndRelaunch";
 
 static BBNetUpdateDownloadController *gDLInstance = nil;
 
@@ -326,6 +326,10 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 
 - (IBAction)restartSelf:(id)sender
 {
+    @try {
+        [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateWillInstallUpdateAndRelaunch object:nil];
+    } @catch (NSException *e) {}
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:)
             name:NSApplicationWillTerminateNotification object:NSApp];
     waitingForAppTerm = YES;

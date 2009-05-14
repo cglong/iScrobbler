@@ -21,7 +21,6 @@
 * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* $Id$
 */
 
 #import "BBNetUpdateVersionCheckController.h"
@@ -80,7 +79,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       [BBNetUpdateAskController askUser:appName delagate:gVCInstance];
    }
    else
-      [gVCInstance connect:nil];
+      [gVCInstance performSelector:@selector(connect:) withObject:nil];
 }
 
 + (BOOL)isCheckInProgress
@@ -131,7 +130,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     NSMutableString *name = [[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"] mutableCopy] autorelease];
     [name replaceOccurrencesOfString:@" " withString:@"_" options:0 range:NSMakeRange(0, [name length])];
     
-    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X %d_%d_%d;) %@/%@(r%@)",
+    NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X %d_%d_%d;) %@/%@(%@)",
         arch,
         majorVer, minorVer, bugFixVer,
         name,
@@ -473,7 +472,7 @@ static inline Boolean _isDigit(UniChar aChar) {
     return (((aChar >= (UniChar)'0') && (aChar <= (UniChar)'9')) ? true : false);
 }
 
-UInt32 BBCFVersionNumberFromString(CFStringRef versStr) {
+static UInt32 BBCFVersionNumberFromString(CFStringRef versStr) {
     // Parse version number from string.
     // String can begin with "." for major version number 0.  String can end at any point, 
     // but elements within the string cannot be skipped.
