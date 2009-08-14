@@ -11,7 +11,11 @@
 #import <Cocoa/Cocoa.h>
 
 ISEXPORT_CLASS
-@interface ISThreadMessenger : NSObject {
+@interface ISThreadMessenger : NSObject
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+<NSPortDelegate>
+#endif
+{
     NSPort *port;
     NSMutableArray *msgQueue;
     NSLock *msgQLock;

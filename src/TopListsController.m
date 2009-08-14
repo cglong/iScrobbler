@@ -402,7 +402,7 @@ static NSMutableArray *topHours = nil;
 - (void)selectionDidChange:(NSNotification*)note
 {
     @try {
-    NSString *artist = [[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
+    NSString *artist = [(id)[[note object] dataSource] valueForKeyPath:@"selection.Artist"];
     [artistDetails setArtist:artist];
     
     NSArray *selection = [topTracksController selectedObjects];
@@ -527,7 +527,7 @@ static NSMutableArray *topHours = nil;
     // Legacy support
     // Command and Shift are used for multiple selection, so we can't use those
     if (NSAlternateKeyMask == ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask)) {
-        if ((selection = [[sender dataSource] selectedObjects]) && [selection count] == 1) {
+        if ((selection = [(id)[sender dataSource] selectedObjects]) && [selection count] == 1) {
             DBRenameController *ec = [[DBRenameController alloc] init];
             [ec setObject:[selection objectAtIndex:0]];
             [ec showWindow:nil];
@@ -541,7 +541,7 @@ static NSMutableArray *topHours = nil;
         NSArray *data;
         
         @try {
-            data = [[sender dataSource] arrangedObjects];
+            data = [(id)[sender dataSource] arrangedObjects];
         } @catch (NSException *exception) {
             return;
         }

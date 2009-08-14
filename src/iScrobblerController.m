@@ -1577,7 +1577,7 @@ player_info_exit:
     badAuthAlertIsOpen = YES;
 }
 
-- (void)presentError:(NSError*)error modalDelegate:(id)delegate didEndHandler:(SEL)selector;
+- (void)presentError:(NSError*)error modalDelegate:(id)delegate didEndHandler:(SEL)selector
 {
     [NSApp activateIgnoringOtherApps:YES];
     

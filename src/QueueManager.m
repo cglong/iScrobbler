@@ -311,7 +311,7 @@ static QueueManager *g_QManager = nil;
 - (void)removeQueue:(id)arg
 {
     [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:CACHE_SIG_KEY];
-    [[NSFileManager defaultManager] removeFileAtPath:queuePath handler:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:queuePath error:nil];
 }
 
 - (NSArray*)restoreQueueWithPath:(NSString*)path
@@ -395,9 +395,9 @@ static int32_t initFlag = 0;
             if (dirPath) {
                 tmp = [dirPath stringByAppendingPathComponent:@"net_sourceforge_iscrobbler_cache.plist"];
                 if ([[NSFileManager defaultManager] fileExistsAtPath:tmp]) {
-                    (void)[[NSFileManager defaultManager] movePath:tmp
+                    (void)[[NSFileManager defaultManager] moveItemAtPath:tmp
                         toPath:[dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"]
-                        handler:nil];
+                        error:nil];
                 }
                 queuePath = [dirPath stringByAppendingPathComponent:@"org.bergstrand.iscrobbler.cache.plist"];
                 [dirPath release];
@@ -408,8 +408,7 @@ static int32_t initFlag = 0;
         queuePath = [[[[NSFileManager defaultManager] iscrobblerSupportFolder]
             stringByAppendingPathComponent:@"subcache.plist"] retain];
         if ([[NSFileManager defaultManager] fileExistsAtPath:tmp]) {
-            (void)[[NSFileManager defaultManager] movePath:tmp
-                toPath:queuePath handler:nil];
+            (void)[[NSFileManager defaultManager] moveItemAtPath:tmp toPath:queuePath error:nil];
         }
 
         songQueue = [[NSMutableArray alloc] init];

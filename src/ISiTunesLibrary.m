@@ -116,8 +116,8 @@
 - (void)copyiTunesLib:(NSString*)dest
 {
     NSString *libPath = [self pathToXMLFile];
-    (void)[[NSFileManager defaultManager] removeFileAtPath:dest handler:nil];
-    if ([[NSFileManager defaultManager] copyPath:libPath toPath:dest handler:nil])
+    (void)[[NSFileManager defaultManager] removeItemAtPath:dest error:nil];
+    if ([[NSFileManager defaultManager] copyItemAtPath:libPath toPath:dest error:nil])
         ScrobLog(SCROB_LOG_TRACE, @"Copied iTunes library from '%@' to '%@'.", libPath, dest);
 }
 

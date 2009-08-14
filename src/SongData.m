@@ -234,8 +234,13 @@ static NSUInteger artScorePerHit = 12; // For 1 play of an album, this will give
     
     if (!pstartTime)
         pstartTime = ppostDate;
-    if (!plastPlayed)
+    if (!plastPlayed) {
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+        plastPlayed = [pstartTime dateByAddingTimeInterval:[pduration doubleValue]];
+        #else
         plastPlayed = [pstartTime addTimeInterval:[pduration doubleValue]];
+        #endif
+    }
     
     NSDictionary *d = [NSDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithUnsignedInt:SD_MAGIC], SD_KEY_MAGIC,

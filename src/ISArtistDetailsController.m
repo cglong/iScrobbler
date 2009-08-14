@@ -809,7 +809,7 @@ static NSImage *artistImgPlaceholder = nil;
             dbgprint("ISSetImage set image\n");
             [artistImage setImage:pic];
         }
-        [[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
+        [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
     }
     [imagePath release];
     imagePath = nil;

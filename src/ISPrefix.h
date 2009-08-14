@@ -3,10 +3,15 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 9/21/2007.
-//  Copyright 2007,2008 Brian Bergstrand.
+//  Copyright 2007-2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
+
+#include <AvailabilityMacros.h>
+#ifndef MAC_OS_X_VERSION_10_6
+#define MAC_OS_X_VERSION_10_6 1060
+#endif
 
 #ifdef __OBJC__
 #import <Cocoa/Cocoa.h>
@@ -79,7 +84,7 @@ extern CGFloat isUtilityWindowAlpha;
 #error unknown arch
 #endif
 
-#ifdef __LP64__
+#if defined(obsolete) && __LP64__
 #define IS_SCRIPT_PROXY 1
 #endif
 

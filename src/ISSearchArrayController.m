@@ -165,7 +165,7 @@
 - (NSString *)tableView:(NSTableView *)tv toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tc row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation
 {
     // forward it
-    return ([[TopListsController sharedInstance] tableView:tv toolTipForCell:cell rect:rect tableColumn:tc row:row mouseLocation:mouseLocation]);
+    return ([(id)[TopListsController sharedInstance] tableView:tv toolTipForCell:cell rect:rect tableColumn:tc row:row mouseLocation:mouseLocation]);
 }
 
 @end
@@ -174,8 +174,7 @@
 
 - (void)copy:(id)sender
 {
-    NSArray *idxs = [[self selectedRowIndexes] arrayOfIndexes];
-    (void)[[self delegate] tableView:self writeRows:idxs toPasteboard:[NSPasteboard generalPasteboard]];
+    (void)[(id)[self delegate] tableView:self writeRowsWithIndexes:[self selectedRowIndexes] toPasteboard:[NSPasteboard generalPasteboard]];
 }
 
 - (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal

@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 1/23/05.
-//  Copyright 2005,2007 Brian Bergstrand.
+//  Copyright 2005,2007-2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -16,6 +16,9 @@
 @class ISBusyView;
 
 @interface TopListsController : NSWindowController
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+<NSToolbarDelegate>
+#endif
 {
     IBOutlet ISSearchArrayController *topArtistsController;
     IBOutlet ISSearchArrayController *topTracksController;

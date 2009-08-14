@@ -74,7 +74,7 @@
     NSString *file = [sheet filename];
 
     if (NSOKButton == returnCode && file) {
-        BOOL good = [[NSFileManager defaultManager] copyPath:[myURLPath path] toPath:file handler:nil];
+        BOOL good = [[NSFileManager defaultManager] copyItemAtPath:[myURLPath path] toPath:file error:nil];
         if (!good) {
             NSRunAlertPanel(NSLocalizedString(@"File Creation Error", ""),
                 [NSString stringWithFormat:
@@ -120,7 +120,7 @@
 {
     [myWebView stopLoading:nil];
     if (myURLPath)
-        [[NSFileManager defaultManager] removeFileAtPath:[myURLPath path] handler:nil];
+        [[NSFileManager defaultManager] removeItemAtPath:[myURLPath path] error:nil];
     [myURLPath release];
     myURLPath = nil;
     // Make sure the bindings are released

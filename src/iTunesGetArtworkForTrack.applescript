@@ -1,8 +1,13 @@
 on GetArtwork(theSource, theArtist, theAlbum)
 	set itunesActive to false
-	tell application "System Events"
-		if (get name of every process) contains "iTunes" then set itunesActive to true
-	end tell
+	try
+		-- on 10.6, System Events may fail to launch with -10810 (LS Error)
+		tell application "System Events"
+			if (get name of every process) contains "iTunes" then set itunesActive to true
+		end tell
+	on error
+		set itunesActive to true
+	end try
 	
 	if itunesActive is true then
 		tell application "iTunes"

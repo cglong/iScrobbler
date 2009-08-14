@@ -12,7 +12,11 @@
 
 @class ASXMLFile;
 
-@interface ISArtistDetailsController : NSObject {
+@interface ISArtistDetailsController : NSObject
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+<NSWindowDelegate>
+#endif
+{
     IBOutlet id artistController, similarArtistsController;
     IBOutlet NSDrawer *detailsDrawer;
     IBOutlet NSProgressIndicator *detailsProgress;

@@ -3,11 +3,12 @@ property iTunesIsInactive : -1
 property iTunesError : -2
 
 on UpdateiPod(thePlaylistName, theDate)
-	set itunes_active to false
+	set itunes_active to true
+	(*
 	tell application "System Events"
 		if (get name of every process) contains "iTunes" then set itunes_active to true
 	end tell
-	
+	*)
 	set sourceIsiTunes to false
 	set errMsg to {iTunesIsInactive, "", 0}
 	if itunes_active is true then

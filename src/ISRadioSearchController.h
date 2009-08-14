@@ -13,7 +13,11 @@
 @class ASXMLFile;
 @class ISBusyView;
 
-@interface ISRadioSearchController : NSWindowController {
+@interface ISRadioSearchController : NSWindowController
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+<NSTextViewDelegate,NSSplitViewDelegate,NSOutlineViewDelegate>
+#endif
+{
     IBOutlet NSSplitView *splitView;
     IBOutlet NSOutlineView *sourceList;
     IBOutlet id placeholderView;

@@ -32,7 +32,7 @@
     url = [url stringByAppendingFormat:@"&v=%@", [self clientVersion]];
     url = [url stringByAppendingFormat:@"&u=%@", escapedusername];
     
-    NSString *timestamp = [NSString stringWithFormat:@"%qu", (u_int64_t)[[NSDate date] timeIntervalSince1970]];
+    NSString *timestamp = [NSString stringWithFormat:@"%llu", (u_int64_t)[[NSDate date] timeIntervalSince1970]];
     url = [url stringByAppendingFormat:@"&t=%@", timestamp];
     
     NSString *challenge = [[NSApp delegate] lastfmCredential];
@@ -135,7 +135,7 @@
         submissionNumber, NO == [song isLastFmRadio] ? @"P" : [@"L" stringByAppendingString:[song lastFmAuthCode]], 
         submissionNumber, escapedalbum, submissionNumber, [song mbid],
         submissionNumber, [[song duration] unsignedIntValue], // required only when source is "P"
-        submissionNumber, trackNum > 0 ? [song trackNumber] : @"",
+        submissionNumber, trackNum > 0 ? (id)[song trackNumber] : (id)@"",
         submissionNumber, [song lastFmRating]
         ] dataUsingEncoding:NSUTF8StringEncoding]);
 }
@@ -161,7 +161,7 @@
         [self authChallengeResponse], escapedartist, escapedtitle,
         escapedalbum, [song mbid],
         [[song duration] unsignedIntValue],
-        trackNum > 0 ? [song trackNumber] : @""
+        trackNum > 0 ? (id)[song trackNumber] : (id)@""
         ] dataUsingEncoding:NSUTF8StringEncoding]);
 }
 

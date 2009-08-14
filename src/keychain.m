@@ -76,7 +76,11 @@ static KeyChain* defaultKeyChain = nil;
     } else {
         SecKeychainItemRef itemref = NULL;
         if ((itemref = [self copyGenericPasswordReferenceForService:service account:account])) {
+            #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+            SecKeychainItemDelete(itemref);
+            #else
             KCDeleteItem(itemref);
+            #endif
             CFRelease(itemref);
         }
         const char *kcService = [service UTF8String];
@@ -130,7 +134,11 @@ static KeyChain* defaultKeyChain = nil;
 {
     SecKeychainItemRef itemref;
     if (itemref = [self copyGenericPasswordReferenceForService:service account:account]) {
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+        SecKeychainItemDelete(itemref);
+        #else
         KCDeleteItem(itemref);
+        #endif
         CFRelease(itemref);
     }
 }

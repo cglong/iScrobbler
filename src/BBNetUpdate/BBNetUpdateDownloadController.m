@@ -318,8 +318,13 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     BOOL good = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation
         source:[pathToSelf stringByDeletingLastPathComponent]
         destination:@"" files:[NSArray arrayWithObject:[pathToSelf lastPathComponent]] tag:&tag];
-    if (good)
+    if (good) {
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+        good = [[NSFileManager defaultManager] moveItemAtPath:path toPath:pathToSelf error:nil];
+        #else
         good = [[NSFileManager defaultManager] movePath:path toPath:pathToSelf handler:nil];
+        #endif
+    }
     
     return (good);
 }
@@ -397,7 +402,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     [actionButton setEnabled:YES];
     if (!error) {
         // remove our temp directory created by [download:decideDestinationWithSuggestedFilename:]
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+        (void)[[NSFileManager defaultManager] removeItemAtPath:[bbTmpFile stringByDeletingLastPathComponent] error:nil];
+        #else
         (void)[[NSFileManager defaultManager] removeFileAtPath:[bbTmpFile stringByDeletingLastPathComponent] handler:nil];
+        #endif
         
         if (NO == [NSApp isActive]) {
             ProcessSerialNumber psn;
@@ -506,10 +515,11 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     // Move the temp file to the final location
     NSFileManager *fm = [NSFileManager defaultManager];
     BOOL didMove;
-    if ([fm respondsToSelector:@selector(moveItemAtPath:toPath:error:)])
-        didMove = [fm moveItemAtPath:bbTmpFile toPath:_file error:&error];
-    else    
-        didMove = [fm movePath:bbTmpFile toPath:_file handler:nil];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    didMove = [fm moveItemAtPath:bbTmpFile toPath:_file error:&error];
+    #else
+    didMove = [fm movePath:bbTmpFile toPath:_file handler:nil];
+    #endif
     
     if (!didMove) {
         NSDictionary *info = [NSDictionary dictionaryWithObject:
@@ -541,10 +551,12 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
     (void)mktemp(tmp);
     NSString *path = NSTemporaryDirectory();
     path = [path stringByAppendingPathComponent:
-        ([path respondsToSelector:@selector(stringWithCString:encoding:)] ?
-        [NSString stringWithCString:tmp encoding:NSASCIIStringEncoding] :
-        [NSString stringWithCString:tmp])];
+        [NSString stringWithCString:tmp encoding:NSASCIIStringEncoding]];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+    (void)[[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:NO attributes:nil error:nil];
+    #else
     (void)[[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];
+    #endif
     
     [download setDestination:[path stringByAppendingPathComponent:filename] allowOverwrite:NO];
     if ([download respondsToSelector:@selector(setDeletesFileUponFailure:)])

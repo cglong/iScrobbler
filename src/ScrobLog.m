@@ -71,7 +71,7 @@ NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
         parent = [[results objectAtIndex:0] stringByAppendingPathComponent:@"Logs"];
         // Create the dir if necessary
         if (![fm fileExistsAtPath:parent]) {
-            [fm createDirectoryAtPath:parent attributes:nil];
+            [fm createDirectoryAtPath:parent withIntermediateDirectories:NO attributes:nil error:nil];
         }
         
         path = [parent stringByAppendingPathComponent:name];

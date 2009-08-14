@@ -8,7 +8,11 @@
 //
 #import <Cocoa/Cocoa.h>
 
-@interface ISMsgWindowController : NSWindowController {
+@interface ISMsgWindowController : NSWindowController
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+<NSWindowDelegate>
+#endif
+{
     IBOutlet NSView *textView;
     IBOutlet NSView *iconView;
     IBOutlet NSImageView *iconControl;

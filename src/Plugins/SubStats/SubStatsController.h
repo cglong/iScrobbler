@@ -8,7 +8,11 @@
 //
 #import <Cocoa/Cocoa.h>
 
-@interface SubStatsController : NSWindowController {
+@interface SubStatsController : NSWindowController
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+<NSWindowDelegate>
+#endif
+{
     IBOutlet NSView *statsView;
     IBOutlet NSTextField *subCount;
     IBOutlet NSTextField *lastTrack;

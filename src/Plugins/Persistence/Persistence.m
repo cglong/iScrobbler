@@ -409,7 +409,7 @@ __private_extern__ BOOL version3 = NO;
 {
     if (nil == [self storeMetadataForKey:@"ISWillImportiTunesLibrary" moc:mainMOC]) {
         // kill our XML dump
-        [[NSFileManager defaultManager] removeFileAtPath:PERSISTENT_STORE_XML handler:nil];
+        [[NSFileManager defaultManager] removeItemAtPath:PERSISTENT_STORE_XML error:nil];
     }
 
     [self setImportInProgress:NO];
@@ -448,9 +448,9 @@ __private_extern__ BOOL version3 = NO;
 - (void)backupDatabase
 {
     NSString *backup = [PERSISTENT_STORE_DB stringByAppendingString:@"-backup"];
-    (void)[[NSFileManager defaultManager] removeFileAtPath:[backup stringByAppendingString:@"-1"] handler:nil];
-    (void)[[NSFileManager defaultManager] movePath:backup toPath:[backup stringByAppendingString:@"-1"] handler:nil];
-    (void)[[NSFileManager defaultManager] copyPath:PERSISTENT_STORE_DB toPath:backup handler:nil];
+    (void)[[NSFileManager defaultManager] removeItemAtPath:[backup stringByAppendingString:@"-1"] error:nil];
+    (void)[[NSFileManager defaultManager] moveItemAtPath:backup toPath:[backup stringByAppendingString:@"-1"] error:nil];
+    (void)[[NSFileManager defaultManager] copyItemAtPath:PERSISTENT_STORE_DB toPath:backup error:nil];
 }
 
 - (void)createDatabase
@@ -911,7 +911,7 @@ __private_extern__ BOOL version3 = NO;
     if (migrated) {
         [self performSelectorOnMainThread:@selector(migrationDidComplete:) withObject:metadata waitUntilDone:NO];
     } else {
-        ScrobLog(SCROB_LOG_ERR, @"Migration failed with: %@", error ? error : @"unknown");
+        ScrobLog(SCROB_LOG_ERR, @"Migration failed with: %@", (id)error ? (id)error : (id)@"unknown");
         [self performSelectorOnMainThread:@selector(databaseDidFailInitialize:) withObject:nil waitUntilDone:YES];
         if (reimport)
             [self performSelectorOnMainThread:@selector(initDatabase:) withObject:nil waitUntilDone:NO];
@@ -1008,10 +1008,10 @@ __private_extern__ BOOL version3 = NO;
     if (metadata && nil != [metadata objectForKey:@"ISWillImportiTunesLibrary"]) {
         // import was interrupted, reset everything
         ScrobLog(SCROB_LOG_ERR, @"The iTunes import failed, removing corrupt database.");
-        (void)[[NSFileManager defaultManager] removeFileAtPath:PERSISTENT_STORE_DB handler:nil];
+        (void)[[NSFileManager defaultManager] removeItemAtPath:PERSISTENT_STORE_DB error:nil];
         // try and remove any SQLite journal as well
-        (void)[[NSFileManager defaultManager] removeFileAtPath:
-            [PERSISTENT_STORE_DB stringByAppendingString:@"-journal"] handler:nil];
+        (void)[[NSFileManager defaultManager] removeItemAtPath:
+            [PERSISTENT_STORE_DB stringByAppendingString:@"-journal"] error:nil];
         metadata = nil;
     }
     if (!metadata) {
