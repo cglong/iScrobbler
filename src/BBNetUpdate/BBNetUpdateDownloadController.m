@@ -432,26 +432,27 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     NSString *s;
     if (totalBytes > 0.0 && recvdBytes < totalBytes) {
-        static NSString* const byteMonikers[] = {@"bytes", @"KB", @"MB", @"GB", @"TB", @"PB", nil};
+        static NSString* const byteMonikers[] = {@"B", @"KB", @"MB", @"GB", @"TB", @"PB", nil};
         
         NSTimeInterval delta = [[NSDate date] timeIntervalSince1970] - epoch;
         double recvdPerSecond = recvdBytes / delta;
         int rsi, ri, ti, timei;
         for (rsi = 0; recvdPerSecond >= 1024.0; ++rsi)
             recvdPerSecond /= 1024.0;
-        double recvdSize = recvdBytes;
-        for (ri = 0; recvdSize >= 1024.0; ++ri)
-            recvdSize /= 1024.0;
         double totalSize = totalBytes;
         for (ti = 0; totalSize >= 1024.0; ++ti)
             totalSize /= 1024.0;
+        double recvdSize = recvdBytes;
+        ri = ti;
+        if (ri > 0)
+            recvdSize /= pow(1024.0, (double)ri);
         double remainingTime = (totalBytes - recvdBytes) / (recvdBytes / delta);
         for (timei = 0; remainingTime >= 60.0 && timei < 2 /*cap to hours*/; ++timei)
             remainingTime /= 60.0;
         
         s = [NSString stringWithFormat:
-            NSLocalizedString(@"%.1f %@ of %.1f %@ (%.1f %@/sec), About %.1f %@ remaining", @"received of total (received/second), About time remaining"),
-            recvdSize, byteMonikers[ri], totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
+            NSLocalizedString(@"%.1f of %.1f %@ (%.1f %@/sec), %.1f %@ remaining", @"received of total (received/second), About time remaining"),
+            recvdSize, totalSize, byteMonikers[ti], recvdPerSecond, byteMonikers[rsi],
             remainingTime, timeMonikers[timei]];
     } else if (installSelf && totalBytes > 0.0 && roundtol(totalBytes) == roundtol(recvdBytes)) {
         s = NSLocalizedString(@"The new version has finished downloading and is now being installed.", @"");
@@ -473,6 +474,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 {
     totalBytes = (typeof(totalBytes))[response expectedContentLength];
     if (totalBytes > 0.0) {
+        recvdBytes = 0.0;
         epoch = [[NSDate date] timeIntervalSince1970];
         [progressBar stopAnimation:self];
         [progressBar setIndeterminate:NO];
