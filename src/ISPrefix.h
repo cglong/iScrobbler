@@ -17,6 +17,10 @@
 #import <Cocoa/Cocoa.h>
 #import "ScrobLog.h"
 
+#ifndef NSFoundationVersionNumber10_6
+#define NSFoundationVersionNumber10_6 751.00
+#endif
+
 @interface NSDate (ISDateConversion)
 - (NSCalendarDate*)GMTDate;
 @end

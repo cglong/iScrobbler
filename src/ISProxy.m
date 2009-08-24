@@ -12,7 +12,9 @@
 #import "KFAppleScriptHandlerAdditionsCore.h"
 #import "KFASHandlerAdditions-TypeTranslation.h"
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
 #import <sandbox.h>
+#endif
 
 #import "MobileDeviceSupport.h"
 
@@ -74,8 +76,11 @@ int main(int argc, char *argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
+    // This causes LaunchServices to fail on 10.6 with a -10810 error (tested with 64-bit only).
+    // (Even though we don't restrict anything except read access to InputManager paths).
     const char *sbf = [[[NSBundle mainBundle] pathForResource:@"iScrobbler" ofType:@"sb"] fileSystemRepresentation];
-    if (sbf) {
+    if (sbf && floor(NSFoundationVersionNumber) < NSFoundationVersionNumber10_6) {
         char *sberr = NULL;
         (void)sandbox_init(sbf, SANDBOX_NAMED_EXTERNAL, &sberr);
         if (sberr) {
@@ -86,6 +91,7 @@ int main(int argc, char *argv[])
             sandbox_free_error(sberr);
         }
     }
+    #endif
     
     (void)[NSApplication sharedApplication];
     

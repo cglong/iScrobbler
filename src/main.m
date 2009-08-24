@@ -7,7 +7,9 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
 #import <sandbox.h>
+#endif
 
 @interface ISLogLevelToBool : NSValueTransformer {
 }
@@ -41,8 +43,9 @@ int main(int argc, const char *argv[])
     [NSValueTransformer setValueTransformer:[[[ISSessionStatsToString alloc] init] autorelease]
         forName:@"ISSessionStatsToString"];
     
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
     const char *sbf = [[[NSBundle mainBundle] pathForResource:@"iScrobbler" ofType:@"sb"] fileSystemRepresentation];
-    if (sbf) {
+    if (sbf && floor(NSFoundationVersionNumber) < NSFoundationVersionNumber10_6) {
         char *sberr = NULL;
         (void)sandbox_init(sbf, SANDBOX_NAMED_EXTERNAL, &sberr);
         if (sberr) {
@@ -53,6 +56,7 @@ int main(int argc, const char *argv[])
             sandbox_free_error(sberr);
         }
     }
+    #endif
     
     [pool release];
     
