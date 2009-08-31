@@ -2226,6 +2226,7 @@ __private_extern__ BOOL version3;
 
 @implementation SongData (PersistentAdditions)
 
+// XXX: under 10.6 SDK / 64bit, the unicode char "..." (0x2026) no longer appears to match
 - (NSPredicate*)matchingPredicateWithTrackNum:(BOOL)includeTrackNum
 {
     NSPredicate *predicate;
@@ -2269,7 +2270,7 @@ __private_extern__ BOOL version3;
     #ifndef ISDEBUG
     NSManagedObjectID *soid;
     @synchronized(self) {
-        // this should be retain retained, but it's not used outside of this method, so we are OK
+        // this should be retained, but it's not used outside of this method, so we are OK
         // XXX: if merging is ever implemented, then this needs to be updated for the deleted object
         soid = persistentID;
     }
