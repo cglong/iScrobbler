@@ -23,7 +23,11 @@ static NSURLConnection *hsConn = nil, *tuneConn = nil, *execConn = nil;
 static NSMutableDictionary *connData = nil;
 static ASXMLFile *xspfReq = nil;
 
+#ifdef BREAKS_RADIO_AS_OF_200907
+// The last.fm client now requires the use of the new Last.fm APIs to play radio.
+// This is likely just a temporary respite as the old API will just be killed completely in the future.
 #define POSE_AS_LASTFM
+#endif
 
 #ifdef POSE_AS_LASTFM
 #define WS_VERSION @"1.4.2.58376"
