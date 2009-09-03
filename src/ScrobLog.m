@@ -135,7 +135,7 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
     
     if (!scrobLogFile) {
         if (nil == (scrobLogFile = ScrobLogCreate(@"iScrobbler.log", SCROB_LOG_OPT_SESSION_MARKER, 0x200000))) {
-            NSLog(msg);
+            NSLog(@"%@", msg);
             return;
         }
         (void)[scrobLogFile retain];
