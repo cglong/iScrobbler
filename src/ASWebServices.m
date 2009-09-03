@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 2/8/2007.
-//  Copyright 2007 Brian Bergstrand.
+//  Copyright 2007-2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -25,7 +25,7 @@ static ASXMLFile *xspfReq = nil;
 
 #ifdef BREAKS_RADIO_AS_OF_200907
 // The last.fm client now requires the use of the new Last.fm APIs to play radio.
-// This is likely just a temporary respite as the old API will just be killed completely in the future.
+// This is likely just a temporary reprieve as the old API will just be killed completely in the future.
 #define POSE_AS_LASTFM
 #endif
 
