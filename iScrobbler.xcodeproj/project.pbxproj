@@ -1480,8 +1480,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
-					x86_64,
 					i386,
+					x86_64,
 					ppc,
 				);
 				COPY_PHASE_STRIP = NO;
