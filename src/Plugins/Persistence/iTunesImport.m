@@ -326,13 +326,12 @@
     #endif
     
     [profile setImportInProgress:YES];
-    @try {
-    
     // begin import note
     NSNotification *note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
         [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInt:totalTracks], @"total",
             [NSNumber numberWithUnsignedInt:0], @"imported", nil]];
     [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
+    @try {
     
     ISStartTime();
     
@@ -440,11 +439,6 @@
         [trackPool release];
         trackPool = [[NSAutoreleasePool alloc] init];
     }
-    
-    // end import note
-    note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
-        [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInt:totalTracks] forKey:@"total"]];
-    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
 
     [trackPool release];
     trackPool = nil;
@@ -469,6 +463,11 @@
     } @catch (id e) {
         ScrobLog(SCROB_LOG_ERR, @"exception while importing iTunes library (%@)", e);
     }
+    
+    // end import note
+    note = [NSNotification notificationWithName:PersistentProfileImportProgress object:self userInfo:
+        [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInt:totalTracks] forKey:@"total"]];
+    [[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:note waitUntilDone:NO];
     
     [self killCachedObjects];
     [moc release];
