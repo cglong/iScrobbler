@@ -5,7 +5,7 @@ on GetArtwork(theSource, theArtist, theAlbum)
 			if (get name of every process) contains "iTunes" then set itunesActive to true
 		end tell
 	on error
-		set itunesActive to true
+		set itunesActive to false
 	end try
 	
 	if itunesActive is true then
