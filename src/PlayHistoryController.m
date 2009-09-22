@@ -169,7 +169,7 @@ static PlayHistoryController *sharedController = nil;
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
     NSString *title = [NSString stringWithFormat:@"\"%@ - %@\" %@",
-        [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"], NSLocalizedString(@"History", "")];
+        [trackInfo objectForKey:@"Track"], [trackInfo objectForKey:@"Artist"], NSLocalizedString(@"History", "")];
     if (editMode)
         title = [NSString stringWithFormat:@"%C %@", 0x270E, title];
     [[self window] setTitle:title];
@@ -183,7 +183,7 @@ static PlayHistoryController *sharedController = nil;
     if (!mid) {
         [historyController rearrangeObjects];
         ScrobLog(SCROB_LOG_TRACE, @"History: persistent id for '%@ - %@' is missing.",
-            [trackInfo objectForKey:@"Artist"], [trackInfo objectForKey:@"Track"]);
+            [trackInfo objectForKey:@"Track"], [trackInfo objectForKey:@"Artist"]);
         return;
     }
     
@@ -215,12 +215,23 @@ static PlayHistoryController *sharedController = nil;
     NSNumberFormatter *format = [[[NSNumberFormatter alloc] init] autorelease];
     [format setNumberStyle:NSNumberFormatterDecimalStyle];
     
+    NSNumberFormatter *pctFormat = [[[NSNumberFormatter alloc] init] autorelease];
+    [pctFormat setNumberStyle:NSNumberFormatterPercentStyle];
+    [pctFormat setMaximumFractionDigits:2];
+    
+    PersistentSessionManager *psm = [[[TopListsController sharedInstance] persistence] sessionManager];
+    id session = [psm sessionWithName:@"all" moc:moc];
+    double totalSongs = session ? [[session valueForKey:@"playCount"] doubleValue] : 0.0;
+    double artistCount = [[song valueForKeyPath:@"artist.playCount"] doubleValue];
+    
     [totalPlayCount setStringValue:[NSString stringWithFormat:NSLocalizedString(@"%@ of %@", "play counts"),
         [[historyController arrangedObjects] valueForKey:@"@count"],
         [song valueForKey:@"playCount"]]];
-    [totalPlayCount setToolTip:[NSString stringWithFormat:@"%@: %@",
+    [totalPlayCount setToolTip:[NSString stringWithFormat:@"%@: %@ (%@)",
         NSLocalizedString(@"Artist Plays", ""),
-        [format stringFromNumber:[song valueForKeyPath:@"artist.playCount"]]]];
+        [format stringFromNumber:[song valueForKeyPath:@"artist.playCount"]],
+        [pctFormat stringFromNumber:[NSNumber numberWithDouble:artistCount/totalSongs]]
+        ]];
     
     [moc reset];
     
