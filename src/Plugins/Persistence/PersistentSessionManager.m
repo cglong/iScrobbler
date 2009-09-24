@@ -1111,6 +1111,7 @@ __private_extern__ BOOL version3;
             NSDate *now = [NSDate date];
             [[NSUserDefaults standardUserDefaults] setObject:now forKey:@"DBLastScrub"];
             [[PersistentProfile sharedInstance] setStoreMetadata:now forKey:@"ISLastScrub" moc:moc];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBOptimize"];
         }
     }
     

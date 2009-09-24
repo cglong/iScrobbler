@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/3/2007.
-//  Copyright 2007,2008 Brian Bergstrand.
+//  Copyright 2007-2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -1063,7 +1063,20 @@ __private_extern__ BOOL version3 = NO;
             #endif
         }
         
-        mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error];
+        NSDictionary *storeOptions;
+        #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DBOptimize"]) {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBOptimize"];
+            storeOptions = [NSDictionary dictionaryWithObjectsAndKeys:
+                [NSNumber numberWithBool:YES], NSSQLiteAnalyzeOption,
+                [NSNumber numberWithBool:YES], NSSQLiteManualVacuumOption,
+                nil];
+            ScrobLog(SCROB_LOG_TRACE, @"Database optimization task will run.");
+        } else
+        #endif
+            storeOptions = nil;
+        
+        mainStore = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:storeOptions error:&error];
         if (!mainStore) {
             [self databaseDidFailInitialize:nil];
             *failureReason = error;
