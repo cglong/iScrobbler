@@ -2287,6 +2287,38 @@ exit:
 - (NSString*)authCodeForTrackUUID:(NSString*)uuid;
 @end
 
+/* iTunes 9 notificaiton
+{
+    Album = "Lead... On";
+    "Album Rating" = 80;
+    "Album Rating Computed" = 1;
+    Artist = Deventter;
+    "Artwork Count" = 1;
+    "Disc Count" = 1;
+    "Disc Number" = 1;
+    Genre = "Progressive Metal";
+    Grouping = "dl,web";
+    "Library PersistentID" = "-4704661731881549341";
+    Location = "file://localhost/Volumes/Media/Music/Deventter/Lead...%20On/01%20O.M.T.mp3";
+    Name = "O.M.T";
+    PersistentID = "-6324124347204899034";
+    "Play Count" = 0;
+    "Play Date" = "2040-02-06 05:28:16 +0200";
+    "Player State" = Playing;
+    "Playlist PersistentID" = "-2820969766915943951";
+    "Rating Computed" = 1;
+    "Skip Count" = 0;
+    "Skip Date" = "2040-02-06 05:28:16 +0200";
+    "Store URL" = "itms://itunes.com/link?n=O.M.T&an=Deventter&pn=Lead...%20On";
+    "Total Time" = 419082;
+    "Track Count" = 11;
+    "Track Number" = 1;
+    Year = 2009;
+}
+
+New fields: "Disc Count", "Disc Number", Grouping, "Library PersistentID", "Playlist PersistentID"
+*/
+
 @implementation SongData (iScrobblerControllerAdditions)
 
 - (SongData*)initWithiTunesPlayerInfo:(NSDictionary*)dict
