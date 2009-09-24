@@ -116,7 +116,6 @@
 		D38F74BF0B56CE2800230DBE /* ISLoveBanListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D38F74BD0B56CE2800230DBE /* ISLoveBanListController.m */; };
 		D398024A0CE0FF54008CB4C8 /* KFAppleScriptHandlerAdditionsCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9A080858F800392110 /* KFAppleScriptHandlerAdditionsCore.m */; };
 		D398024D0CE0FF55008CB4C8 /* KFASHandlerAdditions-TypeTranslation.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EC7C9C080858F800392110 /* KFASHandlerAdditions-TypeTranslation.m */; };
-		D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in Resources */ = {isa = PBXBuildFile; fileRef = D39802400CE0FE41008CB4C8 /* iScrobblerProxy */; };
 		D398025F0CE0FFB9008CB4C8 /* ISProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D398025E0CE0FFB9008CB4C8 /* ISProxy.m */; };
 		D398FB470CDE016A008CB4C8 /* ArtistDetails.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB370CDE016A008CB4C8 /* ArtistDetails.xib */; };
 		D398FB480CDE016A008CB4C8 /* ISProfileReport.xib in Resources */ = {isa = PBXBuildFile; fileRef = D398FB390CDE016A008CB4C8 /* ISProfileReport.xib */; };
@@ -210,13 +209,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = D37005BA0D2002B40057EFBD;
 			remoteInfo = "Copy Core Plugins";
-		};
-		D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D398023F0CE0FE41008CB4C8;
-			remoteInfo = iScrobblerProxy;
 		};
 		D39902040D5B43760050C17C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -899,7 +891,6 @@
 				D3B2742D0826BC5800B8E08B /* PBXBuildRule */,
 			);
 			dependencies = (
-				D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */,
 			);
 			name = iScrobbler;
 			productInstallPath = "$(HOME)/Applications";
@@ -1032,7 +1023,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D39802580CE0FF8F008CB4C8 /* iScrobblerProxy in Resources */,
 				D3191CAD07E3A51700821D03 /* iscrobbler.icns in Resources */,
 				D3191CAA07E3A51700821D03 /* defaults.plist in Resources */,
 				D3191CAF07E3A51700821D03 /* InfoPlist.strings in Resources */,
@@ -1226,11 +1216,6 @@
 			isa = PBXTargetDependency;
 			target = D37005BA0D2002B40057EFBD /* Copy Core Plugins */;
 			targetProxy = D37005D30D20032B0057EFBD /* PBXContainerItemProxy */;
-		};
-		D39802490CE0FF4B008CB4C8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D398023F0CE0FE41008CB4C8 /* iScrobblerProxy */;
-			targetProxy = D39802480CE0FF4B008CB4C8 /* PBXContainerItemProxy */;
 		};
 		D39902030D5B43760050C17C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1648,7 +1633,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				MAPC_NO_WARNINGS = YES;
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				OTHER_LDFLAGS = (
@@ -1670,7 +1654,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				MAPC_NO_WARNINGS = YES;
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				OTHER_LDFLAGS = (
@@ -1692,7 +1675,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = "src/Plugins/Persistence/Persistence-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				MAPC_NO_WARNINGS = YES;
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				OTHER_LDFLAGS = (
