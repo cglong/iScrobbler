@@ -201,7 +201,21 @@ __private_extern__ BOOL version3;
         return ([result objectAtIndex:0]);
     } else if ([result count] > 0) {
         ISASSERT(0, "multiple rating caches found in session!");
-        @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"multiple session ratings!" userInfo:nil]);
+        
+        // zero the first, delete the extras and force a scrub to recreate the cache
+        NSNumber *zero = [NSNumber numberWithUnsignedInt:0];
+        NSManagedObject *c = [result objectAtIndex:0];
+        [c setValue:zero forKey:@"playCount"];
+        [c setValue:zero forKey:@"playTime"];
+        @try {
+        for (NSManagedObject *ob in [result subarrayWithRange:NSMakeRange(1, [result count]-1)])
+            [moc deleteObject:ob];
+        [self setNeedsScrub:YES];
+        ScrobLog(SCROB_LOG_TRACE, @"multiple rating caches for %@ found in session %@", rating, [session valueForKey:@"name"]);
+        } @catch (NSException *e) {}
+        
+        return (c);
+        
     }
     return (nil);
 }
@@ -220,7 +234,20 @@ __private_extern__ BOOL version3;
          return ([result objectAtIndex:0]);
     } else if ([result count] > 0) {
         ISASSERT(0, "multiple hour caches found in session!");
-        @throw ([NSException exceptionWithName:NSInternalInconsistencyException reason:@"multiple session hours!" userInfo:nil]);
+        
+        // zero the first, delete the extras and force a scrub to recreate the cache
+        NSNumber *zero = [NSNumber numberWithUnsignedInt:0];
+        NSManagedObject *c = [result objectAtIndex:0];
+        [c setValue:zero forKey:@"playCount"];
+        [c setValue:zero forKey:@"playTime"];
+        @try {
+        for (NSManagedObject *ob in [result subarrayWithRange:NSMakeRange(1, [result count]-1)])
+            [moc deleteObject:ob];
+        [self setNeedsScrub:YES];
+        ScrobLog(SCROB_LOG_TRACE, @"multiple hour caches for %@ found in session %@", hour, [session valueForKey:@"name"]);
+        } @catch (NSException *e) {}
+        
+        return (c);
     }
     return (nil);
 }
