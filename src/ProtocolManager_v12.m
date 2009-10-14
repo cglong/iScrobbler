@@ -36,6 +36,8 @@
     url = [url stringByAppendingFormat:@"&t=%@", timestamp];
     
     NSString *challenge = [[NSApp delegate] lastfmCredential];
+    if (!challenge)
+        return (nil);
     challenge = [challenge stringByAppendingString:timestamp];
     challenge = [[NSApp delegate] md5hash:challenge];
     url = [url stringByAppendingFormat:@"&a=%@", challenge];

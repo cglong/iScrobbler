@@ -1118,7 +1118,8 @@ player_info_exit:
         // No clue why, but calling this method directly here causes the status item
         // to permantly stop functioning. Maybe something to do with the run-loop
         // not having run yet?
-        [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.1];
+        if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:@"DisableSubmissions"])
+            [self performSelector:@selector(openPrefs:) withObject:nil afterDelay:0.1];
     }
     
     [[iPodController sharedInstance] performSelector:@selector(applicationDidFinishLaunching:) withObject:aNotification];

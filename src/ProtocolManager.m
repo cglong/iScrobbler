@@ -275,13 +275,12 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     npInProgress = NO;
     
     NSString* url = /*@"127.0.0.1"*/ [self handshakeURL];
-    ScrobLog(SCROB_LOG_VERBOSE, @"Handshaking... %@", url);
-    
     if (!url) {
         ScrobLog(SCROB_LOG_CRIT, @"Empty handshake URL!\n");
         hsState = hs_needed;
         return;
     }
+    ScrobLog(SCROB_LOG_VERBOSE, @"Handshaking... %@", url);
     
     @try {
     [[NSNotificationCenter defaultCenter] postNotificationName:PM_NOTIFICATION_HANDSHAKE_START object:self];
@@ -791,9 +790,13 @@ didFinishLoadingExit:
 
 - (NSString*)netDiagnostic
 {
+    NSString *url = [self handshakeURL];
+    if (!url)
+        return (@"");
+
     NSString *msg = nil;
     CFNetDiagnosticRef diag = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault,
-        (CFURLRef)[NSURL URLWithString:[self handshakeURL]]);
+        (CFURLRef)[NSURL URLWithString:url]);
     if (diag) {
         (void)CFNetDiagnosticCopyNetworkStatusPassively(diag, (CFStringRef*)&msg);
         CFRelease(diag);
@@ -872,9 +875,10 @@ didFinishLoadingExit:
         netReachRef = NULL;
     }
 
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
+    NSString *url = [self handshakeURL];
+    if (url && ![[NSUserDefaults standardUserDefaults] boolForKey:@"IgnoreNetworkMonitor"]) {
         netReachRef = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault,
-            [[[NSURL URLWithString:[self handshakeURL]] host] cStringUsingEncoding:NSASCIIStringEncoding]);
+            [[[NSURL URLWithString:url] host] cStringUsingEncoding:NSASCIIStringEncoding]);
         
         if (netReachRef)
             [self checkNetReach:YES]; // Get the current state
