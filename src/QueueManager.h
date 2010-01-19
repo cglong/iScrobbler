@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/2004.
-//  Copyright 2004,2007 Brian Bergstrand.
+//  Copyright 2004,2007,2008,2010 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -20,7 +20,6 @@ typedef NSInteger QueueResult_t;
 @private
 	NSString *queuePath;
     SongData *lastSongQueued;
-    ISThreadMessenger *qThread;
     id songQueue;
     unsigned totalSubmissions;
     unsigned totalSubmissionSeconds;

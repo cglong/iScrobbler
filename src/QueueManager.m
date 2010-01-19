@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/31/2004.
-//  Copyright 2004-2007 Brian Bergstrand.
+//  Copyright 2004-2008,2010 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -17,6 +17,13 @@
 #import "iPodController.h"
 #import "ISRadioController.h"
 #import "ISThreadMessenger.h"
+
+// serial queue to write the submission queue to disk
+__private_extern__ dispatch_queue_t sqdq = NULL;
+static void __attribute__((constructor)) sqdq_constructor(void)
+{
+    sqdq = dispatch_queue_create("org.bergstrand.qmanager", NULL);
+}
 
 static QueueManager *g_QManager = nil;
 
@@ -296,22 +303,26 @@ static QueueManager *g_QManager = nil;
             ScrobLog(SCROB_LOG_ERR, @"Failed to add '%@' to persitent store.\n", [song brief]);
     }
     
-    [ISThreadMessenger makeTarget:qThread performSelector:@selector(writeQueuedSongs:) withObject:songs];
-}
-
-- (void)syncQueue:(id)sender
-{
-    if (0 == [songQueue count]) {
-        [ISThreadMessenger makeTarget:qThread performSelector:@selector(removeQueue:) withObject:nil];
-    } else {
-        [self writeQueue:queuePath];
-    }
+    dispatch_async(sqdq, ^{
+    [self writeQueuedSongs:songs];
+    });
 }
 
 - (void)removeQueue:(id)arg
 {
     [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:CACHE_SIG_KEY];
     [[NSFileManager defaultManager] removeItemAtPath:queuePath error:nil];
+}
+
+- (void)syncQueue:(id)sender
+{
+    if (0 == [songQueue count]) {
+        dispatch_async(sqdq, ^{
+        [self removeQueue:nil];
+        });
+    } else {
+        [self writeQueue:queuePath];
+    }
 }
 
 - (NSArray*)restoreQueueWithPath:(NSString*)path
@@ -340,32 +351,6 @@ static QueueManager *g_QManager = nil;
     #endif
     }
     return (pCache);
-}
-
-static int32_t initFlag = 0;
-
-- (void)queueManagerThread:(id)arg
-{
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    qThread = [[ISThreadMessenger scheduledMessengerWithDelegate:self] retain];
-    
-    OSAtomicIncrement32Barrier(&initFlag);
-    
-    do {
-        [pool release];
-        pool = [[NSAutoreleasePool alloc] init];
-        @try {
-        [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-        } @catch (id e) {
-            ScrobLog(SCROB_LOG_TRACE, @"[queueManagerThread:] uncaught exception: %@", e);
-        }
-    } while (1);
-    
-    ISASSERT(0, "queueManagerThread run loop exited!");
-    [qThread release];
-    qThread = nil;
-    [pool release];
 }
 
 - (id)init
@@ -412,20 +397,6 @@ static int32_t initFlag = 0;
         }
 
         songQueue = [[NSMutableArray alloc] init];
-        
-        // create a thread to write the queue to disk in the background so we don't have to wait on a slow disk
-        // (for instance, if the queue is written while a compile is in progress on a MacBook, iScrobbler can beachball)
-        [NSThread detachNewThreadSelector:@selector(queueManagerThread:) toTarget:self withObject:nil];
-        
-        int32_t threadRunning;
-        do {
-            OSMemoryBarrier();
-            threadRunning = initFlag;
-            if (threadRunning)
-                break;
-            else
-                usleep(100000);
-        } while (1);
         
         // Read in the persistent cache
         if (queuePath) {
