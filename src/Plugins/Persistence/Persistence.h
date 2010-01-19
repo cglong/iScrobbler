@@ -14,6 +14,7 @@
 @class SongData;
 @class PersistentSessionManager;
 
+ISEXPORT_CLASS
 @interface PersistentProfile : NSObject <ISPlugin> {
     NSManagedObjectContext *mainMOC;
     PersistentSessionManager *sessionMgr;

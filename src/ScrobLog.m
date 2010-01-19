@@ -2,12 +2,24 @@
 //  ScrobLog.m
 //  iScrobbler
 //
-//  Copyright 2005-2007 Brian Bergstrand.
+//  Copyright 2005-2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
 #import <sys/stat.h>
 #import "ScrobLog.h"
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#import <dispatch/dispatch.h>
+// serial queue to write log events
+__private_extern__ dispatch_queue_t sldq = NULL;
+static void __attribute__((constructor)) sldq_constructor(void)
+{
+    sldq = dispatch_queue_create("org.bergstrand.scroblog", NULL);
+    dispatch_set_target_queue(sldq, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0));
+}
+
+#endif
 
 __private_extern__ NSFileHandle *scrobLogFile = nil;
 
@@ -33,7 +45,7 @@ static NSString* const scrob_level_to_string [] = {
     @"INVAL"
 };
 
-static inline void CreateStringToLevelDict()
+NS_INLINE void CreateStringToLevelDict()
 {
     if (!string_to_scrob_level) {
         string_to_scrob_level = [[NSDictionary alloc] initWithObjectsAndKeys:
@@ -49,12 +61,7 @@ static inline void CreateStringToLevelDict()
 
 #define UTF8_BOM_SIZE 3
 
-#ifndef ISDEBUG
-__private_extern__
-#else
-ISEXPORT
-#endif
-NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
+__private_extern__ NSFileHandle* ScrobLogCreate_(NSString *name, unsigned flags, unsigned limit)
 {
     NSString *path, *parent;
     NSArray *results;
@@ -134,7 +141,7 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
     NSData *data;
     
     if (!scrobLogFile) {
-        if (nil == (scrobLogFile = ScrobLogCreate(@"iScrobbler.log", SCROB_LOG_OPT_SESSION_MARKER, 0x200000))) {
+        if (nil == (scrobLogFile = ScrobLogCreate_(@"iScrobbler.log", SCROB_LOG_OPT_SESSION_MARKER, 0x200000))) {
             NSLog(@"%@", msg);
             return;
         }
@@ -161,12 +168,33 @@ static void ScrobLogWrite(NSString *level, NSString *msg)
     } @catch(id e) {}
 }
 
-__private_extern__ void ScrobLogTruncate(void)
+__private_extern__ void ScrobLogCreate(NSString *name, unsigned flags, unsigned limit)
 {
-    [scrobLogFile truncateFileAtOffset:UTF8_BOM_SIZE];
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    dispatch_async(sldq, ^ {
+    #endif
+    
+    scrobLogFile = [ScrobLogCreate_(name, flags, limit) retain];
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    });
+    #endif
 }
 
-void ISEXPORT ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
+__private_extern__ void ScrobLogTruncate(void)
+{
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    dispatch_async(sldq, ^ {
+    #endif
+    
+    [scrobLogFile truncateFileAtOffset:UTF8_BOM_SIZE];
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    });
+    #endif
+}
+
+ISEXPORT void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
 {
     NSString *msg;
     va_list  args;
@@ -178,11 +206,20 @@ void ISEXPORT ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...)
     msg = [[NSString alloc] initWithFormat:fmt arguments:args];
     va_end(args);
 
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    dispatch_async(sldq, ^ {
+    #endif
+
     ScrobLogWrite(scrob_level_to_string[level], msg);
+    
+    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    });
+    #endif
+    
     [msg release];
 }
 
-scrob_log_level_t ISEXPORT ScrobLogLevel(void)
+ISEXPORT scrob_log_level_t ScrobLogLevel(void)
 {
     NSNumber *lev =  [string_to_scrob_level objectForKey:
 #ifndef ISDEBUG

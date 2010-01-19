@@ -10,6 +10,7 @@
 
 #import <notify.h>
 #import <SystemConfiguration/SystemConfiguration.h>
+#import <dispatch/dispatch.h>
 
 #import "ProtocolManager.h"
 #import "ProtocolManager+Subclassers.h"
@@ -19,6 +20,9 @@
 #import "SongData.h"
 #import "iScrobblerController.h"
 #import "PreferenceController.h"
+
+__private_extern__ NSFileHandle* ScrobLogCreate_(NSString*, unsigned, unsigned);
+__private_extern__ dispatch_queue_t sldq;
 
 #define REQUEST_TIMEOUT 60.0
 #define HANDSHAKE_DEFAULT_DELAY 60.0f
@@ -453,6 +457,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
 
 - (void)writeSubLogEntry:(unsigned)sid withTrackCount:(NSUInteger)count withData:(NSData*)data
 {
+    dispatch_async(sldq, ^{
+    
     @try {
     NSString *timestamp = [[NSDate date] descriptionWithCalendarFormat:@"%Y/%m/%e %H:%M:%S GMT"
         timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
@@ -461,6 +467,8 @@ static void NetworkReachabilityCallback (SCNetworkReachabilityRef target,
     [subLog writeData:data];
     [subLog writeData:[@"\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
     } @catch(id e) {}
+    
+    });
 }
 
 // URLConnection callbacks
@@ -1059,7 +1067,7 @@ static int npDelays = 0;
     prefs = [[NSUserDefaults standardUserDefaults] retain];
     
     // Create raw submission log
-    subLog = [ScrobLogCreate(@"iScrobblerSub.log", SCROB_LOG_OPT_SESSION_MARKER, 0x400000) retain];
+    subLog = [ScrobLogCreate_(@"iScrobblerSub.log", SCROB_LOG_OPT_SESSION_MARKER, 0x400000) retain];
     
     // We keep track of this for iPod support which uses lastSubmitted to
     // determine the timestamp used in played songs detection.

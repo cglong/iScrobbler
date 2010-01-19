@@ -14,6 +14,7 @@
 @class SongData;
 
 // handles all additions/modifications and removals
+ISEXPORT_CLASS
 @interface PersistentSessionManager : NSObject {
     NSTimer *lfmUpdateTimer;
     NSTimer *sUpdateTimer;

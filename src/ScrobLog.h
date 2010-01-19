@@ -2,7 +2,7 @@
 //  ScrobLog.h
 //  iScrobbler
 //
-//  Copyright 2004,2005,2007 Brian Bergstrand.
+//  Copyright 2004,2005,2007,2009 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -19,10 +19,10 @@ enum {
 };
 typedef NSInteger scrob_log_level_t;
 
-extern scrob_log_level_t ScrobLogLevel(void);
+ISEXPORT scrob_log_level_t ScrobLogLevel(void);
 __private_extern__ void SetScrobLogLevel(scrob_log_level_t level);
 
-extern void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
+ISEXPORT void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
 #define ScrobLog(level, fmt, ...) do { \
     if (level <= ScrobLogLevel()) \
         ScrobLogMsg(level, fmt, ## __VA_ARGS__); \
@@ -45,10 +45,5 @@ extern void ScrobLogMsg(scrob_log_level_t level, NSString *fmt, ...);
 
 // ScrobLogCreateFlags
 #define SCROB_LOG_OPT_SESSION_MARKER 0x00000001
-#ifndef ISDEBUG
-__private_extern__
-#else
-extern
-#endif
-NSFileHandle* ScrobLogCreate(NSString *name, unsigned flags, unsigned limit);
+__private_extern__ void ScrobLogCreate(NSString *name, unsigned flags, unsigned limit);
 __private_extern__ void ScrobLogTruncate(void);

@@ -13,6 +13,8 @@
 #define MAC_OS_X_VERSION_10_6 1060
 #endif
 
+#define ISEXPORT __attribute__((visibility("default")))
+
 #ifdef __OBJC__
 #import <Cocoa/Cocoa.h>
 #import "ScrobLog.h"
@@ -75,8 +77,6 @@ extern CGFloat isUtilityWindowAlpha;
 #endif
 
 #endif // OBJC
-
-#define ISEXPORT __attribute__((visibility("default")))
 
 #if defined(__ppc__) || defined(__ppc64__)
 #define IS_BADADDR (void*)0xdeadbeefUL

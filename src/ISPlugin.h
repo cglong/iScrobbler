@@ -8,7 +8,7 @@
 //  Released under the GPL, license details available in res/gpl.txt
 //
 
-
+ISEXPORT_CLASS
 @protocol ISPluginProxy
 
 - (NSBundle*)applicationBundle;
@@ -19,6 +19,7 @@
 
 @end
 
+ISEXPORT_CLASS
 @protocol ISPlugin
 
 - (id)initWithAppProxy:(id<ISPluginProxy>)proxy;

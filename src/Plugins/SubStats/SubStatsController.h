@@ -8,6 +8,7 @@
 //
 #import <Cocoa/Cocoa.h>
 
+ISEXPORT_CLASS
 @interface SubStatsController : NSWindowController
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 <NSWindowDelegate>
