@@ -342,8 +342,6 @@ __private_extern__ BOOL version3;
     do {
         @try {
         [[NSRunLoop currentRunLoop] acceptInputForMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-        
-        [self performSelector:@selector(scrub:) withObject:nil];
         } @catch (NSException *e) {
             ScrobLog(SCROB_LOG_TRACE, @"[sessionManager:] uncaught exception: %@", e);
         }
@@ -1197,6 +1195,8 @@ __private_extern__ BOOL version3;
 - (void)setNeedsScrub:(BOOL)needsScrub // XXX: ignored
 {
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"DBNeedsScrub"];
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(scrub:) object:nil];
+    [self performSelector:@selector(scrub:) withObject:nil afterDelay:600.0];
 }
 
 - (void)updateLastfmSession:(NSTimer*)t
@@ -1469,6 +1469,8 @@ __private_extern__ BOOL version3;
     
     [[PersistentProfile sharedInstance] setImportInProgress:YES];
     
+    static NSUInteger exceptionCount = 0;
+    
     NSEnumerator *en;
     NSManagedObject *moSong;
     NSMutableArray *addedSongs = [NSMutableArray array];
@@ -1484,8 +1486,20 @@ __private_extern__ BOOL version3;
     }
     
     } @catch (id e) {
-        ScrobLog(SCROB_LOG_ERR, @"processingSongPlays: exception %@", e);
+        // On 10.6.1, I've seen rare I/O exceptions "SQL Error 14: unable to open database"
+        ++exceptionCount;
+        [moc rollback];
+        if (exceptionCount <= 2) {
+            [self performSelector:@selector(processSongPlays:) withObject:queue afterDelay:15.0 * (double)exceptionCount];
+            ScrobLog(SCROB_LOG_ERR, @"processSongPlays: exception %@", e);
+        } else {
+            exceptionCount = 0;
+            ScrobLog(SCROB_LOG_ERR, @"processSongPlays: songs lost due to exception %@", e);
+        }
+        return;
     }
+    
+    exceptionCount = 0;
     
     [[PersistentProfile sharedInstance] setImportInProgress:NO];
     (void)[[PersistentProfile sharedInstance] save:moc];

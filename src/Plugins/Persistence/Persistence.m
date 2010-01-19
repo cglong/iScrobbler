@@ -123,23 +123,36 @@ __private_extern__ BOOL version3 = NO;
 {
     NSError *error;
     NSSet *updateObjects = notify ? [[moc updatedObjects] valueForKey:@"objectID"] : nil;
-    if ([moc save:&error]) {
-        if (notify)
-            [self performSelectorOnMainThread:@selector(profileDidChangeWithUpdatedObjects:) withObject:updateObjects waitUntilDone:NO];
-        if (failure)
-            failure = nil;
-        return (YES);
-    } else {
-        if (failure)
-            *failure = error;
-        NSString *title = NSLocalizedStringFromTableInBundle(@"Local Charts Could Not Be Saved", nil, [NSBundle bundleForClass:[self class]], "");
-        NSString *msg = NSLocalizedStringFromTableInBundle(@"The local charts database could not be saved. This may be an indication of corruption. See the log file for more information.", nil, [NSBundle bundleForClass:[self class]], "");
-        [self displayErrorWithTitle:title message:msg];
+    int retries = 0;
+    do {
+        if ([moc save:&error]) {
+            if (notify)
+                [self performSelectorOnMainThread:@selector(profileDidChangeWithUpdatedObjects:) withObject:updateObjects waitUntilDone:NO];
+            if (failure)
+                failure = nil;
+            return (YES);
+        }
         
-        ScrobLog(SCROB_LOG_ERR, @"failed to save persistent db (%@ -- %@)", error,
-            [[error userInfo] objectForKey:NSDetailedErrorsKey]);
-        [moc rollback];
-    }
+        // An error can occur if Time Machine is backing up our DB at the moment we try to save.
+        ++retries;
+        if (retries <= 2 && NO == [NSThread isMainThread]) {
+            ScrobLog(SCROB_LOG_WARN, @"failed to save persistent db (%@ -- %@) - retrying in %d seconds", error,
+                [[error userInfo] objectForKey:NSDetailedErrorsKey], retries * 5);
+            sleep(retries * 5);
+        } else
+            break;
+    } while (1);
+
+    ISASSERT(!saved, "invalid state");
+    if (failure)
+        *failure = error;
+    NSString *title = NSLocalizedStringFromTableInBundle(@"Local Charts Could Not Be dd", nil, [NSBundle bundleForClass:[self class]], "");
+    NSString *msg = NSLocalizedStringFromTableInBundle(@"The local charts database could not be saved. This may be an indication of corruption. See the log file for more information.", nil, [NSBundle bundleForClass:[self class]], "");
+    [self displayErrorWithTitle:title message:msg];
+    
+    ScrobLog(SCROB_LOG_ERR, @"failed to save persistent db (%@ -- %@)", error,
+        [[error userInfo] objectForKey:NSDetailedErrorsKey]);
+    [moc rollback];
     return (NO);
 }
 
@@ -1068,7 +1081,7 @@ __private_extern__ BOOL version3 = NO;
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DBOptimize"]) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DBOptimize"];
             storeOptions = [NSDictionary dictionaryWithObjectsAndKeys:
-                [NSNumber numberWithBool:YES], NSSQLiteAnalyzeOption,
+                //[NSNumber numberWithBool:YES], NSSQLiteAnalyzeOption,
                 [NSNumber numberWithBool:YES], NSSQLiteManualVacuumOption,
                 nil];
             ScrobLog(SCROB_LOG_TRACE, @"Database optimization task will run.");
