@@ -25,8 +25,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface BBNetUpdateVersionCheckController : NSWindowController
-{
+@interface BBNetUpdateVersionCheckController : NSWindowController {
     IBOutlet id boxDontCheck;
     IBOutlet id buttonDownload;
     IBOutlet id fieldMoreInfo;
@@ -38,7 +37,7 @@
     NSMutableData *verData;
     NSDictionary *verInfo;
     NSString *bundleName;
-    BOOL checkingVersion, _interact, _didDownload, installSelf;
+    BOOL checkingVersion, _interact, _didDownload, installSelf, appDataOnly;
 }
 
 // 'appName' can (and probably should) be nil. If it is, the app bundle will be queried
@@ -51,8 +50,15 @@
 
 - (IBAction)download:(id)sender;
 
+// This is an alternative to [checkForNewVersion:interact:].
+// It performs the same as the latter, except the version data is ignored.
+// Instead it simply passes on any new application data via the BBNetUpdateHasApplicationData notification
++ (void)checkForApplicationData;
+
 @end
 
-// Download finished notification
-__private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck;
-__private_extern__ NSString *BBNetUpdateWillInstallUpdateAndRelaunch;
+// Update notifications
+__private_extern__ NSString* const BBNetUpdateDidFinishUpdateCheck;
+__private_extern__ NSString* const BBNetUpdateWillInstallUpdateAndRelaunch;
+// App specific data - not interpreted by the updater.
+__private_extern__ NSString* const BBNetUpdateHasApplicationData;

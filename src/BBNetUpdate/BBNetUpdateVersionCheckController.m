@@ -24,6 +24,8 @@
 * $Id$
 */
 
+#import <sys/sysctl.h>
+
 #import "BBNetUpdateVersionCheckController.h"
 #import "BBNetUpdateAskController.h"
 #import "BBNetUpdateDownloadController.h"
@@ -32,10 +34,33 @@ static UInt32 BBCFVersionNumberFromString(CFStringRef);
 
 static BBNetUpdateVersionCheckController *gVCInstance = nil;
 
-__private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidFinishUpdateCheck";
+static NSString* const currentArchitechture =
+    
+    // PowerPC 64 is dead as of 10.6 and PowerPC 32 is on life-support
+    #if defined(__x86_64__)
+    @"Intel 64-bit"
+    #elif defined(__i386__)
+    @"Intel"
+    #elif defined(__ppc__) || defined(__ppc64__)
+    @"PowerPC"
+    #else
+    @"Unknown"
+    #endif
+    ;
+
+__private_extern__ NSString* const BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidFinishUpdateCheck";
+__private_extern__ NSString* const BBNetUpdateHasApplicationData = @"BBNetUpdateHasApplicationData";
 #define HTTP_DATE_FMT_RAW @"%a, %d %b %Y %H:%M:%S %Z"
 
 @implementation BBNetUpdateVersionCheckController
+
+NS_INLINE void createController()
+{
+    if (!gVCInstance) {
+        gVCInstance = [[BBNetUpdateVersionCheckController alloc] initWithWindowNibName:@"BBNetUpdateVersionCheck"];
+        [gVCInstance setWindowFrameAutosaveName:@"BBNetUpdateVersionCheck"];
+    }
+}
 
 + (void)checkForNewVersion:(NSString*)appName interact:(BOOL)interact
 {
@@ -44,24 +69,18 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    if (dontCheck && !interact)
       return;
    
-   if (!gVCInstance) {
-      gVCInstance =
-         [[BBNetUpdateVersionCheckController alloc] initWithWindowNibName:@"BBNetUpdateVersionCheck"];
-      if (!gVCInstance) {
-         NSBeep();
-         return;
-      }
-      
-      [gVCInstance setWindowFrameAutosaveName:@"BBNetUpdateVersionCheck"];
-   }
+    createController();
+    if (!gVCInstance) {
+        NSBeep();
+        return;
+    }
    
    if (![gVCInstance isWindowLoaded]) {
       // Load it
       (void)[gVCInstance window];
    }
    
-   if ([(gVCInstance->progressBar) respondsToSelector:@selector(setDisplayedWhenStopped:)])
-      [(gVCInstance->progressBar) setDisplayedWhenStopped:NO];
+    [(gVCInstance->progressBar) setDisplayedWhenStopped:NO];
    
    if (!gVCInstance->bundleName) {
        if (!appName)
@@ -74,6 +93,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    gVCInstance->_interact = interact;
    gVCInstance->_didDownload = NO;
    gVCInstance->checkingVersion = YES;
+   gVCInstance->appDataOnly = NO;
    
    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"BBNetUpdateDontAskConnect"] && !interact) {
       gVCInstance->_interact = YES;
@@ -81,6 +101,15 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    }
    else
       [gVCInstance performSelector:@selector(connect:) withObject:nil];
+}
+
++ (void)checkForApplicationData
+{
+    createController();
+    gVCInstance->checkingVersion = YES;
+    gVCInstance->_interact = NO;
+    gVCInstance->appDataOnly = YES;
+    [gVCInstance performSelector:@selector(connect:) withObject:nil];
 }
 
 + (BOOL)isCheckInProgress
@@ -108,20 +137,6 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     if (!build)
         build = ver;
     
-    NSString *arch =
-        #ifdef __ppc__
-        @"PPC"
-        #elif defined(__i386__)
-        @"Intel"
-        #elif defined(__x86_64__)
-        @"Intel 64-bit"
-        #elif defined(__ppc64__)
-        @"PPC 64-bit"
-        #else
-        @"Unknown"
-        #endif
-        ;
-    
     SInt32 majorVer = 0, minorVer = 0, bugFixVer = 0; 
     // These selectors will fail in 10.3.x
     Gestalt(gestaltSystemVersionMajor, &majorVer);
@@ -132,7 +147,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     [name replaceOccurrencesOfString:@" " withString:@"_" options:0 range:NSMakeRange(0, [name length])];
     
     NSString *agent = [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; %@ Mac OS X %d_%d_%d;) %@/%@(%@)",
-        arch,
+        currentArchitechture,
         majorVer, minorVer, bugFixVer,
         name,
         ver, build];
@@ -157,6 +172,13 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
    NSURL *url = [NSURL URLWithString:[[NSDictionary dictionaryWithContentsOfFile:
          [[NSBundle mainBundle] pathForResource:@"BBNetUpdateConfig" ofType:@"plist"]]
          objectForKey:@"BBNetUpdateDownloadInfoURL"]];
+    #if 0
+    // Brute force testing
+    if ((verData = [[NSData dataWithContentsOfFile:@"/tmp/update.plist"] retain])) {
+        [self connectionDidFinishLoading:nil];
+        return;
+    }
+    #endif
    
    if (!url) {
       checkingVersion = NO;
@@ -180,6 +202,10 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
             timeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"] locale:nil];
         [request setValue:since forHTTPHeaderField:@"If-Modified-Since"]; // conditonal load
     }
+    
+    // Auto gzip decompression is available in at least 10.4, possibly 10.3.
+    // We do have to set the header manually though (as of 10.5).
+    [request addValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];
 
     [connection cancel];
     [connection release];
@@ -282,6 +308,38 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     }
 }
 
+- (BOOL)isCurrentArchitectureSupported:(NSArray*)a
+{
+    if (!a || 0 == [a count])
+        return (YES);
+    
+    NSSet *archs = [NSSet setWithArray:a];
+    
+    // XXX: only native execution is supported (e.g. PPC on Intel will likely return undesirable results)
+    NSSet *supportedArchs;
+    #if defined(__x86_64__)
+    supportedArchs = [NSSet setWithObjects:@"x86_64", @"i386", nil];
+    #elif defined(__i386__)
+    u_int32_t has64bit;
+	size_t len = sizeof(has64bit);
+	if (-1 == sysctlbyname("hw.cpu64bit_capable", &has64bit, &len, NULL, 0)) { // 10.5+ only
+        // 10.4 - these won't be present on 32bit machines
+        if (-1 == sysctlbyname("hw.optional.x86_64", &has64bit, &len, NULL, 0))
+            has64bit = 0;
+    }
+    if (has64bit)
+        supportedArchs = [NSSet setWithObjects:@"x86_64", @"i386", nil];
+    else
+        supportedArchs = [NSSet setWithObject:@"i386"];
+    #elif defined(__ppc__) || defined(__ppc64__)
+    supportedArchs = [NSSet setWithObject:@"ppc"];
+    #else
+    #error "Unknown architechture"
+    #endif
+    
+    return ([supportedArchs intersectsSet:archs]);
+}
+
 - (void)connectionDidFinishLoading:(NSURLConnection *)conn
 {
     NSMutableData *data = [verData autorelease];
@@ -300,12 +358,24 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
       if (verInfo) {
          NSString *title, *moreInfo, *newVer, *netVer, *curVer;
          
+        id appData = [verInfo objectForKey:@"AppData"];
+        if (appData) {
+            @try {
+            [[NSNotificationCenter defaultCenter] postNotificationName:BBNetUpdateHasApplicationData object:appData];
+            } @catch (NSException *e) {}
+        }
+        
+        if (appDataOnly) {
+            [verData release]; verData = nil;
+            return; // XXX: BBNetUpdateLastCheck is not updated
+        }
+         
          @try {
          NSNumber *rver = [verInfo objectForKey:@"MinFoundationVer"];
          if (rver) {
             requiredVer = [rver doubleValue];
          }
-         } @catch (id e) {}
+         } @catch (NSException *e) {}
          
          if (!(curVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"BBNetUpdateVersion"]))
             curVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -328,9 +398,21 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
                 newVer = NSLocalizedString(@"A new version is available, but it requires a later version of Mac OS X to install.", "");
 
             [verInfo release]; verInfo = nil;
+         } else if (NO == [self isCurrentArchitectureSupported:[verInfo objectForKey:@"SupportedArchitectures"]]) {
+            display = _interact; // only display the dialog if the user initiated the check
+            [buttonDownload setTitle:@"OK"];
+            title = NSLocalizedString(@"Machine Not Supported", "");
+            if (netVer) {
+                newVer = [NSString stringWithFormat:
+                    NSLocalizedString(@"A new version is available (%@), but it does not support %@ machines.", ""),
+                    netVer,
+                    currentArchitechture];
+            } else
+                newVer = NSLocalizedString(@"A new version is available, but it does not support this machine.", "");
+
+            [verInfo release]; verInfo = nil;
          } else if (curVer && netVer &&
-            (BBCFVersionNumberFromString((CFStringRef)curVer) <
-               BBCFVersionNumberFromString((CFStringRef)netVer))) {
+            (BBCFVersionNumberFromString((CFStringRef)curVer) < BBCFVersionNumberFromString((CFStringRef)netVer))) {
             
             NSString *fmt;
             if (installSelf)
@@ -403,7 +485,7 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
     // Alert the user
     NSBeginAlertSheet(NSLocalizedString(@"Update Error", @""),
       @"OK", nil, nil, [super window], self, nil, nil, nil,
-    NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [reason localizedDescription]);
+    NSLocalizedString(@"An update error has occured, the update has been canceled. Reason: '%@'", @""), [reason localizedDescription]);
     
     }
     
@@ -438,6 +520,11 @@ __private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck = @"BBNetUpdateDidF
         if (NO == [[NSFileManager defaultManager] isWritableFileAtPath:pathToParent])
             installSelf = NO;
     }
+}
+
+- (NSString*)windowFrameAutosaveName
+{
+    return (@"BBNetUpdateVersionCheckController");
 }
 
 // Sheet handlers

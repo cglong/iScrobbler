@@ -28,7 +28,7 @@
 #import <sys/fcntl.h>
 #import <sys/stat.h>
 #import <unistd.h>
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
+
 #import <CommonCrypto/CommonDigest.h>
 #define SHA_DIGEST_LENGTH CC_SHA1_DIGEST_LENGTH
 #define SHA_CTX CC_SHA1_CTX
@@ -41,23 +41,12 @@
 #define MD5_Init CC_MD5_Init
 #define MD5_Update CC_MD5_Update
 #define MD5_Final CC_MD5_Final
-#else
-#import <openssl/sha.h>
-#import <openssl/md5.h>
-// We define our own prototypes, because the CommonCrypto ones are explicitly
-// marked extern which prevents them from being weak linked.
-typedef unsigned char CC_SHA512_CTX[256];
-#define CC_SHA512_DIGEST_LENGTH		64			/* digest length in bytes */
-extern int CC_SHA512_Init(CC_SHA512_CTX *c)  __attribute__((weak_import));
-extern int CC_SHA512_Update(CC_SHA512_CTX *c, const void *data, uint32_t len)  __attribute__((weak_import));
-extern int CC_SHA512_Final(unsigned char *md, CC_SHA512_CTX *c)  __attribute__((weak_import));
-#endif
 
 #import "BBNetUpdateVersionCheckController.h"
 #import "BBNetUpdateDownloadController.h"
 
-__private_extern__ NSString *BBNetUpdateDidFinishUpdateCheck;
-__private_extern__ NSString *BBNetUpdateWillInstallUpdateAndRelaunch = @"BBNetUpdateWillInstallUpdateAndRelaunch";
+__private_extern__ NSString* const BBNetUpdateDidFinishUpdateCheck;
+__private_extern__ NSString* const BBNetUpdateWillInstallUpdateAndRelaunch = @"BBNetUpdateWillInstallUpdateAndRelaunch";
 
 static BBNetUpdateDownloadController *gDLInstance = nil;
 
@@ -67,19 +56,19 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
 
 + (void)downloadTo:(NSString*)file from:(NSString*)url withHashInfo:(NSDictionary*)hash
 {
-    timeMonikers[0] = NSLocalizedString(@"seconds", @"");
-    timeMonikers[1] = NSLocalizedString(@"minutes", @"");
-    timeMonikers[2] = NSLocalizedString(@"hours", @"");
-        
-   if (!gDLInstance) {
-      gDLInstance = [[BBNetUpdateDownloadController alloc] initWithWindowNibName:@"BBNetUpdateDownload"];
-      if (!gDLInstance) {
+    if (!gDLInstance) {
+        timeMonikers[0] = NSLocalizedString(@"seconds", @"");
+        timeMonikers[1] = NSLocalizedString(@"minutes", @"");
+        timeMonikers[2] = NSLocalizedString(@"hours", @"");
+      
+        gDLInstance = [[BBNetUpdateDownloadController alloc] initWithWindowNibName:@"BBNetUpdateDownload"];
+        if (!gDLInstance) {
          NSBeep();
          return;
-      }
-      
-      [gDLInstance setWindowFrameAutosaveName:@"BBNetUpdateDownload"];
-   }
+        }
+
+        [gDLInstance setWindowFrameAutosaveName:@"BBNetUpdateDownload"];
+    }
    
    @try {
    gDLInstance->_url = [[NSURL alloc] initWithString:url];
@@ -490,7 +479,7 @@ static NSString* timeMonikers[] = {@"seconds", @"minutes", @"hours", nil};
         NSLocalizedString(@"Update Error", @""),
         @"OK", nil, nil, [super window],
         self, @selector(endAlertSheet:returnCode:contextInfo:), nil, (void*)-1,
-        NSLocalizedString(@"An update error has occured, the update has been cancelled. Reason: '%@'", @""), [error localizedDescription]);
+        NSLocalizedString(@"An update error has occured, the update has been canceled. Reason: '%@'", @""), [error localizedDescription]);
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"BBNetUpdateLastCheck"];
 }
 
