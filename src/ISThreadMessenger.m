@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/16/2007.
-//  Copyright 2007,2008 Brian Bergstrand.
+//  Copyright 2007,2008,2010 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -40,9 +40,7 @@ typedef struct ISThreadMsg {
     [msgQLock lock];
     @try {
     
-    NSEnumerator *en = [msgQueue objectEnumerator];
-    NSPortMessage *portMsg;
-    while ((portMsg = [en nextObject])) {
+    for (NSPortMessage *portMsg in msgQueue) {
         if (YES == [portMsg sendBeforeDate:[NSDate dateWithTimeIntervalSinceNow:MSG_TIMEOUT]]) {
             [sent addObject:portMsg];
         } else

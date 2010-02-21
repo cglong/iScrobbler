@@ -22,7 +22,7 @@
 __private_extern__ dispatch_queue_t sqdq = NULL;
 static void __attribute__((constructor)) sqdq_constructor(void)
 {
-    sqdq = dispatch_queue_create("org.bergstrand.qmanager", NULL);
+    sqdq = dispatch_queue_create("org.bergstrand.isqmanager", NULL);
 }
 
 static QueueManager *g_QManager = nil;
@@ -100,13 +100,10 @@ static QueueManager *g_QManager = nil;
 
 - (QueueResult_t)queueSong:(SongData*)song submit:(BOOL)submit
 {
-    SongData *found;
-    NSEnumerator *en = [songQueue objectEnumerator];
-    
     if ([song isLastFmRadio] && NO == [[ISRadioController sharedInstance] scrobbleRadioPlays]) {
         return (kqSuccess);
     }
-    // We have to subit radio plays ourself when using the xspf protocol, so let them fall through
+    // We have to submit radio plays ourself when using the xspf protocol, so let them fall through
     
     if (![song canSubmit]) {
         ScrobLog(SCROB_LOG_TRACE, @"Track '%@ [%@ of %@]' failed submission rules. Not queuing.\n",
@@ -119,7 +116,8 @@ static QueueManager *g_QManager = nil;
         return (kqIsQueued);
     }
     
-    while ((found = [en nextObject])) {
+    SongData *found;
+    for (found in songQueue) {
         if ([found isEqualToSong:song])
             break;
     }
@@ -189,9 +187,7 @@ static QueueManager *g_QManager = nil;
 - (BOOL)isSongQueued:(SongData*)song unique:(BOOL)unique
 {
     SongData *found;
-    NSEnumerator *en = [songQueue objectEnumerator];
-    
-    while ((found = [en nextObject])) {
+    for (found in songQueue) {
         if ([found isEqualToSong:song]) {
             if (unique && ![[found songID] isEqualToNumber:[song songID]])
                 continue;
@@ -293,10 +289,7 @@ static QueueManager *g_QManager = nil;
 {
     NSMutableArray *songs = [NSMutableArray array];
     NSDictionary *songData;
-    SongData *song;
-    NSEnumerator *en = [songQueue objectEnumerator];
-    
-    while ((song = [en nextObject])) {
+    for (SongData *song in songQueue) {
         if ((songData = [song songData]))
             [songs addObject:songData];
         else
@@ -402,10 +395,8 @@ static QueueManager *g_QManager = nil;
         if (queuePath) {
             NSArray *pCache = [self restoreQueueWithPath:queuePath];
             if ([pCache count]) {
-                NSEnumerator *en = [pCache objectEnumerator];
                 SongData *song;
-                NSDictionary *data;
-                while ((data = [en nextObject])) {
+                for (NSDictionary *data in pCache) {
                     song = [[SongData alloc] init];
                     if ([song setSongData:data]) {
                         ScrobLog(SCROB_LOG_VERBOSE, @"Restoring '%@' from persistent store.\n", [song brief]);
