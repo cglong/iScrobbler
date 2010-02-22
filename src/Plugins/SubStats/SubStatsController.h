@@ -25,4 +25,4 @@ ISEXPORT_CLASS
 
 @end
 
-#define ISSUBSTATS_WINDOW_OPEN @"builtin.SubStats.WindowOpen"
+#define ISSUBSTATS_WINDOW_OPEN @"builtin_SubStats_WindowOpen"

@@ -142,8 +142,7 @@ __private_extern__ BOOL version3 = NO;
         } else
             break;
     } while (1);
-
-    ISASSERT(!saved, "invalid state");
+    
     if (failure)
         *failure = error;
     NSString *title = NSLocalizedStringFromTableInBundle(@"Local Charts Could Not Be dd", nil, [NSBundle bundleForClass:[self class]], "");
@@ -1176,8 +1175,9 @@ static PersistentProfile *shared = nil;
     shared = self;
     mProxy = proxy;
 
-#ifdef ISDEBUG
-    mLog = [ScrobLogCreate(@"ISPersistence.log", 0, 1) retain];
+#if 0
+    __private_extern__ NSFileHandle* ScrobLogCreate_(NSString*, unsigned, unsigned);
+    mLog = [ScrobLogCreate_(@"ISPersistence.log", 0, 1) retain];
 #endif
     
     return (self);
