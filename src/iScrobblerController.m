@@ -823,7 +823,9 @@ player_info_exit:
         // Request the password during launch, so any confirmation prompt is shown now.
         [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(authDidChange:) name:iScrobblerAuthenticationDidChange object:nil];
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
         (void)[self lastfmCredential];
+        });
         
         // Create queue mgr
         (void)[QueueManager sharedInstance];
