@@ -3,13 +3,14 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/1/2007.
-//  Copyright 2007,2008 Brian Bergstrand.
+//  Copyright 2007-2010 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
 
 #import "ISPluginController.h"
 #import "ISPlugin.h"
+#import "ProtocolManager.h"
 
 static NSMutableArray *allPlugins = nil;
 
@@ -146,6 +147,11 @@ static NSMutableArray *allPlugins = nil;
     NSMenuItem *plugRoot = [appMenu itemWithTag:PLUGINS_MENUITEM_TAG];
     
     [appMenu insertItem:item atIndex:[appMenu indexOfItem:plugRoot]];
+}
+
+- (BOOL)isNetworkAvailable
+{
+    return ([[ProtocolManager sharedInstance] isNetworkAvailable]);
 }
 
 // Singleton support

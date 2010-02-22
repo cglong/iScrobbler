@@ -3,7 +3,7 @@
 //  iScrobbler
 //
 //  Created by Brian Bergstrand on 10/1/2007.
-//  Copyright 2007,2008 Brian Bergstrand.
+//  Copyright 2007,2008,2010 Brian Bergstrand.
 //
 //  Released under the GPL, license details available in res/gpl.txt
 //
@@ -16,6 +16,8 @@ ISEXPORT_CLASS
 - (NSString*)nowPlayingNotificationName;
 
 - (void)addMenuItem:(NSMenuItem*)item;
+
+- (BOOL)isNetworkAvailable;
 
 @end
 
