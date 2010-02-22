@@ -143,6 +143,51 @@ static KeyChain* defaultKeyChain = nil;
     }
 }
 
+- (NSString*)internetPassswordForService:(NSString*)service account:(NSString**)account
+{
+    // SecKeychainAttributeInfoForItemID
+    
+    OSStatus ret;
+
+    if ([service length] == 0) {
+        return @"";
+    }
+    
+    const char *kcService = [service UTF8String];
+    void *data;
+    UInt32 len;
+    NSString *string = @"";
+    SecKeychainItemRef item;
+    ret = SecKeychainFindInternetPassword(NULL, (UInt32)strlen(kcService), kcService,
+        // security domain, account name, path, port
+        0, NULL, 0, NULL, 0, NULL, 0, kSecAuthenticationTypeAny, kSecAuthenticationTypeAny, &len, &data, &item);
+    if (noErr == ret) {
+        string = [[[NSString alloc] initWithBytes:data length:len encoding:NSUTF8StringEncoding] autorelease];
+        SecKeychainItemFreeContent(NULL, data);
+        
+        SecKeychainAttribute attr;
+        attr.tag = kSecAccountItemAttr;
+        attr.length = 0;
+        attr.data = NULL;
+        SecKeychainAttributeList attrs;
+        attrs.count = 1;
+        attrs.attr = &attr;
+        ret = SecKeychainItemCopyContent(item, NULL, &attrs, &len, &data);
+        if (noErr == ret && attrs.attr->data) {
+            if (account)
+                *account = [[[NSString alloc] initWithBytes:attrs.attr->data length:attrs.attr->length encoding:NSUTF8StringEncoding] autorelease];
+            SecKeychainItemFreeContent(&attrs, data);
+        }
+    }
+    #ifdef ScrobLog
+    else {
+        ScrobLog(SCROB_LOG_ERR, @"error retrieving internet password from keychain: '%@' (%d)",
+            [(NSString*)SecCopyErrorMessageString(ret, NULL) autorelease], ret);
+    }
+    #endif
+    return (string);
+}
+
 @end
 
 @implementation KeyChain (KeyChainPrivate)
