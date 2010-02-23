@@ -149,6 +149,9 @@ static KeyChain* defaultKeyChain = nil;
     
     OSStatus ret;
 
+    if (account)
+        *account = @"";
+    
     if ([service length] == 0) {
         return @"";
     }
