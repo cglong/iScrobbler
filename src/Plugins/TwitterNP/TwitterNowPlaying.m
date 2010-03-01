@@ -43,6 +43,8 @@
     NSMutableArray *lastnp = [[[ud arrayForKey:@"builtin_Twitter_lastnp"] mutableCopy] autorelease];
     if (nil == lastnp) {
         lastnp = [NSMutableArray array];
+    } else if ([lastnp containsObject:sid]) {
+        return; // duplicate tweet
     }
     
     [lastnp insertObject:sid atIndex:0];
@@ -165,8 +167,10 @@
 - (void)setStatus:(NSString*)msg
 {
     NSURL *url = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.xml"];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10.0];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20.0];
     [request setHTTPMethod:@"POST"];
+    msg = [(id)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)msg, NULL,
+        CFSTR(";/?:@&=$+{}<>,"), kCFStringEncodingUTF8) autorelease];
     msg = [@"status=" stringByAppendingString:msg];
     [request setHTTPBody:[msg dataUsingEncoding:NSUTF8StringEncoding]];
     
@@ -183,18 +187,24 @@
 {
     NSURL *url = [NSURL URLWithString:
         [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/destroy/%@.xml", sid]];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10.0];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20.0];
     [request setHTTPMethod:@"DELETE"];
-    (void)[NSURLConnection connectionWithRequest:request delegate:nil];
+    (void)[NSURLConnection connectionWithRequest:request delegate:self];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
+    if (conn != connection)
+        return;
+    
     [response appendData:data];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
+    if (conn != connection)
+        return;
+    
     NSString *sid = nil;
     NSUInteger len;
     if (response && (len = [response length]) > 0) {
@@ -224,6 +234,10 @@
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
+    //ScrobLog(SCROB_LOG_TRACE, @"twitter connection error: %@", error);
+    if (conn != connection)
+        return;
+    
     [delegate statusResult:nil];
     [response setLength:0];
     [conn release];
