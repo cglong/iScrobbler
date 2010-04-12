@@ -1437,6 +1437,9 @@ __private_extern__ BOOL version3;
     
 #ifndef REAP_DEBUG
     midnight = [midnight dateByAddingYears:0 months:0 days:1 hours:0 minutes:0 seconds:0];
+    // midnight can be different if a DST switch occurs at midnight
+    midnight = [NSCalendarDate dateWithYear:[midnight yearOfCommonEra] month:[midnight monthOfYear] day:[midnight dayOfMonth]
+        hour:0 minute:0 second:0 timeZone:[midnight timeZone]];
 #else
     midnight = [now dateByAddingYears:0 months:0 days:0 hours:1 minutes:0 seconds:0];
 #endif
