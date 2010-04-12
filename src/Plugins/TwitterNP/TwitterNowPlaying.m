@@ -60,7 +60,7 @@
 
 - (void)sendNowPlaying
 {
-    if ([mProxy isNetworkAvailable]) {
+    if (npSong && [mProxy isNetworkAvailable]) {
         if (!twitter) {
             NSString *pass, *user;
             pass = [[NSClassFromString(@"KeyChain") defaultKeyChain] internetPassswordForService:@"twitter.com" account:&user];
@@ -73,7 +73,11 @@
             twitter.delegate = self;
         }
     
-        static const NSInteger kTweetNPLimit = 140 - 12;
+        enum {
+            kTweetLimit = 140,
+            kTweetNPLimit = 140 - 12,
+            kMusicMondayLen = 13, //" #MusicMonday"
+        };
         
         NSString *msg = [NSString stringWithFormat:@"%@ - %@",
             [npSong title], [npSong artist]];
@@ -82,8 +86,15 @@
             if ([msg length] > kTweetNPLimit)
                 msg = [msg substringWithRange:NSMakeRange(0, kTweetNPLimit)];
         }
+        msg = [msg stringByAppendingString:@" #nowplaying"];
         
-        [twitter setStatus:[msg stringByAppendingString:@" #nowplaying"]];
+        NSCalendar *cal = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+        NSDateComponents *comps = [cal components:NSWeekdayCalendarUnit fromDate:[NSDate date]];
+        if (2 == [comps weekday] && ([msg length] + kMusicMondayLen) <= kTweetLimit) {
+            msg = [msg stringByAppendingString:@" #MusicMonday"];
+        }
+        
+        [twitter setStatus:msg];
     }
 }
 
@@ -169,7 +180,7 @@
     NSURL *url = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.xml"];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20.0];
     [request setHTTPMethod:@"POST"];
-    msg = [(id)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)msg, NULL,
+    msg = [(id)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)msg, NULL,
         CFSTR(";/?:@&=$+{}<>,"), kCFStringEncodingUTF8) autorelease];
     msg = [@"status=" stringByAppendingString:msg];
     [request setHTTPBody:[msg dataUsingEncoding:NSUTF8StringEncoding]];
